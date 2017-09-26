@@ -1,0 +1,4 @@
+
+node_modules/*
+view/templates/*.ejs
+tmp/*

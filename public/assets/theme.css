@@ -1,0 +1,76 @@
+@media (max-width: 767px) {
+
+    /*Hide logo on mobile*/
+    .main-header .logo {
+        display: none;
+    }
+    /*Fix Sidebar for style above*/
+    .main-sidebar{
+        padding-top: 54px;
+    }
+
+    /*Full Sidebar width on mobile*/
+    body.sidebar-open aside.main-sidebar {
+        width: 100%;
+    }
+
+    /*Align center pace mobile*/
+    .pace .pace-activity {
+        right: 50%;
+    }
+
+}
+
+/*AdminLte Fixes*/
+
+/*Bootstrap Fixes*/
+@media (min-width: 768px) {
+    .modal-fullscreen { 
+        width: auto;
+        margin: 10px;
+    }
+}
+div.btn-group-events .dropdown-menu > li > a {
+    padding: 3px 10px;
+}
+.checkbox {
+    padding: 0 3px;
+}
+
+/*Datatables*/
+.table-bordered {
+    border: 1px solid #ddd;
+}
+.table-bordered > thead > tr > th, .table-bordered > tbody > tr > th, .table-bordered > tfoot > tr > th, .table-bordered > thead > tr > td, .table-bordered > tbody > tr > td, .table-bordered > tfoot > tr > td {
+    border: 1px solid #ddd;
+}
+.dataTables_info{
+    /*float: left;*/
+}
+.dataTables_wrapper{
+    overflow-x: auto;
+}
+table.dataTable.compact thead th, table.dataTable.compact tbody td {
+    padding: 4px;
+}
+.btn-group-filter{
+    float: right;
+}
+span.totalize{
+    font-weight: bold;
+}
+
+/*Title Subviews*/
+h4.title_subview{
+    margin: 2px 0;
+    text-align: center;
+}
+/*Select2*/
+.form-group.has-error .select2-selection {
+    border-color: #dd4b39;
+    box-shadow: none;
+}
+.select2-selection:focus
+{
+    border-color: #3c8dbc;
+}

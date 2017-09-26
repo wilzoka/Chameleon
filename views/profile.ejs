@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <% include parts/head %>
+</head>
+
+<body class="skin-blue layout-top-nav">
+    <div class="wrapper">
+
+        <% include parts/nav %>
+
+
+            <div class="content-wrapper">
+                <div class="container">
+                    <section class="content-header">
+                        <h1>
+                            Profile
+                        </h1>
+                    </section>
+
+                    <section class="content">
+                        <form class="xhr" role="form" action="/profile">
+                            <input id="idthumbnail" type="hidden" name="idthumbnail" value="<%= idthumbnail %>">
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="box box-widget widget-user">
+                                        <div class="widget-user-header bg-aqua-active">
+                                            <h3 class="widget-user-username"><%= fullname %></h3>
+                                            <h5 class="widget-user-desc">CEO</h5>
+                                        </div>
+                                        <div class="widget-user-image">
+                                            <img id="thumbnail" class="img-circle" src="<%= thumbnail %>">
+                                        </div>
+                                        <div class="box-footer">
+                                            <div class="row">
+                                                <div class="col-sm-4 border-right">
+                                                    <div class="description-block">
+                                                        <h5 class="description-header">3,200</h5>
+                                                        <span class="description-text">Hosted</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4 border-right">
+                                                    <div class="description-block">
+                                                        <h5 class="description-header">13,000</h5>
+                                                        <span class="description-text">Rating</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <div class="description-block">
+                                                        <h5 class="description-header">35</h5>
+                                                        <span class="description-text">Rides</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="box box-primary">
+
+                                        <div class="box-header with-border">
+                                            <h3 class="box-title">Account Info</h3>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group">
+                                                <label>Email address</label>
+                                                <input name="email" type="email" class="form-control" value="<%= email %>" disabled>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>First Name</label>
+                                                <input name="firstname" type="text" class="form-control" value="<%= firstname %>" disabled>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Last Name</label>
+                                                <input name="lastname" type="text" class="form-control" value="<%= lastname %>" disabled>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="box box-success">
+
+                                        <div class="box-header with-border">
+                                            <h3 class="box-title">Personal Info</h3>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="form-group">
+                                                <label>Phone Number</label>
+                                                <input name="phonenumber1" type="text" class="form-control" value="<%= phonenumber1 %>">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button type="submit" class="btn btn-success">Save</button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </section>
+                </div>
+            </div>
+
+    </div>
+
+    <form class="xhrupload">
+        <input id="fileupload" class="hide" type="file" name="fileupload">
+    </form>
+
+    <% include parts/js %>
+
+        <script type="text/javascript">
+            $('.img-circle').click(function () {
+                $('#fileupload').trigger('click');
+            });
+
+            $('#fileupload').change(function (e) {
+                if (e.target.files.length <= 0)
+                    return;
+                $('form.xhrupload').submit();
+            });
+
+            $(document).on('form.xhrupload.success', function (e, response) {
+                $('#idthumbnail').val(response.data.id);
+                $('#thumbnail').attr('src', 'uploads/' + response.data.id + '.' + response.data.type);
+            });
+
+            $(document).on('form.xhr.success', function (e, response) {
+                notifySuccess(response.message);
+            });
+            $(document).on('form.xhr.error', function (e, response) {
+                notifyError(repsonse.responseText);
+            });
+        </script>
+</body>
+
+</html>
