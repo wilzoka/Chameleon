@@ -14,7 +14,7 @@ var fixResults = function (registers, modelattributes) {
     for (var i = 0; i < modelattributes.length; i++) {
 
         if (modelattributes[i].typeadd) {
-            json = JSON.parse(modelattributes[i].typeadd);
+            json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
         }
 
         let m;
@@ -141,7 +141,7 @@ module.exports = function (app) {
 
     app.get('/datatables', application.IsAuthenticated, function (req, res) {
 
-        db.getModel('view').find({ where: { id: req.query.view }, include: { all: true } }).then(view => {
+        db.getModel('view').find({ where: { id: req.query.idview }, include: { all: true } }).then(view => {
 
             db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } }).then(modelattributes => {
 
@@ -158,13 +158,13 @@ module.exports = function (app) {
                 var orderdir = req.query.order[0].dir;
                 for (var i = 0; i < modelattributes.length; i++) {
                     if (modelattributes[i].name == ordercolumn && modelattributes[i].type == 'autocomplete') {
-                        let json = JSON.parse(modelattributes[i].typeadd);
+                        let json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
                         let vas = json.as || json.model;
                         ordercolumn = db.Sequelize.literal(vas + '.' + json.attribute);
                     }
                 }
 
-                if (req.query.subview == 'true') {
+                if (req.query.issubview == 'true') {
 
                     db.getModel('modelattribute').find({
                         where: { idmodel: view.model.id, type: 'parent' }
@@ -176,7 +176,7 @@ module.exports = function (app) {
                             offset: req.query.start
                             , limit: req.query.length
                             , raw: true
-                            , include: [{ all: true, nested: true }]
+                            , include: [{ all: true }]
                             , where: where
                             , order: [[ordercolumn, orderdir]]
                         }).then(registers => {
@@ -247,21 +247,52 @@ module.exports = function (app) {
                     where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
                 }
 
-                db.getModel(view.model.name).sum(modelattribute.name, { where: where }).then(sum => {
+                if (req.query.issubview == 'true') {
 
-                    if (sum) {
-                        switch (modelattribute.type) {
-                            case 'decimal':
-                                sum = application.formatters.fe.decimal(sum, JSON.parse(modelattribute.typeadd).precision);
-                                break;
+                    db.getModel('modelattribute').find({
+                        where: { idmodel: view.model.id, type: 'parent' }
+                    }).then(modelattributeparent => {
+
+                        where[modelattributeparent.name] = req.query.id;
+
+                        db.getModel(view.model.name).sum(modelattribute.name, { where: where }).then(sum => {
+
+                            if (sum) {
+                                switch (modelattribute.type) {
+                                    case 'decimal':
+                                        sum = application.formatters.fe.decimal(sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
+                                        break;
+                                }
+                            }
+
+                            return application.success(res, { data: sum });
+
+                        }).catch(err => {
+                            return application.fatal(res, err);
+                        });
+
+                    });
+
+
+                } else {
+
+                    db.getModel(view.model.name).sum(modelattribute.name, { where: where }).then(sum => {
+
+                        if (sum) {
+                            switch (modelattribute.type) {
+                                case 'decimal':
+                                    sum = application.formatters.fe.decimal(sum, JSON.parse(modelattribute.typeadd).precision);
+                                    break;
+                            }
                         }
-                    }
 
-                    return application.success(res, { data: sum });
+                        return application.success(res, { data: sum });
 
-                }).catch(err => {
-                    return application.fatal(res, err);
-                });
+                    }).catch(err => {
+                        return application.fatal(res, err);
+                    });
+
+                }
 
             });
 

@@ -55,7 +55,7 @@ sequelize.query("SELECT m.name as model, ma.* FROM model m inner join modelattri
   for (var i = 0; i < results.length; i++) {
     var j = {};
     if (results[i].typeadd) {
-      j = JSON.parse(results[i].typeadd);
+      j = application.modelattribute.parseTypeadd(application.functions.singleSpace(results[i].typeadd));
     }
     switch (results[i].type) {
       case 'parent':

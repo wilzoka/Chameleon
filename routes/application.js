@@ -187,7 +187,10 @@ exports.formatters = {
 }
 
 exports.functions = {
-	getRealFunction: function (object, string) {
+	singleSpace: function (value) {
+		return value.replace(/\s\s+/g, ' ');
+	}
+	, getRealFunction: function (object, string) {
 		try {
 			var functionsplited = string.split('.');
 			var realfunction = object[functionsplited[0]];
@@ -227,6 +230,12 @@ exports.model = {
 	}
 	, delete: function (model, ids) {
 		return db.getModel(model).destroy({ where: { id: { $in: ids } } });
+	}
+}
+
+exports.modelattribute = {
+	parseTypeadd: function (value) {
+		return value ? JSON.parse(exports.functions.singleSpace(value)) : {};
 	}
 }
 

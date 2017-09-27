@@ -34,7 +34,7 @@ var renderTextArea = function (viewfield, register) {
     var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     value = escape(value);
 
-    var json = JSON.parse(viewfield.modelattribute.typeadd);
+    var json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
 
     var rows = 3;
     if (json && 'rows' in json) {
@@ -86,7 +86,7 @@ var renderDecimal = function (viewfield, register) {
 
     var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
 
-    var json = JSON.parse(viewfield.modelattribute.typeadd);
+    var json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
     precision = json.precision;
     if (value) {
         value = parseFloat(value);
@@ -116,7 +116,7 @@ var renderDecimal = function (viewfield, register) {
 var renderAutocomplete = function (viewfield, register) {
 
     var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
-    var json = JSON.parse(viewfield.modelattribute.typeadd);
+    var json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
     var datawhere = '';
     if ('where' in json) {
         datawhere = 'data-where="' + json.where + '"';
@@ -367,7 +367,7 @@ var validateModel = function (json, next) {
                 break;
             case 'decimal':
                 if (json.data[json.modelattributes[i].name]) {
-                    json.data[json.modelattributes[i].name] = application.formatters.be.decimal(json.data[json.modelattributes[i].name], JSON.parse(json.modelattributes[i].typeadd).precision);
+                    json.data[json.modelattributes[i].name] = application.formatters.be.decimal(json.data[json.modelattributes[i].name], application.modelattribute.parseTypeadd(json.modelattributes[i].typeadd).precision);
                     if (!json.data[json.modelattributes[i].name]) {
                         invalidfields.push(json.modelattributes[i].name);
                     }
@@ -721,7 +721,7 @@ module.exports = function (app) {
 
                                     var json = {};
                                     if (viewfields[i].modelattribute.typeadd) {
-                                        json = JSON.parse(viewfields[i].modelattribute.typeadd);
+                                        json = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                                     }
 
                                     switch (viewfields[i].modelattribute.type) {

@@ -432,8 +432,8 @@ var application = {
                         url: '/datatables'
                         , data: $.extend({}, data, {
                             id: application.functions.getId()
-                            , view: $(settings.nTable).attr('data-view')
-                            , subview: $(settings.nTable).attr('data-subview') || false
+                            , idview: $(settings.nTable).attr('data-view')
+                            , issubview: $(settings.nTable).attr('data-subview') || false
                         })
                         , success: function (response) {
                             callback(response);
@@ -514,7 +514,12 @@ var application = {
                     url: '/datatables/sum'
                     , type: 'GET'
                     , dataType: 'json'
-                    , data: { idview: $this.attr('data-view'), idmodelattribute: $this.attr('data-attribute') }
+                    , data: {
+                        id: application.functions.getId()
+                        , idview: $this.attr('data-view')
+                        , idmodelattribute: $this.attr('data-attribute')
+                        , issubview: $('#' + idtable).attr('data-subview') || false
+                    }
                     , success: function (response) {
                         if (response.success) {
                             $this.html(response.data);
