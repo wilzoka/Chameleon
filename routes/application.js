@@ -232,46 +232,104 @@ exports.model = {
 
 exports.components = {
 	html: {
-		hidden: function (obj) {// name value
+		hidden: function (obj) {
+			obj = lodash.extend({
+				name: ''
+				, value: ''
+			}, obj);
+
 			return '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">';
 		}
-		, text: function (obj) {// width label name value
+		, text: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, value: ''
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
 				+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
 				+ 'data-type="text" '
+				+ obj.disabled
 				+ '></div>'
 				+ '</div>';
 		}
-		, textarea: function (obj) {// width label name rows value
+		, textarea: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, rows: ''
+				, value: ''
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
-				+ '<textarea name="' + obj.name + '" rows="' + obj.rows + '" class="form-control" data-type="textarea">' + obj.value + '</textarea>'
+				+ '<textarea name="' + obj.name + '" rows="' + obj.rows + '" class="form-control" data-type="textarea" '
+				+ obj.disabled
+				+ '>'
+				+ obj.value
+				+ '</textarea>'
 				+ '</div>'
 				+ '</div>';
 		}
-		, integer: function (obj) {// width label name value
+		, integer: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, value: ''
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
 				+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
 				+ 'data-type="integer" '
+				+ obj.disabled
 				+ '></div>'
 				+ '</div>';
 		}
-		, decimal: function (obj) {// width label name value precision
+		, decimal: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, value: ''
+				, precision: '2'
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
 				+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
 				+ 'data-type="decimal" '
 				+ 'data-precision="' + obj.precision + '" '
+				+ obj.disabled
 				+ '></div>'
 				+ '</div>';
 		}
-		, autocomplete: function (obj) {// width label name disabled model attribute datawhere multiple option
+		, autocomplete: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, disabled: ''
+				, model: ''
+				, attribute: ''
+				, datawhere: ''
+				, multiple: ''
+				, option: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
@@ -286,41 +344,79 @@ exports.components = {
 				+ '</select></div>'
 				+ '</div>';
 		}
-		, date: function (obj) {// width label name value
+		, date: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, value: ''
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
 				+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
 				+ 'data-type="date" '
 				+ 'placeholder="dd/mm/aaaa" '
+				+ obj.disabled
 				+ '></div>'
 				+ '</div>';
 		}
-		, datetime: function (obj) {// width label name value
+		, datetime: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, value: ''
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
 				+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
 				+ 'data-type="datetime" '
 				+ 'placeholder="dd/mm/aaaa hh:mm" '
+				+ obj.disabled
 				+ '></div>'
 				+ '</div>';
 		}
-		, time: function (obj) {// width label name value
+		, time: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, label: ''
+				, name: ''
+				, value: ''
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="form-group">'
 				+ '<label>' + obj.label + '</label>'
 				+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
 				+ 'data-type="time" '
 				+ 'placeholder="hh:mm" '
+				+ obj.disabled
 				+ '></div>'
 				+ '</div>';
 		}
-		, checkbox: function (obj) {// width name checked label
+		, checkbox: function (obj) {
+			obj = lodash.extend({
+				width: ''
+				, name: ''
+				, checked: ''
+				, label: ''
+				, disabled: ''
+			}, obj);
+
 			return '<div class="col-md-' + obj.width + '">'
 				+ '<div class="checkbox"> '
 				+ '<label> '
-				+ '<input name="' + obj.name + '" type="checkbox" ' + obj.checked + '> ' + obj.label
+				+ '<input name="' + obj.name + '" type="checkbox" ' + obj.checked + ' '
+				+ obj.disabled
+				+ '> '
+				+ obj.label
 				+ '</label> '
 				+ '</div></div>';
 		}

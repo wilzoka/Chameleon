@@ -15,12 +15,17 @@ var renderText = function (viewfield, register) {
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
 
     return application.components.html.text({
         width: viewfield.width
         , label: label
         , name: viewfield.modelattribute.name
         , value: value
+        , disabled: disabled
     });
 }
 
@@ -40,6 +45,10 @@ var renderTextArea = function (viewfield, register) {
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
 
     return application.components.html.textarea({
         width: viewfield.width
@@ -47,6 +56,7 @@ var renderTextArea = function (viewfield, register) {
         , name: viewfield.modelattribute.name
         , rows: rows
         , value: value
+        , disabled: disabled
     });
 }
 
@@ -58,12 +68,17 @@ var renderInteger = function (viewfield, register) {
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
 
     return application.components.html.integer({
         width: viewfield.width
         , label: label
         , name: viewfield.modelattribute.name
         , value: value
+        , disabled: disabled
     });
 }
 
@@ -83,6 +98,10 @@ var renderDecimal = function (viewfield, register) {
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
 
     return application.components.html.decimal({
         width: viewfield.width
@@ -90,6 +109,7 @@ var renderDecimal = function (viewfield, register) {
         , name: viewfield.modelattribute.name
         , value: value
         , precision: precision
+        , disabled: disabled
     });
 }
 
@@ -99,7 +119,7 @@ var renderAutocomplete = function (viewfield, register) {
     var json = JSON.parse(viewfield.modelattribute.typeadd);
     var datawhere = '';
     if ('where' in json) {
-        datawhere = 'data-where="' + json.where + '" ';
+        datawhere = 'data-where="' + json.where + '"';
     }
 
     var option = '';
@@ -112,10 +132,9 @@ var renderAutocomplete = function (viewfield, register) {
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
-
     var disabled = '';
     if (viewfield.disabled) {
-        disabled = ' disabled="disabled"';
+        disabled = 'disabled="disabled"';
     }
 
     return application.components.html.autocomplete({
@@ -139,6 +158,10 @@ var renderDate = function (viewfield, register) {
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
 
     if (value) {
         let m = moment(value, 'YYYY-MM-DD');
@@ -150,6 +173,7 @@ var renderDate = function (viewfield, register) {
         , label: label
         , name: viewfield.modelattribute.name
         , value: value
+        , disabled: disabled
     });
 }
 
@@ -160,6 +184,10 @@ var renderDateTime = function (viewfield, register) {
     var label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
         label += '*';
+    }
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
     }
 
     if (value) {
@@ -172,6 +200,7 @@ var renderDateTime = function (viewfield, register) {
         , label: label
         , name: viewfield.modelattribute.name
         , value: value
+        , disabled: disabled
     });
 }
 
@@ -183,6 +212,10 @@ var renderTime = function (viewfield, register) {
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
 
     if (value) {
         value = application.formatters.fe.time(value);
@@ -193,12 +226,17 @@ var renderTime = function (viewfield, register) {
         , label: label
         , name: viewfield.modelattribute.name
         , value: value
+        , disabled: disabled
     });
 }
 
 var renderCheckbox = function (viewfield, register) {
 
     var label = viewfield.modelattribute.label;
+    var disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
     var checked = '';
     if (register && register[viewfield.modelattribute.name]) {
         checked = 'checked';
@@ -209,12 +247,13 @@ var renderCheckbox = function (viewfield, register) {
         , name: viewfield.modelattribute.name
         , checked: checked
         , label: label
+        , disabled: disabled
     });
 }
 
 var renderSubView = function (viewsubview) {
     return '<div class="col-md-' + viewsubview.width + '">'
-        + '<h4 class="title_subview">' + viewsubview.subview.name + '</h4>'
+        + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
         + '<table '
         + 'id="tableview' + viewsubview.idsubview + '" '
         + 'class="table table-bordered table-hover dataTable" '

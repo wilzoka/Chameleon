@@ -1,7 +1,7 @@
 var application = require('../routes/application')
   , Sequelize = require('sequelize')
   , sequelize = new Sequelize('chameleon', 'postgres', 'postgres', {
-    host: '172.10.30.18'
+    host: 'localhost'
     , dialect: 'postgres'
     , pool: {
       max: 5
