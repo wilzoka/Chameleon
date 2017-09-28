@@ -5,7 +5,7 @@
         display: none;
     }
     /*Fix Sidebar for style above*/
-    .main-sidebar{
+    .main-sidebar {
         padding-top: 54px;
     }
 
@@ -22,6 +22,16 @@
 }
 
 /*AdminLte Fixes*/
+.nav-tabs-custom{
+    border: 1px solid #d4d4d4;
+}
+.nav-tabs-custom > .nav-tabs {
+    border-bottom-color: #d4d4d4;
+}
+.nav-tabs-custom > .nav-tabs > li.active > a {
+    border-left-color: #d4d4d4;
+    border-right-color: #d4d4d4;
+}
 
 /*Bootstrap Fixes*/
 @media (min-width: 768px) {
@@ -44,24 +54,28 @@ div.btn-group-events .dropdown-menu > li > a {
 .table-bordered > thead > tr > th, .table-bordered > tbody > tr > th, .table-bordered > tfoot > tr > th, .table-bordered > thead > tr > td, .table-bordered > tbody > tr > td, .table-bordered > tfoot > tr > td {
     border: 1px solid #ddd;
 }
-.dataTables_info{
+.dataTables_info {
     /*float: left;*/
 }
-.dataTables_wrapper{
+.dataTables_wrapper {
     overflow-x: auto;
 }
 table.dataTable.compact thead th, table.dataTable.compact tbody td {
     padding: 4px;
 }
-.btn-group-filter{
+.btn-group-filter {
     float: right;
 }
-span.totalize{
+span.totalize {
     font-weight: bold;
 }
 
+/* ------ Custom Theme ------ */
+.nopadding {
+    padding: 0 !important;
+}
 /*Title Subviews*/
-h4.title_subview{
+h4.title_subview {
     margin: 2px 0;
     text-align: center;
 }
@@ -70,7 +84,6 @@ h4.title_subview{
     border-color: #dd4b39;
     box-shadow: none;
 }
-.select2-selection:focus
-{
+.select2-selection:focus {
     border-color: #3c8dbc;
 }

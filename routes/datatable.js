@@ -60,6 +60,11 @@ var fixResults = function (registers, modelattributes) {
                     }
                 }
                 break;
+            case 'virtual':
+                for (var x = 0; x < registers.rows.length; x++) {
+                    registers.rows[x][modelattributes[i].name] = registers.rows[x][json.field];
+                }
+                break;
         }
 
     }
@@ -70,7 +75,16 @@ var fixResults = function (registers, modelattributes) {
 var getFilter = function (cookie) {
     var obj = {};
 
+    var getVirtualField = function (value) {
+        value = value.split('.');
+        var last = value[value.length - 1];
+        value.splice(value.length - 1, 1);
+        return '"' + value.join('->') + '"."' + last + '"';
+    }
+
     cookie = JSON.parse(cookie);
+
+    console.log('cookie', cookie);
 
     let m;
     let v;
@@ -79,7 +93,7 @@ var getFilter = function (cookie) {
 
         for (var k in cookie[i]) {
 
-            var field = k.split('.');
+            var field = k.split('+');
 
             switch (field[1]) {
                 case 'date':
@@ -123,7 +137,19 @@ var getFilter = function (cookie) {
                 case 'r':
                     o['$eq'] = cookie[i][k];
                     break;
+
+                // Virtuals
+                case 'sv':
+                    o = db.Sequelize.literal(getVirtualField(field[0]) + "::text ilike '%" + cookie[i][k] + "%'");
+                    break;
+                case 'bv':
+                    o = db.Sequelize.literal(getVirtualField(field[0]) + " >= " + cookie[i][k]);
+                    break;
+                case 'ev':
+                    o = db.Sequelize.literal(getVirtualField(field[0]) + " <= " + cookie[i][k]);
+                    break;
             }
+
             if (o && obj[field[0]]) {
                 obj[field[0]] = lodash.extend(obj[field[0]], o);
             } else if (o) {
@@ -170,13 +196,15 @@ module.exports = function (app) {
                         where: { idmodel: view.model.id, type: 'parent' }
                     }).then(modelattributeparent => {
 
-                        where[modelattributeparent.name] = req.query.id;
+                        if (modelattributeparent) {
+                            where[modelattributeparent.name] = req.query.id;
+                        }
 
                         db.getModel(view.model.name).findAndCountAll({
                             offset: req.query.start
                             , limit: req.query.length
                             , raw: true
-                            , include: [{ all: true }]
+                            , include: [{ all: true, nested: view.virtual }]
                             , where: where
                             , order: [[ordercolumn, orderdir]]
                         }).then(registers => {
@@ -203,7 +231,7 @@ module.exports = function (app) {
                         offset: req.query.start
                         , limit: req.query.length
                         , raw: true
-                        , include: [{ all: true }]
+                        , include: [{ all: true, nested: view.virtual }]
                         , where: where
                         , order: [[ordercolumn, orderdir]]
                     }).then(registers => {

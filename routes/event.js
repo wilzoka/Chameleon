@@ -14,7 +14,7 @@ module.exports = function (app) {
 
             var custom = reload('../custom/functions');
 
-            var realfunction = application.functions.getRealFunction(custom, modelevent.function);
+            var realfunction = application.functions.getRealReference(custom, modelevent.function);
 
             if (realfunction) {
                 return realfunction({

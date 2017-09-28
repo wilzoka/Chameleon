@@ -16,7 +16,7 @@ var application = require('../routes/application')
 
 //Models
 var models = {};
-sequelize.query("SELECT m.name as model, ma.* FROM model m inner join modelattribute ma on (m.id = ma.idmodel) order by m.name", { type: sequelize.QueryTypes.SELECT }).then(results => {
+sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: sequelize.QueryTypes.SELECT }).then(results => {
 
   var modelname;
   var modelattributeobj = {};

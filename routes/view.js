@@ -284,6 +284,15 @@ var render = function (viewfield, register) {
             return renderInteger(viewfield, register);
         case 'decimal':
             return renderDecimal(viewfield, register);
+        case 'virtual':
+            var j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
+            return application.components.html.text({
+                width: viewfield.width
+                , label: viewfield.modelattribute.label
+                , value: application.functions.getRealReference(register, j.field)
+                , disabled: 'disabled="disabled"'
+            });
+            break;
     }
 }
 
@@ -451,7 +460,7 @@ var validateModel = function (json, next) {
 var onSaveModel = function (json, next) {
     if (json.view.model.onsave) {
         var custom = reload('../custom/functions');
-        application.functions.getRealFunction(custom, json.view.model.onsave)(json, next);
+        application.functions.getRealReference(custom, json.view.model.onsave)(json, next);
     } else {
         next(json);
     }
@@ -498,7 +507,7 @@ var saveModel = function (json, aftersavefunction) {
 var onDeleteModel = function (json, next) {
     if (json.view.model.ondelete) {
         var custom = reload('../custom/functions');
-        application.functions.getRealFunction(custom, json.view.model.ondelete)(json, next);
+        application.functions.getRealReference(custom, json.view.model.ondelete)(json, next);
     } else {
         next(json);
     }
@@ -701,10 +710,11 @@ module.exports = function (app) {
                                     }
                                 }
 
+                                var separator = '+';
                                 filter += application.components.html.integer({
                                     width: 6
                                     , label: 'ID - Inicial'
-                                    , name: 'id.integer.b'
+                                    , name: 'id' + separator + 'integer' + separator + 'b'
                                     , value: getFilterValue('id.integer.b', cookiefilter)
                                 });
 
@@ -717,7 +727,7 @@ module.exports = function (app) {
 
                                 for (var i = 0; i < viewfields.length; i++) {
 
-                                    var filtername = viewfields[i].modelattribute.name + '.' + viewfields[i].modelattribute.type;
+                                    var filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type;
 
                                     var json = {};
                                     if (viewfields[i].modelattribute.typeadd) {
@@ -727,7 +737,7 @@ module.exports = function (app) {
                                     switch (viewfields[i].modelattribute.type) {
                                         case 'text':
 
-                                            filtername += '.s';
+                                            filtername += separator + 's';
                                             filter += application.components.html.text({
                                                 width: 12
                                                 , label: viewfields[i].modelattribute.label
@@ -739,7 +749,7 @@ module.exports = function (app) {
 
                                         case 'textarea':
 
-                                            filtername += '.s';
+                                            filtername += separator + 's';
                                             filter += application.components.html.text({
                                                 width: 12
                                                 , label: viewfields[i].modelattribute.label
@@ -751,8 +761,8 @@ module.exports = function (app) {
 
                                         case 'integer':
 
-                                            var filterbegin = filtername + '.b';
-                                            var filterend = filtername + '.e';
+                                            var filterbegin = filtername + separator + 'b';
+                                            var filterend = filtername + separator + 'e';
 
                                             filter += application.components.html.integer({
                                                 width: 6
@@ -772,8 +782,8 @@ module.exports = function (app) {
 
                                         case 'date':
 
-                                            var filterbegin = filtername + '.b';
-                                            var filterend = filtername + '.e';
+                                            var filterbegin = filtername + separator + 'b';
+                                            var filterend = filtername + separator + 'e';
 
                                             filter += application.components.html.date({
                                                 width: 6
@@ -793,8 +803,8 @@ module.exports = function (app) {
 
                                         case 'datetime':
 
-                                            var filterbegin = filtername + '.b';
-                                            var filterend = filtername + '.e';
+                                            var filterbegin = filtername + separator + 'b';
+                                            var filterend = filtername + separator + 'e';
 
                                             filter += application.components.html.datetime({
                                                 width: 6
@@ -814,8 +824,8 @@ module.exports = function (app) {
 
                                         case 'time':
 
-                                            var filterbegin = filtername + '.b';
-                                            var filterend = filtername + '.e';
+                                            var filterbegin = filtername + separator + 'b';
+                                            var filterend = filtername + separator + 'e';
 
                                             filter += application.components.html.time({
                                                 width: 6
@@ -835,8 +845,8 @@ module.exports = function (app) {
 
                                         case 'decimal':
 
-                                            var filterbegin = filtername + '.b';
-                                            var filterend = filtername + '.e';
+                                            var filterbegin = filtername + separator + 'b';
+                                            var filterend = filtername + separator + 'e';
 
                                             filter += application.components.html.decimal({
                                                 width: 6
@@ -858,7 +868,7 @@ module.exports = function (app) {
 
                                         case 'autocomplete':
 
-                                            filtername += '.i';
+                                            filtername += separator + 'i';
                                             filter += application.components.html.autocomplete({
                                                 width: 12
                                                 , label: viewfields[i].modelattribute.label
@@ -878,7 +888,7 @@ module.exports = function (app) {
                                             var name = viewfields[i].modelattribute.name;
                                             var type = viewfields[i].modelattribute.type;
                                             var label = viewfields[i].modelattribute.label;
-                                            filtername = name + '.' + type + '.r';
+                                            filtername = name + separator + type + separator + 'r';
                                             var value = getFilterValue(filtername, cookiefilter);
 
                                             var html = '<div class="col-md-12">'
@@ -908,6 +918,44 @@ module.exports = function (app) {
                                                 + '</div>';
 
                                             filter += html;
+
+                                            break;
+
+                                        case 'virtual':
+                                            filtername = json.field + separator + json.type;
+                                            switch (json.type) {
+                                                case 'text':
+
+                                                    filtername += separator + 'sv';
+                                                    filter += application.components.html.text({
+                                                        width: 12
+                                                        , label: viewfields[i].modelattribute.label
+                                                        , name: filtername
+                                                        , value: getFilterValue(filtername, cookiefilter)
+                                                    });
+
+                                                    break;
+                                                case 'integer':
+
+                                                    var filterbegin = filtername + separator + 'bv';
+                                                    var filterend = filtername + separator + 'ev';
+
+                                                    filter += application.components.html.integer({
+                                                        width: 6
+                                                        , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                                        , name: filterbegin
+                                                        , value: getFilterValue(filterbegin, cookiefilter)
+                                                    });
+
+                                                    filter += application.components.html.integer({
+                                                        width: 6
+                                                        , label: viewfields[i].modelattribute.label + ' - Final'
+                                                        , name: filterend
+                                                        , value: getFilterValue(filterend, cookiefilter)
+                                                    });
+
+                                                    break;
+                                            }
 
                                             break;
                                     }
@@ -1006,7 +1054,7 @@ module.exports = function (app) {
                             , { model: db.getModel('modelattribute'), as: 'modelattribute' }
                         ]
                     }).then(viewfields => {
-                        db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true }] }).then(register => {
+                        db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true, nested: view.virtual }] }).then(register => {
                             if (!register && req.params.id != 0) {
                                 return application.render(res, 'templates/viewregisternotfound');
                             }

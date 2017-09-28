@@ -8,7 +8,7 @@ var schedules = [];
 
 var addSchedule = function (sch) {
     var custom = reload('../custom/functions');
-    var realfunction = application.functions.getRealFunction(custom, sch.function);
+    var realfunction = application.functions.getRealReference(custom, sch.function);
     schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
 }
 
@@ -21,7 +21,7 @@ var removeSchedule = function (sch) {
 
 var executeSchedule = function (sch) {
     var custom = reload('../custom/functions');
-    var realfunction = application.functions.getRealFunction(custom, sch.function);
+    var realfunction = application.functions.getRealReference(custom, sch.function);
     realfunction();
 }
 

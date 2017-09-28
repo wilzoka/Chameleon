@@ -190,14 +190,14 @@ exports.functions = {
 	singleSpace: function (value) {
 		return value.replace(/\s\s+/g, ' ');
 	}
-	, getRealFunction: function (object, string) {
+	, getRealReference: function (object, string) {
 		try {
-			var functionsplited = string.split('.');
-			var realfunction = object[functionsplited[0]];
-			for (var i = 1; i < functionsplited.length; i++) {
-				realfunction = realfunction[functionsplited[i]];
+			var referencesplited = string.split('.');
+			var realreference = object[referencesplited[0]];
+			for (var i = 1; i < referencesplited.length; i++) {
+				realreference = realreference[referencesplited[i]];
 			}
-			return realfunction;
+			return realreference;
 		} catch (error) {
 			return undefined;
 		}

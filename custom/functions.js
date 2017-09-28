@@ -36,7 +36,7 @@ var main = {
             }
             , syncAll: function (json) {
                 var models = {};
-                db.sequelize.query("SELECT m.name as model, ma.* FROM model m inner join modelattribute ma on (m.id = ma.idmodel) order by m.name", { type: db.sequelize.QueryTypes.SELECT }).then(results => {
+                db.sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: db.sequelize.QueryTypes.SELECT }).then(results => {
 
                     var modelname;
                     var modelattributeobj = {};
@@ -75,7 +75,7 @@ var main = {
                     for (var i = 0; i < results.length; i++) {
                         var j = {};
                         if (results[i].typeadd) {
-                            j = JSON.parse(results[i].typeadd);
+                            j = application.modelattribute.parseTypeadd(results[i].typeadd);
                             var vas = j.as || j.model;
                         }
                         switch (results[i].type) {
@@ -358,6 +358,28 @@ var main = {
     , teste: {
         min: function (sch) {
             console.log('asdasdasd1');
+        }
+    }
+
+    , plastrela: {
+        pcp: {
+            oprecurso: {
+                save: function (obj, next) {
+                    if (obj.id == 0) {
+                        db.getModel('pcp_config').find().then(config => {
+                            if (config && config.idestadoinicial) {
+                                obj.data.idestado = config.idestadoinicial;
+                                next(obj);
+                            } else {
+                                return application.error(obj.res, { msg: 'Falta configuração em: Estado Inicial da OP' });
+                            }
+                        });
+                    } else {
+                        next(obj);
+                    }
+
+                }
+            }
         }
     }
 }
