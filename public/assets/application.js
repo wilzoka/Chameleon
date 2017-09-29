@@ -366,7 +366,7 @@ var application = {
             // Filter Button
             html += '<div class="btn-group btn-group-filter">'
                 + '<button type="button" class="btn btnfilter ' + (data.filter.count > 0 ? 'btn-primary' : 'btn-default') + '" data-table="tableview' + data.name + '">'
-                + '<i class="fa fa-search"></i>'
+                + '<i class="fa fa-search fa-flip-horizontal"></i>'
                 + '</button>'
                 + '</div>'
                 + '</div>'

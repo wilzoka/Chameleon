@@ -84,8 +84,6 @@ var getFilter = function (cookie) {
 
     cookie = JSON.parse(cookie);
 
-    console.log('cookie', cookie);
-
     let m;
     let v;
 
@@ -139,6 +137,9 @@ var getFilter = function (cookie) {
                     break;
 
                 // Virtuals
+                case 'rv':
+                    o = db.Sequelize.literal(getVirtualField(field[0]) + " = " + cookie[i][k]);
+                    break;
                 case 'sv':
                     o = db.Sequelize.literal(getVirtualField(field[0]) + "::text ilike '%" + cookie[i][k] + "%'");
                     break;

@@ -298,7 +298,7 @@ var main = {
                 return application.success(json.res, {
                     modal: {
                         id: 'modalevt'
-                        , title: '<div class="col-sm-12" style="text-align: center;">Preview</div>'
+                        , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
                         , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
                         , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
                     }

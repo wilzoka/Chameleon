@@ -304,36 +304,22 @@ var mergeModel = function (register, data) {
 }
 
 var flowModel = function (json) {
-    validateModel(json, onSaveModel);
+    modelateModel(json);
 }
 
-var validateModel = function (json, next) {
-
-    // #invalidfields contains the name fields invalid
-    var invalidfields = [];
-
+var modelateModel = function (json) {
     // Adjust json.data 
     for (var i = 0; i < json.modelattributes.length; i++) {
 
         switch (json.modelattributes[i].type) {
             case 'date':
                 if (json.data[json.modelattributes[i].name] != undefined) {
-                    let m = moment(json.data[json.modelattributes[i].name], 'DD/MM/YYYY');
-                    if (m.isValid()) {
-                        json.data[json.modelattributes[i].name] = m.format('YYYY-MM-DD');
-                    } else {
-                        invalidfields.push(json.modelattributes[i].name);
-                    }
+                    json.data[json.modelattributes[i].name] = application.formatters.be.date(json.data[json.modelattributes[i].name]);
                 }
                 break;
             case 'datetime':
                 if (json.data[json.modelattributes[i].name] != undefined) {
-                    let m = moment(json.data[json.modelattributes[i].name], 'DD/MM/YYYY HH:mm');
-                    if (m.isValid()) {
-                        json.data[json.modelattributes[i].name] = m.format('YYYY-MM-DD HH:mm');
-                    } else {
-                        invalidfields.push(json.modelattributes[i].name);
-                    }
+                    json.data[json.modelattributes[i].name] = application.formatters.be.datetime(json.data[json.modelattributes[i].name]);
                 }
                 break;
             case 'time':
@@ -344,54 +330,49 @@ var validateModel = function (json, next) {
             case 'parent':
                 if (json.req.query.parent && json.req.query.parent > 0) {
                     json.data[json.modelattributes[i].name] = parseInt(json.req.query.parent);
-                } else {
-                    if (json.modelattributes[i].notnull) {
-                        invalidfields.push(json.modelattributes[i].name);
-                    }
                 }
                 break;
             case 'boolean':
-                // if (json.data[json.modelattributes[i].name] != undefined) {
                 if (json.data[json.modelattributes[i].name]) {
                     json.data[json.modelattributes[i].name] = true;
                 } else {
                     json.data[json.modelattributes[i].name] = false;
                 }
-                // }
                 break;
             case 'integer':
                 if (json.data[json.modelattributes[i].name] != undefined) {
-                    let v = parseInt(json.data[json.modelattributes[i].name]);
-                    if (!Number.isInteger(v)) {
-                        invalidfields.push(json.modelattributes[i].name);
-                    }
-                    json.data[json.modelattributes[i].name] = v;
+                    json.data[json.modelattributes[i].name] = application.formatters.be.integer(json.data[json.modelattributes[i].name]);
                 }
                 break;
             case 'autocomplete':
                 if (json.data[json.modelattributes[i].name]) {
-                    let v = parseInt(json.data[json.modelattributes[i].name]);
-                    json.data[json.modelattributes[i].name] = v;
+                    json.data[json.modelattributes[i].name] = application.formatters.be.integer(json.data[json.modelattributes[i].name]);
                 }
                 break;
             case 'decimal':
                 if (json.data[json.modelattributes[i].name]) {
                     json.data[json.modelattributes[i].name] = application.formatters.be.decimal(json.data[json.modelattributes[i].name], application.modelattribute.parseTypeadd(json.modelattributes[i].typeadd).precision);
-                    if (!json.data[json.modelattributes[i].name]) {
-                        invalidfields.push(json.modelattributes[i].name);
-                    }
                 }
                 break;
         }
-
     }
 
-    if (invalidfields.length > 0) {
-        return application.error(json.res, {
-            invalidfields: invalidfields
-            , msg: application.message.invalidFields
-        });
+    onSaveModel(json, validateModel);
+}
+
+var onSaveModel = function (json, next) {
+    if (json.view.model.onsave) {
+        var custom = reload('../custom/functions');
+        application.functions.getRealReference(custom, json.view.model.onsave)(json, next);
+    } else {
+        next(json);
     }
+}
+
+var validateModel = function (json, aftersavefunction) {
+
+    // #invalidfields contains the name fields invalid
+    var invalidfields = [];
 
     if (json.id == 0) {
         // Validade with data
@@ -417,7 +398,7 @@ var validateModel = function (json, next) {
                 , msg: application.message.invalidFields
             });
         } else {
-            next(json, saveModel);
+            saveModel(json, aftersavefunction);
         }
 
     } else {
@@ -447,22 +428,13 @@ var validateModel = function (json, next) {
                     , msg: application.message.invalidFields
                 });
             } else {
-                next(json, saveModel);
+                saveModel(json, aftersavefunction);
             }
 
         }).catch(err => {
             return application.fatal(json.res, err);
         });
 
-    }
-}
-
-var onSaveModel = function (json, next) {
-    if (json.view.model.onsave) {
-        var custom = reload('../custom/functions');
-        application.functions.getRealReference(custom, json.view.model.onsave)(json, next);
-    } else {
-        next(json);
     }
 }
 
@@ -656,19 +628,21 @@ module.exports = function (app) {
                                 }
 
                                 // Columns
-                                columns.push({
-                                    title: 'ID'
-                                    , data: 'id'
-                                    , name: 'id'
-                                    , width: 37
-                                });
+                                if (!view.supressid) {
+                                    columns.push({
+                                        title: 'ID'
+                                        , data: 'id'
+                                        , name: 'id'
+                                        , width: 37
+                                    });
+                                }
                                 for (var i = 0; i < viewtables.length; i++) {
 
                                     columns.push({
                                         title: viewtables[i].modelattribute.label
                                         , data: viewtables[i].modelattribute.name
                                         , name: viewtables[i].modelattribute.name
-                                        , orderable: viewtables[i].orderable ? true : false
+                                        , orderable: viewtables[i].orderable
                                         , render: viewtables[i].render
                                         , class: decodeClass(viewtables[i].modelattribute.type)
                                     });
@@ -678,7 +652,10 @@ module.exports = function (app) {
                                     }
                                 }
                                 if (needfooter) {
-                                    footer = '<tfoot><tr><td style="text-align: center;"><b>Total</b></td>';
+                                    footer = '<tfoot><tr>';
+                                    if (!view.supressid) {
+                                        footer += '<td style="text-align: center;"><b>Total</b></td>';
+                                    }
                                     for (var i = 0; i < viewtables.length; i++) {
                                         var data = 'data-view="' + view.id + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
                                         if (viewtables[i].totalize) {
@@ -711,19 +688,30 @@ module.exports = function (app) {
                                 }
 
                                 var separator = '+';
-                                filter += application.components.html.integer({
-                                    width: 6
-                                    , label: 'ID - Inicial'
-                                    , name: 'id' + separator + 'integer' + separator + 'b'
-                                    , value: getFilterValue('id.integer.b', cookiefilter)
-                                });
 
-                                filter += application.components.html.integer({
-                                    width: 6
-                                    , label: 'ID - Final'
-                                    , name: 'id.integer.e'
-                                    , value: getFilterValue('id.integer.e', cookiefilter)
-                                });
+                                if (!view.supressid) {
+
+                                    filter += application.components.html.integer({
+                                        width: 4
+                                        , label: 'ID'
+                                        , name: 'id' + separator + 'integer' + separator + 'r'
+                                        , value: getFilterValue('id.integer.r', cookiefilter)
+                                    });
+
+                                    filter += application.components.html.integer({
+                                        width: 4
+                                        , label: 'ID - Inicial'
+                                        , name: 'id' + separator + 'integer' + separator + 'b'
+                                        , value: getFilterValue('id.integer.b', cookiefilter)
+                                    });
+
+                                    filter += application.components.html.integer({
+                                        width: 4
+                                        , label: 'ID - Final'
+                                        , name: 'id.integer.e'
+                                        , value: getFilterValue('id.integer.e', cookiefilter)
+                                    });
+                                }
 
                                 for (var i = 0; i < viewfields.length; i++) {
 
@@ -761,18 +749,26 @@ module.exports = function (app) {
 
                                         case 'integer':
 
+                                            var filtereq = filtername + separator + 'r';
                                             var filterbegin = filtername + separator + 'b';
                                             var filterend = filtername + separator + 'e';
 
                                             filter += application.components.html.integer({
-                                                width: 6
+                                                width: 4
+                                                , label: viewfields[i].modelattribute.label
+                                                , name: filtereq
+                                                , value: getFilterValue(filtereq, cookiefilter)
+                                            });
+
+                                            filter += application.components.html.integer({
+                                                width: 4
                                                 , label: viewfields[i].modelattribute.label + ' - Inicial'
                                                 , name: filterbegin
                                                 , value: getFilterValue(filterbegin, cookiefilter)
                                             });
 
                                             filter += application.components.html.integer({
-                                                width: 6
+                                                width: 4
                                                 , label: viewfields[i].modelattribute.label + ' - Final'
                                                 , name: filterend
                                                 , value: getFilterValue(filterend, cookiefilter)
@@ -937,18 +933,26 @@ module.exports = function (app) {
                                                     break;
                                                 case 'integer':
 
+                                                    var filtereq = filtername + separator + 'rv';
                                                     var filterbegin = filtername + separator + 'bv';
                                                     var filterend = filtername + separator + 'ev';
 
                                                     filter += application.components.html.integer({
-                                                        width: 6
+                                                        width: 4
+                                                        , label: viewfields[i].modelattribute.label
+                                                        , name: filtereq
+                                                        , value: getFilterValue(filtereq, cookiefilter)
+                                                    });
+
+                                                    filter += application.components.html.integer({
+                                                        width: 4
                                                         , label: viewfields[i].modelattribute.label + ' - Inicial'
                                                         , name: filterbegin
                                                         , value: getFilterValue(filterbegin, cookiefilter)
                                                     });
 
                                                     filter += application.components.html.integer({
-                                                        width: 6
+                                                        width: 4
                                                         , label: viewfields[i].modelattribute.label + ' - Final'
                                                         , name: filterend
                                                         , value: getFilterValue(filterend, cookiefilter)

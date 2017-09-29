@@ -1,5 +1,6 @@
 var db = require('../models')
 	, lodash = require('lodash')
+	, moment = require('moment')
 	;
 
 exports.IsAuthenticated = function (req, res, next) {
@@ -150,12 +151,7 @@ exports.menu = {
 
 exports.formatters = {
 	be: {
-		decimal: function (value, precision) {
-			value = value.replace(/\./g, "");
-			value = value.replace(/\,/g, ".");
-			return parseFloat(value).toFixed(precision);
-		}
-		, time: function (value) {
+		time: function (value) {
 			if (value.indexOf(':') >= 0) {
 				value = value.split(':');
 				let h = parseInt(value[0]);
@@ -164,6 +160,23 @@ exports.formatters = {
 			} else {
 				return parseInt(value);
 			}
+		}
+		, decimal: function (value, precision) {
+			value = value.replace(/\./g, "");
+			value = value.replace(/\,/g, ".");
+			return parseFloat(value).toFixed(precision);
+		}
+		, date: function (value) {
+			value = moment(value, 'DD/MM/YYYY');
+			return value.isValid() ? value.format('YYYY-MM-DD') : null;
+		}
+		, datetime: function (value) {
+			value = moment(value, 'DD/MM/YYYY HH:mm');
+			return value.isValid() ? value.format('YYYY-MM-DD HH:mm') : null;
+		}
+		, integer: function (value) {
+			value = parseInt(value);
+			return Number.isInteger(value) ? value : null;
 		}
 	}
 	, fe: {
@@ -181,6 +194,14 @@ exports.formatters = {
 			value = parseFloat(value);
 			var reg = '\\d(?=(\\d{3})+\\D)';
 			return value.toFixed(precision).replace('.', ',').replace(new RegExp(reg, 'g'), '$&.');
+		}
+		, date: function (value) {
+			value = moment(value, 'YYYY-MM-DD');
+			return value.isValid() ? value.format('DD/MM/YYYY') : null;
+		}
+		, datetime: function (value) {
+			value = moment(value, 'YYYY-MM-DD HH:mm');
+			return value.isValid() ? value.format('DD/MM/YYYY HH:mm') : null;
 		}
 	}
 
