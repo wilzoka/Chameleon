@@ -571,6 +571,8 @@ module.exports = function (app) {
             switch (type) {
                 case 'decimal':
                     return 'text-right'
+                case 'time':
+                    return 'text-right'
                 default:
                     return 'text-left';
             }
@@ -597,11 +599,11 @@ module.exports = function (app) {
                             , include: [{ all: true }]
                         }).then(viewfields => {
 
-                            db.getModel('modelevent').findAll({
-                                where: { idmodel: view.model.id }
+                            db.getModel('viewevent').findAll({
+                                where: { idview: view.id }
                                 , order: [['description', 'ASC']]
                                 , include: [{ all: true }]
-                            }).then(modelevents => {
+                            }).then(viewevents => {
 
                                 var events = [];
                                 var columns = [];
@@ -616,13 +618,13 @@ module.exports = function (app) {
                                 permissions.deletable = permission.deletable;
 
                                 // Events
-                                for (var i = 0; i < modelevents.length; i++) {
+                                for (var i = 0; i < viewevents.length; i++) {
 
                                     events.push({
-                                        id: modelevents[i].id
-                                        , description: modelevents[i].description
-                                        , icon: modelevents[i].icon
-                                        , function: modelevents[i].function
+                                        id: viewevents[i].id
+                                        , description: viewevents[i].description
+                                        , icon: viewevents[i].icon
+                                        , function: viewevents[i].function
                                     });
 
                                 }
