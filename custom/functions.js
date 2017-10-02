@@ -225,6 +225,45 @@ var main = {
         }
     }
 
+    , financeiro: {
+        categoria: {
+            onsave: function (json, next) {
+                next(json, main.financeiro.categoria.treeAll);
+            }
+            , treeAll: function () {
+
+                var getChildren = function (current, childs) {
+
+                    for (var i = 0; i < childs.length; i++) {
+                        if (current.idcategoriapai == childs[i].id) {
+
+                            if (childs[i].idcategoriapai) {
+                                return getChildren(childs[i], childs) + childs[i].descricao + ' - ';
+                            } else {
+                                return childs[i].descricao + ' - ';
+                            }
+
+                        }
+                    }
+
+                }
+
+                db.getModel('fin_categoria').findAll().then(categorias => {
+                    categorias.map(categoria => {
+                        if (categoria.idcategoriapai) {
+                            categoria.descricaocompleta = getChildren(categoria, categorias) + categoria.descricao;
+                        } else {
+                            categoria.descricaocompleta = categoria.descricao;
+                        }
+
+                        categoria.save();
+                    });
+                });
+
+            }
+        }
+    }
+
     , manutencao: {
         os: {
             save: function (json, next) {
