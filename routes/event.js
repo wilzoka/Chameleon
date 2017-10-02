@@ -7,21 +7,21 @@ module.exports = function (app) {
 
     app.all('/event/:id', application.IsAuthenticated, function (req, res) {
 
-        db.getModel('modelevent').find({
+        db.getModel('viewevent').find({
             where: { id: req.params.id }
             , include: { all: true }
-        }).then(modelevent => {
+        }).then(viewevent => {
 
             var custom = reload('../custom/functions');
 
-            var realfunction = application.functions.getRealReference(custom, modelevent.function);
+            var realfunction = application.functions.getRealReference(custom, viewevent.function);
 
             if (realfunction) {
                 return realfunction({
                     req: req
                     , res: res
                     , ids: req.query.ids || null
-                    , event: modelevent
+                    , event: viewevent
                 });
             } else {
                 return application.fatal(res, 'Custom function not found');

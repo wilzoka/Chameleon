@@ -1,6 +1,7 @@
 var application = require('../routes/application')
     , db = require('../models')
-    , schedule = require('../routes/schedule');
+    , schedule = require('../routes/schedule')
+    , moment = require('moment');
 ;
 
 var main = {
@@ -363,7 +364,20 @@ var main = {
 
     , plastrela: {
         pcp: {
-            oprecurso: {
+            apparada: {
+                onsave: function (obj, next) {
+
+                    var dataini = moment(obj.data.dataini);
+                    var datafim = moment(obj.data.datafim);
+                    var duracao = datafim.diff(dataini, 'm');
+
+
+                    obj.data.duracao = duracao;
+
+                    next(obj);
+                }
+            }
+            , oprecurso: {
                 save: function (obj, next) {
                     if (obj.id == 0) {
                         db.getModel('pcp_config').find().then(config => {

@@ -17,9 +17,6 @@ var fixResults = function (registers, modelattributes) {
             json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
         }
 
-        let m;
-        let v;
-
         switch (modelattributes[i].type) {
             case 'autocomplete':
                 let vas = json.as || json.model;
@@ -32,31 +29,28 @@ var fixResults = function (registers, modelattributes) {
             case 'date':
                 for (var x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
-                        m = moment(registers.rows[x][modelattributes[i].name], 'YYYY-MM-DD');
-                        value = m.format('DD/MM/YYYY');
-                        registers.rows[x][modelattributes[i].name] = value;
+                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.date(registers.rows[x][modelattributes[i].name]);
                     }
                 }
                 break;
             case 'datetime':
                 for (var x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
-                        m = moment(registers.rows[x][modelattributes[i].name], 'YYYY-MM-DD HH:mm');
-                        value = m.format('DD/MM/YYYY HH:mm');
-                        registers.rows[x][modelattributes[i].name] = value;
+                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.datetime(registers.rows[x][modelattributes[i].name]);
                     }
                 }
                 break;
             case 'decimal':
                 for (var x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
-                        v = registers.rows[x][modelattributes[i].name];
-                        v = parseFloat(v);
-
-                        var reg = '\\d(?=(\\d{3})+\\D)';
-                        v = v.toFixed(json.precision).replace('.', ',').replace(new RegExp(reg, 'g'), '$&.');
-
-                        registers.rows[x][modelattributes[i].name] = v;
+                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], json.precision);
+                    }
+                }
+                break;
+            case 'time':
+                for (var x = 0; x < registers.rows.length; x++) {
+                    if (registers.rows[x][modelattributes[i].name]) {
+                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.time(registers.rows[x][modelattributes[i].name]);
                     }
                 }
                 break;
@@ -290,6 +284,9 @@ module.exports = function (app) {
                                 switch (modelattribute.type) {
                                     case 'decimal':
                                         sum = application.formatters.fe.decimal(sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
+                                        break;
+                                    case 'time':
+                                        sum = application.formatters.fe.time(sum);
                                         break;
                                 }
                             }
