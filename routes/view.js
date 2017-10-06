@@ -443,7 +443,7 @@ var saveModel = function (json, aftersavefunction) {
     // else updating
     if (json.id == 0) {
         // Inserting
-        application.model.save(json.view.model.name, json.data).then(register => {
+        db.getModel(json.view.model.name).create(json.data).then(register => {
             application.success(json.res, {
                 msg: application.message.success
                 , data: register
@@ -460,7 +460,7 @@ var saveModel = function (json, aftersavefunction) {
         // Updating
         db.getModel(json.view.model.name).find({ where: { id: json.id } }).then(register => {
             register = mergeModel(register, json.data);
-            application.model.save(json.view.model.name, register).then(registersaved => {
+            register.save().then(registersaved => {
                 application.success(json.res, {
                     msg: application.message.success
                     , data: registersaved
@@ -487,7 +487,7 @@ var onDeleteModel = function (json, next) {
 
 var deleteModel = function (json) {
 
-    application.model.delete(json.view.model.name, json.ids).then(() => {
+    db.getModel(json.view.model.name).destroy({ where: { id: { $in: json.ids } } }).then(() => {
 
         return application.success(json.res, { msg: application.message.success });
 
@@ -1032,8 +1032,6 @@ module.exports = function (app) {
             }
 
         });
-
-
 
     });
 

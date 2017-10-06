@@ -1,6 +1,7 @@
 var db = require('../models')
 	, lodash = require('lodash')
 	, moment = require('moment')
+	, reload = require('require-reload')(require)
 	;
 
 exports.IsAuthenticated = function (req, res, next) {
@@ -164,7 +165,7 @@ exports.formatters = {
 		, decimal: function (value, precision) {
 			value = value.replace(/\./g, "");
 			value = value.replace(/\,/g, ".");
-			return parseFloat(value).toFixed(precision);
+			return  parseFloat(parseFloat(value).toFixed(precision));
 		}
 		, date: function (value) {
 			value = moment(value, 'DD/MM/YYYY');
@@ -242,16 +243,7 @@ exports.functions = {
 }
 
 exports.model = {
-	save: function (model, register) {
-		if ('id' in register && register.id > 0) {
-			return register.save();
-		} else {
-			return db.getModel(model).create(register);
-		}
-	}
-	, delete: function (model, ids) {
-		return db.getModel(model).destroy({ where: { id: { $in: ids } } });
-	}
+
 }
 
 exports.modelattribute = {

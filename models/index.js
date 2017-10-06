@@ -20,6 +20,12 @@ sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattri
 
   var modelname;
   var modelattributeobj = {};
+  var defineModel = function (name, attr) {
+    models[name] = sequelize.define(name, attr, {
+      freezeTableName: true
+      , timestamps: false
+    });
+  }
 
   //Create Attributes
   for (var i = 0; i < results.length; i++) {
@@ -33,10 +39,8 @@ sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattri
       modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
 
     } else {
-      models[modelname] = sequelize.define(modelname, modelattributeobj, {
-        freezeTableName: true
-        , timestamps: false
-      });
+
+      defineModel(modelname, modelattributeobj);
 
       modelname = results[i].model;
       modelattributeobj = {};
@@ -44,18 +48,15 @@ sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattri
     }
 
     if (i == results.length - 1) {
-      models[modelname] = sequelize.define(modelname, modelattributeobj, {
-        freezeTableName: true
-        , timestamps: false
-      });
+      defineModel(modelname, modelattributeobj);
     }
   }
 
   //Create References
   for (var i = 0; i < results.length; i++) {
-    var j = {};
+    let j = {};
     if (results[i].typeadd) {
-      j = application.modelattribute.parseTypeadd(application.functions.singleSpace(results[i].typeadd));
+      j = application.modelattribute.parseTypeadd(results[i].typeadd);
     }
     switch (results[i].type) {
       case 'parent':
@@ -66,7 +67,7 @@ sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattri
         });
         break;
       case 'autocomplete':
-        var vas = j.as || j.model;
+        let vas = j.as || j.model;
         models[results[i].model].belongsTo(models[j.model], {
           as: vas
           , foreignKey: results[i].name

@@ -1,8 +1,8 @@
 var application = require('../routes/application')
     , db = require('../models')
     , schedule = require('../routes/schedule')
-    , moment = require('moment');
-;
+    , moment = require('moment')
+    ;
 
 var main = {
     plataform: {
@@ -41,10 +41,16 @@ var main = {
 
                     var modelname;
                     var modelattributeobj = {};
+                    var defineModel = function (name, attr) {
+                        models[name] = db.sequelize.define(name, attr, {
+                            freezeTableName: true
+                            , timestamps: false
+                        });
+                    }
 
                     //Create Attributes
                     for (var i = 0; i < results.length; i++) {
-                        // Start
+                        // Startf
                         if (i == 0) {
                             modelname = results[i].model;
                             modelattributeobj = {};
@@ -54,10 +60,8 @@ var main = {
                             modelattributeobj[results[i].name] = application.sequelize.decodeType(db.Sequelize, results[i].type);
 
                         } else {
-                            models[modelname] = db.sequelize.define(modelname, modelattributeobj, {
-                                freezeTableName: true
-                                , timestamps: false
-                            });
+
+                            defineModel(modelname, modelattributeobj);
 
                             modelname = results[i].model;
                             modelattributeobj = {};
@@ -65,29 +69,26 @@ var main = {
                         }
 
                         if (i == results.length - 1) {
-                            models[modelname] = db.sequelize.define(modelname, modelattributeobj, {
-                                freezeTableName: true
-                                , timestamps: false
-                            });
+                            defineModel(modelname, modelattributeobj);
                         }
                     }
 
                     //Create References
                     for (var i = 0; i < results.length; i++) {
-                        var j = {};
+                        let j = {};
                         if (results[i].typeadd) {
                             j = application.modelattribute.parseTypeadd(results[i].typeadd);
-                            var vas = j.as || j.model;
                         }
                         switch (results[i].type) {
                             case 'parent':
                                 models[results[i].model].belongsTo(models[j.model], {
-                                    as: vas
+                                    as: j.model
                                     , foreignKey: results[i].name
                                     , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
                                 });
                                 break;
                             case 'autocomplete':
+                                let vas = j.as || j.model;
                                 models[results[i].model].belongsTo(models[j.model], {
                                     as: vas
                                     , foreignKey: results[i].name
@@ -131,6 +132,40 @@ var main = {
                     });
                 });
 
+            }
+        }
+        , viewevent: {
+            incrementorder: function (obj) {
+                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                var ids = obj.ids.split(',');
+
+                db.getModel('viewfield').findAll({ where: { id: { $in: ids } } }).then(viewfields => {
+                    viewfields.map(viewfield => {
+                        viewfield.order++;
+                        viewfield.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
+                });
+            }
+            , decrementorder: function (obj) {
+                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                var ids = obj.ids.split(',');
+
+                db.getModel('viewfield').findAll({ where: { id: { $in: ids } } }).then(viewfields => {
+                    viewfields.map(viewfield => {
+                        viewfield.order--;
+                        viewfield.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
+                });
             }
         }
         , menu: {
@@ -402,14 +437,120 @@ var main = {
     }
 
     , plastrela: {
-        pcp: {
+        estoque: {
+            _movimentarEstoque: function (obj) {//idversao iddeposito idoperacao qtd
+
+
+
+            }
+            , _getSaldo: function (idversao, iddeposito, qtd) {
+
+                return new Promise(function (resolve, reject) {
+                    db.getModel('est_saldo').find({
+                        where: {
+                            idversao: idversao
+                            , iddeposito: iddeposito
+                            , datafechamento: { $eq: null }
+                        }
+                    }).then(saldo => {
+
+                        if (saldo.qtd <= qtd) {
+                            resolve();
+                        } else {
+                            reject('Saldo Insuficiente');
+                        }
+
+                    });
+                });
+
+            }
+
+            , _getOperacaoES: function (idoperacao) {
+
+                return new Promise(function (resolve, reject) {
+
+                    db.getModel('est_config').find().then(config => {
+
+                        db.getModel('est_operacao').find({ where: { id: idoperacao }, include: { all: true } }).then(operacao => {
+
+                            if (operacao.est_operacaotipo.id == config.idoperacaotipoentrada) {
+                                resolve('E');
+                            } else if (operacao.est_operacaotipo.id == config.idoperacaotiposaida) {
+                                resolve('S');
+                            } else {
+                                reject('Tipo de Operação Inválido');
+                            }
+
+                        });
+
+                    });
+
+                });
+
+            }
+
+            , _atualizarSaldo: function (idversao, iddeposito) {
+
+            }
+
+            , est_mov: {
+                onsave: function (obj, next) {
+                    let f = main.plastrela.estoque;
+                    if (obj.id == 0) {
+                        obj.data.iduser = obj.req.user.id;
+                    }
+
+                    f._getOperacaoES(obj.data.idoperacao).then(operacao => {
+
+                        db.getModel('est_saldo').find({
+                            where: {
+                                idversao: obj.data.idversao
+                                , iddeposito: obj.data.iddeposito
+                                , datafechamento: { $eq: null }
+                            }
+                        }).then(saldo => {
+
+                            console.log(saldo, obj.data);
+
+                            if (operacao == 'S') {
+                                if (saldo) {
+                                    saldo.qtd = parseFloat(saldo.qtd) - obj.data.qtd;
+                                    saldo.save().then(register => {
+                                        next(obj);
+                                    });
+                                } else {
+                                    return application.error(obj.res, { msg: "Saldo Insuficiente" });
+                                }
+                            } else {
+                                if (saldo) {
+                                    saldo.qtd = parseFloat(saldo.qtd) + obj.data.qtd;
+                                    saldo.save().then(register => {
+                                        next(obj);
+                                    });
+
+                                } else {
+                                    db.getModel('est_saldo').create({
+                                        idversao: obj.data.idversao
+                                        , iddeposito: obj.data.iddeposito
+                                        , qtd: obj.data.qtd
+                                    }).then(register => {
+                                        next(obj);
+                                    })
+                                }
+                            }
+                        });
+
+                    });
+
+                }
+            }
+        }
+        , pcp: {
             apparada: {
                 onsave: function (obj, next) {
-
                     var dataini = moment(obj.data.dataini);
                     var datafim = moment(obj.data.datafim);
                     var duracao = datafim.diff(dataini, 'm');
-
 
                     obj.data.duracao = duracao;
 
