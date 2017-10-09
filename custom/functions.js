@@ -24,7 +24,10 @@ var main = {
                     try {
                         for (var i = 0; i < models.length; i++) {
                             db.sequelize.modelManager.removeModel(db.sequelize.modelManager.getModel(models[i].name));
-                            queryInterface.dropTable(models[i].name);
+                            queryInterface.dropTable(models[i].name, {
+                                force: true,
+                                cascade: false,
+                            });
                         }
                     } catch (error) {
                     }
@@ -135,7 +138,7 @@ var main = {
             }
         }
         , viewevent: {
-            incrementorder: function (obj) {
+            _incrementorder: function (obj) {
                 if (obj.ids != null && obj.ids.split(',').length <= 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
@@ -151,7 +154,7 @@ var main = {
                     return application.fatal(obj.res, err);
                 });
             }
-            , decrementorder: function (obj) {
+            , _decrementorder: function (obj) {
                 if (obj.ids != null && obj.ids.split(',').length <= 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
@@ -161,6 +164,40 @@ var main = {
                     viewfields.map(viewfield => {
                         viewfield.order--;
                         viewfield.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
+                });
+            }
+        }
+        , viewtable: {
+            _incrementorder: function (obj) {
+                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                var ids = obj.ids.split(',');
+
+                db.getModel('viewtable').findAll({ where: { id: { $in: ids } } }).then(viewtables => {
+                    viewtables.map(viewtable => {
+                        viewtable.ordertable++;
+                        viewtable.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
+                });
+            }
+            , _decrementorder: function (obj) {
+                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                var ids = obj.ids.split(',');
+
+                db.getModel('viewtable').findAll({ where: { id: { $in: ids } } }).then(viewtables => {
+                    viewtables.map(viewtable => {
+                        viewtable.ordertable--;
+                        viewtable.save();
                     });
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }).catch(err => {
@@ -261,71 +298,146 @@ var main = {
         }
     }
 
-    , financeiro: {
-        categoria: {
-            onsave: function (json, next) {
-                next(json, main.financeiro.categoria.treeAll);
-            }
-            , treeAll: function () {
+    , erp: {
+        financeiro: {
 
-                var getChildren = function (current, childs) {
+            _realizarPagamento: function (obj) {
+                if (obj.req.method == 'GET') {
+                    if (obj.ids == null) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    let ids = obj.ids.split(',');
 
-                    for (var i = 0; i < childs.length; i++) {
-                        if (current.idcategoriapai == childs[i].id) {
 
-                            if (childs[i].idcategoriapai) {
-                                return getChildren(childs[i], childs) + childs[i].descricao + ' - ';
-                            } else {
-                                return childs[i].descricao + ' - ';
-                            }
+                    let body = '';
+                    body += application.components.html.hidden({ name: 'ids', value: obj.ids });
+                    body += application.components.html.date({
+                        width: 12
+                        , label: 'Data de Pagamento'
+                        , name: 'datapgto'
+                        , value: application.formatters.fe.date(moment())
+                    });
+                    body += application.components.html.autocomplete({
+                        width: 12
+                        , label: 'Forma de Pagamento'
+                        , name: 'idformapgto'
+                        , disabled: ''
+                        , model: 'fin_formapgto'
+                        , attribute: 'descricao'
+                        , datawhere: ''
+                        , option: ''
+                    });
 
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , action: '/event/' + obj.event.id
+                            , id: 'modalevt'
+                            , title: 'Realizar Pagamento'
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default btn-sm">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Pagar</button>'
+                        }
+                    });
+                } else {
+
+                    let fieldsrequired = ['ids', 'datapgto', 'idformapgto'];
+                    let invalidfields = [];
+
+                    for (var i = 0; i < fieldsrequired.length; i++) {
+                        if (!(fieldsrequired[i] in obj.req.body && obj.req.body[fieldsrequired[i]])) {
+                            invalidfields.push(fieldsrequired[i]);
                         }
                     }
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
 
+                    db.getModel('fin_mov').update({
+                        datapgto: obj.req.body.datapgto
+                        , idformapgto: obj.req.body.idformapgto
+                    }, {
+                            where: {
+                                id: { $in: obj.req.body.ids.split(',') }
+                            }
+                        }).then(() => {
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }).catch(err => {
+                            return application.fatal(obj.res, err);
+                        });
                 }
 
-                db.getModel('fin_categoria').findAll().then(categorias => {
-                    categorias.map(categoria => {
-                        if (categoria.idcategoriapai) {
-                            categoria.descricaocompleta = getChildren(categoria, categorias) + categoria.descricao;
-                        } else {
-                            categoria.descricaocompleta = categoria.descricao;
-                        }
 
-                        categoria.save();
+            }
+
+            , _estornarPagamento: function (obj) {
+                if (obj.ids == null) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+
+                let ids = obj.ids.split(',');
+
+                db.getModel('fin_mov').update({
+                    datapgto: null
+                }, {
+                        where: {
+                            id: { $in: ids }
+                        }
+                    }).then(() => {
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    }).catch(err => {
+                        return application.fatal(obj.res, err);
                     });
-                });
-
             }
-        }
-    }
 
-    , manutencao: {
-        os: {
-            save: function (json, next) {
-                db.getModel('man_config').find().then(config => {
+            , mov: {
+                onsave: function (obj, next) {
 
-                    // Prioridades
-                    if (config.idprioridadeurgente == json.data.idprioridade && !json.data.idmotivo) {
-                        return application.error(json.res, { msg: 'Prioridade Urgente exige motivo', invalidfields: ['idmotivo'] });
-                    } else if (config.idprioridadeate == json.data.idprioridade && !json.data.dataprioridade) {
-                        return application.error(json.res, { msg: 'Prioridade Executar até exige Data Prioridade', invalidfields: ['dataprioridade'] });
-                    } else if (config.idprioridadeapartir == json.data.idprioridade && !json.data.dataprioridade) {
-                        return application.error(json.res, { msg: 'Prioridade Executar a Partir exige Data Prioridade', invalidfields: ['dataprioridade'] });
-                    }
-
-                    if (json.id == 0) {
-                        json.data.idusuariorequisitante = json.req.user.id;
-                        json.data.idestado = config.idestadoinicial;
-                    } else {
-                        if (!json.data.idestado) {
-                            return application.error(json.res, { msg: 'Informe o Estado', invalidfields: ['idestado'] });
+                    if (obj.id == 0) {
+                        if ([68, 69].indexOf(obj.view.id) >= 0) { // Contas a Pagar
+                            obj.data.dc = 1;
+                        } else {
+                            obj.data.dc = 2;
                         }
                     }
 
-                    next(json);
-                });
+
+                    next(obj);
+                }
             }
+
+            , categoria: {
+                onsave: function (obj, next) {
+                    next(obj, main.erp.financeiro.categoria.treeAll);
+                }
+                , treeAll: function () {
+
+                    var getChildren = function (current, childs) {
+                        for (var i = 0; i < childs.length; i++) {
+                            if (current.idcategoriapai == childs[i].id) {
+                                if (childs[i].idcategoriapai) {
+                                    return getChildren(childs[i], childs) + childs[i].descricao + ' - ';
+                                } else {
+                                    return childs[i].descricao + ' - ';
+                                }
+                            }
+                        }
+                    }
+
+                    db.getModel('fin_categoria').findAll().then(categorias => {
+                        categorias.map(categoria => {
+                            if (categoria.idcategoriapai) {
+                                categoria.descricaocompleta = getChildren(categoria, categorias) + categoria.descricao;
+                            } else {
+                                categoria.descricaocompleta = categoria.descricao;
+                            }
+
+                            categoria.save();
+                        });
+                    });
+
+                }
+            }
+
         }
     }
 
@@ -437,7 +549,36 @@ var main = {
     }
 
     , plastrela: {
-        estoque: {
+        manutencao: {
+            os: {
+                save: function (json, next) {
+                    db.getModel('man_config').find().then(config => {
+
+                        // Prioridades
+                        if (config.idprioridadeurgente == json.data.idprioridade && !json.data.idmotivo) {
+                            return application.error(json.res, { msg: 'Prioridade Urgente exige motivo', invalidfields: ['idmotivo'] });
+                        } else if (config.idprioridadeate == json.data.idprioridade && !json.data.dataprioridade) {
+                            return application.error(json.res, { msg: 'Prioridade Executar até exige Data Prioridade', invalidfields: ['dataprioridade'] });
+                        } else if (config.idprioridadeapartir == json.data.idprioridade && !json.data.dataprioridade) {
+                            return application.error(json.res, { msg: 'Prioridade Executar a Partir exige Data Prioridade', invalidfields: ['dataprioridade'] });
+                        }
+
+                        if (json.id == 0) {
+                            json.data.idusuariorequisitante = json.req.user.id;
+                            json.data.idestado = config.idestadoinicial;
+                        } else {
+                            if (!json.data.idestado) {
+                                return application.error(json.res, { msg: 'Informe o Estado', invalidfields: ['idestado'] });
+                            }
+                        }
+
+                        next(json);
+                    });
+                }
+            }
+        }
+
+        , estoque: {
             _movimentarEstoque: function (obj) {//idversao iddeposito idoperacao qtd
 
 

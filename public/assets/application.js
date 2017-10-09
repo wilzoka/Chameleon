@@ -53,8 +53,10 @@ var application = {
                     $this.find('div.has-error').removeClass('has-error');
                 }
                 , success: function (response) {
-                    if ($this.attr('data-modal') == 'true') {
-                        $this.find('div.modal').modal('hide');
+                    if (response.success) {
+                        if ($this.attr('data-modal') == 'true') {
+                            $this.find('div.modal').modal('hide');
+                        }
                     }
                     application.handlers.responseSuccess(response);
                 }
@@ -240,7 +242,7 @@ var application = {
                         application.tables.create(response);
                     }
                     , error: function (response) {
-                        notifyError(response);
+                        application.notify.error(response);
                     }
                 });
             });
@@ -574,6 +576,13 @@ var application = {
                     return '<i class="fa fa-check"></i>'
                 }
             }
+            , fin_mov_dc: function (value) {
+                if (value == 1) {
+                    return '<span class="label label-danger">Débito</span>';
+                } else {
+                    return '<span class="label label-success">Crédito</span>';
+                }
+            }
         }
         , saveFilter: function (idtable) {
             var $modal = $('div#' + idtable + 'filter');
@@ -788,7 +797,7 @@ var application = {
                 }
                 , offset: 20
                 , spacing: 10
-                , z_index: 1031
+                , z_index: 10310
                 , delay: 400
                 , timer: 1000
                 , animate: {
