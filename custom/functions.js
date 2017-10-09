@@ -118,8 +118,9 @@ var main = {
             }
         }
         , view: {
-            save: function (json, next) {
-                next(json, main.plataform.view.concatAll);
+            save: async function (obj, next) {
+                await next(obj);
+                main.plataform.view.concatAll();
             }
             , concatAll: function () {
                 db.getModel('view').findAll().then(views => {
@@ -206,8 +207,9 @@ var main = {
             }
         }
         , menu: {
-            save: function (json, next) {
-                next(json, main.plataform.menu.treeAll);
+            save: async function (obj, next) {
+                await next(obj);
+                main.plataform.menu.treeAll();
             }
             , treeAll: function () {
 
@@ -242,9 +244,10 @@ var main = {
             }
         }
         , schedule: {
-            save: function (json, next) {
-                json.data.active = false;
-                next(json, schedule.removeSchedule);
+            save: async function (obj, next) {
+                obj.data.active = false;
+                await next(obj);
+                schedule.removeSchedule();
             }
             , active: function (json) {
                 if (json.ids != null && json.ids.split(',').length <= 0) {
@@ -335,7 +338,7 @@ var main = {
                             , id: 'modalevt'
                             , title: 'Realizar Pagamento'
                             , body: body
-                            , footer: '<button type="button" class="btn btn-default btn-sm">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Pagar</button>'
+                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Pagar</button>'
                         }
                     });
                 } else {
@@ -365,7 +368,6 @@ var main = {
                             return application.fatal(obj.res, err);
                         });
                 }
-
 
             }
 
@@ -400,14 +402,14 @@ var main = {
                         }
                     }
 
-
                     next(obj);
                 }
             }
 
             , categoria: {
-                onsave: function (obj, next) {
-                    next(obj, main.erp.financeiro.categoria.treeAll);
+                onsave: async function (obj, next) {
+                    await next(obj)
+                    main.erp.financeiro.categoria.treeAll();
                 }
                 , treeAll: function () {
 
@@ -544,7 +546,7 @@ var main = {
 
     , teste: {
         min: function (sch) {
-            console.log('asdasdasd1');
+            console.log('a');
         }
     }
 
@@ -579,41 +581,76 @@ var main = {
         }
 
         , estoque: {
-            _movimentarEstoque: function (obj) {//idversao iddeposito idoperacao qtd
 
 
+            transferencia: function (obj) {
 
-            }
-            , _getSaldo: function (idversao, iddeposito, qtd) {
+                if (obj.req.method == 'GET') {
 
-                return new Promise(function (resolve, reject) {
-                    db.getModel('est_saldo').find({
-                        where: {
-                            idversao: idversao
-                            , iddeposito: iddeposito
-                            , datafechamento: { $eq: null }
-                        }
-                    }).then(saldo => {
-
-                        if (saldo.qtd <= qtd) {
-                            resolve();
-                        } else {
-                            reject('Saldo Insuficiente');
-                        }
-
+                    let body = '';
+                    body += application.components.html.autocomplete({
+                        width: 12
+                        , label: 'Produto'
+                        , name: 'idversao'
+                        , model: 'pcp_versao'
+                        , attribute: 'descricaocompleta'
                     });
-                });
+                    body += application.components.html.decimal({
+                        width: 4
+                        , label: 'Quantidade'
+                        , name: 'qtd'
+                        , precision: 4
+                    });
+                    body += application.components.html.autocomplete({
+                        width: 4
+                        , label: 'Depósito Origem'
+                        , name: 'iddepositode'
+                        , model: 'est_deposito'
+                        , attribute: 'descricao'
+                    });
+                    body += application.components.html.autocomplete({
+                        width: 4
+                        , label: 'Depósito Destino'
+                        , name: 'iddepositopara'
+                        , model: 'est_deposito'
+                        , attribute: 'descricao'
+                    });
+
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , action: '/event/' + obj.event.id
+                            , id: 'modalevt'
+                            , title: 'Transferência'
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Transferir</button>'
+                        }
+                    });
+                } else {
+
+                    let fieldsrequired = ['idversao', 'qtd', 'iddepositode', 'iddepositopara'];
+                    let invalidfields = [];
+
+                    for (var i = 0; i < fieldsrequired.length; i++) {
+                        if (!(fieldsrequired[i] in obj.req.body && obj.req.body[fieldsrequired[i]])) {
+                            invalidfields.push(fieldsrequired[i]);
+                        }
+                    }
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+
+                    return application.success(obj.res, { msg: 'ok' });
+                }
 
             }
 
             , _getOperacaoES: function (idoperacao) {
-
-                return new Promise(function (resolve, reject) {
+                return new Promise((resolve, reject) => {
 
                     db.getModel('est_config').find().then(config => {
 
                         db.getModel('est_operacao').find({ where: { id: idoperacao }, include: { all: true } }).then(operacao => {
-
                             if (operacao.est_operacaotipo.id == config.idoperacaotipoentrada) {
                                 resolve('E');
                             } else if (operacao.est_operacaotipo.id == config.idoperacaotiposaida) {
@@ -621,67 +658,134 @@ var main = {
                             } else {
                                 reject('Tipo de Operação Inválido');
                             }
-
                         });
 
                     });
 
                 });
-
             }
 
-            , _atualizarSaldo: function (idversao, iddeposito) {
+            , _getSaldoAnterior: function (idversao, iddeposito) {
+                return new Promise((resolve, reject) => {
 
+                    db.getModel('est_saldo').find({
+                        where: {
+                            idversao: idversao
+                            , iddeposito: iddeposito
+                            , datafechamento: { $ne: null }
+                        }
+                        , order: [['datafechamento', 'desc']]
+                    }).then(saldo => {
+
+                        resolve(saldo);
+
+                    }).catch(err => {
+                        console.log(err);
+                        reject(err);
+
+                    });
+
+                });
+            }
+
+            , _getSaldoAtual: function (idversao, iddeposito) {
+                return new Promise((resolve, reject) => {
+
+                    db.getModel('est_saldo').findOrCreate({
+                        where: {
+                            idversao: idversao
+                            , iddeposito: iddeposito
+                            , datafechamento: null
+                        }
+                    }).spread((saldo, created) => {
+                        if (created) {
+                            saldo.qtd = 0;
+                            saldo.save();
+                        }
+
+                        resolve(saldo);
+
+                    }).catch(err => {
+
+                        reject(err);
+
+                    });
+
+                });
+            }
+
+            , _recalcularSaldoIndividual: async function (idversao, iddeposito) {
+                const f = main.plastrela.estoque;
+                try {
+                    let saldoanterior = await f._getSaldoAnterior(idversao, iddeposito);
+                    let saldoatual = await f._getSaldoAtual(idversao, iddeposito);
+
+                    if (!saldoanterior) {
+                        saldoanterior = { qtd: 0, datafechamento: '1900-01-01' };
+                    }
+
+                    db.sequelize.query(
+                        " select"
+                        + " sum(case when tipomov = 'S' then qtd * -1 else qtd end) as qtd"
+                        + " from "
+                        + " (select"
+                        + " m.*"
+                        + " , case when ce.id is null then 'S' else 'E' end as tipomov"
+                        + " from"
+                        + " est_mov m"
+                        + " left join est_operacao o on (m.idoperacao = o.id)"
+                        + " left join est_operacaotipo ot on (o.idoperacaotipo = ot.id)"
+                        + " left join est_config ce on (ot.id = ce.idoperacaotipoentrada)"
+                        + " where"
+                        + " m.datahora > :datahora and idversao = :idversao and iddeposito = :iddeposito) as x"
+                        , {
+                            type: db.sequelize.QueryTypes.SELECT
+                            , replacements: {
+                                datahora: saldoanterior.datafechamento
+                                , idversao: idversao
+                                , iddeposito, iddeposito
+                            }
+                        })
+                        .then(result => {
+
+                            if (result.length > 0) {
+                                saldoatual.qtd = (parseFloat(result[0].qtd) + parseFloat(saldoanterior.qtd)).toFixed(4);
+                                saldoatual.save();
+                            }
+
+                        }).catch(err => {
+                            console.error(err);
+                        });
+
+                } catch (err) {
+                    console.error(err);
+                }
             }
 
             , est_mov: {
-                onsave: function (obj, next) {
-                    let f = main.plastrela.estoque;
+                onsave: async function (obj, next) {
+
+                    const f = main.plastrela.estoque;
                     if (obj.id == 0) {
                         obj.data.iduser = obj.req.user.id;
                     }
 
-                    f._getOperacaoES(obj.data.idoperacao).then(operacao => {
+                    try {
 
-                        db.getModel('est_saldo').find({
-                            where: {
-                                idversao: obj.data.idversao
-                                , iddeposito: obj.data.iddeposito
-                                , datafechamento: { $eq: null }
-                            }
-                        }).then(saldo => {
+                        const operacao = await f._getOperacaoES(obj.data.idoperacao);
+                        const saldoatual = await f._getSaldoAtual(obj.data.idversao, obj.data.iddeposito);
+                        if (operacao == 'S' && obj.data.qtd > saldoatual.qtd) {
+                            return application.error(obj.res, { msg: 'Saldo Insuficiente' });
+                        }
 
-                            console.log(saldo, obj.data);
+                        await next(obj);
 
-                            if (operacao == 'S') {
-                                if (saldo) {
-                                    saldo.qtd = parseFloat(saldo.qtd) - obj.data.qtd;
-                                    saldo.save().then(register => {
-                                        next(obj);
-                                    });
-                                } else {
-                                    return application.error(obj.res, { msg: "Saldo Insuficiente" });
-                                }
-                            } else {
-                                if (saldo) {
-                                    saldo.qtd = parseFloat(saldo.qtd) + obj.data.qtd;
-                                    saldo.save().then(register => {
-                                        next(obj);
-                                    });
+                        f._recalcularSaldoIndividual(obj.data.idversao, obj.data.iddeposito);
 
-                                } else {
-                                    db.getModel('est_saldo').create({
-                                        idversao: obj.data.idversao
-                                        , iddeposito: obj.data.iddeposito
-                                        , qtd: obj.data.qtd
-                                    }).then(register => {
-                                        next(obj);
-                                    })
-                                }
-                            }
-                        });
+                    } catch (err) {
 
-                    });
+                    }
+
 
                 }
             }

@@ -369,53 +369,24 @@ var onSaveModel = function (json, next) {
     }
 }
 
-var validateModel = function (json, aftersavefunction) {
+var validateModel = function (json) {
+    return new Promise((resolve, reject) => {
 
-    // #invalidfields contains the name fields invalid
-    var invalidfields = [];
+        // #invalidfields contains the name fields invalid
+        var invalidfields = [];
 
-    if (json.id == 0) {
-        // Validade with data
-        for (var i = 0; i < json.modelattributes.length; i++) {
-
-            // Not Null validate
-            if (json.modelattributes[i].type == 'boolean') {
-            } else if (json.modelattributes[i].notnull && json.modelattributes[i].type == 'integer') {
-                if (!Number.isInteger(json.data[json.modelattributes[i].name])) {
-                    invalidfields.push(json.modelattributes[i].name);
-                }
-            } else {
-                if (json.modelattributes[i].notnull && !json.data[json.modelattributes[i].name]) {
-                    invalidfields.push(json.modelattributes[i].name);
-                }
-            }
-
-        }
-
-        if (invalidfields.length > 0) {
-            return application.error(json.res, {
-                invalidfields: invalidfields
-                , msg: application.message.invalidFields
-            });
-        } else {
-            saveModel(json, aftersavefunction);
-        }
-
-    } else {
-        // Validate with data merged with already exists
-        db.getModel(json.view.model.name).find({ where: { id: json.id } }).then(register => {
-            register = mergeModel(register, json.data);
-
+        if (json.id == 0) {
+            // Validade with data
             for (var i = 0; i < json.modelattributes.length; i++) {
 
-                // Not Null Validate
+                // Not Null validate
                 if (json.modelattributes[i].type == 'boolean') {
                 } else if (json.modelattributes[i].notnull && json.modelattributes[i].type == 'integer') {
-                    if (!Number.isInteger(register[json.modelattributes[i].name])) {
+                    if (!Number.isInteger(json.data[json.modelattributes[i].name])) {
                         invalidfields.push(json.modelattributes[i].name);
                     }
                 } else {
-                    if (json.modelattributes[i].notnull && !register[json.modelattributes[i].name]) {
+                    if (json.modelattributes[i].notnull && !json.data[json.modelattributes[i].name]) {
                         invalidfields.push(json.modelattributes[i].name);
                     }
                 }
@@ -423,57 +394,86 @@ var validateModel = function (json, aftersavefunction) {
             }
 
             if (invalidfields.length > 0) {
+                reject();
                 return application.error(json.res, {
                     invalidfields: invalidfields
                     , msg: application.message.invalidFields
                 });
             } else {
-                saveModel(json, aftersavefunction);
+                resolve(saveModel(json));
             }
 
-        }).catch(err => {
-            return application.fatal(json.res, err);
-        });
+        } else {
+            // Validate with data merged with already exists
+            db.getModel(json.view.model.name).find({ where: { id: json.id } }).then(register => {
+                register = mergeModel(register, json.data);
 
-    }
+                for (var i = 0; i < json.modelattributes.length; i++) {
+
+                    // Not Null Validate
+                    if (json.modelattributes[i].type == 'boolean') {
+                    } else if (json.modelattributes[i].notnull && json.modelattributes[i].type == 'integer') {
+                        if (!Number.isInteger(register[json.modelattributes[i].name])) {
+                            invalidfields.push(json.modelattributes[i].name);
+                        }
+                    } else {
+                        if (json.modelattributes[i].notnull && !register[json.modelattributes[i].name]) {
+                            invalidfields.push(json.modelattributes[i].name);
+                        }
+                    }
+
+                }
+
+                if (invalidfields.length > 0) {
+                    reject();
+                    return application.error(json.res, {
+                        invalidfields: invalidfields
+                        , msg: application.message.invalidFields
+                    });
+                } else {
+                    resolve(saveModel(json));
+                }
+
+            }).catch(err => {
+                reject();
+                return application.fatal(json.res, err);
+            });
+        }
+    });
 }
 
-var saveModel = function (json, aftersavefunction) {
-    // #ID=0 means that is inserting
-    // else updating
-    if (json.id == 0) {
-        // Inserting
-        db.getModel(json.view.model.name).create(json.data).then(register => {
-            application.success(json.res, {
-                msg: application.message.success
-                , data: register
-                , redirect: '/view/' + json.view.id + '/' + register.id
-            });
-            if (aftersavefunction) {
-                aftersavefunction(register);
-            }
-        }).catch(err => {
-            application.fatal(json.res, err);
-        });
-
-    } else {
-        // Updating
-        db.getModel(json.view.model.name).find({ where: { id: json.id } }).then(register => {
-            register = mergeModel(register, json.data);
-            register.save().then(registersaved => {
+var saveModel = function (json) {
+    return new Promise((resolve, reject) => {
+        if (json.id == 0) {
+            // Inserting
+            db.getModel(json.view.model.name).create(json.data).then(register => {
                 application.success(json.res, {
                     msg: application.message.success
-                    , data: registersaved
+                    , data: register
+                    , redirect: '/view/' + json.view.id + '/' + register.id
                 });
-                if (aftersavefunction) {
-                    aftersavefunction(registersaved);
-                }
+                resolve(register);
+            }).catch(err => {
+                reject(err);
+                return application.fatal(json.res, err);
             });
-        }).catch(err => {
-            application.fatal(json.res, err);
-        });
-
-    }
+        } else {
+            // Updating
+            db.getModel(json.view.model.name).find({ where: { id: json.id } }).then(register => {
+                register = mergeModel(register, json.data);
+                register.save().then(registersaved => {
+                    application.success(json.res, {
+                        msg: application.message.success
+                        , data: registersaved
+                    });
+                    resolve(registersaved);
+                });
+            }).catch(err => {
+                reject(err);
+                return application.fatal(json.res, err);
+            });
+        }
+    });
 }
 
 var onDeleteModel = function (json, next) {

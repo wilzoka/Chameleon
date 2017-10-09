@@ -165,7 +165,7 @@ exports.formatters = {
 		, decimal: function (value, precision) {
 			value = value.replace(/\./g, "");
 			value = value.replace(/\,/g, ".");
-			return  parseFloat(parseFloat(value).toFixed(precision));
+			return parseFloat(value).toFixed(precision);
 		}
 		, date: function (value) {
 			value = moment(value, 'DD/MM/YYYY');
