@@ -119,7 +119,7 @@ var renderAutocomplete = function (viewfield, register) {
     var json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
     var datawhere = '';
     if ('where' in json) {
-        datawhere = 'data-where="' + json.where + '"';
+        datawhere = json.where;
     }
 
     var option = '';
@@ -296,183 +296,183 @@ var render = function (viewfield, register) {
     }
 }
 
-var mergeModel = function (register, data) {
+var merge = function (register, data) {
     for (var k in data) {
         register[k] = data[k];
     }
     return register;
 }
 
-var flowModel = function (json) {
-    modelateModel(json);
-}
+var modelate = function (obj) {
 
-var modelateModel = function (json) {
-    // Adjust json.data 
-    for (var i = 0; i < json.modelattributes.length; i++) {
+    for (var i = 0; i < obj.modelattributes.length; i++) {
 
-        switch (json.modelattributes[i].type) {
+        switch (obj.modelattributes[i].type) {
             case 'date':
-                if (json.data[json.modelattributes[i].name] != undefined) {
-                    json.data[json.modelattributes[i].name] = application.formatters.be.date(json.data[json.modelattributes[i].name]);
+                if (obj.data[obj.modelattributes[i].name] != undefined) {
+                    obj.data[obj.modelattributes[i].name] = application.formatters.be.date(obj.data[obj.modelattributes[i].name]);
                 }
                 break;
             case 'datetime':
-                if (json.data[json.modelattributes[i].name] != undefined) {
-                    json.data[json.modelattributes[i].name] = application.formatters.be.datetime(json.data[json.modelattributes[i].name]);
+                if (obj.data[obj.modelattributes[i].name] != undefined) {
+                    obj.data[obj.modelattributes[i].name] = application.formatters.be.datetime(obj.data[obj.modelattributes[i].name]);
                 }
                 break;
             case 'time':
-                if (json.data[json.modelattributes[i].name] != undefined) {
-                    json.data[json.modelattributes[i].name] = application.formatters.be.time(json.data[json.modelattributes[i].name]);
+                if (obj.data[obj.modelattributes[i].name] != undefined) {
+                    obj.data[obj.modelattributes[i].name] = application.formatters.be.time(obj.data[obj.modelattributes[i].name]);
                 }
                 break;
             case 'parent':
-                if (json.req.query.parent && json.req.query.parent > 0) {
-                    json.data[json.modelattributes[i].name] = parseInt(json.req.query.parent);
+                if (obj.req.query.parent && obj.req.query.parent > 0) {
+                    obj.data[obj.modelattributes[i].name] = parseInt(obj.req.query.parent);
                 }
                 break;
             case 'boolean':
-                if (json.data[json.modelattributes[i].name]) {
-                    json.data[json.modelattributes[i].name] = true;
+                if (obj.data[obj.modelattributes[i].name]) {
+                    obj.data[obj.modelattributes[i].name] = true;
                 } else {
-                    json.data[json.modelattributes[i].name] = false;
+                    obj.data[obj.modelattributes[i].name] = false;
                 }
                 break;
             case 'integer':
-                if (json.data[json.modelattributes[i].name] != undefined) {
-                    json.data[json.modelattributes[i].name] = application.formatters.be.integer(json.data[json.modelattributes[i].name]);
+                if (obj.data[obj.modelattributes[i].name] != undefined) {
+                    obj.data[obj.modelattributes[i].name] = application.formatters.be.integer(obj.data[obj.modelattributes[i].name]);
                 }
                 break;
             case 'autocomplete':
-                if (json.data[json.modelattributes[i].name]) {
-                    json.data[json.modelattributes[i].name] = application.formatters.be.integer(json.data[json.modelattributes[i].name]);
+                if (obj.data[obj.modelattributes[i].name]) {
+                    obj.data[obj.modelattributes[i].name] = application.formatters.be.integer(obj.data[obj.modelattributes[i].name]);
                 }
                 break;
             case 'decimal':
-                if (json.data[json.modelattributes[i].name]) {
-                    json.data[json.modelattributes[i].name] = application.formatters.be.decimal(json.data[json.modelattributes[i].name], application.modelattribute.parseTypeadd(json.modelattributes[i].typeadd).precision);
+                if (obj.data[obj.modelattributes[i].name]) {
+                    obj.data[obj.modelattributes[i].name] = application.formatters.be.decimal(obj.data[obj.modelattributes[i].name], application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd).precision);
                 }
                 break;
         }
     }
 
-    onSaveModel(json, validateModel);
+    return obj;
 }
 
-var onSaveModel = function (json, next) {
-    if (json.view.model.onsave) {
-        var custom = reload('../custom/functions');
-        application.functions.getRealReference(custom, json.view.model.onsave)(json, next);
-    } else {
-        next(json);
-    }
-}
-
-var validateModel = function (json) {
+var validate = async function (obj) {
     return new Promise((resolve, reject) => {
 
-        // #invalidfields contains the name fields invalid
         var invalidfields = [];
 
-        if (json.id == 0) {
-            // Validade with data
-            for (var i = 0; i < json.modelattributes.length; i++) {
+        if (obj.id == 0) {
 
-                // Not Null validate
-                if (json.modelattributes[i].type == 'boolean') {
-                } else if (json.modelattributes[i].notnull && json.modelattributes[i].type == 'integer') {
-                    if (!Number.isInteger(json.data[json.modelattributes[i].name])) {
-                        invalidfields.push(json.modelattributes[i].name);
+            for (var i = 0; i < obj.modelattributes.length; i++) {
+
+                if (obj.modelattributes[i].type == 'boolean') {
+                } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
+                    if (!Number.isInteger(obj.data[obj.modelattributes[i].name])) {
+                        invalidfields.push(obj.modelattributes[i].name);
                     }
                 } else {
-                    if (json.modelattributes[i].notnull && !json.data[json.modelattributes[i].name]) {
-                        invalidfields.push(json.modelattributes[i].name);
+                    if (obj.modelattributes[i].notnull && !obj.data[obj.modelattributes[i].name]) {
+                        invalidfields.push(obj.modelattributes[i].name);
                     }
                 }
 
             }
 
             if (invalidfields.length > 0) {
-                reject();
-                return application.error(json.res, {
-                    invalidfields: invalidfields
-                    , msg: application.message.invalidFields
-                });
+                return resolve({ success: false, invalidfields: invalidfields });
             } else {
-                resolve(saveModel(json));
+                return resolve({ success: true });
             }
 
         } else {
-            // Validate with data merged with already exists
-            db.getModel(json.view.model.name).find({ where: { id: json.id } }).then(register => {
-                register = mergeModel(register, json.data);
 
-                for (var i = 0; i < json.modelattributes.length; i++) {
+            db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
+                register = merge(register, obj.data);
 
-                    // Not Null Validate
-                    if (json.modelattributes[i].type == 'boolean') {
-                    } else if (json.modelattributes[i].notnull && json.modelattributes[i].type == 'integer') {
-                        if (!Number.isInteger(register[json.modelattributes[i].name])) {
-                            invalidfields.push(json.modelattributes[i].name);
+                for (var i = 0; i < obj.modelattributes.length; i++) {
+
+                    if (obj.modelattributes[i].type == 'boolean') {
+                    } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
+                        if (!Number.isInteger(register[obj.modelattributes[i].name])) {
+                            invalidfields.push(obj.modelattributes[i].name);
                         }
                     } else {
-                        if (json.modelattributes[i].notnull && !register[json.modelattributes[i].name]) {
-                            invalidfields.push(json.modelattributes[i].name);
+                        if (obj.modelattributes[i].notnull && !register[obj.modelattributes[i].name]) {
+                            invalidfields.push(obj.modelattributes[i].name);
                         }
                     }
 
                 }
 
                 if (invalidfields.length > 0) {
-                    reject();
-                    return application.error(json.res, {
-                        invalidfields: invalidfields
-                        , msg: application.message.invalidFields
-                    });
+                    return resolve({ success: false, invalidfields: invalidfields });
                 } else {
-                    resolve(saveModel(json));
+                    return resolve({ success: true });
                 }
 
-            }).catch(err => {
-                reject();
-                return application.fatal(json.res, err);
             });
+
         }
     });
 }
 
-var saveModel = function (json) {
+var save = async function (obj) {
     return new Promise((resolve, reject) => {
-        if (json.id == 0) {
-            // Inserting
-            db.getModel(json.view.model.name).create(json.data).then(register => {
-                application.success(json.res, {
-                    msg: application.message.success
-                    , data: register
-                    , redirect: '/view/' + json.view.id + '/' + register.id
+
+        try {
+
+            if (obj.id == 0) {
+                db.getModel(obj.view.model.name).create(obj.data).then(register => {
+                    return resolve({ success: true, register: register });
                 });
-                resolve(register);
-            }).catch(err => {
-                reject(err);
-                return application.fatal(json.res, err);
-            });
-        } else {
-            // Updating
-            db.getModel(json.view.model.name).find({ where: { id: json.id } }).then(register => {
-                register = mergeModel(register, json.data);
-                register.save().then(registersaved => {
-                    application.success(json.res, {
-                        msg: application.message.success
-                        , data: registersaved
+            } else {
+                db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
+                    register = merge(register, obj.data);
+                    register.save().then(registersaved => {
+                        return resolve({ success: true, register: registersaved });
                     });
-                    resolve(registersaved);
                 });
-            }).catch(err => {
-                reject(err);
-                return application.fatal(json.res, err);
-            });
+            }
+
+        } catch (err) {
+
+            resolve({ success: false });
+
         }
+    });
+}
+
+var validateAndSave = function (obj) {
+    return new Promise((resolve, reject) => {
+
+        try {
+
+            validate(obj).then(validation => {
+                if (validation.success) {
+                    save(obj).then(saved => {
+                        if (saved.success) {
+                            resolve({ success: true, register: saved.register });
+                            return application.success(obj.res, {
+                                msg: application.message.success
+                                , data: saved.register
+                                , redirect: '/view/' + obj.view.id + '/' + saved.register.id
+                            });
+                        } else {
+                            resolve({ success: false });
+                            return application.error(obj.res, { msg: 'Nâo foi possível salvar este registro' });
+                        }
+                    });
+                } else {
+                    resolve({ success: false });
+                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: validation.invalidfields });
+                }
+            });
+
+        } catch (err) {
+
+
+        }
+
     });
 }
 
@@ -500,72 +500,70 @@ var deleteModel = function (json) {
 }
 
 var hasPermission = function (iduser, idview) {
-    var permissionquery = 'select p.*, v.id as idview from permission p left join menu m on (p.idmenu = m.id) left join view v on (m.idview = v.id) where p.iduser = :iduser';
+    return new Promise((resolve, reject) => {
 
-    var getChilds = function (idview, subviews) {
-        var returnsubviews = [];
+        var permissionquery = 'select p.*, v.id as idview from permission p left join menu m on (p.idmenu = m.id) left join view v on (m.idview = v.id) where p.iduser = :iduser';
 
-        for (var i = 0; i < subviews.length; i++) {
+        var getChilds = function (idview, subviews) {
+            var returnsubviews = [];
 
-            if (idview == subviews[i].idview) {
-                returnsubviews.push(subviews[i].idsubview);
-                var moresubviews = getChilds(subviews[i].idsubview, subviews);
-                if (moresubviews.length > 0) {
-                    returnsubviews.push(moresubviews);
-                }
-            }
+            for (var i = 0; i < subviews.length; i++) {
 
-        }
-
-        return returnsubviews;
-
-    }
-
-    return new Promise(
-        function (resolve, reject) {
-
-            db.sequelize.query(permissionquery, {
-                replacements: { iduser: iduser }
-                , type: db.sequelize.QueryTypes.SELECT
-            }).then(permissions => {
-
-                for (var i = 0; i < permissions.length; i++) {
-                    if (permissions[i].idview == idview) {
-                        resolve(permissions[i]);
+                if (idview == subviews[i].idview) {
+                    returnsubviews.push(subviews[i].idsubview);
+                    var moresubviews = getChilds(subviews[i].idsubview, subviews);
+                    if (moresubviews.length > 0) {
+                        returnsubviews.push(moresubviews);
                     }
                 }
 
-                db.getModel('viewsubview').findAll({ raw: true }).then(subviews => {
+            }
 
-                    for (var i = 0; i < permissions.length; i++) {
-                        permissions[i].childs = getChilds(permissions[i].idview, subviews);
+            return returnsubviews;
 
-                        for (var x = 0; x < permissions[i].childs.length; x++) {
+        }
 
-                            if (permissions[i].childs[x] == idview) {
-                                resolve(permissions[i]);
-                            }
+        db.sequelize.query(permissionquery, {
+            replacements: { iduser: iduser }
+            , type: db.sequelize.QueryTypes.SELECT
+        }).then(permissions => {
 
+            for (var i = 0; i < permissions.length; i++) {
+                if (permissions[i].idview == idview) {
+                    return resolve(permissions[i]);
+                }
+            }
+
+            db.getModel('viewsubview').findAll({ raw: true }).then(subviews => {
+
+                for (var i = 0; i < permissions.length; i++) {
+                    permissions[i].childs = getChilds(permissions[i].idview, subviews);
+
+                    for (var x = 0; x < permissions[i].childs.length; x++) {
+
+                        if (permissions[i].childs[x] == idview) {
+                            return resolve(permissions[i]);
                         }
 
                     }
 
-                    reject(403);
+                }
 
-                }).catch(err => {
+                return reject();
 
-                    reject(err);
-
-                });
-
+            }).catch(err => {
+                console.error(err);
+                return reject();
             });
 
         });
+
+    });
 }
 
 module.exports = function (app) {
 
-    app.get('/view/:idview/config', application.IsAuthenticated, function (req, res) {
+    app.get('/view/:idview/config', application.IsAuthenticated, async (req, res) => {
 
         var decodeClass = function (type) {
             switch (type) {
@@ -578,555 +576,486 @@ module.exports = function (app) {
             }
         }
 
-        hasPermission(req.user.id, req.params.idview).then(permission => {
-
+        try {
+            let permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
 
-                db.getModel('view').find({
-                    where: { id: req.params.idview }
+                let view = await db.getModel('view').find({ where: { id: req.params.idview } });
+                let viewtables = await db.getModel('viewtable').findAll({
+                    where: { idview: view.id }
+                    , order: [['ordertable', 'ASC']]
                     , include: [{ all: true }]
-                }).then(view => {
-
-                    db.getModel('viewtable').findAll({
-                        where: { idview: view.id }
-                        , order: [['ordertable', 'ASC']]
-                        , include: [{ all: true }]
-                    }).then(viewtables => {
-
-                        db.getModel('viewfield').findAll({
-                            where: { idview: view.id }
-                            , order: [['order', 'ASC']]
-                            , include: [{ all: true }]
-                        }).then(viewfields => {
-
-                            db.getModel('viewevent').findAll({
-                                where: { idview: view.id }
-                                , order: [['description', 'ASC']]
-                                , include: [{ all: true }]
-                            }).then(viewevents => {
-
-                                var events = [];
-                                var columns = [];
-                                var needfooter = false;
-                                var footer = '';
-                                var permissions = {};
-                                var filter = '';
-
-                                // Permissions
-                                permissions.insertable = permission.insertable;
-                                permissions.editable = permission.editable;
-                                permissions.deletable = permission.deletable;
-
-                                // Events
-                                for (var i = 0; i < viewevents.length; i++) {
-
-                                    events.push({
-                                        id: viewevents[i].id
-                                        , description: viewevents[i].description
-                                        , icon: viewevents[i].icon
-                                        , function: viewevents[i].function
-                                    });
-
-                                }
-
-                                // Columns
-                                if (!view.supressid) {
-                                    columns.push({
-                                        title: 'ID'
-                                        , data: 'id'
-                                        , name: 'id'
-                                        , width: 37
-                                    });
-                                }
-                                for (var i = 0; i < viewtables.length; i++) {
-
-                                    columns.push({
-                                        title: viewtables[i].modelattribute.label
-                                        , data: viewtables[i].modelattribute.name
-                                        , name: viewtables[i].modelattribute.name
-                                        , orderable: viewtables[i].orderable
-                                        , render: viewtables[i].render
-                                        , class: decodeClass(viewtables[i].modelattribute.type)
-                                    });
-
-                                    if (viewtables[i].totalize) {
-                                        needfooter = true;
-                                    }
-                                }
-                                if (needfooter) {
-                                    footer = '<tfoot><tr>';
-                                    if (!view.supressid) {
-                                        footer += '<td style="text-align: center;"><b>Total</b></td>';
-                                    }
-                                    for (var i = 0; i < viewtables.length; i++) {
-                                        var data = 'data-view="' + view.id + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
-                                        if (viewtables[i].totalize) {
-                                            footer += '<td> <span class="totalize" ' + data + '></span> </td>';
-                                        } else {
-                                            footer += '<td></td>';
-                                        }
-                                    }
-                                    footer += '</tr></tfoot>';
-                                }
-
-                                //Filter
-                                var getFilterValue = function (name, cookiefilter) {
-                                    if (name in cookiefilter) {
-                                        return cookiefilter[name];
-                                    } else {
-                                        return '';
-                                    }
-                                }
-                                var cookiefilter = {};
-                                var cookiefiltercount = 0;
-                                if ('tableview' + view.id + 'filter' in req.cookies) {
-                                    var cookiefilteraux = JSON.parse(req.cookies['tableview' + view.id + 'filter']);
-                                    cookiefiltercount = cookiefilteraux.length;
-                                    for (var i = 0; i < cookiefilteraux.length; i++) {
-                                        for (var k in cookiefilteraux[i]) {
-                                            cookiefilter[k] = cookiefilteraux[i][k];
-                                        }
-                                    }
-                                }
-
-                                var separator = '+';
-
-                                if (!view.supressid) {
-
-                                    filter += application.components.html.integer({
-                                        width: 4
-                                        , label: 'ID'
-                                        , name: 'id' + separator + 'integer' + separator + 'r'
-                                        , value: getFilterValue('id.integer.r', cookiefilter)
-                                    });
-
-                                    filter += application.components.html.integer({
-                                        width: 4
-                                        , label: 'ID - Inicial'
-                                        , name: 'id' + separator + 'integer' + separator + 'b'
-                                        , value: getFilterValue('id.integer.b', cookiefilter)
-                                    });
-
-                                    filter += application.components.html.integer({
-                                        width: 4
-                                        , label: 'ID - Final'
-                                        , name: 'id.integer.e'
-                                        , value: getFilterValue('id.integer.e', cookiefilter)
-                                    });
-                                }
-
-                                for (var i = 0; i < viewfields.length; i++) {
-
-                                    var filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type;
-
-                                    var json = {};
-                                    if (viewfields[i].modelattribute.typeadd) {
-                                        json = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                                    }
-
-                                    switch (viewfields[i].modelattribute.type) {
-                                        case 'text':
-
-                                            filtername += separator + 's';
-                                            filter += application.components.html.text({
-                                                width: 12
-                                                , label: viewfields[i].modelattribute.label
-                                                , name: filtername
-                                                , value: getFilterValue(filtername, cookiefilter)
-                                            });
-
-                                            break;
-
-                                        case 'textarea':
-
-                                            filtername += separator + 's';
-                                            filter += application.components.html.text({
-                                                width: 12
-                                                , label: viewfields[i].modelattribute.label
-                                                , name: filtername
-                                                , value: getFilterValue(filtername, cookiefilter)
-                                            });
-
-                                            break;
-
-                                        case 'integer':
-
-                                            var filtereq = filtername + separator + 'r';
-                                            var filterbegin = filtername + separator + 'b';
-                                            var filterend = filtername + separator + 'e';
-
-                                            filter += application.components.html.integer({
-                                                width: 4
-                                                , label: viewfields[i].modelattribute.label
-                                                , name: filtereq
-                                                , value: getFilterValue(filtereq, cookiefilter)
-                                            });
-
-                                            filter += application.components.html.integer({
-                                                width: 4
-                                                , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                                , name: filterbegin
-                                                , value: getFilterValue(filterbegin, cookiefilter)
-                                            });
-
-                                            filter += application.components.html.integer({
-                                                width: 4
-                                                , label: viewfields[i].modelattribute.label + ' - Final'
-                                                , name: filterend
-                                                , value: getFilterValue(filterend, cookiefilter)
-                                            });
-
-                                            break;
-
-                                        case 'date':
-
-                                            var filterbegin = filtername + separator + 'b';
-                                            var filterend = filtername + separator + 'e';
-
-                                            filter += application.components.html.date({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                                , name: filterbegin
-                                                , value: getFilterValue(filterbegin, cookiefilter)
-                                            });
-
-                                            filter += application.components.html.date({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Final'
-                                                , name: filterend
-                                                , value: getFilterValue(filterend, cookiefilter)
-                                            });
-
-                                            break;
-
-                                        case 'datetime':
-
-                                            var filterbegin = filtername + separator + 'b';
-                                            var filterend = filtername + separator + 'e';
-
-                                            filter += application.components.html.datetime({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                                , name: filterbegin
-                                                , value: getFilterValue(filterbegin, cookiefilter)
-                                            });
-
-                                            filter += application.components.html.datetime({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Final'
-                                                , name: filterend
-                                                , value: getFilterValue(filterend, cookiefilter)
-                                            });
-
-                                            break;
-
-                                        case 'time':
-
-                                            var filterbegin = filtername + separator + 'b';
-                                            var filterend = filtername + separator + 'e';
-
-                                            filter += application.components.html.time({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                                , name: filterbegin
-                                                , value: getFilterValue(filterbegin, cookiefilter)
-                                            });
-
-                                            filter += application.components.html.time({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Final'
-                                                , name: filterend
-                                                , value: getFilterValue(filterend, cookiefilter)
-                                            });
-
-                                            break;
-
-                                        case 'decimal':
-
-                                            var filterbegin = filtername + separator + 'b';
-                                            var filterend = filtername + separator + 'e';
-
-                                            filter += application.components.html.decimal({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                                , name: filterbegin
-                                                , value: getFilterValue(filterbegin, cookiefilter)
-                                                , precision: json.precision
-                                            });
-
-                                            filter += application.components.html.decimal({
-                                                width: 6
-                                                , label: viewfields[i].modelattribute.label + ' - Final'
-                                                , name: filterend
-                                                , value: getFilterValue(filterend, cookiefilter)
-                                                , precision: json.precision
-                                            });
-
-                                            break;
-
-                                        case 'autocomplete':
-
-                                            filtername += separator + 'i';
-                                            filter += application.components.html.autocomplete({
-                                                width: 12
-                                                , label: viewfields[i].modelattribute.label
-                                                , name: filtername
-                                                , disabled: ''
-                                                , model: json.model
-                                                , attribute: json.attribute
-                                                , datawhere: json.where
-                                                , multiple: 'multiple="multiple"'
-                                                , option: getFilterValue(filtername, cookiefilter).options
-                                            });
-
-                                            break;
-
-                                        case 'boolean':
-
-                                            var name = viewfields[i].modelattribute.name;
-                                            var type = viewfields[i].modelattribute.type;
-                                            var label = viewfields[i].modelattribute.label;
-                                            filtername = name + separator + type + separator + 'r';
-                                            var value = getFilterValue(filtername, cookiefilter);
-
-                                            var html = '<div class="col-md-12">'
-                                                + '<div class="form-group">'
-                                                + '<label>' + label + '</label>'
-                                                + '<div class="row">'
-                                                + '<div class="col-xs-4">'
-                                                + '<label>'
-                                                + '<input type="radio" name="' + filtername + '" value="" ' + (value == '' ? 'checked="checked"' : '') + '>'
-                                                + ' Todos'
-                                                + '</label>'
-                                                + '</div>'
-                                                + '<div class="col-xs-4">'
-                                                + '<label>'
-                                                + '<input type="radio" name="' + filtername + '" value="true" ' + (value == 'true' ? 'checked="checked"' : '') + '>'
-                                                + ' Sim'
-                                                + '</label>'
-                                                + '</div>'
-                                                + '<div class="col-xs-4">'
-                                                + '<label>'
-                                                + '<input type="radio" name="' + filtername + '" value="false" ' + (value == 'false' ? 'checked="checked"' : '') + '>'
-                                                + ' Não'
-                                                + '</label>'
-                                                + '</div>'
-                                                + '</div>'
-                                                + '</div>'
-                                                + '</div>';
-
-                                            filter += html;
-
-                                            break;
-
-                                        case 'virtual':
-                                            filtername = json.field + separator + json.type;
-                                            switch (json.type) {
-                                                case 'text':
-
-                                                    filtername += separator + 'sv';
-                                                    filter += application.components.html.text({
-                                                        width: 12
-                                                        , label: viewfields[i].modelattribute.label
-                                                        , name: filtername
-                                                        , value: getFilterValue(filtername, cookiefilter)
-                                                    });
-
-                                                    break;
-                                                case 'integer':
-
-                                                    var filtereq = filtername + separator + 'rv';
-                                                    var filterbegin = filtername + separator + 'bv';
-                                                    var filterend = filtername + separator + 'ev';
-
-                                                    filter += application.components.html.integer({
-                                                        width: 4
-                                                        , label: viewfields[i].modelattribute.label
-                                                        , name: filtereq
-                                                        , value: getFilterValue(filtereq, cookiefilter)
-                                                    });
-
-                                                    filter += application.components.html.integer({
-                                                        width: 4
-                                                        , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                                        , name: filterbegin
-                                                        , value: getFilterValue(filterbegin, cookiefilter)
-                                                    });
-
-                                                    filter += application.components.html.integer({
-                                                        width: 4
-                                                        , label: viewfields[i].modelattribute.label + ' - Final'
-                                                        , name: filterend
-                                                        , value: getFilterValue(filterend, cookiefilter)
-                                                    });
-
-                                                    break;
-                                            }
-
-                                            break;
-                                    }
-
-                                }
-
-                                return application.success(res, {
-                                    name: view.id
-                                    , columns: columns
-                                    , footer: footer
-                                    , events: events
-                                    , permissions: permissions
-                                    , filter: {
-                                        count: cookiefiltercount
-                                        , html: filter
-                                    }
-
-                                });
-
-                            });
-
-                        });
-
+                });
+                let viewfields = await db.getModel('viewfield').findAll({
+                    where: { idview: view.id }
+                    , order: [['order', 'ASC']]
+                    , include: [{ all: true }]
+                });
+                let viewevents = await db.getModel('viewevent').findAll({
+                    where: { idview: view.id }
+                    , order: [['description', 'ASC']]
+                    , include: [{ all: true }]
+                });
+
+                var events = [];
+                var columns = [];
+                var needfooter = false;
+                var footer = '';
+                var permissions = {};
+                var filter = '';
+
+                // Permissions
+                permissions.insertable = permission.insertable;
+                permissions.editable = permission.editable;
+                permissions.deletable = permission.deletable;
+
+                // Events
+                for (var i = 0; i < viewevents.length; i++) {
+
+                    events.push({
+                        id: viewevents[i].id
+                        , description: viewevents[i].description
+                        , icon: viewevents[i].icon
+                        , function: viewevents[i].function
                     });
 
+                }
+
+                // Columns
+                if (!view.supressid) {
+                    columns.push({
+                        title: 'ID'
+                        , data: 'id'
+                        , name: 'id'
+                        , width: 37
+                    });
+                }
+                for (var i = 0; i < viewtables.length; i++) {
+
+                    columns.push({
+                        title: viewtables[i].modelattribute.label
+                        , data: viewtables[i].modelattribute.name
+                        , name: viewtables[i].modelattribute.name
+                        , orderable: viewtables[i].orderable
+                        , render: viewtables[i].render
+                        , class: decodeClass(viewtables[i].modelattribute.type)
+                    });
+
+                    if (viewtables[i].totalize) {
+                        needfooter = true;
+                    }
+                }
+                if (needfooter) {
+                    footer = '<tfoot><tr>';
+                    if (!view.supressid) {
+                        footer += '<td style="text-align: center;"><b>Total</b></td>';
+                    }
+                    for (var i = 0; i < viewtables.length; i++) {
+                        var data = 'data-view="' + view.id + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
+                        if (viewtables[i].totalize) {
+                            footer += '<td> <span class="totalize" ' + data + '></span> </td>';
+                        } else {
+                            footer += '<td></td>';
+                        }
+                    }
+                    footer += '</tr></tfoot>';
+                }
+
+                //Filter
+                var getFilterValue = function (name, cookiefilter) {
+                    if (name in cookiefilter) {
+                        return cookiefilter[name];
+                    } else {
+                        return '';
+                    }
+                }
+                var cookiefilter = {};
+                var cookiefiltercount = 0;
+                if ('tableview' + view.id + 'filter' in req.cookies) {
+                    var cookiefilteraux = JSON.parse(req.cookies['tableview' + view.id + 'filter']);
+                    cookiefiltercount = cookiefilteraux.length;
+                    for (var i = 0; i < cookiefilteraux.length; i++) {
+                        for (var k in cookiefilteraux[i]) {
+                            cookiefilter[k] = cookiefilteraux[i][k];
+                        }
+                    }
+                }
+
+                var separator = '+';
+
+                if (!view.supressid) {
+
+                    filter += application.components.html.integer({
+                        width: 4
+                        , label: 'ID'
+                        , name: 'id' + separator + 'integer' + separator + 'r'
+                        , value: getFilterValue('id.integer.r', cookiefilter)
+                    });
+
+                    filter += application.components.html.integer({
+                        width: 4
+                        , label: 'ID - Inicial'
+                        , name: 'id' + separator + 'integer' + separator + 'b'
+                        , value: getFilterValue('id.integer.b', cookiefilter)
+                    });
+
+                    filter += application.components.html.integer({
+                        width: 4
+                        , label: 'ID - Final'
+                        , name: 'id.integer.e'
+                        , value: getFilterValue('id.integer.e', cookiefilter)
+                    });
+                }
+
+                for (var i = 0; i < viewfields.length; i++) {
+
+                    var filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type;
+
+                    var json = {};
+                    if (viewfields[i].modelattribute.typeadd) {
+                        json = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                    }
+
+                    switch (viewfields[i].modelattribute.type) {
+                        case 'text':
+
+                            filtername += separator + 's';
+                            filter += application.components.html.text({
+                                width: 12
+                                , label: viewfields[i].modelattribute.label
+                                , name: filtername
+                                , value: getFilterValue(filtername, cookiefilter)
+                            });
+
+                            break;
+
+                        case 'textarea':
+
+                            filtername += separator + 's';
+                            filter += application.components.html.text({
+                                width: 12
+                                , label: viewfields[i].modelattribute.label
+                                , name: filtername
+                                , value: getFilterValue(filtername, cookiefilter)
+                            });
+
+                            break;
+
+                        case 'integer':
+
+                            var filtereq = filtername + separator + 'r';
+                            var filterbegin = filtername + separator + 'b';
+                            var filterend = filtername + separator + 'e';
+
+                            filter += application.components.html.integer({
+                                width: 4
+                                , label: viewfields[i].modelattribute.label
+                                , name: filtereq
+                                , value: getFilterValue(filtereq, cookiefilter)
+                            });
+
+                            filter += application.components.html.integer({
+                                width: 4
+                                , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                , name: filterbegin
+                                , value: getFilterValue(filterbegin, cookiefilter)
+                            });
+
+                            filter += application.components.html.integer({
+                                width: 4
+                                , label: viewfields[i].modelattribute.label + ' - Final'
+                                , name: filterend
+                                , value: getFilterValue(filterend, cookiefilter)
+                            });
+
+                            break;
+
+                        case 'date':
+
+                            var filterbegin = filtername + separator + 'b';
+                            var filterend = filtername + separator + 'e';
+
+                            filter += application.components.html.date({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                , name: filterbegin
+                                , value: getFilterValue(filterbegin, cookiefilter)
+                            });
+
+                            filter += application.components.html.date({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Final'
+                                , name: filterend
+                                , value: getFilterValue(filterend, cookiefilter)
+                            });
+
+                            break;
+
+                        case 'datetime':
+
+                            var filterbegin = filtername + separator + 'b';
+                            var filterend = filtername + separator + 'e';
+
+                            filter += application.components.html.datetime({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                , name: filterbegin
+                                , value: getFilterValue(filterbegin, cookiefilter)
+                            });
+
+                            filter += application.components.html.datetime({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Final'
+                                , name: filterend
+                                , value: getFilterValue(filterend, cookiefilter)
+                            });
+
+                            break;
+
+                        case 'time':
+
+                            var filterbegin = filtername + separator + 'b';
+                            var filterend = filtername + separator + 'e';
+
+                            filter += application.components.html.time({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                , name: filterbegin
+                                , value: getFilterValue(filterbegin, cookiefilter)
+                            });
+
+                            filter += application.components.html.time({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Final'
+                                , name: filterend
+                                , value: getFilterValue(filterend, cookiefilter)
+                            });
+
+                            break;
+
+                        case 'decimal':
+
+                            var filterbegin = filtername + separator + 'b';
+                            var filterend = filtername + separator + 'e';
+
+                            filter += application.components.html.decimal({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                , name: filterbegin
+                                , value: getFilterValue(filterbegin, cookiefilter)
+                                , precision: json.precision
+                            });
+
+                            filter += application.components.html.decimal({
+                                width: 6
+                                , label: viewfields[i].modelattribute.label + ' - Final'
+                                , name: filterend
+                                , value: getFilterValue(filterend, cookiefilter)
+                                , precision: json.precision
+                            });
+
+                            break;
+
+                        case 'autocomplete':
+
+                            filtername += separator + 'i';
+                            filter += application.components.html.autocomplete({
+                                width: 12
+                                , label: viewfields[i].modelattribute.label
+                                , name: filtername
+                                , disabled: ''
+                                , model: json.model
+                                , attribute: json.attribute
+                                , datawhere: json.where || ''
+                                , multiple: 'multiple="multiple"'
+                                , option: getFilterValue(filtername, cookiefilter).options || ''
+                            });
+
+                            break;
+
+                        case 'boolean':
+
+                            var name = viewfields[i].modelattribute.name;
+                            var type = viewfields[i].modelattribute.type;
+                            var label = viewfields[i].modelattribute.label;
+                            filtername = name + separator + type + separator + 'r';
+                            var value = getFilterValue(filtername, cookiefilter);
+
+                            var html = '<div class="col-md-12">'
+                                + '<div class="form-group">'
+                                + '<label>' + label + '</label>'
+                                + '<div class="row">'
+                                + '<div class="col-xs-4">'
+                                + '<label>'
+                                + '<input type="radio" name="' + filtername + '" value="" ' + (value == '' ? 'checked="checked"' : '') + '>'
+                                + ' Todos'
+                                + '</label>'
+                                + '</div>'
+                                + '<div class="col-xs-4">'
+                                + '<label>'
+                                + '<input type="radio" name="' + filtername + '" value="true" ' + (value == 'true' ? 'checked="checked"' : '') + '>'
+                                + ' Sim'
+                                + '</label>'
+                                + '</div>'
+                                + '<div class="col-xs-4">'
+                                + '<label>'
+                                + '<input type="radio" name="' + filtername + '" value="false" ' + (value == 'false' ? 'checked="checked"' : '') + '>'
+                                + ' Não'
+                                + '</label>'
+                                + '</div>'
+                                + '</div>'
+                                + '</div>'
+                                + '</div>';
+
+                            filter += html;
+
+                            break;
+
+                        case 'virtual':
+                            filtername = json.field + separator + json.type;
+                            switch (json.type) {
+                                case 'text':
+
+                                    filtername += separator + 'sv';
+                                    filter += application.components.html.text({
+                                        width: 12
+                                        , label: viewfields[i].modelattribute.label
+                                        , name: filtername
+                                        , value: getFilterValue(filtername, cookiefilter)
+                                    });
+
+                                    break;
+                                case 'integer':
+
+                                    var filtereq = filtername + separator + 'rv';
+                                    var filterbegin = filtername + separator + 'bv';
+                                    var filterend = filtername + separator + 'ev';
+
+                                    filter += application.components.html.integer({
+                                        width: 4
+                                        , label: viewfields[i].modelattribute.label
+                                        , name: filtereq
+                                        , value: getFilterValue(filtereq, cookiefilter)
+                                    });
+
+                                    filter += application.components.html.integer({
+                                        width: 4
+                                        , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                        , name: filterbegin
+                                        , value: getFilterValue(filterbegin, cookiefilter)
+                                    });
+
+                                    filter += application.components.html.integer({
+                                        width: 4
+                                        , label: viewfields[i].modelattribute.label + ' - Final'
+                                        , name: filterend
+                                        , value: getFilterValue(filterend, cookiefilter)
+                                    });
+
+                                    break;
+                            }
+
+                            break;
+                    }
+
+                }
+
+                return application.success(res, {
+                    name: view.id
+                    , columns: columns
+                    , footer: footer
+                    , events: events
+                    , permissions: permissions
+                    , filter: {
+                        count: cookiefiltercount
+                        , html: filter
+                    }
                 });
 
             } else {
-
-                return application.error(res, {});
-
-            }
-        }).catch(err => {
-
-            if (err == 403) {
                 return application.forbidden(res);
-            } else {
-                return application.fatal(res, err);
             }
-
-        });
+        } catch (err) {
+            return application.fatal(res, err);
+        }
 
     });
 
-    app.get('/view/:idview', application.IsAuthenticated, function (req, res) {
+    app.get('/view/:idview', application.IsAuthenticated, async (req, res) => {
 
-        hasPermission(req.user.id, req.params.idview).then(permission => {
+        try {
+            let permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
 
-                db.getModel('view').find({ where: { id: req.params.idview } }).then(view => {
-                    return application.render(res, 'templates/viewtable', {
-                        title: view.name
-                        , viewid: view.id
-                    });
+                let view = await db.getModel('view').find({ where: { id: req.params.idview } });
+
+                return application.render(res, 'templates/viewtable', {
+                    title: view.name
+                    , viewid: view.id
                 });
 
             } else {
-
                 return application.forbidden(res);
-
             }
-        }).catch(err => {
-
-            if (err == 403) {
-                return application.forbidden(res);
-            } else {
-                return application.fatal(res, err);
-            }
-
-        });
+        } catch (err) {
+            return application.forbidden(res);
+        }
 
     });
 
-    app.get('/view/:idview/:id', application.IsAuthenticated, function (req, res) {
+    app.get('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {
 
-        hasPermission(req.user.id, req.params.idview).then(permission => {
-
+        try {
+            let permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
 
-                // Find the requested view
-                db.getModel('view').find({
-                    where: { id: req.params.idview }
-                    , include: [{ model: db.getModel('template'), as: 'template' }, { model: db.getModel('model'), as: 'model' }]
-                }).then(view => {
-
-                    // Find all fields of the View 
-                    // order by template zone and 
-                    // the order inside zone
-                    db.getModel('viewfield').findAll({
-                        where: { idview: view.id }
-                        , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]
-                        , include: [
-                            { model: db.getModel('templatezone'), as: 'templatezone' }
-                            , { model: db.getModel('modelattribute'), as: 'modelattribute' }
-                        ]
-                    }).then(viewfields => {
-                        db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true, nested: view.virtual }] }).then(register => {
-                            if (!register && req.params.id != 0) {
-                                return application.render(res, 'templates/viewregisternotfound');
-                            }
-                            // #zoneobj contains the final html rendered
-                            // for that zone
-                            var zoneobj = {};
-                            for (var i = 0; i < viewfields.length; i++) {
-                                // Initialize the zone for the first time
-                                if (!zoneobj[viewfields[i].templatezone.name]) {
-                                    zoneobj[viewfields[i].templatezone.name] = '';
-                                }
-                                zoneobj[viewfields[i].templatezone.name] += render(viewfields[i], register);
-                            }
-
-                            db.getModel('viewsubview').findAll({
-                                where: { idview: view.id }
-                                , include: [{ all: true }]
-                            }).then(viewsubviews => {
-                                if (viewsubviews.length > 0) {
-
-                                    for (var i = 0; i < viewsubviews.length; i++) {
-                                        if (!zoneobj[viewsubviews[i].templatezone.name]) {
-                                            zoneobj[viewsubviews[i].templatezone.name] = '';
-                                        }
-                                        zoneobj[viewsubviews[i].templatezone.name] += renderSubView(viewsubviews[i]);
-                                    }
-
-                                }
-
-                                db.getModel('templatezone').findAll({
-                                    where: { idtemplate: view.template.id }
-                                }).then(templatezones => {
-
-                                    // Fill empty zones with blank
-                                    for (var i = 0; i < templatezones.length; i++) {
-                                        if (!zoneobj[templatezones[i].name]) {
-                                            zoneobj[templatezones[i].name] = '';
-                                        }
-                                    }
-
-                                    // Render the requested view
-                                    return application.render(res, 'templates/viewregister', lodash.extend({
-                                        template: view.template.name
-                                        , title: view.name
-                                        , id: register ? register.id : ''
-                                    }, zoneobj));
-                                });
-                            });
-                        });
-                    });
-
+                let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] });
+                let viewfields = await db.getModel('viewfield').findAll({
+                    where: { idview: view.id }
+                    , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]
+                    , include: [{ all: true }]
                 });
 
+                let register = await db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true, nested: view.virtual }] });
+                if (!register && req.params.id != 0) {
+                    return application.render(res, 'templates/viewregisternotfound');
+                }
+
+                let templatezones = await db.getModel('templatezone').findAll({
+                    where: { idtemplate: view.template.id }
+                });
+                // Fill zones with blank
+                let zoneobj = {};
+                for (let i = 0; i < templatezones.length; i++) {
+                    zoneobj[templatezones[i].name] = '';
+                }
+
+                for (let i = 0; i < viewfields.length; i++) {
+                    zoneobj[viewfields[i].templatezone.name] += render(viewfields[i], register);
+                }
+
+                let viewsubviews = await db.getModel('viewsubview').findAll({
+                    where: { idview: view.id }
+                    , include: [{ all: true }]
+                });
+                if (viewsubviews.length > 0) {
+                    for (let i = 0; i < viewsubviews.length; i++) {
+                        zoneobj[viewsubviews[i].templatezone.name] += renderSubView(viewsubviews[i]);
+                    }
+                }
+
+                return application.render(res, 'templates/viewregister', lodash.extend({
+                    template: view.template.name
+                    , title: view.name
+                    , id: register ? register.id : ''
+                }, zoneobj));
+
             } else {
-
                 return application.forbidden(res);
-
             }
-
-        }).catch(err => {
-
-            if (err == 403) {
-                return application.forbidden(res);
-            } else {
-                return application.fatal(res, err);
-            }
-
-        });
+        } catch (err) {
+            return application.forbidden(res);
+        }
 
     });
 
@@ -1179,75 +1108,51 @@ module.exports = function (app) {
 
     });
 
-    app.post('/view/:idview/:id', application.IsAuthenticated, function (req, res) {
+    app.post('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {
 
-        hasPermission(req.user.id, req.params.idview).then(permission => {
-
+        try {
+            let permission = await hasPermission(req.user.id, req.params.idview);
             if ((req.params.id == 0 && permission.insertable) || (req.params.id > 0 && permission.editable)) {
 
-                // Find request view
-                db.getModel('view').find({ where: { id: req.params.idview }, include: [{ model: db.getModel('model'), as: 'model' }] }).then(view => {
-                    if (view) {
-
-                        // Find attributes from model
-                        db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } }).then(modelattributes => {
-
-                            // Find fields from view
-                            db.getModel('viewfield').findAll({
-                                where: { idview: view.id, disabled: { $eq: false } }
-                                , include: [{ model: db.getModel('modelattribute'), as: 'modelattribute' }]
-                            }).then(viewfields => {
-
-                                // #data contains attributes defined for the view
-                                // with posted data
-                                var data = {};
-
-                                // Merge posted data with view's fields
-                                for (var i = 0; i < viewfields.length; i++) {
-                                    data[viewfields[i].modelattribute.name] = req.body[viewfields[i].modelattribute.name] || null;
-                                }
-
-                                // Validate ID parameter, must be equals or greater then 0
-                                if (req.params.id >= 0) {
-
-                                    flowModel({
-                                        view: view
-                                        , data: data
-                                        , res: res
-                                        , req: req
-                                        , id: req.params.id
-                                        , modelattributes: modelattributes
-                                    });
-
-                                } else {
-                                    return application.error(res);
-                                }
-
-                            });
-
-                        });
-
-                    } else {
-                        return application.fatal(res, 'View not found');
-                    }
-
+                let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] });
+                let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
+                let viewfields = await db.getModel('viewfield').findAll({
+                    where: { idview: view.id, disabled: { $eq: false } }
+                    , include: [{ model: db.getModel('modelattribute'), as: 'modelattribute' }]
                 });
 
+                let data = {};
+                for (var i = 0; i < viewfields.length; i++) {
+                    data[viewfields[i].modelattribute.name] = req.body[viewfields[i].modelattribute.name] || null;
+                }
+
+                let obj = modelate({
+                    id: req.params.id
+                    , data: data
+                    , modelattributes: modelattributes
+                    , view: view
+                    , req: req
+                    , res: res
+                });
+
+                if (view.model.onsave) {
+
+                    let custom = reload('../custom/functions');
+                    return application.functions.getRealReference(custom, view.model.onsave)(obj, validateAndSave);
+                } else {
+
+                    validateAndSave(obj);
+
+                }
+
             } else {
-
                 return application.error(res, { msg: application.message.permissionDenied });
-
             }
 
-        }).catch(err => {
+        } catch (err) {
 
-            if (err == 403) {
-                return application.error(res, { msg: application.message.permissionDenied });
-            } else {
-                return application.fatal(res, err);
-            }
-
-        });
+            return application.error(res, { msg: err });
+        }
 
     });
 

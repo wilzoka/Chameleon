@@ -650,10 +650,10 @@ var main = {
 
                     db.getModel('est_config').find().then(config => {
 
-                        db.getModel('est_operacao').find({ where: { id: idoperacao }, include: { all: true } }).then(operacao => {
-                            if (operacao.est_operacaotipo.id == config.idoperacaotipoentrada) {
+                        db.getModel('est_operacao').find({ where: { id: idoperacao }, include: [{ all: true }] }).then(operacao => {
+                            if (operacao && operacao.est_operacaotipo.id == config.idoperacaotipoentrada) {
                                 resolve('E');
-                            } else if (operacao.est_operacaotipo.id == config.idoperacaotiposaida) {
+                            } else if (operacao && operacao.est_operacaotipo.id == config.idoperacaotiposaida) {
                                 resolve('S');
                             } else {
                                 reject('Tipo de Operação Inválido');
@@ -680,7 +680,7 @@ var main = {
                         resolve(saldo);
 
                     }).catch(err => {
-                        console.log(err);
+
                         reject(err);
 
                     });
@@ -762,30 +762,77 @@ var main = {
                 }
             }
 
+            , _estoqueLiberado: function (iddeposito, datahora) {
+                return new Promise((resolve) => {
+
+                    db.getModel('est_saldo').count({
+                        where: {
+                            bloqueado: true
+                            , iddeposito: iddeposito
+                            , datafechamento: { $gt: datahora }
+                        }
+                    }).then(c => {
+                        return c == 0 ? resolve(true) : resolve(false);
+                    })
+
+                });
+            }
+
+            , _movimentar: async function (obj) {//datahora iduser idoperacao, idversao, iddeposito, qtd
+                return new Promise((resolve) => {
+
+                    const f = main.plastrela.estoque;
+
+                    let invalidfields = application.functions.getEmptyFields(obj, ['datahora', 'idoperacao', 'idversao', 'iddeposito', 'qtd']);
+                    if (invalidfields.length > 0) {
+                        return resolve({ success: false, invalidfields: invalidfields });
+                    }
+
+
+                    f._estoqueLiberado(obj.iddeposito, obj.datahora).then(liberado => {
+                        if (liberado) {
+                            f._getOperacaoES(obj.idoperacao).then(operacao => {
+                                f._getSaldoAtual(obj.idversao, obj.iddeposito).then(saldoatual => {
+
+                                    if (operacao == 'S' && obj.qtd > saldoatual.qtd) {
+                                        return resolve({ success: false, msg: 'Saldo Insuficiente' });
+                                    }
+
+                                    db.getModel('est_mov').create(obj).then(mov => {
+                                        f._recalcularSaldoIndividual(mov.idversao, mov.iddeposito);
+                                        return resolve({ success: true, register: mov });
+                                    }).catch(err => {
+                                        return resolve({ success: false, msg: err });
+                                    });
+
+                                });
+                            });
+                        } else {
+                            return resolve({ success: false, msg: 'Estoque fechado' });
+                        }
+
+                    });
+                });
+            }
+
             , est_mov: {
                 onsave: async function (obj, next) {
-
                     const f = main.plastrela.estoque;
                     if (obj.id == 0) {
                         obj.data.iduser = obj.req.user.id;
                     }
 
-                    try {
+                    let movimentar = await f._movimentar(obj.data);
 
-                        const operacao = await f._getOperacaoES(obj.data.idoperacao);
-                        const saldoatual = await f._getSaldoAtual(obj.data.idversao, obj.data.iddeposito);
-                        if (operacao == 'S' && obj.data.qtd > saldoatual.qtd) {
-                            return application.error(obj.res, { msg: 'Saldo Insuficiente' });
-                        }
-
-                        await next(obj);
-
-                        f._recalcularSaldoIndividual(obj.data.idversao, obj.data.iddeposito);
-
-                    } catch (err) {
-
+                    if (movimentar.success) {
+                        return application.success(obj.res, {
+                            msg: application.message.success
+                            , data: movimentar.register
+                            , redirect: '/view/' + obj.view.id + '/' + movimentar.register.id
+                        });
+                    } else {
+                        return application.error(obj.res, { msg: movimentar.msg, invalidfields: movimentar.invalidfields || [] });
                     }
-
 
                 }
             }

@@ -124,6 +124,12 @@ var application = {
                 $(this).find('button.btngofilter').trigger('click');
             }
         });
+        $(document).ready(function (e) {
+            if (localStorage.getItem('msg')) {
+                application.notify.success(localStorage.getItem('msg'));
+                localStorage.removeItem('msg');
+            }
+        });
     }
     , components: {
         renderAll: function () {
@@ -686,18 +692,22 @@ var application = {
                     }
                 }
 
+                if ('msg' in response && 'redirect' in response) {
+                    localStorage.setItem('msg', response.msg);
+                }
+
                 if ('redirect' in response) {
                     var redirect = response.redirect + window.location.search;
                     window.history.replaceState(null, null, redirect);
                     window.location.href = redirect;
                 }
 
-                if ('openurl' in response) {
-                    window.open(response.openurl);
-                }
-
                 if ('msg' in response) {
                     application.notify.success(response.msg);
+                }
+
+                if ('openurl' in response) {
+                    window.open(response.openurl);
                 }
 
                 if ('modal' in response) {
