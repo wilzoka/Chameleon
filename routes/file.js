@@ -15,6 +15,14 @@ var storage = multer.diskStorage({
     }
 });
 
+var basepath = __dirname + '/../';
+var requiredFolders = [basepath + 'tmp', basepath + 'files'];
+for (var i = 0; i < requiredFolders.length; i++) {
+    if (!fs.existsSync(requiredFolders[i])) {
+        fs.mkdirSync(requiredFolders[i]);
+    }
+}
+
 var fileupload = multer({ storage: storage }).single('file');
 
 module.exports = function (app) {
@@ -27,7 +35,7 @@ module.exports = function (app) {
                 if (file.mimetype.match(/image.*/)) {
                     body = '<div class="text-center"><img src="/files/' + file.id + '.' + file.type + ' " style="max-width: 100%; max-height: 800px;"></div>';
                 } else if (file.mimetype == 'application/pdf') {
-                    body = '<iframe src="/file/download/' + file.id + '" style="width: 100%; height: 700px;"></iframe>';
+                    body = '<iframe src="/file/download/' + file.id + '" style="width: 100%; height: 600px;"></iframe>';
                 } else {
                     body = '<div class="text-center"><i class="fa fa-3x fa-eye-slash" aria-hidden="true"></i></div>';
                 }
@@ -37,7 +45,7 @@ module.exports = function (app) {
                         , fullscreen: true
                         , title: '<div class="col-sm-12" style="text-align: center;">' + file.filename + '</div>'
                         , body: body
-                        , footer: '<button type="button" class="btn btn-danger pull-left">Excluir</button><button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/file/download/' + file.id + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                        , footer: '<button type="button" class="btn btn-sm btn-danger pull-left">Excluir</button><button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/file/download/' + file.id + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Baixar</button></a>'
                     }
                 });
             } else {
