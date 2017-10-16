@@ -68,6 +68,8 @@ var application = {
 					return Sequelize.INTEGER;
 				case 'decimal':
 					return Sequelize.DECIMAL;
+				case 'file':
+					return Sequelize.TEXT;
 			}
 		}
 	}
@@ -450,6 +452,23 @@ var application = {
 					+ obj.label
 					+ '</label> '
 					+ '</div></div>';
+			}
+			, file: function (obj) {
+				obj = lodash.extend({
+					width: ''
+					, name: ''
+					, label: ''
+					, value: ''
+				}, obj);
+
+				return '<div class="col-md-' + obj.width + '">'
+					+ '<div class="form-group">'
+					+ '<label>' + obj.label + '</label>'
+					+ '<div class="dropzone" data-type="file">'
+					+ '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">'
+					+ '</div>'
+					+ '</div>'
+					+ '</div>';
 			}
 			, radio: function (obj) {// width label name value
 

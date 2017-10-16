@@ -94,6 +94,30 @@ table.dataTable.compact thead th, table.dataTable.compact tbody td {
     border-color: #3c8dbc;
 }
 
+/* Dropzone */
+.dropzone {
+    border: 1px solid #d2d6de;
+    padding: 5px;
+}
+div.dz-image img {
+    width: 100%;
+}
+.dropzone .dz-preview .dz-success-mark, .dropzone .dz-preview .dz-error-mark {
+    left: 59%;
+}
+.dropzone .dz-preview .dz-image {    
+    border-radius: 0px;
+}
+.dropzone .dz-preview.dz-file-preview .dz-image {    
+    border-radius: 5px;
+}
+.dz-remove-btn{
+    /* position: absolute; 
+    top: -15px;
+    right: -11px; 
+    z-index: 1050; */
+}
+
 /* ------ Custom ------ */
 table.dataTable thead tr th, table.dataTable tfoot tr td {
     background-color: #f4f4f4;

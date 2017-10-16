@@ -22,7 +22,7 @@ app.use(passport.session());
 
 //Static Content
 app.use('/public', express.static(__dirname + '/public'));
-app.use('/uploads', express.static(__dirname + '/uploads'));
+app.use('/files', express.static(__dirname + '/files'));
 
 //View Path and Engine
 app.set('views', __dirname + '/views');

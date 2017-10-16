@@ -1,3 +1,7 @@
+//Defaults
+Dropzone.autoDiscover = false;
+Dropzone.prototype.defaultOptions.dictDefaultMessage = "Clique aqui para adicionar arquivos";
+
 var tables = [];
 var application = {
     index: function () {
@@ -24,7 +28,6 @@ var application = {
                 $menuitem.parents('ul.treeview-menu').css('display', 'block');
             }
         }
-
 
         $('#appusername').text(localStorage.getItem('username'));
 
@@ -139,6 +142,7 @@ var application = {
             application.components.integer($('input[data-type="integer"]'));
             application.components.decimal($('input[data-type="decimal"]'));
             application.components.autocomplete($('select[data-type="autocomplete"]'));
+            application.components.file($('div[data-type="file"]'));
             application.components.table($('table.dataTable'));
         }
         , renderInside: function ($el) {
@@ -148,6 +152,7 @@ var application = {
             application.components.integer($el.find('input[data-type="integer"]'));
             application.components.decimal($el.find('input[data-type="decimal"]'));
             application.components.autocomplete($el.find('select[data-type="autocomplete"]'));
+            application.components.file($el.find('div[data-type="file"]'));
             application.components.table($el.find('table.dataTable'));
         }
         , clearInside: function ($el) {
@@ -196,6 +201,95 @@ var application = {
             $obj.each(function () {
                 var precision = $(this).attr('data-precision');
                 $(this).maskMoney({ allowEmpty: true, allowZero: true, allowNegative: true, thousands: '.', decimal: ',', precision: precision });
+            });
+        }
+        , file: function ($obj) {
+
+            var previewTemplate = '<div class="dz-preview dz-file-preview">'
+                + '<div class="dz-image">'
+                + '<img data-dz-thumbnail>'
+                + '</div>'
+                + '<div class="dz-details">'
+                + '<div class="dz-filename">'
+                + '<span data-dz-name></span>'
+                + '</div>'
+                + '</div>'
+                + '<div class="dz-progress">'
+                + '<span class="dz-upload" data-dz-uploadprogress></span>'
+                + '</div>'
+                + '<div class="dz-error-message">'
+                + '<span data-dz-errormessage></span>'
+                + '</div>'
+                + '<div class="dz-success-mark">'
+                + '<i class="fa fa-3x fa-check-circle-o"></i>'
+                + '</div>'
+                + '<div class="dz-error-mark">'
+                + '<i class="fa fa-3x fa-times"></i>'
+                + '</div>'
+                + '</div>';
+
+            $obj.each(function () {
+                var dz = new Dropzone(this, {
+                    url: "/file"
+                    , previewTemplate: previewTemplate
+                    , success: function (file, response) {
+                        if (file.previewElement) {
+                            file.previewElement.classList.add("dz-success");
+                        }
+                        var $hidden = $(this.element).find('input[type="hidden"]');
+                        var value = $hidden.val() ? JSON.parse($hidden.val()) : [];
+                        value.push(response.data);
+                        $hidden.val(JSON.stringify(value));
+                        $(file.previewElement).attr('data-id', response.data.id);
+                    }
+                });
+                dz.on('addedfile', function (file) {
+                    $(file.previewElement).attr('data-id', file.id);
+                });
+                dz.on('removedfile', function (file) {
+                    var $hidden = $(this.element).find('input[type="hidden"]');
+                    var value = JSON.parse($hidden.val());
+                    for (var i = 0; i < value.length; i++) {
+                        if (value[i].id == file.id) {
+                            value.splice(i, 1);
+                        }
+                    }
+                    if (value.length > 0) {
+                        $hidden.val(JSON.stringify(value));
+                    } else {
+                        $hidden.val('');
+                    }
+                });
+                dz.on("sending", function (file, xhr, data) {
+                    data.append("filetype", "avataruploadtype");
+                });
+
+                var value = $(this).find('input[type="hidden"]').val();
+                var obj = value ? JSON.parse(value) : [];
+                for (var i = 0; i < obj.length; i++) {
+                    var mockFile = { id: obj[i].id, name: obj[i].filename, size: obj[i].size, type: obj[i].mimetype };
+                    dz.emit("addedfile", mockFile);
+                    if (obj[i].mimetype.match(/image.*/)) {
+                        dz.emit("thumbnail", mockFile, '/files/' + obj[i].id + '.' + obj[i].type);
+                    }
+                    dz.emit("complete", mockFile);
+                    dz.files.push(mockFile);
+                }
+
+                $(this).on('click', 'div.dz-preview', function () {
+                    $.ajax({
+                        url: '/file/preview/' + $(this).attr('data-id')
+                        , type: 'GET'
+                        , dataType: 'json'
+                        , success: function (response) {
+                            application.handlers.responseSuccess(response);
+                        }
+                        , error: function (response) {
+                            application.handlers.responseError(response);
+                        }
+                    });
+                });
+
             });
         }
         , autocomplete: function ($obj) {

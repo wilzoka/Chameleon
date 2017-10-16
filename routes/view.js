@@ -251,6 +251,24 @@ var renderCheckbox = function (viewfield, register) {
     });
 }
 
+var renderFile = function (viewfield, register) {
+
+    var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    value = escape(value);
+
+    var label = viewfield.modelattribute.label;
+    if (viewfield.modelattribute.notnull) {
+        label += '*';
+    }
+
+    return application.components.html.file({
+        width: viewfield.width
+        , name: viewfield.modelattribute.name
+        , label: label
+        , value: value
+    });
+}
+
 var renderSubView = function (viewsubview) {
     return '<div class="col-md-' + viewsubview.width + '">'
         + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
@@ -284,6 +302,8 @@ var render = function (viewfield, register) {
             return renderInteger(viewfield, register);
         case 'decimal':
             return renderDecimal(viewfield, register);
+        case 'file':
+            return renderFile(viewfield, register);
         case 'virtual':
             var j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
             return application.components.html.text({
@@ -298,7 +318,9 @@ var render = function (viewfield, register) {
 
 var merge = function (register, data) {
     for (var k in data) {
-        register[k] = data[k];
+        if (register[k] != data[k]) {
+            register[k] = data[k];
+        }
     }
     return register;
 }
@@ -416,6 +438,15 @@ var validate = async function (obj) {
     });
 }
 
+var boundFiles = function (obj) {
+    let idsToBound = [];
+    for (var i = 0; i < obj.modelattributes.length; i++) {
+        if (obj.modelattributes[i].type == 'file') {
+
+        }
+    }
+}
+
 var save = async function (obj) {
     return new Promise((resolve, reject) => {
 
@@ -423,12 +454,34 @@ var save = async function (obj) {
 
             if (obj.id == 0) {
                 db.getModel(obj.view.model.name).create(obj.data).then(register => {
+                    boundFiles(lodash.extend(obj, { register: register }));
                     return resolve({ success: true, register: register });
                 });
             } else {
                 db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
                     register = merge(register, obj.data);
+
+
+
+                    // if (register.changed()) {
+                    //     for (let k in register._changed) {
+                    //         for (var i = 0; i < obj.modelattributes.length; i++) {
+                    //             if (obj.modelattributes[i].name == k) {
+
+                    //                 if (obj.modelattributes[i].type == 'file') {
+
+                    //                     let previousFiles = register._previousDataValues;
+
+                    //                 }
+
+                    //                 console.log('found', register._changed[k], obj.modelattributes[i]);
+                    //             }
+                    //         }
+                    //     }
+                    // }
+
                     register.save().then(registersaved => {
+                        boundFiles(lodash.extend(obj, { register: registersaved }));
                         return resolve({ success: true, register: registersaved });
                     });
                 });
