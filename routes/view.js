@@ -697,9 +697,11 @@ module.exports = function (app) {
         var decodeClass = function (type) {
             switch (type) {
                 case 'decimal':
-                    return 'text-right'
+                    return 'text-right';
                 case 'time':
-                    return 'text-right'
+                    return 'text-right';
+                case 'file':
+                    return 'text-center';
                 default:
                     return 'text-left';
             }

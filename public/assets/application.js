@@ -676,6 +676,18 @@ var application = {
                     return '';
                 }
             }
+            , image200: function (value) {
+                if (value) {
+                    var j = JSON.parse(value);
+                    if (j[0].mimetype.match(/image.*/)) {
+                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-width: 200px;">';
+                    } else {
+                        return '';
+                    }
+                } else {
+                    return '';
+                }
+            }
             , colors: function (value) {
                 if (value == 'Azul') {
                     return '<span class="label label-info">' + value + '</span>';
