@@ -253,10 +253,18 @@ var renderCheckbox = function (viewfield, register) {
 
 var renderFile = function (viewfield, register) {
 
-    var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     value = escape(value);
 
-    var label = viewfield.modelattribute.label;
+    let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
+    let maxfiles = j.maxfiles || '';
+    let acceptedfiles = j.acceptedfiles || '';
+    let sizeTotal = j.sizeTotal || '';
+
+    let label = viewfield.modelattribute.label;
+    if (sizeTotal) {
+        label += ' (' + sizeTotal + ' MB)';
+    }
     if (viewfield.modelattribute.notnull) {
         label += '*';
     }
@@ -266,6 +274,8 @@ var renderFile = function (viewfield, register) {
         , name: viewfield.modelattribute.name
         , label: label
         , value: value
+        , maxfiles: maxfiles
+        , acceptedfiles: acceptedfiles
     });
 }
 
@@ -387,6 +397,9 @@ var validate = async function (obj) {
 
             for (var i = 0; i < obj.modelattributes.length; i++) {
 
+                let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+
+                // NotNull
                 if (obj.modelattributes[i].type == 'boolean') {
                 } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
                     if (!Number.isInteger(obj.data[obj.modelattributes[i].name])) {
@@ -398,10 +411,29 @@ var validate = async function (obj) {
                     }
                 }
 
+                // File
+                if (obj.modelattributes[i].type == 'file') {
+                    if (j.sizeTotal) {
+
+                        if (obj.data[obj.modelattributes[i].name]) {
+                            let filesize = 0;
+                            let files = JSON.parse(obj.data[obj.modelattributes[i].name]);
+                            for (var z = 0; z < files.length; z++) {
+                                filesize += files[z].size;
+                            }
+                            console.log(filesize, (j.sizeTotal * 1024 * 1024));
+                            if (filesize > (j.sizeTotal * 1024 * 1024)) {
+                                return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido', invalidfields: [obj.modelattributes[i].name] });
+                            }
+                        }
+
+                    }
+                }
+
             }
 
             if (invalidfields.length > 0) {
-                return resolve({ success: false, invalidfields: invalidfields });
+                return resolve({ success: false, msg: application.message.invalidFields, invalidfields: invalidfields });
             } else {
                 return resolve({ success: true });
             }
@@ -413,6 +445,9 @@ var validate = async function (obj) {
 
                 for (var i = 0; i < obj.modelattributes.length; i++) {
 
+                    let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+
+                    // NotNull
                     if (obj.modelattributes[i].type == 'boolean') {
                     } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
                         if (!Number.isInteger(register[obj.modelattributes[i].name])) {
@@ -424,10 +459,29 @@ var validate = async function (obj) {
                         }
                     }
 
+                    // File
+                    if (obj.modelattributes[i].type == 'file') {
+                        if (j.sizeTotal) {
+
+                            if (obj.data[obj.modelattributes[i].name]) {
+                                let filesize = 0;
+                                let files = JSON.parse(obj.data[obj.modelattributes[i].name]);
+                                for (var z = 0; z < files.length; z++) {
+                                    filesize += files[z].size;
+                                }
+                                if (filesize > (j.sizeTotal * 1024 * 1024)) {
+                                    return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido (' + j.sizeTotal + ' MB)', invalidfields: [obj.modelattributes[i].name] });
+                                }
+                            }
+
+                        }
+                    }
+
+
                 }
 
                 if (invalidfields.length > 0) {
-                    return resolve({ success: false, invalidfields: invalidfields });
+                    return resolve({ success: false, msg: application.message.invalidFields, invalidfields: invalidfields });
                 } else {
                     return resolve({ success: true });
                 }
@@ -441,7 +495,17 @@ var validate = async function (obj) {
 var boundFiles = function (obj) {
     let idsToBound = [];
     for (var i = 0; i < obj.modelattributes.length; i++) {
-        if (obj.modelattributes[i].type == 'file') {
+        if (obj.modelattributes[i].type == 'file' && obj.data[obj.modelattributes[i].name] != undefined) {
+
+            let j = JSON.parse(obj.data[obj.modelattributes[i].name]);
+
+            for (var z = 0; z < j.length; z++) {
+                idsToBound.push(j[z].id);
+            }
+
+            if (idsToBound.length > 0) {
+                db.getModel('file').update({ bounded: true }, { where: { id: { $in: idsToBound } } });
+            }
 
         }
     }
@@ -449,7 +513,6 @@ var boundFiles = function (obj) {
 
 var save = async function (obj) {
     return new Promise((resolve, reject) => {
-
         try {
 
             if (obj.id == 0) {
@@ -461,24 +524,39 @@ var save = async function (obj) {
                 db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
                     register = merge(register, obj.data);
 
+                    if (register.changed()) {
+                        let residueIds = [];
+                        for (var i = 0; i < obj.modelattributes.length; i++) {
+                            if (obj.modelattributes[i].type == 'file' && register._changed[obj.modelattributes[i].name]) {
 
+                                let previousIds = [];
+                                let currentIds = [];
+                                let j = {};
 
-                    // if (register.changed()) {
-                    //     for (let k in register._changed) {
-                    //         for (var i = 0; i < obj.modelattributes.length; i++) {
-                    //             if (obj.modelattributes[i].name == k) {
+                                // previous
+                                j = register._previousDataValues[obj.modelattributes[i].name] ? JSON.parse(register._previousDataValues[obj.modelattributes[i].name]) : [];
+                                for (var z = 0; z < j.length; z++) {
+                                    previousIds.push(j[z].id);
+                                }
 
-                    //                 if (obj.modelattributes[i].type == 'file') {
+                                // current
+                                j = register[obj.modelattributes[i].name] ? JSON.parse(register[obj.modelattributes[i].name]) : [];
+                                for (var z = 0; z < j.length; z++) {
+                                    currentIds.push(j[z].id);
+                                }
 
-                    //                     let previousFiles = register._previousDataValues;
+                                for (var z = 0; z < previousIds.length; z++) {
+                                    if (currentIds.indexOf(previousIds[z]) > 0) {
+                                        previousIds.splice(z, 1);
+                                    }
+                                }
 
-                    //                 }
-
-                    //                 console.log('found', register._changed[k], obj.modelattributes[i]);
-                    //             }
-                    //         }
-                    //     }
-                    // }
+                                if (previousIds.length > 0) {
+                                    db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
+                                }
+                            }
+                        }
+                    }
 
                     register.save().then(registersaved => {
                         boundFiles(lodash.extend(obj, { register: registersaved }));
@@ -488,9 +566,7 @@ var save = async function (obj) {
             }
 
         } catch (err) {
-
             resolve({ success: false });
-
         }
     });
 }
@@ -517,7 +593,7 @@ var validateAndSave = function (obj) {
                     });
                 } else {
                     resolve({ success: false });
-                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: validation.invalidfields });
+                    return application.error(obj.res, { msg: validation.msg, invalidfields: validation.invalidfields });
                 }
             });
 

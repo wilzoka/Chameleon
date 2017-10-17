@@ -1,6 +1,17 @@
-//Defaults
+// Defaults
+
+// Dropzone
 Dropzone.autoDiscover = false;
 Dropzone.prototype.defaultOptions.dictDefaultMessage = "Clique aqui para adicionar arquivos";
+Dropzone.prototype.defaultOptions.dictFallbackMessage = "Your browser does not support drag'n'drop file uploads.";
+Dropzone.prototype.defaultOptions.dictFallbackText = "Please use the fallback form below to upload your files like in the olden days.";
+Dropzone.prototype.defaultOptions.dictFileTooBig = "Arquivo é grande demais ({{filesize}}MiB). Tamanho máximo: {{maxFilesize}}MiB.";
+Dropzone.prototype.defaultOptions.dictInvalidFileType = "Você não pode enviar arquivos deste tipo.";
+Dropzone.prototype.defaultOptions.dictResponseError = "Servidor respondeu com {{statusCode}} código.";
+Dropzone.prototype.defaultOptions.dictCancelUpload = "Cancelar Upload";
+Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "Você tem certeza que quer cancelar este envio?";
+Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
+Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este arquivo não será salvo.";
 
 var tables = [];
 var application = {
@@ -207,10 +218,11 @@ var application = {
 
             var previewTemplate = '<div class="dz-preview dz-file-preview">'
                 + '<div class="dz-image">'
-                + '<img data-dz-thumbnail>'
+                + '<img data-dz-thumbnail />'
                 + '</div>'
                 + '<div class="dz-details">'
                 + '<div class="dz-filename">'
+                + '<div class="dz-size"><span data-dz-size></span></div>'
                 + '<span data-dz-name></span>'
                 + '</div>'
                 + '</div>'
@@ -226,12 +238,16 @@ var application = {
                 + '<div class="dz-error-mark">'
                 + '<i class="fa fa-3x fa-times"></i>'
                 + '</div>'
+                + '<button type="button" class="btn btn-xs btn-block btn-danger" data-dz-remove style="border-top-left-radius: 0; border-top-right-radius: 0;">Remover</button>'
                 + '</div>';
 
             $obj.each(function () {
+
                 var dz = new Dropzone(this, {
                     url: "/file"
                     , previewTemplate: previewTemplate
+                    , maxFiles: $(this).attr('data-maxfiles') || null
+                    , acceptedFiles: $(this).attr('data-acceptedfiles') || null
                     , success: function (file, response) {
                         if (file.previewElement) {
                             file.previewElement.classList.add("dz-success");
@@ -244,30 +260,33 @@ var application = {
                     }
                 });
                 dz.on('addedfile', function (file) {
+                    console.log(file);
+
                     $(file.previewElement).attr('data-id', file.id);
                 });
                 dz.on('removedfile', function (file) {
-                    var $hidden = $(this.element).find('input[type="hidden"]');
-                    var value = JSON.parse($hidden.val());
-                    for (var i = 0; i < value.length; i++) {
-                        if (value[i].id == file.id) {
-                            value.splice(i, 1);
+                    if (file.accepted) {
+                        var fileid = $(file.previewElement).attr('data-id');
+                        var $hidden = $(this.element).find('input[type="hidden"]');
+                        var value = JSON.parse($hidden.val());
+                        for (var i = 0; i < value.length; i++) {
+                            // console.log(value[i].id == file.id, value[i].id, file.id);
+                            if (value[i].id == fileid) {
+                                value.splice(i, 1);
+                            }
+                        }
+                        if (value.length > 0) {
+                            $hidden.val(JSON.stringify(value));
+                        } else {
+                            $hidden.val('');
                         }
                     }
-                    if (value.length > 0) {
-                        $hidden.val(JSON.stringify(value));
-                    } else {
-                        $hidden.val('');
-                    }
-                });
-                dz.on("sending", function (file, xhr, data) {
-                    data.append("filetype", "avataruploadtype");
                 });
 
                 var value = $(this).find('input[type="hidden"]').val();
                 var obj = value ? JSON.parse(value) : [];
                 for (var i = 0; i < obj.length; i++) {
-                    var mockFile = { id: obj[i].id, name: obj[i].filename, size: obj[i].size, type: obj[i].mimetype };
+                    var mockFile = { id: obj[i].id, name: obj[i].filename, size: obj[i].size, type: obj[i].mimetype, accepted: true };
                     dz.emit("addedfile", mockFile);
                     if (obj[i].mimetype.match(/image.*/)) {
                         dz.emit("thumbnail", mockFile, '/files/' + obj[i].id + '.' + obj[i].type);
@@ -793,7 +812,7 @@ var application = {
                 if ('redirect' in response) {
                     var redirect = response.redirect + window.location.search;
                     window.history.replaceState(null, null, redirect);
-                    window.location.href = redirect;
+                    return window.location.href = redirect;
                 }
 
                 if ('msg' in response) {

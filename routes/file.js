@@ -4,6 +4,7 @@ var application = require('./application')
     , mv = require('mv')
     , fs = require('fs')
     , lodash = require('lodash')
+    , moment = require('moment')
     ;
 
 var storage = multer.diskStorage({
@@ -33,9 +34,9 @@ module.exports = function (app) {
             if (file) {
                 let body = '';
                 if (file.mimetype.match(/image.*/)) {
-                    body = '<div class="text-center"><img src="/files/' + file.id + '.' + file.type + ' " style="max-width: 100%; max-height: 800px;"></div>';
+                    body = '<div class="text-center"><img src="/files/' + file.id + '.' + file.type + ' " style="max-width: 100%; max-height: 650px;"></div>';
                 } else if (file.mimetype == 'application/pdf') {
-                    body = '<iframe src="/file/download/' + file.id + '" style="width: 100%; height: 600px;"></iframe>';
+                    body = '<iframe src="/file/download/' + file.id + '" style="width: 100%; height: 650px;"></iframe>';
                 } else {
                     body = '<div class="text-center"><i class="fa fa-3x fa-eye-slash" aria-hidden="true"></i></div>';
                 }
@@ -45,7 +46,7 @@ module.exports = function (app) {
                         , fullscreen: true
                         , title: '<div class="col-sm-12" style="text-align: center;">' + file.filename + '</div>'
                         , body: body
-                        , footer: '<button type="button" class="btn btn-sm btn-danger pull-left">Excluir</button><button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/file/download/' + file.id + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Baixar</button></a>'
+                        , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/file/download/' + file.id + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
                     }
                 });
             } else {
@@ -78,6 +79,21 @@ module.exports = function (app) {
 
     });
 
+    app.get('/file/unbound/:id', application.IsAuthenticated, function (req, res) {
+
+        db.getModel('file').find({ where: { id: req.params.id } }).then(file => {
+
+            file.bounded = false;
+            file.save().then(() => {
+                return application.success(res);
+            }).catch(err => {
+                return application.fatal(res, err);
+            });
+
+        });
+
+    });
+
     app.post('/file', application.IsAuthenticated, function (req, res) {
         fileupload(req, res, function (err) {
             if (err) {
@@ -96,6 +112,7 @@ module.exports = function (app) {
                 , size: req.file.size
                 , type: type
                 , bounded: false
+                , datetime: moment()
             }).then(file => {
                 let path = 'files/' + file.id + '.' + file.type;
                 mv(req.file.path, path, function (err) {

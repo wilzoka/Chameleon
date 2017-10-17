@@ -13,8 +13,8 @@ var application = {
 		}
 	}
 
-	, success: function (res, json) {
-		res.json(lodash.extend({ success: true }, json));
+	, success: function (res, obj) {
+		res.json(lodash.extend({ success: true }, obj));
 	}
 
 	, fatal: function (res, err) {
@@ -459,12 +459,14 @@ var application = {
 					, name: ''
 					, label: ''
 					, value: ''
+					, maxfiles: ''
+					, acceptedfiles: ''
 				}, obj);
 
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
-					+ '<div class="dropzone" data-type="file">'
+					+ '<div class="dropzone" data-type="file" data-maxfiles="' + obj.maxfiles + '" data-acceptedfiles="' + obj.acceptedfiles + '">'
 					+ '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">'
 					+ '</div>'
 					+ '</div>'
