@@ -242,7 +242,6 @@ var application = {
                 + '</div>';
 
             $obj.each(function () {
-
                 var dz = new Dropzone(this, {
                     url: "/file"
                     , previewTemplate: previewTemplate
@@ -254,14 +253,18 @@ var application = {
                         }
                         var $hidden = $(this.element).find('input[type="hidden"]');
                         var value = $hidden.val() ? JSON.parse($hidden.val()) : [];
-                        value.push(response.data);
+                        value.push({
+                            id: response.data.id
+                            , filename: response.data.filename
+                            , mimetype: response.data.mimetype
+                            , size: response.data.size
+                            , type: response.data.type
+                        });
                         $hidden.val(JSON.stringify(value));
                         $(file.previewElement).attr('data-id', response.data.id);
                     }
                 });
                 dz.on('addedfile', function (file) {
-                    console.log(file);
-
                     $(file.previewElement).attr('data-id', file.id);
                 });
                 dz.on('removedfile', function (file) {
@@ -270,7 +273,6 @@ var application = {
                         var $hidden = $(this.element).find('input[type="hidden"]');
                         var value = JSON.parse($hidden.val());
                         for (var i = 0; i < value.length; i++) {
-                            // console.log(value[i].id == file.id, value[i].id, file.id);
                             if (value[i].id == fileid) {
                                 value.splice(i, 1);
                             }
@@ -676,11 +678,35 @@ var application = {
                     return '';
                 }
             }
+            , image100: function (value) {
+                if (value) {
+                    var j = JSON.parse(value);
+                    if (j[0].mimetype.match(/image.*/)) {
+                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-height: 100px;">';
+                    } else {
+                        return '';
+                    }
+                } else {
+                    return '';
+                }
+            }
+            , image150: function (value) {
+                if (value) {
+                    var j = JSON.parse(value);
+                    if (j[0].mimetype.match(/image.*/)) {
+                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-height: 150px;">';
+                    } else {
+                        return '';
+                    }
+                } else {
+                    return '';
+                }
+            }
             , image200: function (value) {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-width: 200px;">';
+                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-height: 200px;">';
                     } else {
                         return '';
                     }

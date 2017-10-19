@@ -158,6 +158,10 @@ var getFilter = function (cookie) {
     return obj;
 }
 
+var replaceWhereFixed = function (value) {
+
+}
+
 module.exports = function (app) {
 
     app.get('/datatables', application.IsAuthenticated, function (req, res) {
@@ -169,7 +173,9 @@ module.exports = function (app) {
                 var where = {};
 
                 if (view.wherefixed) {
-                    where['$col'] = db.Sequelize.literal(view.wherefixed.replace(/\$user/g, req.user.id));
+                    view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
+                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.query.id);
+                    where['$col'] = db.Sequelize.literal(view.wherefixed);
                 }
                 if ('tableview' + view.id + 'filter' in req.cookies) {
                     where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
@@ -264,7 +270,9 @@ module.exports = function (app) {
                 var where = {};
 
                 if (view.wherefixed) {
-                    where['$col'] = db.Sequelize.literal(view.wherefixed.replace(/\$user/g, req.user.id));
+                    view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
+                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.query.id);
+                    where['$col'] = db.Sequelize.literal(view.wherefixed);
                 }
                 if ('tableview' + view.id + 'filter' in req.cookies) {
                     where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
@@ -276,7 +284,9 @@ module.exports = function (app) {
                         where: { idmodel: view.model.id, type: 'parent' }
                     }).then(modelattributeparent => {
 
-                        where[modelattributeparent.name] = req.query.id;
+                        if (modelattributeparent) {
+                            where[modelattributeparent.name] = req.query.id;
+                        }
 
                         db.getModel(view.model.name).sum(modelattribute.name, { where: where }).then(sum => {
 

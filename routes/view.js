@@ -393,7 +393,14 @@ var validate = async function (obj) {
 
         var invalidfields = [];
 
-        if (obj.id == 0) {
+        db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
+
+            let tovalidate = {};
+            if (register) {
+                tovalidate = merge(register, obj.data);
+            } else {
+                tovalidate = obj.data;
+            }
 
             for (var i = 0; i < obj.modelattributes.length; i++) {
 
@@ -402,11 +409,11 @@ var validate = async function (obj) {
                 // NotNull
                 if (obj.modelattributes[i].type == 'boolean') {
                 } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
-                    if (!Number.isInteger(obj.data[obj.modelattributes[i].name])) {
+                    if (!Number.isInteger(tovalidate[obj.modelattributes[i].name])) {
                         invalidfields.push(obj.modelattributes[i].name);
                     }
                 } else {
-                    if (obj.modelattributes[i].notnull && !obj.data[obj.modelattributes[i].name]) {
+                    if (obj.modelattributes[i].notnull && !tovalidate[obj.modelattributes[i].name]) {
                         invalidfields.push(obj.modelattributes[i].name);
                     }
                 }
@@ -415,20 +422,19 @@ var validate = async function (obj) {
                 if (obj.modelattributes[i].type == 'file') {
                     if (j.sizeTotal) {
 
-                        if (obj.data[obj.modelattributes[i].name]) {
+                        if (tovalidate[obj.modelattributes[i].name]) {
                             let filesize = 0;
-                            let files = JSON.parse(obj.data[obj.modelattributes[i].name]);
+                            let files = JSON.parse(tovalidate[obj.modelattributes[i].name]);
                             for (var z = 0; z < files.length; z++) {
                                 filesize += files[z].size;
                             }
-                            console.log(filesize, (j.sizeTotal * 1024 * 1024));
                             if (filesize > (j.sizeTotal * 1024 * 1024)) {
-                                return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido', invalidfields: [obj.modelattributes[i].name] });
+                                return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido (' + j.sizeTotal + ' MB)', invalidfields: [obj.modelattributes[i].name] });
                             }
                         }
-
                     }
                 }
+
 
             }
 
@@ -438,57 +444,7 @@ var validate = async function (obj) {
                 return resolve({ success: true });
             }
 
-        } else {
-
-            db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
-                register = merge(register, obj.data);
-
-                for (var i = 0; i < obj.modelattributes.length; i++) {
-
-                    let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
-
-                    // NotNull
-                    if (obj.modelattributes[i].type == 'boolean') {
-                    } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
-                        if (!Number.isInteger(register[obj.modelattributes[i].name])) {
-                            invalidfields.push(obj.modelattributes[i].name);
-                        }
-                    } else {
-                        if (obj.modelattributes[i].notnull && !register[obj.modelattributes[i].name]) {
-                            invalidfields.push(obj.modelattributes[i].name);
-                        }
-                    }
-
-                    // File
-                    if (obj.modelattributes[i].type == 'file') {
-                        if (j.sizeTotal) {
-
-                            if (obj.data[obj.modelattributes[i].name]) {
-                                let filesize = 0;
-                                let files = JSON.parse(obj.data[obj.modelattributes[i].name]);
-                                for (var z = 0; z < files.length; z++) {
-                                    filesize += files[z].size;
-                                }
-                                if (filesize > (j.sizeTotal * 1024 * 1024)) {
-                                    return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido (' + j.sizeTotal + ' MB)', invalidfields: [obj.modelattributes[i].name] });
-                                }
-                            }
-
-                        }
-                    }
-
-
-                }
-
-                if (invalidfields.length > 0) {
-                    return resolve({ success: false, msg: application.message.invalidFields, invalidfields: invalidfields });
-                } else {
-                    return resolve({ success: true });
-                }
-
-            });
-
-        }
+        });
     });
 }
 
@@ -574,33 +530,26 @@ var save = async function (obj) {
 var validateAndSave = function (obj) {
     return new Promise((resolve, reject) => {
 
-        try {
-
-            validate(obj).then(validation => {
-                if (validation.success) {
-                    save(obj).then(saved => {
-                        if (saved.success) {
-                            resolve({ success: true, register: saved.register });
-                            return application.success(obj.res, {
-                                msg: application.message.success
-                                , data: saved.register
-                                , redirect: '/view/' + obj.view.id + '/' + saved.register.id
-                            });
-                        } else {
-                            resolve({ success: false });
-                            return application.error(obj.res, { msg: 'Nâo foi possível salvar este registro' });
-                        }
-                    });
-                } else {
-                    resolve({ success: false });
-                    return application.error(obj.res, { msg: validation.msg, invalidfields: validation.invalidfields });
-                }
-            });
-
-        } catch (err) {
-
-
-        }
+        validate(obj).then(validation => {
+            if (validation.success) {
+                save(obj).then(saved => {
+                    if (saved.success) {
+                        resolve({ success: true, register: saved.register });
+                        return application.success(obj.res, {
+                            msg: application.message.success
+                            , data: saved.register
+                            , redirect: '/view/' + obj.view.id + '/' + saved.register.id
+                        });
+                    } else {
+                        resolve({ success: false });
+                        return application.error(obj.res, { msg: 'Nâo foi possível salvar este registro' });
+                    }
+                });
+            } else {
+                resolve({ success: false });
+                return application.error(obj.res, { msg: validation.msg, invalidfields: validation.invalidfields });
+            }
+        });
 
     });
 }
@@ -1283,6 +1232,7 @@ module.exports = function (app) {
         } catch (err) {
 
             return application.error(res, { msg: err });
+
         }
 
     });

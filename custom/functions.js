@@ -582,8 +582,209 @@ var main = {
 
         , estoque: {
 
+            criarNotaChaveAcesso: async function (obj) {
+                if (obj.req.method == 'GET') {
+                    let body = '';
 
-            transferencia: function (obj) {
+                    body += application.components.html.autocomplete({
+                        width: '12'
+                        , label: 'Depósito'
+                        , name: 'deposito'
+                        , model: 'est_deposito'
+                        , attribute: 'descricao'
+                    });
+                    body += application.components.html.text({
+                        width: 12
+                        , label: 'Chave de Acesso'
+                        , name: 'chave'
+                    });
+
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , action: '/event/' + obj.event.id
+                            , id: 'modalevt'
+                            , title: 'Criar Nota'
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
+                        }
+                    });
+                } else {
+
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['chave', 'deposito']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+
+                    let count = await db.getModel('est_nfentrada').count({
+                        where: {
+                            chave: obj.req.body.chave
+                        }
+                    });
+                    if (count > 0) {
+                        return application.error(obj.res, { msg: 'Nota já importada' });
+                    }
+
+                    try {
+
+                        let spednf = await db.getModel('sped_nfentrada').find({
+                            where: {
+                                chave_nfe: obj.req.body.chave
+                            }
+                            , raw: true
+                        });
+                        if (!spednf) {
+                            return application.error(obj.res, { msg: 'Chave de acesso não encontrada' });
+                        }
+                        let spednfitem = await db.getModel('sped_nfentradait').findAll({
+                            where: {
+                                chave_nfe: obj.req.body.chave
+                            }
+                            , raw: true
+                        });
+                        if (!spednfitem) {
+                            return application.error(obj.res, { msg: 'Esta nota não possui itens' });
+                        }
+
+                        let nf = await db.getModel('est_nfentrada').create({
+                            chave: spednf.chave_nfe
+                            , finalizado: false
+                            , dataemissao: spednf.data_emissao
+                            , documento: spednf.docto + '/' + spednf.serie
+                            , cnpj: spednf.cnpj_emitente
+                            , razaosocial: spednf.nome_emitente
+                            , datainclusao: moment()
+                            , iddeposito: obj.req.body.deposito
+                        });
+
+                        let bulkitens = [];
+                        for (var i = 0; i < spednfitem.length; i++) {
+
+                            let sql = await db.sequelize.query("select v.id from pcp_versao v left join cad_item i on (v.iditem = i.id) where i.codigo = :item and v.codigo = :versao", {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: { item: spednfitem[i].produto, versao: spednfitem[i].versao }
+                            });
+
+                            if (sql.length == 0) {
+                                nf.destroy();
+                                return application.error(obj.res, { msg: 'Não foi encontrado o cadastro do produto: ' + spednfitem[i].produto + '/' + spednfitem[i].versao });
+                            }
+
+                            bulkitens.push({
+                                codigoviniflex: 1
+                                , idnfentrada: nf.id
+                                , sequencial: spednfitem[i].item
+                                , codigo: spednfitem[i].codigo_produto
+                                , descricao: spednfitem[i].nome_produto
+                                , qtd: spednfitem[i].quantidade
+                                , oc: spednfitem[i].ordem_compra
+                                , idversao: sql[0].id
+                            });
+
+                        }
+
+                        let nfitem = await db.getModel('est_nfentradaitem').bulkCreate(bulkitens);
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+
+                }
+            }
+
+            , gerarVolumes: async function (obj) {
+                if (obj.req.method == 'GET') {
+                    if (obj.ids == null) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    let ids = obj.ids.split(',');
+                    if (ids.length != 1) {
+                        return application.error(obj.res, { msg: 'Selecione apenas 1 item para gerar volumes' });
+                    }
+
+                    let body = '';
+                    body += application.components.html.hidden({ name: 'ids', value: obj.ids });
+                    body += application.components.html.integer({
+                        width: 6
+                        , label: 'Volumes a serem Gerados'
+                        , name: 'qtd'
+                    });
+                    body += application.components.html.decimal({
+                        width: 6
+                        , label: 'Quantidade por Volume'
+                        , name: 'qtdvolume'
+                        , precision: 4
+                    });
+
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , action: '/event/' + obj.event.id
+                            , id: 'modalevt'
+                            , title: 'Gerar Volume'
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
+                        }
+                    });
+                } else {
+
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'qtd']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+
+                    try {
+
+                        let bulkvolume = [];
+                        let nfitem = await db.getModel('est_nfentradaitem').find({
+                            where: {
+                                id: obj.req.body.ids
+                            }
+                        });
+                        let nf = await db.getModel('est_nfentrada').find({
+                            where: {
+                                id: nfitem.idnfentrada
+                            }
+                        });
+
+                        let qtdvolume = 0;
+                        if (obj.req.body.qtdvolume) {
+                            qtdvolume = application.formatters.be.decimal(obj.req.body.qtdvolume, 4);
+                        } else {
+                            qtdvolume = nfitem.qtd / obj.req.body.qtd;
+                        }
+
+                        for (var i = 0; i < obj.req.body.qtd; i++) {
+                            bulkvolume.push({
+                                idversao: nfitem.idversao
+                                , iddeposito: nf.iddeposito
+                                , iduser: obj.req.user.id
+                                , datahora: moment()
+                                , qtd: qtdvolume
+                                , qtddisponivel: qtdvolume
+                                , consumido: false
+                                , qtdconsumida: 0
+                                , idnfentradaitem: nfitem.id
+                            });
+                        }
+
+                        await db.getModel('est_volume').bulkCreate(bulkvolume);
+
+                        nfitem.qtdvolumes = await db.getModel('est_volume').count({ where: { idnfentradaitem: nfitem.id } });
+                        await nfitem.save();
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+
+                }
+            }
+
+            , transferencia: function (obj) {
 
                 if (obj.req.method == 'GET') {
 
@@ -813,6 +1014,14 @@ var main = {
 
                     });
                 });
+            }
+
+            , est_volume: {
+                onsave: async function (obj, next) {
+                    let a = await next(obj);
+                    console.log(a.register);
+                    
+                }
             }
 
             , est_mov: {

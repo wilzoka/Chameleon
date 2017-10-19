@@ -254,9 +254,6 @@ var application = {
 		}
 	}
 
-	, model: {
-	}
-
 	, modelattribute: {
 		parseTypeadd: function (value) {
 			return value ? JSON.parse(application.functions.singleSpace(value)) : {};
