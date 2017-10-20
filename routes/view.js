@@ -326,134 +326,151 @@ var render = function (viewfield, register) {
     }
 }
 
-var merge = function (register, data) {
-    for (var k in data) {
-        if (register[k] != data[k]) {
-            register[k] = data[k];
-        }
-    }
-    return register;
-}
-
 var modelate = function (obj) {
 
-    for (var i = 0; i < obj.modelattributes.length; i++) {
+    for (var i = 0; i < obj.viewfields.length; i++) {
 
-        switch (obj.modelattributes[i].type) {
+        switch (obj.viewfields[i].modelattribute.type) {
+            case 'text':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'textarea':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'file':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
             case 'date':
-                if (obj.data[obj.modelattributes[i].name] != undefined) {
-                    obj.data[obj.modelattributes[i].name] = application.formatters.be.date(obj.data[obj.modelattributes[i].name]);
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.date(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
             case 'datetime':
-                if (obj.data[obj.modelattributes[i].name] != undefined) {
-                    obj.data[obj.modelattributes[i].name] = application.formatters.be.datetime(obj.data[obj.modelattributes[i].name]);
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.datetime(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
             case 'time':
-                if (obj.data[obj.modelattributes[i].name] != undefined) {
-                    obj.data[obj.modelattributes[i].name] = application.formatters.be.time(obj.data[obj.modelattributes[i].name]);
-                }
-                break;
-            case 'parent':
-                if (obj.req.query.parent && obj.req.query.parent > 0) {
-                    obj.data[obj.modelattributes[i].name] = parseInt(obj.req.query.parent);
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.time(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
             case 'boolean':
-                if (obj.data[obj.modelattributes[i].name]) {
-                    obj.data[obj.modelattributes[i].name] = true;
+                if (obj.req.body[obj.viewfields[i].modelattribute.name] == undefined) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = false;
                 } else {
-                    obj.data[obj.modelattributes[i].name] = false;
+                    obj.register[obj.viewfields[i].modelattribute.name] = true;
                 }
                 break;
             case 'integer':
-                if (obj.data[obj.modelattributes[i].name] != undefined) {
-                    obj.data[obj.modelattributes[i].name] = application.formatters.be.integer(obj.data[obj.modelattributes[i].name]);
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
             case 'autocomplete':
-                if (obj.data[obj.modelattributes[i].name]) {
-                    obj.data[obj.modelattributes[i].name] = application.formatters.be.integer(obj.data[obj.modelattributes[i].name]);
+                if (obj.req.body[obj.viewfields[i].modelattribute.name] != undefined) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
             case 'decimal':
-                if (obj.data[obj.modelattributes[i].name]) {
-                    obj.data[obj.modelattributes[i].name] = application.formatters.be.decimal(obj.data[obj.modelattributes[i].name], application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd).precision);
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name], application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
+        }
+    }
+
+    for (var i = 0; i < obj.modelattributes.length; i++) {
+        if (obj.modelattributes[i].type == 'parent') {
+            if (obj.req.query.parent && obj.req.query.parent > 0) {
+                obj.register[obj.modelattributes[i].name] = parseInt(obj.req.query.parent);
+            }
         }
     }
 
     return obj;
 }
 
-var validate = async function (obj) {
+var validate = function (obj) {
     return new Promise((resolve, reject) => {
 
         var invalidfields = [];
 
-        db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
+        for (var i = 0; i < obj.modelattributes.length; i++) {
 
-            let tovalidate = {};
-            if (register) {
-                tovalidate = merge(register, obj.data);
+            let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+
+            // NotNull
+            if (obj.modelattributes[i].type == 'boolean' && obj.register[obj.modelattributes[i].name] == null) {
+                obj.register[obj.modelattributes[i].name] = false;
+            } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
+                if (!Number.isInteger(obj.register[obj.modelattributes[i].name])) {
+                    invalidfields.push(obj.modelattributes[i].name);
+                }
             } else {
-                tovalidate = obj.data;
+                if (obj.modelattributes[i].notnull && obj.register[obj.modelattributes[i].name] == null) {
+                    invalidfields.push(obj.modelattributes[i].name);
+                }
             }
 
-            for (var i = 0; i < obj.modelattributes.length; i++) {
+            // File
+            if (obj.modelattributes[i].type == 'file') {
+                if (j.sizeTotal) {
 
-                let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
-
-                // NotNull
-                if (obj.modelattributes[i].type == 'boolean') {
-                } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
-                    if (!Number.isInteger(tovalidate[obj.modelattributes[i].name])) {
-                        invalidfields.push(obj.modelattributes[i].name);
-                    }
-                } else {
-                    if (obj.modelattributes[i].notnull && !tovalidate[obj.modelattributes[i].name]) {
-                        invalidfields.push(obj.modelattributes[i].name);
-                    }
-                }
-
-                // File
-                if (obj.modelattributes[i].type == 'file') {
-                    if (j.sizeTotal) {
-
-                        if (tovalidate[obj.modelattributes[i].name]) {
-                            let filesize = 0;
-                            let files = JSON.parse(tovalidate[obj.modelattributes[i].name]);
-                            for (var z = 0; z < files.length; z++) {
-                                filesize += files[z].size;
-                            }
-                            if (filesize > (j.sizeTotal * 1024 * 1024)) {
-                                return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido (' + j.sizeTotal + ' MB)', invalidfields: [obj.modelattributes[i].name] });
-                            }
+                    if (obj.register[obj.modelattributes[i].name]) {
+                        let filesize = 0;
+                        let files = JSON.parse(obj.register[obj.modelattributes[i].name]);
+                        for (var z = 0; z < files.length; z++) {
+                            filesize += files[z].size;
+                        }
+                        if (filesize > (j.sizeTotal * 1024 * 1024)) {
+                            return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido (' + j.sizeTotal + ' MB)', invalidfields: [obj.modelattributes[i].name] });
                         }
                     }
                 }
-
-
             }
 
-            if (invalidfields.length > 0) {
-                return resolve({ success: false, msg: application.message.invalidFields, invalidfields: invalidfields });
-            } else {
-                return resolve({ success: true });
-            }
+        }
 
-        });
+        if (invalidfields.length > 0) {
+            return resolve({ success: false, msg: application.message.invalidFields, invalidfields: invalidfields });
+        } else {
+            return resolve({ success: true });
+        }
+
     });
 }
 
 var boundFiles = function (obj) {
     let idsToBound = [];
     for (var i = 0; i < obj.modelattributes.length; i++) {
-        if (obj.modelattributes[i].type == 'file' && obj.data[obj.modelattributes[i].name] != undefined) {
+        if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined) {
 
-            let j = JSON.parse(obj.data[obj.modelattributes[i].name]);
+            let j = JSON.parse(obj.register[obj.modelattributes[i].name]);
 
             for (var z = 0; z < j.length; z++) {
                 idsToBound.push(j[z].id);
@@ -467,59 +484,47 @@ var boundFiles = function (obj) {
     }
 }
 
-var save = async function (obj) {
+var save = function (obj) {
     return new Promise((resolve, reject) => {
         try {
+            if (obj.register.changed()) {
+                let residueIds = [];
+                for (var i = 0; i < obj.modelattributes.length; i++) {
+                    if (obj.modelattributes[i].type == 'file' && obj.register._changed[obj.modelattributes[i].name]) {
 
-            if (obj.id == 0) {
-                db.getModel(obj.view.model.name).create(obj.data).then(register => {
-                    boundFiles(lodash.extend(obj, { register: register }));
-                    return resolve({ success: true, register: register });
-                });
-            } else {
-                db.getModel(obj.view.model.name).find({ where: { id: obj.id } }).then(register => {
-                    register = merge(register, obj.data);
+                        let previousIds = [];
+                        let currentIds = [];
+                        let j = {};
 
-                    if (register.changed()) {
-                        let residueIds = [];
-                        for (var i = 0; i < obj.modelattributes.length; i++) {
-                            if (obj.modelattributes[i].type == 'file' && register._changed[obj.modelattributes[i].name]) {
+                        // previous
+                        j = obj.register._previousDataValues[obj.modelattributes[i].name] ? JSON.parse(obj.register._previousDataValues[obj.modelattributes[i].name]) : [];
+                        for (var z = 0; z < j.length; z++) {
+                            previousIds.push(j[z].id);
+                        }
 
-                                let previousIds = [];
-                                let currentIds = [];
-                                let j = {};
+                        // current
+                        j = obj.register[obj.modelattributes[i].name] ? JSON.parse(obj.register[obj.modelattributes[i].name]) : [];
+                        for (var z = 0; z < j.length; z++) {
+                            currentIds.push(j[z].id);
+                        }
 
-                                // previous
-                                j = register._previousDataValues[obj.modelattributes[i].name] ? JSON.parse(register._previousDataValues[obj.modelattributes[i].name]) : [];
-                                for (var z = 0; z < j.length; z++) {
-                                    previousIds.push(j[z].id);
-                                }
-
-                                // current
-                                j = register[obj.modelattributes[i].name] ? JSON.parse(register[obj.modelattributes[i].name]) : [];
-                                for (var z = 0; z < j.length; z++) {
-                                    currentIds.push(j[z].id);
-                                }
-
-                                for (var z = 0; z < previousIds.length; z++) {
-                                    if (currentIds.indexOf(previousIds[z]) > 0) {
-                                        previousIds.splice(z, 1);
-                                    }
-                                }
-
-                                if (previousIds.length > 0) {
-                                    db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
-                                }
+                        for (var z = 0; z < previousIds.length; z++) {
+                            if (currentIds.indexOf(previousIds[z]) > 0) {
+                                previousIds.splice(z, 1);
                             }
                         }
-                    }
 
-                    register.save().then(registersaved => {
-                        boundFiles(lodash.extend(obj, { register: registersaved }));
-                        return resolve({ success: true, register: registersaved });
-                    });
-                });
+                        if (previousIds.length > 0) {
+                            db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
+                        }
+                    }
+                }
             }
+
+            obj.register.save().then(register => {
+                boundFiles(lodash.extend(obj, { register: register }));
+                return resolve({ success: true, register: register });
+            });
 
         } catch (err) {
             resolve({ success: false });
@@ -1149,7 +1154,7 @@ module.exports = function (app) {
 
                 if (ids) {
 
-                    db.getModel('view').find({ where: { id: req.params.idview }, include: [{ model: db.getModel('model'), as: 'model' }] }).then(view => {
+                    db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] }).then(view => {
                         if (view) {
 
                             onDeleteModel({
@@ -1198,31 +1203,30 @@ module.exports = function (app) {
                 let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
                 let viewfields = await db.getModel('viewfield').findAll({
                     where: { idview: view.id, disabled: { $eq: false } }
-                    , include: [{ model: db.getModel('modelattribute'), as: 'modelattribute' }]
+                    , include: [{ all: true }]
                 });
-
-                let data = {};
-                for (var i = 0; i < viewfields.length; i++) {
-                    data[viewfields[i].modelattribute.name] = req.body[viewfields[i].modelattribute.name] || null;
+                let register = await db.getModel(view.model.name).find({ where: { id: req.params.id } });
+                if (!register) {
+                    register = db.getModel(view.model.name).build();
                 }
 
-                let obj = modelate({
+                let obj = {
                     id: req.params.id
-                    , data: data
-                    , modelattributes: modelattributes
+                    , register: register
                     , view: view
+                    , modelattributes: modelattributes
+                    , viewfields: viewfields
                     , req: req
                     , res: res
-                });
+                };
+
+                obj = modelate(obj);
 
                 if (view.model.onsave) {
-
                     let custom = reload('../custom/functions');
                     return application.functions.getRealReference(custom, view.model.onsave)(obj, validateAndSave);
                 } else {
-
                     validateAndSave(obj);
-
                 }
 
             } else {

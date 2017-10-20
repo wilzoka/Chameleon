@@ -7,19 +7,19 @@ var application = require('../routes/application')
 var main = {
     plataform: {
         model: {
-            save: function (json, next) {
-                db.getModel('model').find({ where: { id: { $ne: json.id }, name: json.data.name } }).then(register => {
+            save: function (obj, next) {
+                db.getModel('model').find({ where: { id: { $ne: obj.id }, name: obj.register.name } }).then(register => {
                     if (register) {
-                        return application.error(json.res, { msg: 'Já existe um modelo com este nome' });
+                        return application.error(obj.res, { msg: 'Já existe um modelo com este nome' });
                     } else {
-                        next(json);
+                        next(obj);
                     }
                 });
             }
-            , delete: function (json, next) {
+            , delete: function (obj, next) {
 
                 const queryInterface = db.sequelize.getQueryInterface();
-                db.getModel('model').findAll({ where: { id: { $in: json.ids } } }).then(models => {
+                db.getModel('model').findAll({ where: { id: { $in: obj.ids } } }).then(models => {
 
                     try {
                         for (var i = 0; i < models.length; i++) {
@@ -32,13 +32,13 @@ var main = {
                     } catch (error) {
                     }
 
-                    next(json);
+                    next(obj);
                 }).catch(err => {
-                    application.fatal(json.res, err);
+                    application.fatal(obj.res, err);
                 });
 
             }
-            , syncAll: function (json) {
+            , syncAll: function (obj) {
                 var models = {};
                 db.sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: db.sequelize.QueryTypes.SELECT }).then(results => {
 
@@ -105,12 +105,12 @@ var main = {
 
                     db.dropForeignKeyConstraints().then(() => {
                         db.sequelize.sync({ alter: true }).then(() => {
-                            return application.success(json.res, { msg: application.message.success });
+                            return application.success(obj.res, { msg: application.message.success });
                         }).catch(err => {
-                            return application.fatal(json.res, err);
+                            return application.fatal(obj.res, err);
                         });
                     }).catch(err => {
-                        return application.fatal(json.res, err);
+                        return application.fatal(obj.res, err);
                     });
 
                 });
@@ -245,7 +245,7 @@ var main = {
         }
         , schedule: {
             save: async function (obj, next) {
-                obj.data.active = false;
+                obj.register.active = false;
                 await next(obj);
                 schedule.removeSchedule();
             }
@@ -396,9 +396,9 @@ var main = {
 
                     if (obj.id == 0) {
                         if ([68, 69].indexOf(obj.view.id) >= 0) { // Contas a Pagar
-                            obj.data.dc = 1;
+                            obj.register.dc = 1;
                         } else {
-                            obj.data.dc = 2;
+                            obj.register.dc = 2;
                         }
                     }
 
@@ -551,7 +551,31 @@ var main = {
     }
 
     , plastrela: {
-        manutencao: {
+        compra: {
+            cmp_solicitacaoitem: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        if (obj.id == 0) {
+                            obj.register.iduser = obj.req.user.id;
+
+                            let config = await db.getModel('cmp_config').find();
+
+                            if (!obj.register.idestado) {
+                                obj.register.idestado = config.idsolicitacaoestadoinicial;
+                            }
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+
+                    next(obj);
+                }
+            }
+        }
+
+        , manutencao: {
             os: {
                 save: function (json, next) {
                     db.getModel('man_config').find().then(config => {
@@ -684,96 +708,6 @@ var main = {
                         }
 
                         let nfitem = await db.getModel('est_nfentradaitem').bulkCreate(bulkitens);
-
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-
-                }
-            }
-
-            , gerarVolumes: async function (obj) {
-                if (obj.req.method == 'GET') {
-                    if (obj.ids == null) {
-                        return application.error(obj.res, { msg: application.message.selectOneEvent });
-                    }
-                    let ids = obj.ids.split(',');
-                    if (ids.length != 1) {
-                        return application.error(obj.res, { msg: 'Selecione apenas 1 item para gerar volumes' });
-                    }
-
-                    let body = '';
-                    body += application.components.html.hidden({ name: 'ids', value: obj.ids });
-                    body += application.components.html.integer({
-                        width: 6
-                        , label: 'Volumes a serem Gerados'
-                        , name: 'qtd'
-                    });
-                    body += application.components.html.decimal({
-                        width: 6
-                        , label: 'Quantidade por Volume'
-                        , name: 'qtdvolume'
-                        , precision: 4
-                    });
-
-                    return application.success(obj.res, {
-                        modal: {
-                            form: true
-                            , action: '/event/' + obj.event.id
-                            , id: 'modalevt'
-                            , title: 'Gerar Volume'
-                            , body: body
-                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
-                        }
-                    });
-                } else {
-
-                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'qtd']);
-                    if (invalidfields.length > 0) {
-                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                    }
-
-                    try {
-
-                        let bulkvolume = [];
-                        let nfitem = await db.getModel('est_nfentradaitem').find({
-                            where: {
-                                id: obj.req.body.ids
-                            }
-                        });
-                        let nf = await db.getModel('est_nfentrada').find({
-                            where: {
-                                id: nfitem.idnfentrada
-                            }
-                        });
-
-                        let qtdvolume = 0;
-                        if (obj.req.body.qtdvolume) {
-                            qtdvolume = application.formatters.be.decimal(obj.req.body.qtdvolume, 4);
-                        } else {
-                            qtdvolume = nfitem.qtd / obj.req.body.qtd;
-                        }
-
-                        for (var i = 0; i < obj.req.body.qtd; i++) {
-                            bulkvolume.push({
-                                idversao: nfitem.idversao
-                                , iddeposito: nf.iddeposito
-                                , iduser: obj.req.user.id
-                                , datahora: moment()
-                                , qtd: qtdvolume
-                                , qtddisponivel: qtdvolume
-                                , consumido: false
-                                , qtdconsumida: 0
-                                , idnfentradaitem: nfitem.id
-                            });
-                        }
-
-                        await db.getModel('est_volume').bulkCreate(bulkvolume);
-
-                        nfitem.qtdvolumes = await db.getModel('est_volume').count({ where: { idnfentradaitem: nfitem.id } });
-                        await nfitem.save();
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
@@ -1017,18 +951,208 @@ var main = {
             }
 
             , est_volume: {
-                onsave: async function (obj, next) {
-                    let a = await next(obj);
-                    console.log(a.register);
-                    
+
+                gerarVolumes: async function (obj) {
+                    if (obj.req.method == 'GET') {
+                        if (obj.ids == null) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let ids = obj.ids.split(',');
+                        if (ids.length != 1) {
+                            return application.error(obj.res, { msg: 'Selecione apenas 1 item para gerar volumes' });
+                        }
+
+                        let body = '';
+                        body += application.components.html.hidden({ name: 'ids', value: obj.ids });
+                        body += application.components.html.integer({
+                            width: 6
+                            , label: 'Volumes a serem Gerados'
+                            , name: 'qtd'
+                        });
+                        body += application.components.html.decimal({
+                            width: 6
+                            , label: 'Quantidade por Volume'
+                            , name: 'qtdvolume'
+                            , precision: 4
+                        });
+
+                        return application.success(obj.res, {
+                            modal: {
+                                form: true
+                                , action: '/event/' + obj.event.id
+                                , id: 'modalevt'
+                                , title: 'Gerar Volume'
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
+                            }
+                        });
+                    } else {
+
+                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'qtd']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
+
+                        try {
+
+                            let bulkvolume = [];
+                            let nfitem = await db.getModel('est_nfentradaitem').find({
+                                where: {
+                                    id: obj.req.body.ids
+                                }
+                            });
+                            let nf = await db.getModel('est_nfentrada').find({
+                                where: {
+                                    id: nfitem.idnfentrada
+                                }
+                            });
+
+                            if (nf.finalizado) {
+                                return application.error(obj.res, { msg: 'Não é possível gerar volumes de uma nota finalizada' });
+                            }
+
+                            let qtdvolume = 0;
+                            if (obj.req.body.qtdvolume) {
+                                qtdvolume = application.formatters.be.decimal(obj.req.body.qtdvolume, 4);
+                            } else {
+                                qtdvolume = (nfitem.qtd / obj.req.body.qtd).toFixed(4);
+                            }
+
+                            for (var i = 0; i < obj.req.body.qtd; i++) {
+                                bulkvolume.push({
+                                    idversao: nfitem.idversao
+                                    , iddeposito: nf.iddeposito
+                                    , iduser: obj.req.user.id
+                                    , datahora: moment()
+                                    , qtd: qtdvolume
+                                    , qtddisponivel: qtdvolume
+                                    , consumido: false
+                                    , qtdconsumida: 0
+                                    , idnfentradaitem: nfitem.id
+                                });
+                            }
+
+                            await db.getModel('est_volume').bulkCreate(bulkvolume);
+
+                            nfitem.qtdvolumes = await db.getModel('est_volume').count({ where: { idnfentradaitem: nfitem.id } });
+                            await nfitem.save();
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                        } catch (err) {
+                            return application.fatal(obj.res, err);
+                        }
+
+                    }
                 }
+
+                , removerVolume: async function (obj) {
+                    if (obj.ids == null) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    let ids = obj.ids.split(',');
+
+                    try {
+
+                        let volumes = await db.getModel('est_volume').findAll({
+                            where: {
+                                id: { $in: ids }
+                            }
+                        });
+
+                        let nfitem = await db.getModel('est_nfentradaitem').find({
+                            where: {
+                                id: volumes[0].idnfentradaitem
+                            }
+                        });
+
+                        let nf = await db.getModel('est_nfentrada').find({
+                            where: {
+                                id: nfitem.idnfentrada
+                            }
+                        });
+
+                        if (nf.finalizado) {
+                            return application.error(obj.res, { msg: 'Não é possível remover volumes de uma nota finalizada' });
+                        }
+
+                        nfitem.qtdvolumes = nfitem.qtdvolumes - ids.length;
+
+                        await db.getModel('est_volume').destroy({
+                            where: {
+                                id: { $in: ids }
+                            }
+                        });
+                        await nfitem.save();
+
+                        //unbound files
+                        let filestounbound = [];
+                        for (var i = 0; i < volumes.length; i++) {
+                            if (volumes[i].fotos) {
+                                let j = JSON.parse(volumes[i].fotos);
+                                for (var z = 0; z < j.length; z++) {
+                                    filestounbound.push(j[z].id);
+                                }
+                            }
+                        }
+                        if (filestounbound.length > 0) {
+                            await db.getModel('file').update({
+                                bounded: false
+                            }, {
+                                    where: {
+                                        id: { $in: filestounbound }
+                                    }
+                                });
+                        }
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+
+
+                }
+
+                , onsave: async function (obj, next) {
+                    try {
+
+                        if (obj.view.id == 66) {
+                            let volume = await db.getModel('est_volume').find({
+                                where: {
+                                    id: obj.id
+                                }
+                            });
+                            let nfitem = await db.getModel('est_nfentradaitem').find({
+                                where: {
+                                    id: volume.idnfentradaitem
+                                }
+                            });
+                            let nf = await db.getModel('est_nfentrada').find({
+                                where: {
+                                    id: nfitem.idnfentrada
+                                }
+                            });
+                            if (nf.finalizado) {
+                                return application.error(obj.res, { msg: 'Não é possível alterar volumes de uma nota finalizada' });
+                            }
+                            obj.register.qtddisponivel = (obj.register.qtd - obj.register.qtdconsumida).toFixed(4);
+                        }
+
+                        let save = await next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+
             }
 
             , est_mov: {
                 onsave: async function (obj, next) {
                     const f = main.plastrela.estoque;
                     if (obj.id == 0) {
-                        obj.data.iduser = obj.req.user.id;
+                        obj.register.iduser = obj.req.user.id;
                     }
 
                     let movimentar = await f._movimentar(obj.data);
@@ -1049,11 +1173,11 @@ var main = {
         , pcp: {
             apparada: {
                 onsave: function (obj, next) {
-                    var dataini = moment(obj.data.dataini);
-                    var datafim = moment(obj.data.datafim);
+                    var dataini = moment(obj.register.dataini);
+                    var datafim = moment(obj.register.datafim);
                     var duracao = datafim.diff(dataini, 'm');
 
-                    obj.data.duracao = duracao;
+                    obj.register.duracao = duracao;
 
                     next(obj);
                 }
@@ -1063,7 +1187,7 @@ var main = {
                     if (obj.id == 0) {
                         db.getModel('pcp_config').find().then(config => {
                             if (config && config.idestadoinicial) {
-                                obj.data.idestado = config.idestadoinicial;
+                                obj.register.idestado = config.idestadoinicial;
                                 next(obj);
                             } else {
                                 return application.error(obj.res, { msg: 'Falta configuração em: Estado Inicial da OP' });
