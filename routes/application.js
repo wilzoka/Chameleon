@@ -238,19 +238,17 @@ var application = {
 		}
 		, lpad: function (value, length, string) {
 			string = string || ' ';
-			length = length - value.toString().length;
-			for (var i = 0; i < length; i++) {
+			for (var i = value.toString().length; i < length; i++) {
 				value = string + value;
 			}
-			return value;
+			return value.substring(0, length);
 		}
 		, rpad: function (value, length, string) {
 			string = string || ' ';
-			length = length - value.toString().length;
-			for (var i = 0; i < length; i++) {
+			for (var i = value.toString().length; i < length; i++) {
 				value = value + string;
 			}
-			return value;
+			return value.substring(0, length);
 		}
 	}
 

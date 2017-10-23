@@ -2,6 +2,7 @@ var application = require('../routes/application')
     , db = require('../models')
     , schedule = require('../routes/schedule')
     , moment = require('moment')
+    , fs = require('fs')
     ;
 
 var main = {
@@ -42,9 +43,9 @@ var main = {
                 var models = {};
                 db.sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: db.sequelize.QueryTypes.SELECT }).then(results => {
 
-                    var modelname;
-                    var modelattributeobj = {};
-                    var defineModel = function (name, attr) {
+                    let modelname;
+                    let modelattributeobj = {};
+                    let defineModel = function (name, attr) {
                         models[name] = db.sequelize.define(name, attr, {
                             freezeTableName: true
                             , timestamps: false
@@ -703,6 +704,7 @@ var main = {
                                 , qtd: spednfitem[i].quantidade
                                 , oc: spednfitem[i].ordem_compra
                                 , idversao: sql[0].id
+                                , qtdvolumes: 0
                             });
 
                         }
@@ -952,7 +954,182 @@ var main = {
 
             , est_volume: {
 
-                gerarVolumes: async function (obj) {
+                imprimirEtiqueta: async function (obj) {
+                    let f = application.functions;
+                    let pdfkit = require('pdfkit');
+                    const doc = new pdfkit({
+                        margin: 30
+                    });
+
+                    let config = await db.getModel('config').find({ raw: true });
+                    let image = JSON.parse(config.imagemrelatorio)[0];
+
+                    var filename = process.hrtime()[1] + '.pdf';
+                    var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+
+                    doc.moveTo(25, 25)
+                        .lineTo(589, 25) //top
+                        .lineTo(589, 770) //right
+                        .lineTo(25, 770) //bottom
+                        .lineTo(25, 25) //bottom
+                        .stroke();
+
+                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+
+                    doc.moveTo(25, 75)
+                        .lineTo(589, 75) // Cabeçalho
+                        .stroke();
+
+
+
+                    // Title
+
+                    doc
+                        .font('Courier-Bold')
+                        .fontSize(11)
+                        .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº 2952', 165, 47);
+
+
+                    doc
+                        .fontSize(8)
+                        .text('Anexo - 03', 500, 40)
+                        .text('Nº PPP - 05 Revisão: 09', 460, 55);
+
+                    // Body
+                    let width1 = 27;
+                    let width1val = 20;
+
+                    let width2 = 24;
+                    let width2val = 21;
+
+                    let width3 = 4;
+                    let width3val = 18;
+
+                    let padstr = '_';
+                    let md = 0.7;
+
+                    doc
+                        .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
+                        .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('2920 (NF 44796/0)', width2val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('275896', width3val, padstr))
+                        .moveDown(md);
+
+                    doc
+                        .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('AB BRASIL', 87, padstr))
+                        .moveDown(md);
+
+                    doc
+                        .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('(63,50x0,0035) PELICULA 7376 PAPEL HIGIENICO CLARA PREMIUM FOLHA DUPLA 4 X 30 M (T100)', 87, padstr))
+                        .moveDown(md);
+
+                    doc
+                        .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('1760,00mm X 0,0200mm', width1val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('253,0000 KG', width2val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('18.391,97 M', width3val, padstr))
+                        .moveDown(md);
+
+                    doc
+                        .font('Courier-Bold').text(f.lpad('Formato após Revisão: ', width1, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Peso após Revisão: ', width2, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width3val, padstr))
+                        .moveDown(md);
+
+                    doc
+                        .font('Courier-Bold').text(f.lpad('Formato após Laminação: ', width1, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Peso após Laminação: ', width2, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width3val, padstr))
+                        .moveDown(md);
+
+                    doc
+                        .font('Courier-Bold').text(f.lpad('Formato após 2ª Laminação: ', width1, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Peso após 2ª Laminação: ', width2, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                        .font('Courier').text(f.rpad('', width3val, padstr))
+                        .moveDown(md);
+
+                    doc
+                        .font('Courier-Bold')
+                        .text(
+                        f.lpad('Tratamento', 15, padstr) +
+                        f.lpad('Turno', 14, padstr) +
+                        f.lpad('Nº da', 15, padstr) +
+                        f.lpad('Operador', 13, padstr) +
+                        f.lpad('Hora', 12, padstr) +
+                        f.lpad('Hora', 13, padstr) +
+                        f.lpad('Data', 7, padstr) +
+                        f.lpad('Aprovado /', 10, padstr) +
+                        f.lpad('Aprovado /', 10, padstr)
+                        )
+                        .moveDown(md);
+
+
+
+
+                    // doc.moveDown(0.5);
+                    // doc.text(f.lpad('Cliente: ', width1, padstr), { continued: true }).text(f.rpad(' AB BRASIL', padstr));
+                    // doc.moveDown(0.5);
+                    // doc.text(f.lpad('Produto: ', width1));
+                    // doc.moveDown(0.5);
+                    // doc.text(f.lpad('Formato: ', width1));
+                    // doc.moveDown(0.5);
+                    // doc.text(f.lpad('Formato após Revisão: ', width1));
+                    // doc.moveDown(0.5);
+                    // doc.text(f.lpad('Formato após Laminação: ', width1));
+                    // doc.moveDown(0.5);
+                    // doc.text(f.lpad('Formato após 2ª Laminação: ', width1));
+                    // doc.moveDown(0.5);
+
+                    // doc.text('Tratamento', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('[]Interno []Externo', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('Extrusão:', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('Impressão:', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('Laminação:', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('2ª Laminação', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('Visto do Encarregado:', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('Observações:', { width: width1, align: 'right' });
+                    // doc.moveDown(0.5);
+                    // doc.text('');
+                    // doc.moveDown(0.5);
+                    // doc.text('Fornecedor', { width: width1, align: 'right' });
+
+                    doc.end();
+                    stream.on('finish', function () {
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                            }
+                        });
+                    });
+                }
+
+                , gerarVolumes: async function (obj) {
                     if (obj.req.method == 'GET') {
                         if (obj.ids == null) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
@@ -1027,7 +1204,6 @@ var main = {
                                     , qtd: qtdvolume
                                     , qtddisponivel: qtdvolume
                                     , consumido: false
-                                    , qtdconsumida: 0
                                     , idnfentradaitem: nfitem.id
                                 });
                             }
@@ -1136,7 +1312,6 @@ var main = {
                             if (nf.finalizado) {
                                 return application.error(obj.res, { msg: 'Não é possível alterar volumes de uma nota finalizada' });
                             }
-                            obj.register.qtddisponivel = (obj.register.qtd - obj.register.qtdconsumida).toFixed(4);
                         }
 
                         let save = await next(obj);
