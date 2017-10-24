@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "barcode-2-svg": "^0.3.3",
     "body-parser": "1.18.2",
     "connect": "3.6.5",
     "cookie-parser": "1.4.3",
@@ -23,6 +24,7 @@
     "pg": "6.4.2",
     "pg-hstore": "2.3.2",
     "require-reload": "0.2.2",
-    "sequelize": "4.15.0"
+    "sequelize": "4.15.0",
+    "svg-to-pdfkit": "^0.1.3"
   }
 }

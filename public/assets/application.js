@@ -593,7 +593,8 @@ var application = {
                 , serverSide: true
                 , ajax: function (data, callback, settings) {
                     $.ajax({
-                        url: '/datatables'
+                        url: '/datatables'                    
+                        , type: 'POST'
                         , data: $.extend({}, data, {
                             id: application.functions.getId()
                             , idview: $(settings.nTable).attr('data-view')
@@ -676,7 +677,7 @@ var application = {
                 var $this = $(this);
                 $.ajax({
                     url: '/datatables/sum'
-                    , type: 'GET'
+                    , type: 'POST'
                     , dataType: 'json'
                     , data: {
                         id: application.functions.getId()

@@ -164,9 +164,9 @@ var replaceWhereFixed = function (value) {
 
 module.exports = function (app) {
 
-    app.get('/datatables', application.IsAuthenticated, function (req, res) {
+    app.post('/datatables', application.IsAuthenticated, function (req, res) {
 
-        db.getModel('view').find({ where: { id: req.query.idview }, include: { all: true } }).then(view => {
+        db.getModel('view').find({ where: { id: req.body.idview }, include: { all: true } }).then(view => {
 
             db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } }).then(modelattributes => {
 
@@ -174,15 +174,15 @@ module.exports = function (app) {
 
                 if (view.wherefixed) {
                     view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
-                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.query.id);
+                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
                     where['$col'] = db.Sequelize.literal(view.wherefixed);
                 }
                 if ('tableview' + view.id + 'filter' in req.cookies) {
                     where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
                 }
 
-                var ordercolumn = req.query.columns[req.query.order[0].column].data;
-                var orderdir = req.query.order[0].dir;
+                var ordercolumn = req.body.columns[req.body.order[0].column].data;
+                var orderdir = req.body.order[0].dir;
                 for (var i = 0; i < modelattributes.length; i++) {
                     if (modelattributes[i].name == ordercolumn && modelattributes[i].type == 'autocomplete') {
                         let json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
@@ -191,19 +191,19 @@ module.exports = function (app) {
                     }
                 }
 
-                if (req.query.issubview == 'true') {
+                if (req.body.issubview == 'true') {
 
                     db.getModel('modelattribute').find({
                         where: { idmodel: view.model.id, type: 'parent' }
                     }).then(modelattributeparent => {
 
                         if (modelattributeparent) {
-                            where[modelattributeparent.name] = req.query.id;
+                            where[modelattributeparent.name] = req.body.id;
                         }
 
                         db.getModel(view.model.name).findAndCountAll({
-                            offset: req.query.start
-                            , limit: req.query.length
+                            offset: req.body.start
+                            , limit: req.body.length
                             , raw: true
                             , include: [{ all: true, nested: view.virtual }]
                             , where: where
@@ -229,8 +229,8 @@ module.exports = function (app) {
                 } else {
 
                     db.getModel(view.model.name).findAndCountAll({
-                        offset: req.query.start
-                        , limit: req.query.length
+                        offset: req.body.start
+                        , limit: req.body.length
                         , raw: true
                         , include: [{ all: true, nested: view.virtual }]
                         , where: where
@@ -261,31 +261,31 @@ module.exports = function (app) {
 
     });
 
-    app.get('/datatables/sum', application.IsAuthenticated, function (req, res) {
+    app.post('/datatables/sum', application.IsAuthenticated, function (req, res) {
 
-        db.getModel('view').find({ where: { id: req.query.idview }, include: { all: true } }).then(view => {
+        db.getModel('view').find({ where: { id: req.body.idview }, include: { all: true } }).then(view => {
 
-            db.getModel('modelattribute').find({ where: { id: req.query.idmodelattribute }, include: { all: true } }).then(modelattribute => {
+            db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: { all: true } }).then(modelattribute => {
 
                 var where = {};
 
                 if (view.wherefixed) {
                     view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
-                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.query.id);
+                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
                     where['$col'] = db.Sequelize.literal(view.wherefixed);
                 }
                 if ('tableview' + view.id + 'filter' in req.cookies) {
                     where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
                 }
 
-                if (req.query.issubview == 'true') {
+                if (req.body.issubview == 'true') {
 
                     db.getModel('modelattribute').find({
                         where: { idmodel: view.model.id, type: 'parent' }
                     }).then(modelattributeparent => {
 
                         if (modelattributeparent) {
-                            where[modelattributeparent.name] = req.query.id;
+                            where[modelattributeparent.name] = req.body.id;
                         }
 
                         db.getModel(view.model.name).sum(modelattribute.name, { where: where }).then(sum => {

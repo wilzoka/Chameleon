@@ -957,163 +957,403 @@ var main = {
                 imprimirEtiqueta: async function (obj) {
                     let f = application.functions;
                     let pdfkit = require('pdfkit');
+                    let barcode = require('barcode-2-svg');
+                    let svgtopdfkit = require('svg-to-pdfkit');
+
+                    if (obj.ids == null) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    let ids = obj.ids.split(',');
+
                     const doc = new pdfkit({
-                        margin: 30
+                        autoFirstPage: false
                     });
 
                     let config = await db.getModel('config').find({ raw: true });
                     let image = JSON.parse(config.imagemrelatorio)[0];
-
                     var filename = process.hrtime()[1] + '.pdf';
                     var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
 
-                    doc.moveTo(25, 25)
-                        .lineTo(589, 25) //top
-                        .lineTo(589, 770) //right
-                        .lineTo(25, 770) //bottom
-                        .lineTo(25, 25) //bottom
-                        .stroke();
+                    let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: ids } }, include: [{ all: true, nested: true }], raw: true });
+                    console.log(volumes[0]);
+                    for (var i = 0; i < volumes.length; i++) {
+                        let volume = volumes[i];
 
-                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+                        doc.addPage({ margin: 30 });
 
-                    doc.moveTo(25, 75)
-                        .lineTo(589, 75) // Cabeçalho
-                        .stroke();
+                        doc.moveTo(25, 25)
+                            .lineTo(589, 25) //top
+                            .lineTo(589, 445) //right
+                            .lineTo(25, 445) //bottom
+                            .lineTo(25, 25) //bottom
+                            .stroke();
 
+                        doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
 
+                        doc.moveTo(25, 75)
+                            .lineTo(589, 75) // Cabeçalho
+                            .stroke();
 
-                    // Title
+                        // Title
 
-                    doc
-                        .font('Courier-Bold')
-                        .fontSize(11)
-                        .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº 2952', 165, 47);
-
-
-                    doc
-                        .fontSize(8)
-                        .text('Anexo - 03', 500, 40)
-                        .text('Nº PPP - 05 Revisão: 09', 460, 55);
-
-                    // Body
-                    let width1 = 27;
-                    let width1val = 20;
-
-                    let width2 = 24;
-                    let width2val = 21;
-
-                    let width3 = 4;
-                    let width3val = 18;
-
-                    let padstr = '_';
-                    let md = 0.7;
-
-                    doc
-                        .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
-                        .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('2920 (NF 44796/0)', width2val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('275896', width3val, padstr))
-                        .moveDown(md);
-
-                    doc
-                        .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('AB BRASIL', 87, padstr))
-                        .moveDown(md);
-
-                    doc
-                        .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('(63,50x0,0035) PELICULA 7376 PAPEL HIGIENICO CLARA PREMIUM FOLHA DUPLA 4 X 30 M (T100)', 87, padstr))
-                        .moveDown(md);
-
-                    doc
-                        .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('1760,00mm X 0,0200mm', width1val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('253,0000 KG', width2val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('18.391,97 M', width3val, padstr))
-                        .moveDown(md);
-
-                    doc
-                        .font('Courier-Bold').text(f.lpad('Formato após Revisão: ', width1, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Peso após Revisão: ', width2, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width3val, padstr))
-                        .moveDown(md);
-
-                    doc
-                        .font('Courier-Bold').text(f.lpad('Formato após Laminação: ', width1, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Peso após Laminação: ', width2, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width3val, padstr))
-                        .moveDown(md);
-
-                    doc
-                        .font('Courier-Bold').text(f.lpad('Formato após 2ª Laminação: ', width1, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Peso após 2ª Laminação: ', width2, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
-                        .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                        .font('Courier').text(f.rpad('', width3val, padstr))
-                        .moveDown(md);
-
-                    doc
-                        .font('Courier-Bold')
-                        .text(
-                        f.lpad('Tratamento', 15, padstr) +
-                        f.lpad('Turno', 14, padstr) +
-                        f.lpad('Nº da', 15, padstr) +
-                        f.lpad('Operador', 13, padstr) +
-                        f.lpad('Hora', 12, padstr) +
-                        f.lpad('Hora', 13, padstr) +
-                        f.lpad('Data', 7, padstr) +
-                        f.lpad('Aprovado /', 10, padstr) +
-                        f.lpad('Aprovado /', 10, padstr)
-                        )
-                        .moveDown(md);
+                        doc
+                            .font('Courier-Bold')
+                            .fontSize(11)
+                            .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 47);
 
 
+                        doc
+                            .fontSize(7.5)
+                            .text('Anexo - 03', 500, 40)
+                            .text('Nº PPP - 05 Revisão: 09', 460, 55);
 
+                        // Body
+                        let width1 = 27;
+                        let width1val = 20;
 
-                    // doc.moveDown(0.5);
-                    // doc.text(f.lpad('Cliente: ', width1, padstr), { continued: true }).text(f.rpad(' AB BRASIL', padstr));
-                    // doc.moveDown(0.5);
-                    // doc.text(f.lpad('Produto: ', width1));
-                    // doc.moveDown(0.5);
-                    // doc.text(f.lpad('Formato: ', width1));
-                    // doc.moveDown(0.5);
-                    // doc.text(f.lpad('Formato após Revisão: ', width1));
-                    // doc.moveDown(0.5);
-                    // doc.text(f.lpad('Formato após Laminação: ', width1));
-                    // doc.moveDown(0.5);
-                    // doc.text(f.lpad('Formato após 2ª Laminação: ', width1));
-                    // doc.moveDown(0.5);
+                        let width2 = 24;
+                        let width2val = 25;
 
-                    // doc.text('Tratamento', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('[]Interno []Externo', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('Extrusão:', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('Impressão:', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('Laminação:', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('2ª Laminação', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('Visto do Encarregado:', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('Observações:', { width: width1, align: 'right' });
-                    // doc.moveDown(0.5);
-                    // doc.text('');
-                    // doc.moveDown(0.5);
-                    // doc.text('Fornecedor', { width: width1, align: 'right' });
+                        let width3 = 5;
+                        let width3val = 21;
+
+                        let padstr = ' ';
+                        let md = 0.65;
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
+                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
+                            .font('Courier').text(f.rpad(volume['est_nfentradaitem.oc'], width2val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width3val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .moveTo(240, 75)
+                            .lineTo(240, 91)
+                            .stroke()
+                            .moveTo(460, 75)
+                            .lineTo(460, 91)
+                            .stroke();
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('AB BRASIL', 87, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('(63,50x0,0035) PELICULA 7376 PAPEL HIGIENICO CLARA PREMIUM FOLHA DUPLA 4 X 30 M (T100)', 87, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('1760,00mmX0,0200mm', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('253,0000 KG', width2val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('18.391,97 M', width3val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Formato após Revisão: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Peso após Revisão: ', width2, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width3val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Formato após Laminação: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Peso após Laminação: ', width2, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width3val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Formato após 2ª Laminação: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Peso após 2ª Laminação: ', width2, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('', width3val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            f.lpad('Tratamento', 15, padstr) +
+                            f.lpad('Turno', 16, padstr) +
+                            f.lpad('Nº da', 13, padstr) +
+                            f.lpad('Operador', 14, padstr) +
+                            f.lpad('Hora', 11, padstr) +
+                            f.lpad('Hora', 13, padstr) +
+                            f.lpad('Data', 10, padstr) +
+                            f.lpad('Aprovado /', 15, padstr) +
+                            f.lpad('Aprovado /', 14, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').fontSize(6.5)
+                            .text(f.lpad('[ ]Interno [ ]Externo', 21, padstr), { continued: true })
+                            .fontSize(7.5)
+                            .text(
+                            f.lpad('Máquina', 27, padstr) +
+                            f.lpad('Inicial', 25, padstr) +
+                            f.lpad('Final', 12, padstr) +
+                            f.lpad('Reprovado', 24, padstr) +
+                            f.lpad('Reprovado', 14, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            f.lpad('Operador', 106, padstr) +
+                            f.lpad('C/Q', 11, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            f.lpad('Extrusão:', 14, padstr) +
+                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                            f.lpad('[ ] A [ ] R', 72, padstr) +
+                            f.lpad('[ ] A [ ] R', 14, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            f.lpad('Impressão:', 14, padstr) +
+                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                            f.lpad('[ ] A [ ] R', 72, padstr) +
+                            f.lpad('[ ] A [ ] R', 14, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            f.lpad('Laminação:', 14, padstr) +
+                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                            f.lpad('[ ] A [ ] R', 72, padstr) +
+                            f.lpad('[ ] A [ ] R', 14, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            f.lpad('2ª Laminação:', 14, padstr) +
+                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                            f.lpad('[ ] A [ ] R', 72, padstr) +
+                            f.lpad('[ ] A [ ] R', 14, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .moveTo(117, 169)
+                            .lineTo(117, 260)
+                            .stroke()
+                            .moveTo(195, 169)
+                            .lineTo(195, 260)
+                            .stroke()
+                            .moveTo(240, 117)
+                            .lineTo(240, 260)
+                            .stroke()
+                            .moveTo(303, 169)
+                            .lineTo(303, 260)
+                            .stroke()
+                            .moveTo(358, 169)
+                            .lineTo(358, 260)
+                            .stroke()
+                            .moveTo(415, 169)
+                            .lineTo(415, 260)
+                            .stroke()
+                            .moveTo(460, 117)
+                            .lineTo(460, 260)
+                            .stroke()
+                            .moveTo(523, 169)
+                            .lineTo(523, 260)
+                            .stroke()
+                            ;
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            'Visto do Encarregado:' +
+                            f.lpad('Visto do C/Q:', 66, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text('Observações:')
+                            .moveDown(md).text(' ')
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text(
+                            'Fornecedor:' +
+                            f.lpad('Código do Produto:', 55, padstr)
+                            )
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text('Motivo da Reprovação:')
+                            .moveDown(md).text(' ')
+                            .moveDown(md);
+
+                        // Lines
+                        doc.y = 78;
+
+                        let nolines = [7, 8, 15];
+                        for (var z = 0; z < 20; z++) {
+                            doc.y = doc.y + 13;
+                            if (nolines.indexOf(z) < 0) {
+                                doc
+                                    .moveTo(25, doc.y)
+                                    .lineTo(589, doc.y)
+                                    .stroke();
+                            }
+                        }
+
+                        doc
+                            .font('Courier-Bold')
+                            .text('Observações da Bobina:', 30, 342);
+
+                        doc
+                            .font('Courier')
+                            .text(f.rpad('obsasd as d', 700), 131, 342, { width: 450, height: 70, underline: true });
+
+                        doc
+                            .font('Courier-Bold')
+                            .text('ATENÇÃO: O ESTORNO DEVERÁ RETORNAR AO DEPÓSITO COM ESTA ETIQUETA', 227, 398);
+
+                        svgtopdfkit(
+                            doc
+                            , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
+                            , 230, 405
+                        );
+                        doc
+                            .font('Courier')
+                            .text('-10-000002952', 345, 438);
+
+                        doc
+                            .font('Courier-Bold')
+                            .text('Data Inc.:', 530, 410, { width: 50 })
+                            .font('Courier')
+                            .text('23/10/2017', 530, 420, { width: 50 });
+
+                        doc
+                            .font('Courier-Bold')
+                            .fontSize(9)
+                            .text('1', 76, 355)
+                            .text('2', 76, 363)
+                            .text('3', 76, 371)
+                            .text('4', 76, 379)
+                            .text('5', 76, 387)
+                            ;
+                        doc.circle(78, 398, 45)
+                            .stroke()
+                            .circle(78, 398, 5)
+                            .stroke();
+
+                        // Part 2
+
+                        doc.moveTo(25, 460)
+                            .lineTo(589, 460) //top
+                            .lineTo(589, 623) //right
+                            .lineTo(25, 623) //bottom
+                            .lineTo(25, 460) //left
+                            .stroke()
+                            ;
+
+                        // Title
+
+                        doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 100 });
+
+                        doc.moveTo(25, 510)
+                            .lineTo(589, 510) // Cabeçalho
+                            .stroke();
+
+                        doc
+                            .font('Courier-Bold')
+                            .fontSize(11)
+                            .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 480);
+
+                        width1 = 15;
+                        width1val = 107;
+
+                        doc
+                            .fontSize(7.5)
+                            .font('Courier-Bold').text(f.lpad('Fornecedor: ', width1, padstr), 30, 515, { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Observação: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr))
+                            .moveDown(md);
+
+                        width1 = 15;
+                        width1val = 15;
+                        width2 = 25;
+                        width2val = 15;
+                        width3 = 25;
+                        width3val = 25;
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Nota Fiscal: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Data Emi.: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Data Inc.: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr))
+                            .moveDown(md);
+
+                        doc
+                            .font('Courier-Bold').text(f.lpad('Qtde: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('OC: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                            .font('Courier-Bold').text(f.lpad('Vol.: ', width1, padstr), { continued: true })
+                            .font('Courier').text(f.rpad('27578', width1val, padstr))
+                            .moveDown(md);
+
+                        doc.moveTo(25, 578)
+                            .lineTo(589, 578)
+                            .stroke();
+
+                        svgtopdfkit(
+                            doc
+                            , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
+                            , 170, 582
+                        );
+                        doc
+                            .font('Courier')
+                            .text('-10-000002952', 285, 615);
+
+                        doc
+                            .font('Courier')
+                            .fontSize(120)
+                            .text('2952363', 25, 630);
+                    }
 
                     doc.end();
                     stream.on('finish', function () {
