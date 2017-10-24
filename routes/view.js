@@ -279,6 +279,24 @@ var renderFile = function (viewfield, register) {
     });
 }
 
+var renderGeoreference = function (viewfield, register) {
+    
+        var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+        value = escape(value);
+    
+        var label = viewfield.modelattribute.label;
+        if (viewfield.modelattribute.notnull) {
+            label += '*';
+        }
+    
+        return application.components.html.georeference({
+            width: viewfield.width
+            , label: label
+            , name: viewfield.modelattribute.name
+            , value: value
+        });
+    }
+
 var renderSubView = function (viewsubview) {
     return '<div class="col-md-' + viewsubview.width + '">'
         + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
@@ -314,6 +332,8 @@ var render = function (viewfield, register) {
             return renderDecimal(viewfield, register);
         case 'file':
             return renderFile(viewfield, register);
+        case 'georeference':
+            return renderGeoreference(viewfield, register);
         case 'virtual':
             var j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
             return application.components.html.text({

@@ -14,6 +14,7 @@ Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
 Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este arquivo não será salvo.";
 
 var tables = [];
+var maps = [];
 var application = {
     index: function () {
         // Menu, Title, Username
@@ -154,6 +155,7 @@ var application = {
             application.components.decimal($('input[data-type="decimal"]'));
             application.components.autocomplete($('select[data-type="autocomplete"]'));
             application.components.file($('div[data-type="file"]'));
+            application.components.georeference($('div[data-type="georeference"]'));
             application.components.table($('table.dataTable'));
         }
         , renderInside: function ($el) {
@@ -164,6 +166,7 @@ var application = {
             application.components.decimal($el.find('input[data-type="decimal"]'));
             application.components.autocomplete($el.find('select[data-type="autocomplete"]'));
             application.components.file($el.find('div[data-type="file"]'));
+            application.components.georeference($el.find('div[data-type="georeference"]'));
             application.components.table($el.find('table.dataTable'));
         }
         , clearInside: function ($el) {
@@ -311,6 +314,44 @@ var application = {
                     });
                 });
 
+            });
+        }
+        , georeference: function ($obj) {
+            var myOptions = {
+                zoom: 3
+                , center: { lat: -16.591987, lng: -50.520225 }
+                , gestureHandling: 'cooperative'
+                , disableDefaultUI: true
+            };
+
+            var dragfunction = function () {
+                this.hidden.val(this.getPosition().lat() + ',' + this.getPosition().lng());
+            }
+
+            $obj.each(function () {
+                $(this).css('height', '350px');
+                var $hidden = $(this).parent().find('input[type="hidden"]');
+
+                maps[$hidden.attr('name')] = new google.maps.Map(this, myOptions);
+                maps[$hidden.attr('name')].hidden = $hidden;
+                maps[$hidden.attr('name')].name = $hidden.attr('name');
+                maps[$hidden.attr('name')].marker = null;
+
+                google.maps.event.addListener(maps[$hidden.attr('name')], 'click', function (e) {
+                    if (this.marker) {
+                        this.marker.setPosition(e.latLng);
+                        this.marker.hidden.val(this.marker.getPosition().lat() + ',' + this.marker.getPosition().lng());
+                    } else {
+                        maps[this.name].marker = new google.maps.Marker({
+                            position: e.latLng
+                            , map: maps[this.name]
+                            , hidden: maps[this.name].hidden
+                            , draggable: true
+                        });
+                        maps[this.name].hidden.val(e.latLng.lat() + ',' + e.latLng.lng());
+                        google.maps.event.addListener(maps[this.name].marker, 'dragend', dragfunction);
+                    }
+                });
             });
         }
         , autocomplete: function ($obj) {

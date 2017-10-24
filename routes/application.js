@@ -70,6 +70,8 @@ var application = {
 					return Sequelize.DECIMAL;
 				case 'file':
 					return Sequelize.TEXT;
+				case 'georeference':
+					return Sequelize.TEXT;
 			}
 		}
 	}
@@ -464,6 +466,22 @@ var application = {
 					+ '<div class="dropzone" data-type="file" data-maxfiles="' + obj.maxfiles + '" data-acceptedfiles="' + obj.acceptedfiles + '">'
 					+ '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">'
 					+ '</div>'
+					+ '</div>'
+					+ '</div>';
+			}
+			, georeference: function (obj) {
+				obj = lodash.extend({
+					width: ''
+					, label: ''
+					, name: ''
+					, value: ''
+				}, obj);
+
+				return '<div class="col-md-' + obj.width + '">'
+					+ '<div class="form-group">'
+					+ '<label>' + obj.label + '</label>'
+					+ '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">'
+					+ '<div data-type="georeference"></div>'
 					+ '</div>'
 					+ '</div>';
 			}
