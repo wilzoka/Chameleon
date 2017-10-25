@@ -187,6 +187,8 @@ var application = {
 		}
 		, fe: {
 			time: function (value) {
+				let isNegative = value < 0;
+				value = Math.abs(value);
 				let v = value / 60;
 				let integer = parseInt(v);
 				let decimal = parseInt(Math.round((v - integer) * 60, 2));
@@ -194,7 +196,7 @@ var application = {
 				if (integerlength < 2) {
 					integerlength = 2;
 				}
-				return application.functions.lpad(integer, integerlength, '0') + ':' + application.functions.lpad(decimal, 2, '0');
+				return (isNegative ? '-' : '') + application.functions.lpad(integer, integerlength, '0') + ':' + application.functions.lpad(decimal, 2, '0');
 			}
 			, decimal: function (value, precision) {
 				value = parseFloat(value);
@@ -239,13 +241,15 @@ var application = {
 			}
 		}
 		, lpad: function (value, length, string) {
+			value = value.toString() || '';
 			string = string || ' ';
-			for (var i = value.toString().length; i < length; i++) {
+			for (var i = value.length; i < length; i++) {
 				value = string + value;
 			}
 			return value.substring(0, length);
 		}
 		, rpad: function (value, length, string) {
+			value = value || '';
 			string = string || ' ';
 			for (var i = value.toString().length; i < length; i++) {
 				value = value + string;

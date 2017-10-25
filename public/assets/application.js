@@ -204,7 +204,9 @@ var application = {
             }).mask('00/00/0000 00:00');
         }
         , time: function ($obj) {
-            $obj.mask('00:00');
+            $obj.each(function () {
+                $(this).maskMoney({ allowEmpty: true, allowZero: true, allowNegative: true, thousands: '', decimal: ':', precision: 2 });
+            });
         }
         , integer: function ($obj) {
             $obj.each(function () {
@@ -593,7 +595,7 @@ var application = {
                 , serverSide: true
                 , ajax: function (data, callback, settings) {
                     $.ajax({
-                        url: '/datatables'                    
+                        url: '/datatables'
                         , type: 'POST'
                         , data: $.extend({}, data, {
                             id: application.functions.getId()

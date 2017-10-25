@@ -1585,12 +1585,17 @@ var main = {
                 }
             }
         }
+
         , pcp: {
             apparada: {
                 onsave: function (obj, next) {
-                    var dataini = moment(obj.register.dataini);
-                    var datafim = moment(obj.register.datafim);
-                    var duracao = datafim.diff(dataini, 'm');
+                    let dataini = moment(obj.register.dataini);
+                    let datafim = moment(obj.register.datafim);
+                    let duracao = datafim.diff(dataini, 'm');
+
+                    if (duracao <= 0) {
+                        return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
+                    }
 
                     obj.register.duracao = duracao;
 
