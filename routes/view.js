@@ -2,6 +2,7 @@ var application = require('./application')
     , db = require('../models')
     , lodash = require('lodash')
     , moment = require('moment')
+    , fs = require('fs')
     , escape = require('escape-html')
     , reload = require('require-reload')(require)
     ;
@@ -280,22 +281,22 @@ var renderFile = function (viewfield, register) {
 }
 
 var renderGeoreference = function (viewfield, register) {
-    
-        var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
-        value = escape(value);
-    
-        var label = viewfield.modelattribute.label;
-        if (viewfield.modelattribute.notnull) {
-            label += '*';
-        }
-    
-        return application.components.html.georeference({
-            width: viewfield.width
-            , label: label
-            , name: viewfield.modelattribute.name
-            , value: value
-        });
+
+    var value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    value = escape(value);
+
+    var label = viewfield.modelattribute.label;
+    if (viewfield.modelattribute.notnull) {
+        label += '*';
     }
+
+    return application.components.html.georeference({
+        width: viewfield.width
+        , label: label
+        , name: viewfield.modelattribute.name
+        , value: value
+    });
+}
 
 var renderSubView = function (viewsubview) {
     return '<div class="col-md-' + viewsubview.width + '">'
@@ -339,7 +340,7 @@ var render = function (viewfield, register) {
             return application.components.html.text({
                 width: viewfield.width
                 , label: viewfield.modelattribute.label
-                , value: application.functions.getRealReference(register, j.field)
+                , value: application.functions.getRealReference(register, j.field) || ''
                 , disabled: 'disabled="disabled"'
             });
             break;
@@ -610,13 +611,13 @@ var hasPermission = function (iduser, idview) {
         var getChilds = function (idview, subviews) {
             var returnsubviews = [];
 
-            for (var i = 0; i < subviews.length; i++) {
+            for (let i = 0; i < subviews.length; i++) {
 
                 if (idview == subviews[i].idview) {
                     returnsubviews.push(subviews[i].idsubview);
-                    var moresubviews = getChilds(subviews[i].idsubview, subviews);
-                    if (moresubviews.length > 0) {
-                        returnsubviews.push(moresubviews);
+                    let moresubviews = getChilds(subviews[i].idsubview, subviews);
+                    for (let z = 0; z < moresubviews.length; z++) {
+                        returnsubviews.push(moresubviews[z]);
                     }
                 }
 

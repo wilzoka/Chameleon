@@ -21,6 +21,8 @@ module.exports = function (app) {
                     req: req
                     , res: res
                     , ids: req.query.ids || null
+                    , id: req.query.id || null
+                    , parent: req.query.parent || null
                     , event: viewevent
                 });
             } else {

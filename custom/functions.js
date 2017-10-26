@@ -139,6 +139,55 @@ var main = {
 
             }
         }
+        , viewfield: {
+            changezone: async function (obj) {
+                try {
+                    if (obj.req.method == 'GET') {
+                        if (obj.ids == null) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let ids = obj.ids.split(',');
+
+                        let viewfield = await db.getModel('viewfield').find({ where: { id: { $in: ids } }, include: [{ all: true }] });
+
+                        let body = '';
+                        body += application.components.html.hidden({ name: 'ids', value: obj.ids });
+                        body += application.components.html.autocomplete({
+                            width: 12
+                            , label: 'Zona'
+                            , name: 'zona'
+                            , model: 'templatezone'
+                            , attribute: 'name'
+                            , datawhere: 'idtemplate = ' + viewfield.view.idtemplate
+                        });
+
+                        return application.success(obj.res, {
+                            modal: {
+                                form: true
+                                , action: '/event/' + obj.event.id
+                                , id: 'modalevt'
+                                , title: obj.event.description
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Alterar</button>'
+                            }
+                        });
+                    } else {
+
+                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'zona']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
+
+                        await db.getModel('viewfield').update({ idtemplatezone: obj.req.body.zona }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    }
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
         , viewevent: {
             _incrementorder: function (obj) {
                 if (obj.ids != null && obj.ids.split(',').length <= 0) {
@@ -1587,7 +1636,104 @@ var main = {
         }
 
         , pcp: {
-            apparada: {
+            approducao: {
+                _recalcula: function (id) {
+                    return new Promise((resolve, reject) => {
+                        db.getModel('pcp_approducao').find({ where: { id: id } }).then(approducao => {
+
+                            db.getModel('pcp_approducaovolume').findAll({
+                                where: { idapproducao: approducao.id }
+                            }).then(volumes => {
+
+                                db.getModel('pcp_approducaotempo').findAll({
+                                    where: { idapproducao: approducao.id }
+                                    , order: [['dataini', 'desc']]
+                                }).then(tempos => {
+
+                                    let intervalos = [];
+                                    let qtd = 0;
+
+                                    for (var i = 0; i < tempos.length; i++) {
+                                        intervalos.push(moment(tempos[i].dataini).format('DD/MM HH:mm') + ' - ' + moment(tempos[i].datafim).format('DD/MM HH:mm'));
+                                    }
+
+                                    for (var i = 0; i < volumes.length; i++) {
+                                        qtd += parseFloat(volumes[i].pesoliquido);
+                                    }
+
+                                    approducao.intervalo = intervalos.join('<br>');
+                                    approducao.qtd = qtd.toFixed(4);
+                                    approducao.save().then(() => {
+                                        resolve(true);
+                                    });
+
+                                });
+                            });
+                        });
+                    });
+                }
+
+                , adicionar: async function (obj) {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.id } });
+                        let approducoes = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
+
+                        if (approducoes.length > 0) {
+
+                            return application.success(obj.res, { redirect: '/view/74/' + approducoes[0].id + '?parent=' + oprecurso.id });
+
+                        } else {
+
+                            let newapproducao = await db.getModel('pcp_approducao').create({ idoprecurso: oprecurso.id });
+                            return application.success(obj.res, { redirect: '/view/74/' + newapproducao.id + '?parent=' + oprecurso.id });
+
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , approducaotempo: {
+
+                onsave: async function (obj, next) {
+                    try {
+                        let dataini = moment(obj.register.dataini);
+                        let datafim = moment(obj.register.datafim);
+                        let duracao = datafim.diff(dataini, 'm');
+
+                        if (duracao <= 0) {
+                            return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
+                        }
+                        obj.register.duracao = duracao;
+
+                        let save = await next(obj);
+                        if (save.success) {
+                            main.plastrela.pcp.approducao._recalcula(save.register.idapproducao);
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , approducaovolume: {
+                onsave: async function (obj, next) {
+                    try {
+                        obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
+
+                        await next(obj);
+
+                        let save = await next(obj);
+                        if (save.success) {
+                            main.plastrela.pcp.approducao._recalcula(save.register.idapproducao);
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+
+            , apparada: {
                 onsave: function (obj, next) {
                     let dataini = moment(obj.register.dataini);
                     let datafim = moment(obj.register.datafim);

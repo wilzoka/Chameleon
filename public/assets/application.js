@@ -101,7 +101,11 @@ var application = {
                 url: '/event/' + idevent
                 , type: 'GET'
                 , dataType: 'json'
-                , data: { ids: ids }
+                , data: {
+                    id: application.functions.getId()
+                    , ids: ids
+                    , parent: application.functions.getUrlParameter('parent')
+                }
                 , success: function (response) {
                     application.handlers.responseSuccess(response);
                 }
@@ -500,6 +504,31 @@ var application = {
                         application.notify.error('Selecione um registro para Excluir');
                     }
                 });
+
+                // Events
+                var html = '<div class="col-md-12 btn-group-top-datatables no-padding">';
+                if (data.events.length > 0) {
+                    html += '<div class="btn-group btn-group-events">'
+                        + '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">'
+                        + '<i class="fa fa-caret-down"></i>'
+                        + '</button>'
+                        + '<ul class="dropdown-menu">'
+                    for (var i = 0; i < data.events.length; i++) {
+                        html += '<li><a class="btnevent" href="javascript:void(0)" data-table="tableview' + data.name + '" data-event="' + data.events[i].id + '"><i class="' + data.events[i].icon + '"></i> ' + data.events[i].description + '</a></li>';
+                    }
+                    html += '</ul>'
+                        + '</div>';
+                }
+
+                // Filter Button
+                html += '<div class="btn-group btn-group-filter">'
+                    + '<button type="button" class="btn btnfilter ' + (data.filter.count > 0 ? 'btn-primary' : 'btn-default') + '" data-table="tableview' + data.name + '">'
+                    + '<i class="fa fa-search fa-flip-horizontal"></i>'
+                    + '</button>'
+                    + '</div>'
+                    + '</div>';
+                $(html).insertBefore('#tableview' + data.name);
+
             }
 
             // Renders
@@ -509,35 +538,10 @@ var application = {
                 }
             }
 
-            // Events
-            var html = '<div class="row"><div class="col-md-12">';
-            if (data.events.length > 0) {
-                html += '<div class="btn-group btn-group-events">'
-                    + '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">'
-                    + '<i class="fa fa-caret-down"></i>'
-                    + '</button>'
-                    + '<ul class="dropdown-menu">'
-                for (var i = 0; i < data.events.length; i++) {
-                    html += '<li><a class="btnevent" href="javascript:void(0)" data-table="tableview' + data.name + '" data-event="' + data.events[i].id + '"><i class="' + data.events[i].icon + '"></i> ' + data.events[i].description + '</a></li>';
-                }
-                html += '</ul>'
-                    + '</div>';
-            }
-
             // Footer
             if (data.footer) {
                 $('#tableview' + data.name).append(data.footer);
             }
-
-            // Filter Button
-            html += '<div class="btn-group btn-group-filter">'
-                + '<button type="button" class="btn btnfilter ' + (data.filter.count > 0 ? 'btn-primary' : 'btn-default') + '" data-table="tableview' + data.name + '">'
-                + '<i class="fa fa-search fa-flip-horizontal"></i>'
-                + '</button>'
-                + '</div>'
-                + '</div>'
-                + '</div>';
-            $(html).insertBefore('#tableview' + data.name);
 
             // Filter Modal
             $('body').append(application.modal.create({
@@ -893,7 +897,8 @@ var application = {
 
                 if ('redirect' in response) {
                     var redirect = response.redirect + window.location.search;
-                    window.history.replaceState(null, null, redirect);
+                    if (application.functions.getId() == 0)
+                        window.history.replaceState(null, null, redirect);
                     return window.location.href = redirect;
                 }
 
