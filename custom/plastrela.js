@@ -350,255 +350,6 @@ var main = {
         }
     }
 
-    , erp: {
-        financeiro: {
-
-            _realizarPagamento: function (obj) {
-                if (obj.req.method == 'GET') {
-                    if (obj.ids == null) {
-                        return application.error(obj.res, { msg: application.message.selectOneEvent });
-                    }
-                    let ids = obj.ids.split(',');
-
-
-                    let body = '';
-                    body += application.components.html.hidden({ name: 'ids', value: obj.ids });
-                    body += application.components.html.date({
-                        width: 12
-                        , label: 'Data de Pagamento'
-                        , name: 'datapgto'
-                        , value: application.formatters.fe.date(moment())
-                    });
-                    body += application.components.html.autocomplete({
-                        width: 12
-                        , label: 'Forma de Pagamento'
-                        , name: 'idformapgto'
-                        , disabled: ''
-                        , model: 'fin_formapgto'
-                        , attribute: 'descricao'
-                        , datawhere: ''
-                        , option: ''
-                    });
-
-                    return application.success(obj.res, {
-                        modal: {
-                            form: true
-                            , action: '/event/' + obj.event.id
-                            , id: 'modalevt'
-                            , title: 'Realizar Pagamento'
-                            , body: body
-                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Pagar</button>'
-                        }
-                    });
-                } else {
-
-                    let fieldsrequired = ['ids', 'datapgto', 'idformapgto'];
-                    let invalidfields = [];
-
-                    for (var i = 0; i < fieldsrequired.length; i++) {
-                        if (!(fieldsrequired[i] in obj.req.body && obj.req.body[fieldsrequired[i]])) {
-                            invalidfields.push(fieldsrequired[i]);
-                        }
-                    }
-                    if (invalidfields.length > 0) {
-                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                    }
-
-                    db.getModel('fin_mov').update({
-                        datapgto: obj.req.body.datapgto
-                        , idformapgto: obj.req.body.idformapgto
-                    }, {
-                            where: {
-                                id: { $in: obj.req.body.ids.split(',') }
-                            }
-                        }).then(() => {
-                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                        }).catch(err => {
-                            return application.fatal(obj.res, err);
-                        });
-                }
-
-            }
-
-            , _estornarPagamento: function (obj) {
-                if (obj.ids == null) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
-                }
-
-                let ids = obj.ids.split(',');
-
-                db.getModel('fin_mov').update({
-                    datapgto: null
-                }, {
-                        where: {
-                            id: { $in: ids }
-                        }
-                    }).then(() => {
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                    }).catch(err => {
-                        return application.fatal(obj.res, err);
-                    });
-            }
-
-            , mov: {
-                onsave: function (obj, next) {
-
-                    if (obj.id == 0) {
-                        if ([68, 69].indexOf(obj.view.id) >= 0) { // Contas a Pagar
-                            obj.register.dc = 1;
-                        } else {
-                            obj.register.dc = 2;
-                        }
-                    }
-
-                    next(obj);
-                }
-            }
-
-            , categoria: {
-                onsave: async function (obj, next) {
-                    await next(obj)
-                    main.erp.financeiro.categoria.treeAll();
-                }
-                , treeAll: function () {
-
-                    var getChildren = function (current, childs) {
-                        for (var i = 0; i < childs.length; i++) {
-                            if (current.idcategoriapai == childs[i].id) {
-                                if (childs[i].idcategoriapai) {
-                                    return getChildren(childs[i], childs) + childs[i].descricao + ' - ';
-                                } else {
-                                    return childs[i].descricao + ' - ';
-                                }
-                            }
-                        }
-                    }
-
-                    db.getModel('fin_categoria').findAll().then(categorias => {
-                        categorias.map(categoria => {
-                            if (categoria.idcategoriapai) {
-                                categoria.descricaocompleta = getChildren(categoria, categorias) + categoria.descricao;
-                            } else {
-                                categoria.descricaocompleta = categoria.descricao;
-                            }
-
-                            categoria.save();
-                        });
-                    });
-
-                }
-            }
-
-        }
-    }
-
-    , carros: {
-        printcontrato: function (json) {
-            var PDFDocument = require('pdfkit');
-            const doc = new PDFDocument();
-            var fs = require('fs');
-            var filename = process.hrtime()[1] + '.pdf';
-            var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
-
-            doc
-                .fontSize(25)
-                .text('Some text with an embedded fontasdasdas', 100, 100)
-
-
-            doc.addPage()
-                .fontSize(25)
-                .text('Here is some vector graphics...', 100, 100)
-
-
-            doc.save()
-                .moveTo(100, 150)
-                .lineTo(100, 250)
-                .lineTo(200, 250)
-                .fill("#FF3300")
-
-
-            doc.scale(0.6)
-                .translate(470, -380)
-                .path('M 250,75 L 323,301 131,161 369,161 177,301 z')
-                .fill('red', 'even-odd')
-                .restore()
-
-
-            doc.addPage()
-                .fillColor("blue")
-                .text('Here is a link!', 100, 100)
-                .underline(100, 100, 160, 27, { color: "#0000FF" })
-                .link(100, 100, 160, 27, 'http://google.com/')
-
-
-            doc.end();
-            stream.on('finish', function () {
-                return application.success(json.res, {
-                    modal: {
-                        id: 'modalevt'
-                        , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                        , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                        , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
-                    }
-                });
-            });
-        }
-        , changecolor: function (json) {
-
-            if (json.req.method == 'GET') {
-                var ids = [];
-                if (json.ids) {
-                    ids = json.ids.split(',');
-                }
-                if (ids.length <= 0) {
-                    return application.error(json.res, { msg: application.message.selectOneEvent });
-                }
-
-                var body = '';
-                body += application.components.html.hidden({ name: 'ids', value: json.ids });
-                body += application.components.html.autocomplete({
-                    width: 12
-                    , label: 'Cor'
-                    , name: 'cor'
-                    , disabled: ''
-                    , model: 'cor'
-                    , attribute: 'descricao'
-                    , datawhere: ''
-                    , option: ''
-                });
-
-                return application.success(json.res, {
-                    modal: {
-                        form: true
-                        , action: '/event/' + json.event.id
-                        , id: 'modalevt'
-                        , title: 'Teste modal'
-                        , body: body
-                        , footer: '<button type="submit" class="btn btn-primary btn-sm">Alterar</button>'
-                    }
-                });
-            } else {
-                db.getModel('carro').update({ idcor: json.req.body.cor }, { where: { id: { $in: json.req.body.ids.split(',') } } }).then(() => {
-                    return application.success(json.res, {
-                        msg: application.message.success
-                        , reloadtables: true
-                    });
-                }).catch(err => {
-                    return application.fatal(json.res, err);
-                });
-            }
-        }
-        , export: function (json) {
-            json.res.download('todo.txt');
-        }
-    }
-
-    , teste: {
-        min: function (sch) {
-            console.log('a');
-        }
-    }
-
     , plastrela: {
         compra: {
             cmp_solicitacaoitem: {
@@ -1023,7 +774,6 @@ var main = {
                     var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
 
                     let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: ids } }, include: [{ all: true, nested: true }], raw: true });
-                    console.log(volumes[0]);
                     for (var i = 0; i < volumes.length; i++) {
                         let volume = volumes[i];
 
@@ -1650,6 +1400,7 @@ var main = {
                                 }).then(tempos => {
 
                                     let intervalos = [];
+                                    let pesoliquido = 0;
                                     let qtd = 0;
 
                                     for (var i = 0; i < tempos.length; i++) {
@@ -1657,11 +1408,13 @@ var main = {
                                     }
 
                                     for (var i = 0; i < volumes.length; i++) {
-                                        qtd += parseFloat(volumes[i].pesoliquido);
+                                        pesoliquido += parseFloat(volumes[i].pesoliquido);
+                                        qtd += parseFloat(volumes[i].qtd);
                                     }
 
                                     approducao.intervalo = intervalos.join('<br>');
                                     approducao.qtd = qtd.toFixed(4);
+                                    approducao.pesoliquido = pesoliquido.toFixed(4);
                                     approducao.save().then(() => {
                                         resolve(true);
                                     });
@@ -1731,7 +1484,6 @@ var main = {
                     }
                 }
             }
-
             , apparada: {
                 onsave: function (obj, next) {
                     let dataini = moment(obj.register.dataini);
@@ -1745,6 +1497,91 @@ var main = {
                     obj.register.duracao = duracao;
 
                     next(obj);
+                }
+            }
+            , apinsumo: {
+                __adicionarModal: function (obj) {
+                    let body = '';
+
+                    body += application.components.html.autocomplete({
+                        width: 12
+                        , label: 'Operador'
+                        , name: 'iduser'
+                        , model: 'users'
+                        , attribute: 'fullname'
+                    });
+
+                    body += application.components.html.text({
+                        width: 12
+                        , label: 'Código de Barra'
+                        , name: 'codigodebarra'
+                    });
+
+                    body += application.components.html.text({
+                        width: '4'
+                        , name: 'idvolume'
+                        , label: 'ID Volume'
+                        , disabled: 'disabled="disabled"'
+                    });
+
+                    body += application.components.html.decimal({
+                        width: '4'
+                        , label: 'Quantidade Disponível'
+                        , name: 'qtddisponivel'
+                        , precision: '4'
+                        , disabled: 'disabled="disabled"'
+                    });
+
+                    body += application.components.html.decimal({
+                        width: '4'
+                        , label: 'Quantidade para Consumir'
+                        , name: 'qtd'
+                        , precision: '4'
+                    });
+
+                    return application.success(obj.res, {
+                        modal: {
+                            id: 'apinsumoAdicionarModal'
+                            , title: 'Apontamento de Insumo'
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button id="apontar" type="button" class="btn btn-primary btn-sm">Apontar</button>'
+                        }
+                    });
+                }
+                , __pegarVolume: async function (obj) {
+                    if (!obj.data.codigodebarra) {
+                        return application.error(obj.res, { msg: 'Informe o código de barra' });
+                    }
+
+                    let codigodebarra = obj.data.codigodebarra.split('-');
+                    codigodebarra = parseInt(codigodebarra[codigodebarra.length - 1]);
+
+                    let volume = await db.getModel('est_volume').find({ where: { id: codigodebarra } });
+                    if (volume) {
+                        if (volume.consumido) {
+                            return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
+                        } else {
+                            return application.success(obj.res, {
+                                data: {
+                                    id: volume.id
+                                    , qtddisponivel: application.formatters.fe.decimal(volume.qtddisponivel, 4)
+                                }
+                            });
+                        }
+                    } else {
+                        return application.error(obj.res, { msg: 'Volume não encontrado' });
+                    }
+                }
+                , __apontarVolume: async function (obj) {
+                    let invalidfields = application.functions.getEmptyFields(obj.data, ['idoprecurso', 'idvolume', 'iduser', 'qtd']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { invalidfields: invalidfields });
+                    }
+
+                    let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
+
+
+                    return application.success(obj.res, { msg: 'apontado' });
                 }
             }
             , oprecurso: {

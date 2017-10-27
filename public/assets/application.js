@@ -491,7 +491,9 @@ var application = {
                                 , data: { ids: selected }
                                 , success: function (response) {
                                     application.handlers.responseSuccess(response);
-                                    application.tables.reload(tableid);
+                                    if (response.success) {
+                                        application.tables.reload(tableid);
+                                    }
                                 }
                                 , error: function (response) {
                                     application.handlers.responseError(response);
@@ -623,6 +625,7 @@ var application = {
                         createButtons(settings.sTableId);
                     }
                     application.tables.reloadFooter(settings.sTableId);
+                    $(document).trigger('app-datatable', settings.sTableId);
                 }
             }).on('select', function (e, dt, type, indexes) {
                 var $this = $(this);
@@ -918,6 +921,7 @@ var application = {
                     }
 
                     application.components.renderInside($('#' + response.modal.id));
+                    $(document).trigger('app-modal', response.modal);
                     $('#' + response.modal.id).modal('show');
                     $('#' + response.modal.id).on('hidden.bs.modal', function () {
                         if ($(this).parent()[0].tagName == 'BODY') {
@@ -1032,5 +1036,22 @@ var application = {
                 message: message
             }, $.extend(application.notify.getOptions(), { type: 'warning' }));
         }
+    }
+    , jsfunction: function (name, obj, func) {
+        $.ajax({
+            url: '/jsfunction'
+            , type: 'POST'
+            , dataType: 'json'
+            , data: {
+                name: name
+                , data: obj
+            }
+            , success: function (response) {
+                func(response);
+            }
+            , error: function (response) {
+                application.handlers.responseError(response);
+            }
+        });
     }
 }

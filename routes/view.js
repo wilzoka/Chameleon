@@ -507,49 +507,44 @@ var boundFiles = function (obj) {
 
 var save = function (obj) {
     return new Promise((resolve, reject) => {
-        try {
-            if (obj.register.changed()) {
-                let residueIds = [];
-                for (var i = 0; i < obj.modelattributes.length; i++) {
-                    if (obj.modelattributes[i].type == 'file' && obj.register._changed[obj.modelattributes[i].name]) {
+        if (obj.register.changed()) {
+            let residueIds = [];
+            for (var i = 0; i < obj.modelattributes.length; i++) {
+                if (obj.modelattributes[i].type == 'file' && obj.register._changed[obj.modelattributes[i].name]) {
 
-                        let previousIds = [];
-                        let currentIds = [];
-                        let j = {};
+                    let previousIds = [];
+                    let currentIds = [];
+                    let j = {};
 
-                        // previous
-                        j = obj.register._previousDataValues[obj.modelattributes[i].name] ? JSON.parse(obj.register._previousDataValues[obj.modelattributes[i].name]) : [];
-                        for (var z = 0; z < j.length; z++) {
-                            previousIds.push(j[z].id);
+                    // previous
+                    j = obj.register._previousDataValues[obj.modelattributes[i].name] ? JSON.parse(obj.register._previousDataValues[obj.modelattributes[i].name]) : [];
+                    for (var z = 0; z < j.length; z++) {
+                        previousIds.push(j[z].id);
+                    }
+
+                    // current
+                    j = obj.register[obj.modelattributes[i].name] ? JSON.parse(obj.register[obj.modelattributes[i].name]) : [];
+                    for (var z = 0; z < j.length; z++) {
+                        currentIds.push(j[z].id);
+                    }
+
+                    for (var z = 0; z < previousIds.length; z++) {
+                        if (currentIds.indexOf(previousIds[z]) > 0) {
+                            previousIds.splice(z, 1);
                         }
+                    }
 
-                        // current
-                        j = obj.register[obj.modelattributes[i].name] ? JSON.parse(obj.register[obj.modelattributes[i].name]) : [];
-                        for (var z = 0; z < j.length; z++) {
-                            currentIds.push(j[z].id);
-                        }
-
-                        for (var z = 0; z < previousIds.length; z++) {
-                            if (currentIds.indexOf(previousIds[z]) > 0) {
-                                previousIds.splice(z, 1);
-                            }
-                        }
-
-                        if (previousIds.length > 0) {
-                            db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
-                        }
+                    if (previousIds.length > 0) {
+                        db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
                     }
                 }
             }
-
-            obj.register.save().then(register => {
-                boundFiles(lodash.extend(obj, { register: register }));
-                return resolve({ success: true, register: register });
-            });
-
-        } catch (err) {
-            resolve({ success: false });
         }
+
+        obj.register.save().then(register => {
+            boundFiles(lodash.extend(obj, { register: register }));
+            return resolve({ success: true, register: register });
+        });
     });
 }
 
@@ -580,27 +575,16 @@ var validateAndSave = function (obj) {
     });
 }
 
-var onDeleteModel = function (json, next) {
-    if (json.view.model.ondelete) {
-        var custom = reload('../custom/functions');
-        application.functions.getRealReference(custom, json.view.model.ondelete)(json, next);
-    } else {
-        next(json);
-    }
-}
-
-var deleteModel = function (json) {
-
-    db.getModel(json.view.model.name).destroy({ where: { id: { $in: json.ids } } }).then(() => {
-
-        return application.success(json.res, { msg: application.message.success });
-
-    }).catch(err => {
-
-        return application.fatal(json.res, err);
-
+var deleteModel = function (obj) {
+    return new Promise((resolve, reject) => {
+        db.getModel(obj.view.model.name).destroy({ where: { id: { $in: obj.ids } } }).then(() => {
+            resolve({ success: true });
+            return application.success(obj.res, { msg: application.message.success });
+        }).catch(err => {
+            resolve({ success: false, err: err });
+            return application.fatal(obj.res, err);
+        });
     });
-
 }
 
 var hasPermission = function (iduser, idview) {
@@ -1150,67 +1134,63 @@ module.exports = function (app) {
                     }
                 }
 
+                let js = '';
+                if (view.js) {
+                    js = '<script type="text/javascript">' + fs.readFileSync(__dirname + '/../views/js/' + view.js, 'utf8') + '</script>';
+                }
+
                 return application.render(res, 'templates/viewregister', lodash.extend({
                     template: view.template.name
                     , title: view.name
                     , id: register ? register.id : ''
+                    , js: js
                 }, zoneobj));
 
             } else {
                 return application.forbidden(res);
             }
         } catch (err) {
-            return application.forbidden(res);
+            return application.fatal(res, err);
         }
 
     });
 
-    app.post('/view/:idview/delete', application.IsAuthenticated, function (req, res) {
+    app.post('/view/:idview/delete', application.IsAuthenticated, async (req, res) => {
 
-        hasPermission(req.user.id, req.params.idview).then(permission => {
+        try {
+            let permission = await hasPermission(req.user.id, req.params.idview);
 
             if (permission.deletable) {
 
                 var ids = req.body.ids.split(',');
-
                 if (ids) {
 
-                    db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] }).then(view => {
-                        if (view) {
+                    let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] })
 
-                            onDeleteModel({
-                                view: view
-                                , res: res
-                                , req: req
-                                , ids: ids
-                            }, deleteModel);
+                    let obj = {
+                        ids: ids
+                        , view: view
+                        , req: req
+                        , res: res
+                    };
 
-                        } else {
-                            return application.fatal(res, 'View not found');
-                        }
-                    }).catch(err => {
-                        return application.error(res, {});
-                    });
+                    if (view.model.ondelete) {
+                        let config = await db.getModel('config').find();
+                        let custom = reload('../custom/' + config.customfile);
+                        return application.functions.getRealReference(custom, view.model.ondelete)(obj, deleteModel);
+                    } else {
+                        deleteModel(obj);
+                    }
 
                 } else {
                     return application.fatal(res, 'ids not given');
                 }
-
             } else {
-
                 return application.error(res, { msg: application.message.permissionDenied });
-
             }
-
-        }).catch(err => {
-
-            if (err == 403) {
-                return application.error(res, { msg: application.message.permissionDenied });
-            } else {
-                return application.fatal(res, err);
-            }
-
-        });
+        } catch (err) {
+            return application.fatal(res, err);
+        }
 
     });
 
@@ -1244,7 +1224,8 @@ module.exports = function (app) {
                 obj = modelate(obj);
 
                 if (view.model.onsave) {
-                    let custom = reload('../custom/functions');
+                    let config = await db.getModel('config').find();
+                    let custom = reload('../custom/' + config.customfile);
                     return application.functions.getRealReference(custom, view.model.onsave)(obj, validateAndSave);
                 } else {
                     validateAndSave(obj);
@@ -1255,9 +1236,7 @@ module.exports = function (app) {
             }
 
         } catch (err) {
-
-            return application.error(res, { msg: err });
-
+            return application.fatal(obj.res, err);
         }
 
     });

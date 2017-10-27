@@ -30,7 +30,7 @@
           </section>
 
           <input id="id" type="hidden" value="<%= id %>" />
-          <form class="xhr" autocomplete="off">
+          <form id="form" class="xhr" autocomplete="off">
             <section class="content">
               <div class="row">
                 <%- include(template) %>
@@ -58,8 +58,9 @@
       application.index();
       $(document).ready(function () {
         application.components.renderAll();
-      });      
+      });
     </script>
+    <%- js %>
 </body>
 
 </html>

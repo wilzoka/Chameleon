@@ -5,14 +5,17 @@ var application = require('./application')
 
 module.exports = function (app) {
 
-    app.all('/event/:id', application.IsAuthenticated, function (req, res) {
+    app.all('/event/:id', application.IsAuthenticated, async (req, res) => {
 
-        db.getModel('viewevent').find({
-            where: { id: req.params.id }
-            , include: { all: true }
-        }).then(viewevent => {
+        try {
 
-            var custom = reload('../custom/functions');
+            let viewevent = await db.getModel('viewevent').find({
+                where: { id: req.params.id }
+                , include: { all: true }
+            })
+
+            let config = await db.getModel('config').find();
+            let custom = reload('../custom/' + config.customfile);
 
             var realfunction = application.functions.getRealReference(custom, viewevent.function);
 
@@ -29,7 +32,9 @@ module.exports = function (app) {
                 return application.fatal(res, 'Custom function not found');
             }
 
-        });
+        } catch (err) {
+            return application.fatal(res, err);
+        }
 
     });
 
