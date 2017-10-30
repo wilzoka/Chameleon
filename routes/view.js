@@ -373,6 +373,13 @@ var modelate = function (obj) {
                     obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
+            case 'georeference':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
             case 'date':
                 if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
                     obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.date(obj.req.body[obj.viewfields[i].modelattribute.name]);

@@ -118,7 +118,7 @@ var application = {
 		}
 		, renderMenu: function (menu) {
 			var html = '';
-			if ('children' in menu) {
+			if ('children' in menu && menu.children.length > 0) {
 				html = application.menu.createGroup(menu);
 				for (var i = 0; i < menu.children.length; i++) {
 
