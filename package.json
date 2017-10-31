@@ -24,7 +24,7 @@
     "pg": "6.4.2",
     "pg-hstore": "2.3.2",
     "require-reload": "0.2.2",
-    "sequelize": "4.15.0",
+    "sequelize": "4.20.1",
     "svg-to-pdfkit": "^0.1.3"
   }
 }

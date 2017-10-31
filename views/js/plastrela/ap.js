@@ -7,17 +7,20 @@ $(function () {
             case 'tableview73':// Insumo
 
                 $('button#' + table + '_insert').unbind().click(function (e) {
-                    application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', { id: application.functions.getId() }, function (response) {
+                    application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', {}, function (response) {
                         application.handlers.responseSuccess(response);
                     });
                 });
 
                 break;
             case 'tableview74':// Produção
-                $('#' + table + '_insert').remove();
+                $('#' + table + '_insert').unbind().click(function (e) {
+                    application.jsfunction('plastrela.pcp.approducao.__adicionar', { idoprecurso: application.functions.getId() }, function (response) {
+                        application.handlers.responseSuccess(response);
+                    });
+                });
                 break;
         }
-
 
     });
 
@@ -35,8 +38,17 @@ $(function () {
                                 $modal.find('input[name="idvolume"]').val(response.data.id);
                                 $modal.find('input[name="qtddisponivel"]').val(response.data.qtddisponivel);
                                 $modal.find('input[name="qtd"]').focus().val(response.data.qtddisponivel);
+                            } else {
+                                $modal.find('input[name="idvolume"]').val('');
+                                $modal.find('input[name="qtddisponivel"]').val('');
+                                $modal.find('input[name="qtd"]').focus().val('');
                             }
                         });
+                    }
+                });
+                $modal.find('input[name="qtd"]').keydown(function (e) {
+                    if (e.keyCode == 13) {
+                        $('button#apontar').trigger('click');
                     }
                 });
 
@@ -49,7 +61,7 @@ $(function () {
                     }, function (response) {
                         application.handlers.responseSuccess(response);
                         if (response.success) {
-
+                            $modal.modal('hide');
                         }
                     });
                 });

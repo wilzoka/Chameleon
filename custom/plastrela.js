@@ -348,6 +348,16 @@ var main = {
                 return application.success(json.res, { msg: application.message.success });
             }
         }
+        , config: {
+            __getGoogleMapsKey: async function (obj) {
+                try {
+                    let config = await db.getModel('config').find();
+                    return application.success(obj.res, { data: config.googlemapskey });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
     }
 
     , plastrela: {
@@ -1425,9 +1435,9 @@ var main = {
                     });
                 }
 
-                , adicionar: async function (obj) {
+                , __adicionar: async function (obj) {
                     try {
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.id } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
                         let approducoes = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
 
                         if (approducoes.length > 0) {
@@ -1573,15 +1583,61 @@ var main = {
                     }
                 }
                 , __apontarVolume: async function (obj) {
-                    let invalidfields = application.functions.getEmptyFields(obj.data, ['idoprecurso', 'idvolume', 'iduser', 'qtd']);
-                    if (invalidfields.length > 0) {
-                        return application.error(obj.res, { invalidfields: invalidfields });
+                    try {
+                        let invalidfields = application.functions.getEmptyFields(obj.data, ['idoprecurso', 'idvolume', 'iduser', 'qtd']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { invalidfields: invalidfields });
+                        }
+
+                        let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
+                        let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
+                        let qtddisponivel = parseFloat(volume.qtddisponivel)
+
+                        if (qtd > qtddisponivel) {
+                            return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
+                        }
+                        volume.qtddisponivel = (qtddisponivel - qtd).toFixed(4);
+                        if (parseFloat(volume.qtddisponivel) == 0) {
+                            volume.consumido = true;
+                        }
+
+                        await db.getModel('pcp_apinsumo').create({
+                            iduser: obj.data.iduser
+                            , idvolume: obj.data.idvolume
+                            , idoprecurso: obj.data.idoprecurso
+                            , datahora: moment()
+                            , qtd: qtd
+                        });
+
+                        await volume.save();
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
                     }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
 
-                    let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
+                        let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { id: { $in: obj.ids } } });
+                        let volumes = [];
+                        for (var i = 0; i < apinsumos.length; i++) {
+                            let apinsumo = apinsumos[i];
+                            let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+                            volume.qtddisponivel = (parseFloat(volume.qtddisponivel) + parseFloat(apinsumo.qtd)).toFixed(4);
+                            volume.consumido = false;
+                            volumes.push(volume);
+                        }
 
+                        await next(obj);
 
-                    return application.success(obj.res, { msg: 'apontado' });
+                        for (let i = 0; i < volumes.length; i++) {
+                            volumes[i].save();
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
             }
             , oprecurso: {

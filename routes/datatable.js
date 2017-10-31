@@ -261,78 +261,49 @@ module.exports = function (app) {
 
     });
 
-    app.post('/datatables/sum', application.IsAuthenticated, function (req, res) {
+    app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
+        try {
 
-        db.getModel('view').find({ where: { id: req.body.idview }, include: { all: true } }).then(view => {
+            let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: { all: true } });
+            let modelattribute = await db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: { all: true } });
 
-            db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: { all: true } }).then(modelattribute => {
+            var where = {};
 
-                var where = {};
+            if (view.wherefixed) {
+                view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
+                view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
+                where['$col'] = db.Sequelize.literal(view.wherefixed);
+            }
+            if ('tableview' + view.id + 'filter' in req.cookies) {
+                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
+            }
 
-                if (view.wherefixed) {
-                    view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
-                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
-                    where['$col'] = db.Sequelize.literal(view.wherefixed);
+            if (req.body.issubview == 'true') {
+                let modelattributeparent = await db.getModel('modelattribute').find({
+                    where: { idmodel: view.model.id, type: 'parent' }
+                });
+                if (modelattributeparent) {
+                    where[modelattributeparent.name] = req.body.id;
                 }
-                if ('tableview' + view.id + 'filter' in req.cookies) {
-                    where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
+            }
+
+            let sum = await db.getModel(view.model.name).sum(view.model.name + '.' + modelattribute.name, { include: [{ all: true, attributes: [], nested: view.virtual }], where: where })
+            if (sum) {
+                switch (modelattribute.type) {
+                    case 'decimal':
+                        sum = application.formatters.fe.decimal(sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
+                        break;
+                    case 'time':
+                        sum = application.formatters.fe.time(sum);
+                        break;
                 }
+            }
 
-                if (req.body.issubview == 'true') {
+            return application.success(res, { data: sum });
 
-                    db.getModel('modelattribute').find({
-                        where: { idmodel: view.model.id, type: 'parent' }
-                    }).then(modelattributeparent => {
-
-                        if (modelattributeparent) {
-                            where[modelattributeparent.name] = req.body.id;
-                        }
-
-                        db.getModel(view.model.name).sum(modelattribute.name, { where: where }).then(sum => {
-
-                            if (sum) {
-                                switch (modelattribute.type) {
-                                    case 'decimal':
-                                        sum = application.formatters.fe.decimal(sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
-                                        break;
-                                    case 'time':
-                                        sum = application.formatters.fe.time(sum);
-                                        break;
-                                }
-                            }
-
-                            return application.success(res, { data: sum });
-
-                        }).catch(err => {
-                            return application.fatal(res, err);
-                        });
-
-                    });
-
-
-                } else {
-
-                    db.getModel(view.model.name).sum(modelattribute.name, { where: where }).then(sum => {
-
-                        if (sum) {
-                            switch (modelattribute.type) {
-                                case 'decimal':
-                                    sum = application.formatters.fe.decimal(sum, JSON.parse(modelattribute.typeadd).precision);
-                                    break;
-                            }
-                        }
-
-                        return application.success(res, { data: sum });
-
-                    }).catch(err => {
-                        return application.fatal(res, err);
-                    });
-
-                }
-
-            });
-
-        });
+        } catch (err) {
+            return application.fatal(res, err);
+        }
 
     });
 

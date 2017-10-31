@@ -170,7 +170,6 @@ var application = {
             application.components.decimal($el.find('input[data-type="decimal"]'));
             application.components.autocomplete($el.find('select[data-type="autocomplete"]'));
             application.components.file($el.find('div[data-type="file"]'));
-            application.components.georeference($el.find('div[data-type="georeference"]'));
             application.components.table($el.find('table.dataTable'));
         }
         , clearInside: function ($el) {
@@ -323,67 +322,68 @@ var application = {
             });
         }
         , georeference: function ($obj) {
+            if ($obj.length > 0) {
+                var realrender = function ($obj) {
+                    var myOptions = {
+                        zoom: 3
+                        , center: { lat: -16.591987, lng: -50.520225 }
+                        , gestureHandling: 'cooperative'
+                        , disableDefaultUI: true
+                    };
 
-            var realrender = function ($obj) {
-                var myOptions = {
-                    zoom: 3
-                    , center: { lat: -16.591987, lng: -50.520225 }
-                    , gestureHandling: 'cooperative'
-                    , disableDefaultUI: true
-                };
-
-                var dragfunction = function () {
-                    this.hidden.val(this.getPosition().lat() + ',' + this.getPosition().lng());
-                }
-
-                $obj.each(function () {
-                    $(this).css('height', '350px');
-                    var $hidden = $(this).parent().find('input[type="hidden"]');
-
-                    maps[$hidden.attr('name')] = new google.maps.Map(this, myOptions);
-                    maps[$hidden.attr('name')].hidden = $hidden;
-                    maps[$hidden.attr('name')].name = $hidden.attr('name');
-
-                    if ($hidden.val()) {
-                        maps[$hidden.attr('name')].marker = new google.maps.Marker({
-                            position: new google.maps.LatLng($hidden.val().split(',')[0], $hidden.val().split(',')[1])
-                            , map: maps[$hidden.attr('name')]
-                            , hidden: $hidden
-                            , draggable: true
-                        });
-                        google.maps.event.addListener(maps[$hidden.attr('name')].marker, 'dragend', dragfunction);
-                        maps[$hidden.attr('name')].setCenter(new google.maps.LatLng($hidden.val().split(',')[0], $hidden.val().split(',')[1]));
-                        maps[$hidden.attr('name')].setZoom(15);
-                    } else {
-                        maps[$hidden.attr('name')].marker = null;
+                    var dragfunction = function () {
+                        this.hidden.val(this.getPosition().lat() + ',' + this.getPosition().lng());
                     }
 
-                    google.maps.event.addListener(maps[$hidden.attr('name')], 'click', function (e) {
-                        if (this.marker) {
-                            this.marker.setPosition(e.latLng);
-                            this.marker.hidden.val(this.marker.getPosition().lat() + ',' + this.marker.getPosition().lng());
-                        } else {
-                            maps[this.name].marker = new google.maps.Marker({
-                                position: e.latLng
-                                , map: maps[this.name]
-                                , hidden: maps[this.name].hidden
+                    $obj.each(function () {
+                        $(this).css('height', '350px');
+                        var $hidden = $(this).parent().find('input[type="hidden"]');
+
+                        maps[$hidden.attr('name')] = new google.maps.Map(this, myOptions);
+                        maps[$hidden.attr('name')].hidden = $hidden;
+                        maps[$hidden.attr('name')].name = $hidden.attr('name');
+
+                        if ($hidden.val()) {
+                            maps[$hidden.attr('name')].marker = new google.maps.Marker({
+                                position: new google.maps.LatLng($hidden.val().split(',')[0], $hidden.val().split(',')[1])
+                                , map: maps[$hidden.attr('name')]
+                                , hidden: $hidden
                                 , draggable: true
                             });
-                            maps[this.name].hidden.val(e.latLng.lat() + ',' + e.latLng.lng());
-                            google.maps.event.addListener(maps[this.name].marker, 'dragend', dragfunction);
+                            google.maps.event.addListener(maps[$hidden.attr('name')].marker, 'dragend', dragfunction);
+                            maps[$hidden.attr('name')].setCenter(new google.maps.LatLng($hidden.val().split(',')[0], $hidden.val().split(',')[1]));
+                            maps[$hidden.attr('name')].setZoom(15);
+                        } else {
+                            maps[$hidden.attr('name')].marker = null;
                         }
-                    });
-                });
-            }
 
-            if (typeof google === 'object' && typeof google.maps === 'object') {
-                realrender($obj);
-            } else {
-                application.jsfunction('plataform.config.__getGoogleMapsKey', {}, function (response) {
-                    $.getScript('https://maps.googleapis.com/maps/api/js?key=' + response.data, function () {
-                        realrender($obj);
+                        google.maps.event.addListener(maps[$hidden.attr('name')], 'click', function (e) {
+                            if (this.marker) {
+                                this.marker.setPosition(e.latLng);
+                                this.marker.hidden.val(this.marker.getPosition().lat() + ',' + this.marker.getPosition().lng());
+                            } else {
+                                maps[this.name].marker = new google.maps.Marker({
+                                    position: e.latLng
+                                    , map: maps[this.name]
+                                    , hidden: maps[this.name].hidden
+                                    , draggable: true
+                                });
+                                maps[this.name].hidden.val(e.latLng.lat() + ',' + e.latLng.lng());
+                                google.maps.event.addListener(maps[this.name].marker, 'dragend', dragfunction);
+                            }
+                        });
                     });
-                });
+                }
+
+                if (typeof google === 'object' && typeof google.maps === 'object') {
+                    realrender($obj);
+                } else {
+                    application.jsfunction('plataform.config.__getGoogleMapsKey', {}, function (response) {
+                        $.getScript('https://maps.googleapis.com/maps/api/js?key=' + response.data, function () {
+                            realrender($obj);
+                        });
+                    });
+                }
             }
         }
         , autocomplete: function ($obj) {
