@@ -1,28 +1,28 @@
 @media (max-width: 767px) {
 
-    /*Hide logo on mobile*/
+    /* Hide logo on mobile */
     .main-header .logo {
         display: none;
     }
-    /*Fix Sidebar for style above*/
+    /* Fix Sidebar for style above */
     .main-sidebar {
         padding-top: 54px;
     }
-    /*Full Sidebar width on mobile*/
+    /* Full Sidebar width on mobile */
     body.sidebar-open aside.main-sidebar {
         width: 100%;
     }
-    /*Align center pace mobile*/
+    /* Align center pace mobile */
     .pace .pace-activity {
         right: 50%;
     }
 
-    /* ------ Custom ------ */
+    /* Custom */
 }
 
-/* ------ Tablet pra baixo ------ */
+/* Tablet pra baixo */
 @media (min-width: 992px) {
-    /* ------ Custom ------ */
+    /* Custom */
     .no-padding {
         padding: 0;
     }
@@ -35,7 +35,7 @@
     
 }
 
-/*AdminLTE Fixes*/
+/* AdminLTE Fixes */
 .nav-tabs-custom{
     border: 1px solid #d4d4d4;
 }
@@ -55,7 +55,7 @@ h4.title_subview {
     word-wrap: break-word;
  }
 
-/*Bootstrap Fixes*/
+/* Bootstrap Fixes */
 @media (min-width: 768px) {
     .modal-fullscreen { 
         width: auto;
@@ -69,7 +69,7 @@ div.btn-group-events .dropdown-menu > li > a {
     padding: 0 3px;
 }
 
-/*Datatables*/
+/* Datatables */
 .table-bordered {
     border: 1px solid #ddd;
 }
@@ -89,7 +89,7 @@ table.dataTable.compact thead th, table.dataTable.compact tbody td {
     float: right;
 }
 
-/*Select2*/
+/* Select2 */
 .form-group.has-error .select2-selection {
     border-color: #dd4b39;
     box-shadow: none;
@@ -129,11 +129,129 @@ div.dz-image img {
     color: red
 }
 
-/* ------ Custom ------ */
+/* Custom */
 table.dataTable thead tr th, table.dataTable tfoot tr td {
     background-color: #f4f4f4;
     font-weight: bold;
 }
 .btn-group-top-datatables {
     margin-bottom: 5px;
+}
+
+/* Wizard */
+.wizard {
+    background: #fff;
+}
+.wizard .nav-tabs {
+    position: relative;
+    margin-bottom: 0;
+    border-bottom-color: #e0e0e0;
+}
+.wizard > div.wizard-inner {
+    position: relative;
+}
+.connecting-line {
+    height: 2px;
+    background: #e0e0e0;
+    position: absolute;
+    width: 80%;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    top: 50%;
+    z-index: 1;
+}
+.wizard .nav-tabs > li.active > a, .wizard .nav-tabs > li.active > a:hover, .wizard .nav-tabs > li.active > a:focus {
+    color: #555555;
+    cursor: default;
+    border: 0;
+    border-bottom-color: transparent;
+}
+span.round-tab {
+    width: 70px;
+    height: 70px;
+    line-height: 70px;
+    display: inline-block;
+    border-radius: 100px;
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    z-index: 2;
+    position: absolute;
+    left: 0;
+    text-align: center;
+    font-size: 25px;
+}
+span.round-tab i{
+    color:#555555;
+}
+.wizard li.active span.round-tab {
+    background: #fff;
+    border: 2px solid #5bc0de;
+    
+}
+.wizard li.active span.round-tab i{
+    color: #5bc0de;
+}
+span.round-tab:hover {
+    color: #333;
+    border: 2px solid #333;
+}
+.wizard .nav-tabs > li {
+    width: 25%;
+}
+.wizard li:after {
+    content: " ";
+    position: absolute;
+    left: 46%;
+    opacity: 0;
+    margin: 0 auto;
+    bottom: 0px;
+    border: 5px solid transparent;
+    border-bottom-color: #5bc0de;
+    transition: 0.1s ease-in-out;
+}
+.wizard li.active:after {
+    content: " ";
+    position: absolute;
+    left: 46%;
+    opacity: 1;
+    margin: 0 auto;
+    bottom: 0px;
+    border: 10px solid transparent;
+    border-bottom-color: #5bc0de;
+}
+.wizard .nav-tabs > li a {
+    width: 70px;
+    height: 70px;
+    margin: 20px auto;
+    border-radius: 100%;
+    padding: 0;
+}
+.wizard .nav-tabs > li a:hover {
+    background: transparent;
+}
+.wizard .tab-pane {
+    position: relative;
+    padding-top: 25px;
+}
+.wizard h3 {
+    margin-top: 0;
+}
+@media( max-width : 585px ) {
+    span.round-tab {
+        font-size: 16px;
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+    }
+    .wizard .nav-tabs > li a {
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+    }
+    .wizard li.active:after {
+        content: " ";
+        position: absolute;
+        left: 35%;
+    }
 }
