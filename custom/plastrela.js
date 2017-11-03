@@ -1483,11 +1483,40 @@ var main = {
                     try {
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
-                        await next(obj);
+                        let saved = await next(obj);
 
-                        let save = await next(obj);
-                        if (save.success) {
-                            main.plastrela.pcp.approducao._recalcula(save.register.idapproducao);
+                        if (saved.success) {
+
+                            let approducaovolume = await db.getModel('pcp_approducaovolume').find({
+                                attributes: [[db.sequelize.literal('(select idop from pcp_opetapa where "pcp_approducaovolume".idopetapa = id)'), 'op']]
+                                , where: { id: saved.register.id }
+                                , include: [{ all: true }]
+                                , raw: true
+                            });
+
+
+
+                            console.log(approducaovolume);
+                            // let va = db.getModel('pcp_approducaovolume').rawAttributes;
+                            // console.log(Object.keys(db.getModel('pcp_approducaovolume').rawAttributes));
+                            // for (var k in va) {
+                            //     // console.log(k);
+                            // }
+
+                            // let volume = await db.getModel('est_volume').create({
+                            //     idversao: ''
+                            //     , iddeposito: ''
+                            //     , iduser: ''
+                            //     , datahora: ''
+                            //     , qtd: ''
+                            //     , consumido: ''
+                            //     , idnfentradaitem: ''
+                            //     , fotos: ''
+                            //     , qtddisponivel: ''
+                            // });
+
+                            main.plastrela.pcp.approducao._recalcula(saved.register.idapproducao);
+
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);

@@ -66,15 +66,15 @@ var fixResults = function (registers, modelattributes) {
     return registers;
 }
 
+var getVirtualField = function (value) {
+    value = value.split('.');
+    var last = value[value.length - 1];
+    value.splice(value.length - 1, 1);
+    return '"' + value.join('->') + '"."' + last + '"';
+}
+
 var getFilter = function (cookie) {
     var obj = {};
-
-    var getVirtualField = function (value) {
-        value = value.split('.');
-        var last = value[value.length - 1];
-        value.splice(value.length - 1, 1);
-        return '"' + value.join('->') + '"."' + last + '"';
-    }
 
     cookie = JSON.parse(cookie);
 
@@ -158,114 +158,77 @@ var getFilter = function (cookie) {
     return obj;
 }
 
-var replaceWhereFixed = function (value) {
-
-}
-
 module.exports = function (app) {
 
-    app.post('/datatables', application.IsAuthenticated, function (req, res) {
+    app.post('/datatables', application.IsAuthenticated, async (req, res) => {
+        try {
 
-        db.getModel('view').find({ where: { id: req.body.idview }, include: { all: true } }).then(view => {
+            let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: [{ all: true }] });
+            let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
 
-            db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } }).then(modelattributes => {
+            var where = {};
+            if (view.wherefixed) {
+                view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
+                view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
+                where['$col'] = db.Sequelize.literal(view.wherefixed);
+            }
+            if ('tableview' + view.id + 'filter' in req.cookies) {
+                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
+            }
 
-                var where = {};
-
-                if (view.wherefixed) {
-                    view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
-                    view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
-                    where['$col'] = db.Sequelize.literal(view.wherefixed);
-                }
-                if ('tableview' + view.id + 'filter' in req.cookies) {
-                    where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
-                }
-
-                var ordercolumn = req.body.columns[req.body.order[0].column].data;
-                var orderdir = req.body.order[0].dir;
-                for (var i = 0; i < modelattributes.length; i++) {
-                    if (modelattributes[i].name == ordercolumn && modelattributes[i].type == 'autocomplete') {
-                        let json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
-                        let vas = json.as || json.model;
-                        ordercolumn = db.Sequelize.literal(vas + '.' + json.attribute);
+            var ordercolumn = req.body.columns[req.body.order[0].column].data;
+            var orderdir = req.body.order[0].dir;
+            for (var i = 0; i < modelattributes.length; i++) {
+                if (modelattributes[i].name == ordercolumn) {
+                    switch (modelattributes[i].type) {
+                        case 'autocomplete':
+                            let json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
+                            let vas = json.as || json.model;
+                            ordercolumn = db.Sequelize.literal(vas + '.' + json.attribute);
+                            break;
+                        case 'virtual':
+                            ordercolumn = db.Sequelize.literal(getVirtualField(application.modelattribute.parseTypeadd(modelattributes[i].typeadd).field));
+                            break;
                     }
                 }
+            }
 
-                if (req.body.issubview == 'true') {
-
-                    db.getModel('modelattribute').find({
-                        where: { idmodel: view.model.id, type: 'parent' }
-                    }).then(modelattributeparent => {
-
-                        if (modelattributeparent) {
-                            where[modelattributeparent.name] = req.body.id;
-                        }
-
-                        db.getModel(view.model.name).findAndCountAll({
-                            offset: req.body.start
-                            , limit: req.body.length
-                            , raw: true
-                            , include: [{ all: true, nested: view.virtual }]
-                            , where: where
-                            , order: [[ordercolumn, orderdir]]
-                        }).then(registers => {
-
-                            registers = fixResults(registers, modelattributes);
-
-                            return application.success(res, {
-                                recordsTotal: registers.count,
-                                recordsFiltered: registers.count,
-                                data: registers.rows
-                            });
-
-                        }).catch(err => {
-                            return application.fatal(res, err);
-                        });
-
-                    }).catch(err => {
-                        return application.fatal(res, err);
-                    });
-
-                } else {
-
-                    db.getModel(view.model.name).findAndCountAll({
-                        offset: req.body.start
-                        , limit: req.body.length
-                        , raw: true
-                        , include: [{ all: true, nested: view.virtual }]
-                        , where: where
-                        , order: [[ordercolumn, orderdir]]
-                    }).then(registers => {
-
-                        registers = fixResults(registers, modelattributes);
-
-                        return application.success(res, {
-                            recordsTotal: registers.count,
-                            recordsFiltered: registers.count,
-                            data: registers.rows
-                        });
-
-                    }).catch(err => {
-                        return application.fatal(res, err);
-                    });
-
+            if (req.body.issubview == 'true') {
+                let modelattributeparent = await db.getModel('modelattribute').find({
+                    where: { idmodel: view.model.id, type: 'parent' }
+                });
+                if (modelattributeparent) {
+                    where[modelattributeparent.name] = req.body.id;
                 }
+            }
 
-            }).catch(err => {
-                return application.fatal(res, err);
+            let registers = await db.getModel(view.model.name).findAndCountAll({
+                raw: true
+                , include: [{ all: true, nested: view.virtual }]
+                , where: where
+                , order: [[ordercolumn, orderdir]]
+                , limit: req.body.length
+                , offset: req.body.start
             });
 
-        }).catch(err => {
-            return application.fatal(res, err);
-        });
+            registers = fixResults(registers, modelattributes);
 
+            return application.success(res, {
+                recordsTotal: registers.count,
+                recordsFiltered: registers.count,
+                data: registers.rows
+            });
+
+        } catch (err) {
+            return application.fatal(res, err);
+        }
     });
 
     app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
         try {
 
-            let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: { all: true } });
-            let modelattribute = await db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: { all: true } });
+            let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: [{ all: true }] });
+            let modelattribute = await db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 
             var where = {};
 
@@ -304,7 +267,6 @@ module.exports = function (app) {
         } catch (err) {
             return application.fatal(res, err);
         }
-
     });
 
 }

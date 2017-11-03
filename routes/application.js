@@ -14,16 +14,22 @@ var application = {
 	}
 
 	, success: function (res, obj) {
-		res.json(lodash.extend({ success: true }, obj));
+		if (!res.headersSent) {
+			res.json(lodash.extend({ success: true }, obj));
+		}
 	}
 
 	, fatal: function (res, err) {
 		console.error(err);
-		res.status(500).json({});
+		if (!res.headersSent) {
+			res.status(500).json({});
+		}
 	}
 
 	, error: function (res, json) {
-		res.json(lodash.extend({ success: false }, json));
+		if (!res.headersSent) {
+			res.json(lodash.extend({ success: false }, json));
+		}
 	}
 
 	, render: function (res, template, json) {
