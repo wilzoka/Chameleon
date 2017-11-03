@@ -1243,10 +1243,12 @@ var main = {
                                 qtdvolume = (nfitem.qtd / obj.req.body.qtd).toFixed(4);
                             }
 
+                            let depositopadrao = await db.getModel('est_depositoendereco').find({ where: { iddeposito: nf.iddeposito, depositopadrao: true } });
+
                             for (var i = 0; i < obj.req.body.qtd; i++) {
                                 bulkvolume.push({
                                     idversao: nfitem.idversao
-                                    , iddeposito: nf.iddeposito
+                                    , iddepositoendereco: nf.iddeposito
                                     , iduser: obj.req.user.id
                                     , datahora: moment()
                                     , qtd: qtdvolume
@@ -1400,7 +1402,8 @@ var main = {
 
                         await next(obj);
 
-                        
+                        db.sequelize.query("update est_depositoendereco set descricaocompleta = (select descricao from est_deposito where id = iddeposito) || '(' || descricao || ')';", { type: db.sequelize.QueryTypes.UPDATE });
+
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -1508,6 +1511,8 @@ var main = {
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
                             let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+                            let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
+                            let depositopadrao = await db.getModel('est_depositoendereco').find({ where: { iddeposito: deposito.id, depositopadrao: true } });
 
                             let qtd = [10, 20].indexOf(etapa.codigo) >= 0 ? saved.register.pesoliquido : saved.register.qtd;
 
@@ -1524,7 +1529,7 @@ var main = {
                                 db.getModel('est_volume').create({
                                     idapproducaovolume: saved.register.id
                                     , idversao: op.idversao
-                                    , iddeposito: recurso.iddepositoprodutivo
+                                    , iddepositoendereco: depositopadrao.id
                                     , iduser: obj.req.user.id
                                     , datahora: moment()
                                     , qtd: qtd
