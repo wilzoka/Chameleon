@@ -41,60 +41,62 @@ module.exports = function (app) {
     });
 
     app.post('/login', passport.authenticate('local', { failWithError: true })
-        , function (req, res) {
+        , async (req, res) => {
+            try {
 
-            db.getModel('menu').findAll({
-                where: { idmenuparent: { $eq: null } }
-                , order: [['description', 'asc']]
-                , raw: true
-            }).then(menu => {
+                let menu = await db.getModel('menu').findAll({
+                    where: { idmenuparent: { $eq: null } }
+                    , order: [['description', 'asc']]
+                    , raw: true
+                });
 
-                db.getModel('menu').findAll({
+                let childs = await db.getModel('menu').findAll({
                     include: { all: true }
                     , where: { idmenuparent: { $ne: null } }
                     , order: [['description', 'asc']]
                     , raw: true
-                }).then(childs => {
-
-                    db.getModel('permission').findAll({
-                        where: { iduser: req.user.id, visible: true }
-                        , raw: true
-                    }).then(permissions => {
-
-                        permissionarr = [];
-                        for (var i = 0; i < permissions.length; i++) {
-                            permissionarr.push(permissions[i].idmenu);
-                        }
-
-                        for (var i = 0; i < menu.length; i++) {
-                            menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
-                        }
-
-                        for (var i = 0; i < menu.length; i++) {
-                            if (menu[i].children.length == 0) {
-                                menu.splice(i, 1);
-                            }
-                        }
-
-                        var menuhtml = '';
-                        for (var i = 0; i < menu.length; i++) {
-                            menuhtml += application.menu.renderMenu(menu[i]);
-                        }
-
-                        return application.success(res, {
-                            redirect: '/home'
-                            , localstorage: [
-                                { key: 'username', value: req.user.fullname }
-                                , { key: 'menu', value: menuhtml }
-                            ]
-                        });
-
-                    });
-
                 });
 
-            });
+                let permissions = await db.getModel('permission').findAll({
+                    where: { iduser: req.user.id, visible: true }
+                    , raw: true
+                });
 
+                let config = await db.getModel('config').find();
+
+                permissionarr = [];
+                for (var i = 0; i < permissions.length; i++) {
+                    permissionarr.push(permissions[i].idmenu);
+                }
+
+                for (var i = 0; i < menu.length; i++) {
+                    menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
+                }
+
+                for (var i = 0; i < menu.length; i++) {
+                    if (menu[i].children.length == 0) {
+                        menu.splice(i, 1);
+                    }
+                }
+
+                var menuhtml = '';
+                for (var i = 0; i < menu.length; i++) {
+                    menuhtml += application.menu.renderMenu(menu[i]);
+                }
+
+                return application.success(res, {
+                    redirect: '/home'
+                    , localstorage: [
+                        { key: 'username', value: req.user.fullname }
+                        , { key: 'menu', value: menuhtml }
+                        , { key: 'descriptionmenu', value: config.descriptionmenu }
+                        , { key: 'descriptionmenumini', value: config.descriptionmenumini }
+                    ]
+                });
+
+            } catch (err) {
+                return application.fatal(res, err);
+            }
         }, function (err, req, res, next) {
             if (req.xhr) {
                 return res.json(err);

@@ -336,11 +336,10 @@ var render = function (viewfield, register) {
         case 'georeference':
             return renderGeoreference(viewfield, register);
         case 'virtual':
-            var j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
             return application.components.html.text({
                 width: viewfield.width
                 , label: viewfield.modelattribute.label
-                , value: application.functions.getRealReference(register, j.field) || ''
+                , value: register && register.dataValues[viewfield.modelattribute.name] || ''
                 , disabled: 'disabled="disabled"'
             });
             break;
@@ -658,7 +657,7 @@ var hasPermission = function (iduser, idview) {
 
 module.exports = function (app) {
 
-    app.get('/view/:idview/config', application.IsAuthenticated, async (req, res) => {
+    app.post('/view/:idview/config', application.IsAuthenticated, async (req, res) => {
 
         var decodeClass = function (type) {
             switch (type) {
@@ -963,7 +962,7 @@ module.exports = function (app) {
                                 , disabled: ''
                                 , model: json.model
                                 , attribute: json.attribute
-                                , datawhere: json.where || ''
+                                , datawhere: req.body.issubview == 'true' && json.where ? json.where : ''
                                 , multiple: 'multiple="multiple"'
                                 , option: getFilterValue(filtername, cookiefilter).options || ''
                             });
@@ -1009,7 +1008,7 @@ module.exports = function (app) {
                             break;
 
                         case 'virtual':
-                            filtername = json.field + separator + json.type;
+                            filtername = viewfields[i].modelattribute.name + separator + json.type;
                             switch (json.type) {
                                 case 'text':
 
@@ -1113,7 +1112,25 @@ module.exports = function (app) {
                     , include: [{ all: true }]
                 });
 
-                let register = await db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true, nested: view.virtual }] });
+                let attributes = ['id'];
+                for (let i = 0; i < viewfields.length; i++) {
+
+                    switch (viewfields[i].modelattribute.type) {
+                        case 'virtual':
+                            attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
+                            break;
+                        default:
+                            attributes.push(viewfields[i].modelattribute.name);
+                            break;
+                    }
+
+                }
+
+                let register = await db.getModel(view.model.name).find({
+                    attributes: attributes
+                    , where: { id: req.params.id }
+                    , include: [{ all: true }]
+                });
                 if (!register && req.params.id != 0) {
                     return application.render(res, 'templates/viewregisternotfound');
                 }

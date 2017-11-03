@@ -783,7 +783,7 @@ var main = {
                     var filename = process.hrtime()[1] + '.pdf';
                     var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
 
-                    let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: ids } }, include: [{ all: true, nested: true }], raw: true });
+                    let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: ids } }, include: [{ all: true }], raw: true });
                     for (var i = 0; i < volumes.length; i++) {
                         let volume = volumes[i];
 
@@ -1392,6 +1392,21 @@ var main = {
 
                 }
             }
+
+            , est_depositoendereco: {
+
+                onsave: async function (obj, next) {
+                    try {
+
+                        await next(obj);
+
+                        
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
         }
 
         , pcp: {
@@ -1487,33 +1502,38 @@ var main = {
 
                         if (saved.success) {
 
-                            let approducaovolume = await db.getModel('pcp_approducaovolume').find({
-                                attributes: [[db.sequelize.literal('(select idop from pcp_opetapa where "pcp_approducaovolume".idopetapa = id)'), 'op']]
-                                , where: { id: saved.register.id }
-                                , include: [{ all: true }]
-                                , raw: true
+                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: saved.register.idapproducao } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
+                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                            let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+
+                            let qtd = [10, 20].indexOf(etapa.codigo) >= 0 ? saved.register.pesoliquido : saved.register.qtd;
+
+                            let volume = await db.getModel('est_volume').find({
+                                where: { idapproducaovolume: saved.register.id }
                             });
+                            if (volume) {
+                                volume.qtd = qtd;
+                                volume.qtddisponivel = qtd;
+                                volume.observacao = saved.register.observacao
+                                volume.save();
+                            } else {
 
+                                db.getModel('est_volume').create({
+                                    idapproducaovolume: saved.register.id
+                                    , idversao: op.idversao
+                                    , iddeposito: recurso.iddepositoprodutivo
+                                    , iduser: obj.req.user.id
+                                    , datahora: moment()
+                                    , qtd: qtd
+                                    , consumido: false
+                                    , qtddisponivel: qtd
+                                    , observacao: saved.register.observacao
+                                });
 
-
-                            console.log(approducaovolume);
-                            // let va = db.getModel('pcp_approducaovolume').rawAttributes;
-                            // console.log(Object.keys(db.getModel('pcp_approducaovolume').rawAttributes));
-                            // for (var k in va) {
-                            //     // console.log(k);
-                            // }
-
-                            // let volume = await db.getModel('est_volume').create({
-                            //     idversao: ''
-                            //     , iddeposito: ''
-                            //     , iduser: ''
-                            //     , datahora: ''
-                            //     , qtd: ''
-                            //     , consumido: ''
-                            //     , idnfentradaitem: ''
-                            //     , fotos: ''
-                            //     , qtddisponivel: ''
-                            // });
+                            }
 
                             main.plastrela.pcp.approducao._recalcula(saved.register.idapproducao);
 

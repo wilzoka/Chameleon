@@ -6,12 +6,12 @@ var application = require('./application')
 
 var fixResults = function (registers, modelattributes) {
 
-    for (var i = 0; i < registers.rows.length; i++) {
+    for (let i = 0; i < registers.rows.length; i++) {
         registers.rows[i]['DT_RowId'] = registers.rows[i].id;
     }
 
-    var json;
-    for (var i = 0; i < modelattributes.length; i++) {
+    let json = {};
+    for (let i = 0; i < modelattributes.length; i++) {
 
         if (modelattributes[i].typeadd) {
             json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
@@ -20,60 +20,56 @@ var fixResults = function (registers, modelattributes) {
         switch (modelattributes[i].type) {
             case 'autocomplete':
                 let vas = json.as || json.model;
-                for (var x = 0; x < registers.rows.length; x++) {
+                for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
                         registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + json.attribute];
                     }
                 }
                 break;
             case 'date':
-                for (var x = 0; x < registers.rows.length; x++) {
+                for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
                         registers.rows[x][modelattributes[i].name] = application.formatters.fe.date(registers.rows[x][modelattributes[i].name]);
                     }
                 }
                 break;
             case 'datetime':
-                for (var x = 0; x < registers.rows.length; x++) {
+                for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
                         registers.rows[x][modelattributes[i].name] = application.formatters.fe.datetime(registers.rows[x][modelattributes[i].name]);
                     }
                 }
                 break;
             case 'decimal':
-                for (var x = 0; x < registers.rows.length; x++) {
+                for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
                         registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], json.precision);
                     }
                 }
                 break;
             case 'time':
-                for (var x = 0; x < registers.rows.length; x++) {
+                for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
                         registers.rows[x][modelattributes[i].name] = application.formatters.fe.time(registers.rows[x][modelattributes[i].name]);
                     }
-                }
-                break;
-            case 'virtual':
-                for (var x = 0; x < registers.rows.length; x++) {
-                    registers.rows[x][modelattributes[i].name] = registers.rows[x][json.field];
                 }
                 break;
         }
 
     }
 
+    // for (let i = 0; i < registers.rows.length; i++) {
+    //     for (var k in registers.rows[i]) {
+    //         if (k.indexOf('.') >= 0) {
+    //             delete registers.rows[i][k];
+    //         }
+    //     }
+    // }
+
     return registers;
 }
 
-var getVirtualField = function (value) {
-    value = value.split('.');
-    var last = value[value.length - 1];
-    value.splice(value.length - 1, 1);
-    return '"' + value.join('->') + '"."' + last + '"';
-}
-
-var getFilter = function (cookie) {
+var getFilter = function (cookie, modelattributes) {
     var obj = {};
 
     cookie = JSON.parse(cookie);
@@ -81,11 +77,11 @@ var getFilter = function (cookie) {
     let m;
     let v;
 
-    for (var i = 0; i < cookie.length; i++) {
+    for (let i = 0; i < cookie.length; i++) {
 
-        for (var k in cookie[i]) {
+        for (let k in cookie[i]) {
 
-            var field = k.split('+');
+            let field = k.split('+');
 
             switch (field[1]) {
                 case 'date':
@@ -112,7 +108,7 @@ var getFilter = function (cookie) {
                     break;
             }
 
-            var o = {};
+            let o = {};
             switch (field[2]) {
                 case 's':
                     o['$iLike'] = cookie[i][k];
@@ -132,16 +128,32 @@ var getFilter = function (cookie) {
 
                 // Virtuals
                 case 'rv':
-                    o = db.Sequelize.literal(getVirtualField(field[0]) + " = " + cookie[i][k]);
+                    for (let z = 0; z < modelattributes.length; z++) {
+                        if (field[0] == modelattributes[z].name) {
+                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " = " + cookie[i][k]);
+                        }
+                    }
                     break;
                 case 'sv':
-                    o = db.Sequelize.literal(getVirtualField(field[0]) + "::text ilike '%" + cookie[i][k] + "%'");
+                    for (let z = 0; z < modelattributes.length; z++) {
+                        if (field[0] == modelattributes[z].name) {
+                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
+                        }
+                    }
                     break;
                 case 'bv':
-                    o = db.Sequelize.literal(getVirtualField(field[0]) + " >= " + cookie[i][k]);
+                    for (let z = 0; z < modelattributes.length; z++) {
+                        if (field[0] == modelattributes[z].name) {
+                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " >= " + cookie[i][k]);
+                        }
+                    }
                     break;
                 case 'ev':
-                    o = db.Sequelize.literal(getVirtualField(field[0]) + " <= " + cookie[i][k]);
+                    for (let z = 0; z < modelattributes.length; z++) {
+                        if (field[0] == modelattributes[z].name) {
+                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " <= " + cookie[i][k]);
+                        }
+                    }
                     break;
             }
 
@@ -173,12 +185,31 @@ module.exports = function (app) {
                 where['$col'] = db.Sequelize.literal(view.wherefixed);
             }
             if ('tableview' + view.id + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
+                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter'], modelattributes);
             }
 
             var ordercolumn = req.body.columns[req.body.order[0].column].data;
             var orderdir = req.body.order[0].dir;
+
+            let attributes = ['id'];
             for (var i = 0; i < modelattributes.length; i++) {
+
+                switch (modelattributes[i].type) {
+                    case 'parent':
+                        if (req.body.issubview == 'true') {
+                            where[modelattributes[i].name] = req.body.id;
+                        }
+                        attributes.push(modelattributes[i].name);
+                        break;
+                    case 'virtual':
+                        attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[i].typeadd).subquery), modelattributes[i].name]);
+                        break;
+                    default:
+                        attributes.push(modelattributes[i].name);
+                        break;
+                }
+
+                // Order
                 if (modelattributes[i].name == ordercolumn) {
                     switch (modelattributes[i].type) {
                         case 'autocomplete':
@@ -187,24 +218,16 @@ module.exports = function (app) {
                             ordercolumn = db.Sequelize.literal(vas + '.' + json.attribute);
                             break;
                         case 'virtual':
-                            ordercolumn = db.Sequelize.literal(getVirtualField(application.modelattribute.parseTypeadd(modelattributes[i].typeadd).field));
+                            ordercolumn = db.Sequelize.literal(modelattributes[i].name);
                             break;
                     }
                 }
             }
 
-            if (req.body.issubview == 'true') {
-                let modelattributeparent = await db.getModel('modelattribute').find({
-                    where: { idmodel: view.model.id, type: 'parent' }
-                });
-                if (modelattributeparent) {
-                    where[modelattributeparent.name] = req.body.id;
-                }
-            }
-
             let registers = await db.getModel(view.model.name).findAndCountAll({
-                raw: true
-                , include: [{ all: true, nested: view.virtual }]
+                attributes: attributes
+                , raw: true
+                , include: [{ all: true }]
                 , where: where
                 , order: [[ordercolumn, orderdir]]
                 , limit: req.body.length
@@ -228,6 +251,7 @@ module.exports = function (app) {
         try {
 
             let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: [{ all: true }] });
+            let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let modelattribute = await db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 
             var where = {};
@@ -238,7 +262,7 @@ module.exports = function (app) {
                 where['$col'] = db.Sequelize.literal(view.wherefixed);
             }
             if ('tableview' + view.id + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter']);
+                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter'], modelattributes);
             }
 
             if (req.body.issubview == 'true') {
@@ -250,19 +274,27 @@ module.exports = function (app) {
                 }
             }
 
-            let sum = await db.getModel(view.model.name).sum(view.model.name + '.' + modelattribute.name, { include: [{ all: true, attributes: [], nested: view.virtual }], where: where })
-            if (sum) {
+            let register = await db.getModel(view.model.name).find({
+                raw: true
+                , attributes: [
+                    [db.Sequelize.literal('sum(' + (modelattribute.type == 'virtual' ? application.modelattribute.parseTypeadd(modelattribute.typeadd).subquery : view.model.name + '.' + modelattribute.name) + ')'), 'sum']
+                ]
+                , include: [{ all: true, attributes: [] }]
+                , where: where
+            });
+
+            if (register.sum) {
                 switch (modelattribute.type) {
                     case 'decimal':
-                        sum = application.formatters.fe.decimal(sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
+                        register.sum = application.formatters.fe.decimal(register.sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
                         break;
                     case 'time':
-                        sum = application.formatters.fe.time(sum);
+                        register.sum = application.formatters.fe.time(register.sum);
                         break;
                 }
             }
 
-            return application.success(res, { data: sum });
+            return application.success(res, { data: register.sum });
 
         } catch (err) {
             return application.fatal(res, err);

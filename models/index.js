@@ -9,8 +9,8 @@ var application = require('../routes/application')
       , idle: 10000
     }
     , logging: function (query) {
-      console.log(query);
-      console.log('');
+      // console.log(query);
+      // console.log('');
     }
     , operatorsAliases: {
       $eq: Sequelize.Op.eq,

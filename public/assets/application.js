@@ -19,6 +19,8 @@ var application = {
     index: function () {
         // Menu, Title, Username
         $('ul.sidebar-menu').append(localStorage.getItem('menu'));
+        $('span.logo-lg').html(localStorage.getItem('descriptionmenu'));
+        $('span.logo-mini').html(localStorage.getItem('descriptionmenumini'));
 
         if ($('a[href="' + window.location.pathname + '"]')[0]) {
             $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
@@ -388,11 +390,20 @@ var application = {
         }
         , autocomplete: function ($obj) {
             $obj.each(function () {
+
                 var where = $(this).attr('data-where');
-                if (where && where.indexOf('$parent') >= 0) {
-                    where = where.replace('$parent', application.functions.getUrlParameter('parent') || application.functions.getId());
-                    $(this).attr('data-where', where);
+                var needreplace = where && where.indexOf('$parent') >= 0;
+
+                var $modal = $(this).closest('div.modal').attr('data-table');
+                if ($modal) {
+                    if (needreplace)
+                        where = where.replace('$parent', application.functions.getId());
+                } else {
+                    if (needreplace)
+                        where = where.replace('$parent', application.functions.getUrlParameter('parent'));
                 }
+
+                $(this).attr('data-where', where);
             });
             $obj.select2({
                 ajax: {
@@ -429,9 +440,11 @@ var application = {
                 var $this = $(this);
                 $.ajax({
                     url: '/view/' + $this.attr('data-view') + '/config'
-                    , type: 'GET'
+                    , type: 'POST'
                     , dataType: 'json'
-                    , data: $this.serialize()
+                    , data: {
+                        issubview: $this.attr('data-subview') || false
+                    }
                     , success: function (response) {
                         application.tables.create(response);
                     }
