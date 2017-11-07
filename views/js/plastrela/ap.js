@@ -20,12 +20,6 @@ $(function () {
                     });
                 });
                 break;
-            default:
-
-                $('.btnfilter').remove();
-                $('.dataTables_info').remove();
-                $('.dataTables_paginate').css('text-align', 'center');
-                break;
         }
 
     });
@@ -42,11 +36,11 @@ $(function () {
                             application.handlers.responseSuccess(response);
                             if (response.success) {
                                 $modal.find('input[name="idvolume"]').val(response.data.id);
-                                $modal.find('input[name="qtddisponivel"]').val(response.data.qtddisponivel);
-                                $modal.find('input[name="qtd"]').focus().val(response.data.qtddisponivel);
+                                $modal.find('input[name="qtdreal"]').val(response.data.qtdreal);
+                                $modal.find('input[name="qtd"]').focus().val(response.data.qtdreal);
                             } else {
                                 $modal.find('input[name="idvolume"]').val('');
-                                $modal.find('input[name="qtddisponivel"]').val('');
+                                $modal.find('input[name="qtdreal"]').val('');
                                 $modal.find('input[name="qtd"]').focus().val('');
                             }
                         });

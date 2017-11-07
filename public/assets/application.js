@@ -396,11 +396,13 @@ var application = {
 
                 var $modal = $(this).closest('div.modal').attr('data-table');
                 if ($modal) {
-                    if (needreplace)
-                        where = where.replace('$parent', application.functions.getId());
+                    if (needreplace) {
+                        where = where.replace(/\$parent/g, application.functions.getId());
+                    }
                 } else {
-                    if (needreplace)
-                        where = where.replace('$parent', application.functions.getUrlParameter('parent'));
+                    if (needreplace) {
+                        where = where.replace(/\$parent/g, application.functions.getUrlParameter('parent'));
+                    }
                 }
 
                 $(this).attr('data-where', where);

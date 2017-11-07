@@ -4,33 +4,33 @@ var application = require('./application')
 
 module.exports = function (app) {
 
-    app.get('/autocomplete', application.IsAuthenticated, function (req, res) {
+    app.get('/autocomplete', application.IsAuthenticated, async (req, res) => {
+        try {
 
-        var model = req.query.model;
-        var attribute = req.query.attribute;
-        var where = [];
-        var q = req.query.q || '';
+            let model = req.query.model;
+            let attribute = req.query.attribute;
+            let where = [];
+            let q = req.query.q || '';
 
-        if (req.query.where) {
-            where.push(req.query.where);
-        }
+            if (req.query.where) {
+                where.push(req.query.where);
+            }
 
-        if (req.query.q) {
-            where.push(attribute + "::text ilike '%" + req.query.q + "%'");
-        }
+            if (req.query.q) {
+                where.push(attribute + "::text ilike '%" + req.query.q + "%'");
+            }
 
-        var wherestr = '';
-        if (where.length > 0) {
-            wherestr = ' where ' + where.join(' and ');
-        }
+            let wherestr = '';
+            if (where.length > 0) {
+                wherestr = ' where ' + where.join(' and ');
+            }
 
-        var query = 'SELECT id, ' + attribute + ' as text FROM ' + model + wherestr + ' order by ' + attribute + ' limit 100';
-        db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT }).then(results => {
+            let query = 'SELECT id, ' + attribute + ' as text FROM ' + model + wherestr + ' ORDER BY ' + attribute + ' LIMIT 100';
+            let results = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
             return application.success(res, { data: results });
-        }).catch(err => {
+        } catch (err) {
             return application.fatal(res, err);
-        });
-
+        }
     });
 
 }

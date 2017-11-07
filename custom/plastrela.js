@@ -763,7 +763,7 @@ var main = {
 
             , est_volume: {
 
-                imprimirEtiqueta: async function (obj) {
+                _imprimirEtiqueta: async function (obj) {
                     let f = application.functions;
                     let pdfkit = require('pdfkit');
                     let barcode = require('barcode-2-svg');
@@ -1252,7 +1252,7 @@ var main = {
                                     , iduser: obj.req.user.id
                                     , datahora: moment()
                                     , qtd: qtdvolume
-                                    , qtddisponivel: qtdvolume
+                                    , qtdreal: qtdvolume
                                     , consumido: false
                                     , idnfentradaitem: nfitem.id
                                 });
@@ -1272,7 +1272,7 @@ var main = {
                     }
                 }
 
-                , removerVolume: async function (obj) {
+                , _removerVolume: async function (obj) {
                     if (obj.ids == null) {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
@@ -1516,7 +1516,6 @@ var main = {
 
                         if (saved.success) {
 
-
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
                             let tprecurso = await db.getModel('pcp_tprecurso').find({ where: { id: etapa.idtprecurso } });
@@ -1537,7 +1536,7 @@ var main = {
                             });
                             if (volume) {
                                 volume.qtd = qtd;
-                                volume.qtddisponivel = qtd;
+                                volume.qtdreal = qtd;
                                 volume.observacao = saved.register.observacao
                                 volume.metragem = metragem
                                 volume.save();
@@ -1552,7 +1551,7 @@ var main = {
                                     , qtd: qtd
                                     , metragem: metragem
                                     , consumido: false
-                                    , qtddisponivel: qtd
+                                    , qtdreal: qtd
                                     , observacao: saved.register.observacao
                                 });
 
@@ -1569,7 +1568,7 @@ var main = {
                         for (let i = 0; i < volumes.length; i++) {
                             if (volumes[i].consumido) {
                                 return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' se encontra consumido, verifique' });
-                            } else if (volumes[i].qtd != volumes[i].qtddisponivel) {
+                            } else if (volumes[i].qtd != volumes[i].qtdreal) {
                                 return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' se encontra parcialmente consumido, verifique' });
                             }
                         }
@@ -1578,6 +1577,19 @@ var main = {
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
+                }
+                , _imprimirEtiqueta: async function (obj) {
+                    if (obj.ids == null) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids.split(',') } } })
+                    let ids = [];
+
+                    for (let i = 0; i < volumes.length; i++) {
+                        ids.push(volumes[i].id);
+                    }
+                    obj.ids = ids.join(',');
+                    main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
                 }
             }
             , apparada: {
@@ -1623,7 +1635,7 @@ var main = {
                     body += application.components.html.decimal({
                         width: '4'
                         , label: 'Quantidade Disponível'
-                        , name: 'qtddisponivel'
+                        , name: 'qtdreal'
                         , precision: '4'
                         , disabled: 'disabled="disabled"'
                     });
@@ -1660,7 +1672,7 @@ var main = {
                             return application.success(obj.res, {
                                 data: {
                                     id: volume.id
-                                    , qtddisponivel: application.formatters.fe.decimal(volume.qtddisponivel, 4)
+                                    , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
                                 }
                             });
                         }
@@ -1677,13 +1689,13 @@ var main = {
 
                         let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
                         let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
-                        let qtddisponivel = parseFloat(volume.qtddisponivel)
+                        let qtdreal = parseFloat(volume.qtdreal)
 
-                        if (qtd > qtddisponivel) {
+                        if (qtd > qtdreal) {
                             return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
                         }
-                        volume.qtddisponivel = (qtddisponivel - qtd).toFixed(4);
-                        if (parseFloat(volume.qtddisponivel) == 0) {
+                        volume.qtdreal = (qtdreal - qtd).toFixed(4);
+                        if (parseFloat(volume.qtdreal) == 0) {
                             volume.consumido = true;
                         }
 
@@ -1710,7 +1722,7 @@ var main = {
                         for (var i = 0; i < apinsumos.length; i++) {
                             let apinsumo = apinsumos[i];
                             let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
-                            volume.qtddisponivel = (parseFloat(volume.qtddisponivel) + parseFloat(apinsumo.qtd)).toFixed(4);
+                            volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
                             volume.consumido = false;
                             volumes.push(volume);
                         }

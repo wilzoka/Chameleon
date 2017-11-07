@@ -226,9 +226,9 @@ module.exports = function (app) {
                 if (modelattributes[i].name == ordercolumn) {
                     switch (modelattributes[i].type) {
                         case 'autocomplete':
-                            let json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
-                            let vas = json.as || json.model;
-                            ordercolumn = db.Sequelize.literal(vas + '.' + json.attribute);
+                            let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
+                            let vas = j.as || j.model;
+                            ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
                             break;
                         case 'virtual':
                             ordercolumn = db.Sequelize.literal(modelattributes[i].name);
@@ -303,6 +303,13 @@ module.exports = function (app) {
                         break;
                     case 'time':
                         register.sum = application.formatters.fe.time(register.sum);
+                        break;
+                    case 'virtual':
+                        switch (application.modelattribute.parseTypeadd(modelattribute.typeadd).type) {
+                            case 'decimal':
+                                register.sum = application.formatters.fe.decimal(register.sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
+                                break;
+                        }
                         break;
                 }
             }
