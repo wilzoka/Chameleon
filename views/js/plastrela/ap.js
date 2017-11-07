@@ -1,5 +1,5 @@
 $(function () {
-    $('#form').find('button:submit, .btnreturn').remove();
+    $('#form').find('button:submit').remove();
 
     $(document).on('app-datatable', function (e, table) {
 
@@ -19,6 +19,12 @@ $(function () {
                         application.handlers.responseSuccess(response);
                     });
                 });
+                break;
+            default:
+
+                $('.btnfilter').remove();
+                $('.dataTables_info').remove();
+                $('.dataTables_paginate').css('text-align', 'center');
                 break;
         }
 

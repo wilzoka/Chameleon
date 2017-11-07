@@ -10,19 +10,19 @@ var fixResults = function (registers, modelattributes) {
         registers.rows[i]['DT_RowId'] = registers.rows[i].id;
     }
 
-    let json = {};
+    let j = {};
     for (let i = 0; i < modelattributes.length; i++) {
 
         if (modelattributes[i].typeadd) {
-            json = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
+            j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
         }
 
         switch (modelattributes[i].type) {
             case 'autocomplete':
-                let vas = json.as || json.model;
+                let vas = j.as || j.model;
                 for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
-                        registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + json.attribute];
+                        registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + j.attribute];
                     }
                 }
                 break;
@@ -43,7 +43,7 @@ var fixResults = function (registers, modelattributes) {
             case 'decimal':
                 for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
-                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], json.precision);
+                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], j.precision);
                     }
                 }
                 break;
@@ -53,6 +53,19 @@ var fixResults = function (registers, modelattributes) {
                         registers.rows[x][modelattributes[i].name] = application.formatters.fe.time(registers.rows[x][modelattributes[i].name]);
                     }
                 }
+                break;
+            case 'virtual':
+
+                switch (j.type) {
+                    case 'decimal':
+                        for (let x = 0; x < registers.rows.length; x++) {
+                            if (registers.rows[x][modelattributes[i].name]) {
+                                registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], j.precision);
+                            }
+                        }
+                        break;
+                }
+
                 break;
         }
 

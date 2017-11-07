@@ -1487,10 +1487,7 @@ var main = {
                         }
                         obj.register.duracao = duracao;
 
-                        let save = await next(obj);
-                        if (save.success) {
-                            main.plastrela.pcp.approducao._recalcula(save.register.idapproducao);
-                        }
+                        next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -1501,20 +1498,39 @@ var main = {
                     try {
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
+                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+
+                        let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where apv.id != ' + (obj.register.id || 0) + ' and ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+
+                        if ((qtdapinsumo * 1.15) - (qtdapproducaovolume + parseFloat(obj.register.pesoliquido)) < 0) {
+                            return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                        }
+
+                        // let sumqtdapinsumo = await db.getModel('pcp_apinsumo').sum('qtd', { where: { idoprecurso: oprecurso.id } });
+                        // let qtdproducao = await db.getModel('pcp_approducaovolume').sum('qtd', { where: { idoprecurso: oprecurso.id } });
+
+
                         let saved = await next(obj);
 
                         if (saved.success) {
 
-                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: saved.register.idapproducao } });
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
+                            let tprecurso = await db.getModel('pcp_tprecurso').find({ where: { id: etapa.idtprecurso } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
                             let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
                             let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
                             let depositopadrao = await db.getModel('est_depositoendereco').find({ where: { iddeposito: deposito.id, depositopadrao: true } });
 
-                            let qtd = [10, 20].indexOf(etapa.codigo) >= 0 ? saved.register.pesoliquido : saved.register.qtd;
+                            let qtd = saved.register.qtd;
+                            let metragem = null;
+                            if ([1, 2, 3].indexOf(tprecurso.codigo) >= 0) {
+                                qtd = saved.register.pesoliquido;
+                                metragem = saved.register.qtd;
+                            }
 
                             let volume = await db.getModel('est_volume').find({
                                 where: { idapproducaovolume: saved.register.id }
@@ -1523,6 +1539,7 @@ var main = {
                                 volume.qtd = qtd;
                                 volume.qtddisponivel = qtd;
                                 volume.observacao = saved.register.observacao
+                                volume.metragem = metragem
                                 volume.save();
                             } else {
 
@@ -1533,6 +1550,7 @@ var main = {
                                     , iduser: obj.req.user.id
                                     , datahora: moment()
                                     , qtd: qtd
+                                    , metragem: metragem
                                     , consumido: false
                                     , qtddisponivel: qtd
                                     , observacao: saved.register.observacao
@@ -1540,9 +1558,23 @@ var main = {
 
                             }
 
-                            main.plastrela.pcp.approducao._recalcula(saved.register.idapproducao);
-
                         }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+                        let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids } } });
+                        for (let i = 0; i < volumes.length; i++) {
+                            if (volumes[i].consumido) {
+                                return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' se encontra consumido, verifique' });
+                            } else if (volumes[i].qtd != volumes[i].qtddisponivel) {
+                                return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' se encontra parcialmente consumido, verifique' });
+                            }
+                        }
+
+                        await next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
