@@ -142,15 +142,14 @@ var main = {
             changezone: async function (obj) {
                 try {
                     if (obj.req.method == 'GET') {
-                        if (obj.ids == null) {
+                        if (obj.ids.length == 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let ids = obj.ids.split(',');
 
-                        let viewfield = await db.getModel('viewfield').find({ where: { id: { $in: ids } }, include: [{ all: true }] });
+                        let viewfield = await db.getModel('viewfield').find({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
 
                         let body = '';
-                        body += application.components.html.hidden({ name: 'ids', value: obj.ids });
+                        body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
                         body += application.components.html.autocomplete({
                             width: 12
                             , label: 'Zona'
@@ -189,12 +188,11 @@ var main = {
         }
         , viewevent: {
             _incrementorder: function (obj) {
-                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                var ids = obj.ids.split(',');
 
-                db.getModel('viewfield').findAll({ where: { id: { $in: ids } } }).then(viewfields => {
+                db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
                     viewfields.map(viewfield => {
                         viewfield.order++;
                         viewfield.save();
@@ -205,12 +203,11 @@ var main = {
                 });
             }
             , _decrementorder: function (obj) {
-                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                var ids = obj.ids.split(',');
 
-                db.getModel('viewfield').findAll({ where: { id: { $in: ids } } }).then(viewfields => {
+                db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
                     viewfields.map(viewfield => {
                         viewfield.order--;
                         viewfield.save();
@@ -223,12 +220,11 @@ var main = {
         }
         , viewtable: {
             _incrementorder: function (obj) {
-                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                var ids = obj.ids.split(',');
 
-                db.getModel('viewtable').findAll({ where: { id: { $in: ids } } }).then(viewtables => {
+                db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
                     viewtables.map(viewtable => {
                         viewtable.ordertable++;
                         viewtable.save();
@@ -239,12 +235,11 @@ var main = {
                 });
             }
             , _decrementorder: function (obj) {
-                if (obj.ids != null && obj.ids.split(',').length <= 0) {
+                if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                var ids = obj.ids.split(',');
 
-                db.getModel('viewtable').findAll({ where: { id: { $in: ids } } }).then(viewtables => {
+                db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
                     viewtables.map(viewtable => {
                         viewtable.ordertable--;
                         viewtable.save();
@@ -764,431 +759,438 @@ var main = {
             , est_volume: {
 
                 _imprimirEtiqueta: async function (obj) {
-                    let f = application.functions;
-                    let pdfkit = require('pdfkit');
-                    let barcode = require('barcode-2-svg');
-                    let svgtopdfkit = require('svg-to-pdfkit');
+                    try {
 
-                    if (obj.ids == null) {
-                        return application.error(obj.res, { msg: application.message.selectOneEvent });
-                    }
-                    let ids = obj.ids.split(',');
+                        let f = application.functions;
+                        let pdfkit = require('pdfkit');
+                        let barcode = require('barcode-2-svg');
+                        let svgtopdfkit = require('svg-to-pdfkit');
 
-                    const doc = new pdfkit({
-                        autoFirstPage: false
-                    });
-
-                    let config = await db.getModel('config').find({ raw: true });
-                    let image = JSON.parse(config.imagemrelatorio)[0];
-                    var filename = process.hrtime()[1] + '.pdf';
-                    var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
-
-                    let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: ids } }, include: [{ all: true }], raw: true });
-                    for (var i = 0; i < volumes.length; i++) {
-                        let volume = volumes[i];
-
-                        doc.addPage({ margin: 30 });
-
-                        doc.moveTo(25, 25)
-                            .lineTo(589, 25) //top
-                            .lineTo(589, 445) //right
-                            .lineTo(25, 445) //bottom
-                            .lineTo(25, 25) //bottom
-                            .stroke();
-
-                        doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
-
-                        doc.moveTo(25, 75)
-                            .lineTo(589, 75) // Cabeçalho
-                            .stroke();
-
-                        // Title
-
-                        doc
-                            .font('Courier-Bold')
-                            .fontSize(11)
-                            .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 47);
-
-
-                        doc
-                            .fontSize(7.5)
-                            .text('Anexo - 03', 500, 40)
-                            .text('Nº PPP - 05 Revisão: 09', 460, 55);
-
-                        // Body
-                        let width1 = 27;
-                        let width1val = 20;
-
-                        let width2 = 24;
-                        let width2val = 25;
-
-                        let width3 = 5;
-                        let width3val = 21;
-
-                        let padstr = ' ';
-                        let md = 0.65;
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
-                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
-                            .font('Courier').text(f.rpad(volume['est_nfentradaitem.oc'], width2val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width3val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .moveTo(240, 75)
-                            .lineTo(240, 91)
-                            .stroke()
-                            .moveTo(460, 75)
-                            .lineTo(460, 91)
-                            .stroke();
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('AB BRASIL', 87, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('(63,50x0,0035) PELICULA 7376 PAPEL HIGIENICO CLARA PREMIUM FOLHA DUPLA 4 X 30 M (T100)', 87, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('1760,00mmX0,0200mm', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('253,0000 KG', width2val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('18.391,97 M', width3val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Formato após Revisão: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Peso após Revisão: ', width2, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width3val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Formato após Laminação: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Peso após Laminação: ', width2, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width3val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Formato após 2ª Laminação: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Peso após 2ª Laminação: ', width2, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('', width3val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            f.lpad('Tratamento', 15, padstr) +
-                            f.lpad('Turno', 16, padstr) +
-                            f.lpad('Nº da', 13, padstr) +
-                            f.lpad('Operador', 14, padstr) +
-                            f.lpad('Hora', 11, padstr) +
-                            f.lpad('Hora', 13, padstr) +
-                            f.lpad('Data', 10, padstr) +
-                            f.lpad('Aprovado /', 15, padstr) +
-                            f.lpad('Aprovado /', 14, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').fontSize(6.5)
-                            .text(f.lpad('[ ]Interno [ ]Externo', 21, padstr), { continued: true })
-                            .fontSize(7.5)
-                            .text(
-                            f.lpad('Máquina', 27, padstr) +
-                            f.lpad('Inicial', 25, padstr) +
-                            f.lpad('Final', 12, padstr) +
-                            f.lpad('Reprovado', 24, padstr) +
-                            f.lpad('Reprovado', 14, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            f.lpad('Operador', 106, padstr) +
-                            f.lpad('C/Q', 11, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            f.lpad('Extrusão:', 14, padstr) +
-                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                            f.lpad('[ ] A [ ] R', 72, padstr) +
-                            f.lpad('[ ] A [ ] R', 14, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            f.lpad('Impressão:', 14, padstr) +
-                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                            f.lpad('[ ] A [ ] R', 72, padstr) +
-                            f.lpad('[ ] A [ ] R', 14, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            f.lpad('Laminação:', 14, padstr) +
-                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                            f.lpad('[ ] A [ ] R', 72, padstr) +
-                            f.lpad('[ ] A [ ] R', 14, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            f.lpad('2ª Laminação:', 14, padstr) +
-                            f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                            f.lpad('[ ] A [ ] R', 72, padstr) +
-                            f.lpad('[ ] A [ ] R', 14, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .moveTo(117, 169)
-                            .lineTo(117, 260)
-                            .stroke()
-                            .moveTo(195, 169)
-                            .lineTo(195, 260)
-                            .stroke()
-                            .moveTo(240, 117)
-                            .lineTo(240, 260)
-                            .stroke()
-                            .moveTo(303, 169)
-                            .lineTo(303, 260)
-                            .stroke()
-                            .moveTo(358, 169)
-                            .lineTo(358, 260)
-                            .stroke()
-                            .moveTo(415, 169)
-                            .lineTo(415, 260)
-                            .stroke()
-                            .moveTo(460, 117)
-                            .lineTo(460, 260)
-                            .stroke()
-                            .moveTo(523, 169)
-                            .lineTo(523, 260)
-                            .stroke()
-                            ;
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            'Visto do Encarregado:' +
-                            f.lpad('Visto do C/Q:', 66, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text('Observações:')
-                            .moveDown(md).text(' ')
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text(
-                            'Fornecedor:' +
-                            f.lpad('Código do Produto:', 55, padstr)
-                            )
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text('Motivo da Reprovação:')
-                            .moveDown(md).text(' ')
-                            .moveDown(md);
-
-                        // Lines
-                        doc.y = 78;
-
-                        let nolines = [7, 8, 15];
-                        for (var z = 0; z < 20; z++) {
-                            doc.y = doc.y + 13;
-                            if (nolines.indexOf(z) < 0) {
-                                doc
-                                    .moveTo(25, doc.y)
-                                    .lineTo(589, doc.y)
-                                    .stroke();
-                            }
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        doc
-                            .font('Courier-Bold')
-                            .text('Observações da Bobina:', 30, 342);
-
-                        doc
-                            .font('Courier')
-                            .text(f.rpad('obsasd as d', 700), 131, 342, { width: 450, height: 70, underline: true });
-
-                        doc
-                            .font('Courier-Bold')
-                            .text('ATENÇÃO: O ESTORNO DEVERÁ RETORNAR AO DEPÓSITO COM ESTA ETIQUETA', 227, 398);
-
-                        svgtopdfkit(
-                            doc
-                            , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
-                            , 230, 405
-                        );
-                        doc
-                            .font('Courier')
-                            .text('-10-000002952', 345, 438);
-
-                        doc
-                            .font('Courier-Bold')
-                            .text('Data Inc.:', 530, 410, { width: 50 })
-                            .font('Courier')
-                            .text('23/10/2017', 530, 420, { width: 50 });
-
-                        doc
-                            .font('Courier-Bold')
-                            .fontSize(9)
-                            .text('1', 76, 355)
-                            .text('2', 76, 363)
-                            .text('3', 76, 371)
-                            .text('4', 76, 379)
-                            .text('5', 76, 387)
-                            ;
-                        doc.circle(78, 398, 45)
-                            .stroke()
-                            .circle(78, 398, 5)
-                            .stroke();
-
-                        // Part 2
-
-                        doc.moveTo(25, 460)
-                            .lineTo(589, 460) //top
-                            .lineTo(589, 623) //right
-                            .lineTo(25, 623) //bottom
-                            .lineTo(25, 460) //left
-                            .stroke()
-                            ;
-
-                        // Title
-
-                        doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 100 });
-
-                        doc.moveTo(25, 510)
-                            .lineTo(589, 510) // Cabeçalho
-                            .stroke();
-
-                        doc
-                            .font('Courier-Bold')
-                            .fontSize(11)
-                            .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 480);
-
-                        width1 = 15;
-                        width1val = 107;
-
-                        doc
-                            .fontSize(7.5)
-                            .font('Courier-Bold').text(f.lpad('Fornecedor: ', width1, padstr), 30, 515, { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Observação: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr))
-                            .moveDown(md);
-
-                        width1 = 15;
-                        width1val = 15;
-                        width2 = 25;
-                        width2val = 15;
-                        width3 = 25;
-                        width3val = 25;
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Nota Fiscal: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Data Emi.: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Data Inc.: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr))
-                            .moveDown(md);
-
-                        doc
-                            .font('Courier-Bold').text(f.lpad('Qtde: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('OC: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
-                            .font('Courier-Bold').text(f.lpad('Vol.: ', width1, padstr), { continued: true })
-                            .font('Courier').text(f.rpad('27578', width1val, padstr))
-                            .moveDown(md);
-
-                        doc.moveTo(25, 578)
-                            .lineTo(589, 578)
-                            .stroke();
-
-                        svgtopdfkit(
-                            doc
-                            , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
-                            , 170, 582
-                        );
-                        doc
-                            .font('Courier')
-                            .text('-10-000002952', 285, 615);
-
-                        doc
-                            .font('Courier')
-                            .fontSize(120)
-                            .text('2952363', 25, 630);
-                    }
-
-                    doc.end();
-                    stream.on('finish', function () {
-                        return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
-                            }
+                        const doc = new pdfkit({
+                            autoFirstPage: false
                         });
-                    });
+
+                        let config = await db.getModel('config').find({ raw: true });
+                        let image = JSON.parse(config.imagemrelatorio)[0];
+                        var filename = process.hrtime()[1] + '.pdf';
+                        var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+
+                        let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }], raw: true });
+                        for (var i = 0; i < volumes.length; i++) {
+                            let volume = volumes[i];
+                            let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
+                            let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
+
+                            let nfentradaitem = await db.getModel('est_nfentradaitem').find({ where: { id: volume.idnfentradaitem } });
+
+                            doc.addPage({ margin: 30 });
+
+                            doc.moveTo(25, 25)
+                                .lineTo(589, 25) //top
+                                .lineTo(589, 445) //right
+                                .lineTo(25, 445) //bottom
+                                .lineTo(25, 25) //bottom
+                                .stroke();
+
+                            doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+
+                            doc.moveTo(25, 75)
+                                .lineTo(589, 75) // Cabeçalho
+                                .stroke();
+
+                            // Title
+
+                            doc
+                                .font('Courier-Bold')
+                                .fontSize(11)
+                                .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 47);
+
+
+                            doc
+                                .fontSize(7.5)
+                                .text('Anexo - 03', 500, 40)
+                                .text('Nº PPP - 05 Revisão: 09', 460, 55);
+
+                            // Body
+                            let width1 = 27;
+                            let width1val = 20;
+
+                            let width2 = 24;
+                            let width2val = 25;
+
+                            let width3 = 5;
+                            let width3val = 21;
+
+                            let padstr = ' ';
+                            let md = 0.65;
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
+                                .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width3val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .moveTo(240, 75)
+                                .lineTo(240, 91)
+                                .stroke()
+                                .moveTo(460, 75)
+                                .lineTo(460, 91)
+                                .stroke();
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('AB BRASIL', 87, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(versao.descricaocompleta, 87, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.metragem, 4) + ' M', width3val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Formato após Revisão: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Peso após Revisão: ', width2, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width3val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Formato após Laminação: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Peso após Laminação: ', width2, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width3val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Formato após 2ª Laminação: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Peso após 2ª Laminação: ', width2, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width2val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('', width3val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                f.lpad('Tratamento', 15, padstr) +
+                                f.lpad('Turno', 16, padstr) +
+                                f.lpad('Nº da', 13, padstr) +
+                                f.lpad('Operador', 14, padstr) +
+                                f.lpad('Hora', 11, padstr) +
+                                f.lpad('Hora', 13, padstr) +
+                                f.lpad('Data', 10, padstr) +
+                                f.lpad('Aprovado /', 15, padstr) +
+                                f.lpad('Aprovado /', 14, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').fontSize(6.5)
+                                .text(f.lpad('[ ]Interno [ ]Externo', 21, padstr), { continued: true })
+                                .fontSize(7.5)
+                                .text(
+                                f.lpad('Máquina', 27, padstr) +
+                                f.lpad('Inicial', 25, padstr) +
+                                f.lpad('Final', 12, padstr) +
+                                f.lpad('Reprovado', 24, padstr) +
+                                f.lpad('Reprovado', 14, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                f.lpad('Operador', 106, padstr) +
+                                f.lpad('C/Q', 11, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                f.lpad('Extrusão:', 14, padstr) +
+                                f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                                f.lpad('[ ] A [ ] R', 72, padstr) +
+                                f.lpad('[ ] A [ ] R', 14, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                f.lpad('Impressão:', 14, padstr) +
+                                f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                                f.lpad('[ ] A [ ] R', 72, padstr) +
+                                f.lpad('[ ] A [ ] R', 14, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                f.lpad('Laminação:', 14, padstr) +
+                                f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                                f.lpad('[ ] A [ ] R', 72, padstr) +
+                                f.lpad('[ ] A [ ] R', 14, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                f.lpad('2ª Laminação:', 14, padstr) +
+                                f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                                f.lpad('[ ] A [ ] R', 72, padstr) +
+                                f.lpad('[ ] A [ ] R', 14, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .moveTo(117, 169)
+                                .lineTo(117, 260)
+                                .stroke()
+                                .moveTo(195, 169)
+                                .lineTo(195, 260)
+                                .stroke()
+                                .moveTo(240, 117)
+                                .lineTo(240, 260)
+                                .stroke()
+                                .moveTo(303, 169)
+                                .lineTo(303, 260)
+                                .stroke()
+                                .moveTo(358, 169)
+                                .lineTo(358, 260)
+                                .stroke()
+                                .moveTo(415, 169)
+                                .lineTo(415, 260)
+                                .stroke()
+                                .moveTo(460, 117)
+                                .lineTo(460, 260)
+                                .stroke()
+                                .moveTo(523, 169)
+                                .lineTo(523, 260)
+                                .stroke()
+                                ;
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                'Visto do Encarregado:' +
+                                f.lpad('Visto do C/Q:', 66, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text('Observações:')
+                                .moveDown(md).text(' ')
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text(
+                                'Fornecedor:' +
+                                f.lpad('Código do Produto:', 55, padstr)
+                                )
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text('Motivo da Reprovação:')
+                                .moveDown(md).text(' ')
+                                .moveDown(md);
+
+                            // Lines
+                            doc.y = 78;
+
+                            let nolines = [7, 8, 15];
+                            for (var z = 0; z < 20; z++) {
+                                doc.y = doc.y + 13;
+                                if (nolines.indexOf(z) < 0) {
+                                    doc
+                                        .moveTo(25, doc.y)
+                                        .lineTo(589, doc.y)
+                                        .stroke();
+                                }
+                            }
+
+                            doc
+                                .font('Courier-Bold')
+                                .text('Observações da Bobina:', 30, 342);
+
+                            doc
+                                .font('Courier')
+                                .text(f.rpad('obsasd as d', 700), 131, 342, { width: 450, height: 70, underline: true });
+
+                            doc
+                                .font('Courier-Bold')
+                                .text('ATENÇÃO: O ESTORNO DEVERÁ RETORNAR AO DEPÓSITO COM ESTA ETIQUETA', 227, 398);
+
+                            svgtopdfkit(
+                                doc
+                                , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
+                                , 230, 405
+                            );
+                            doc
+                                .font('Courier')
+                                .text('-10-000002952', 345, 438);
+
+                            doc
+                                .font('Courier-Bold')
+                                .text('Data Inc.:', 530, 410, { width: 50 })
+                                .font('Courier')
+                                .text('23/10/2017', 530, 420, { width: 50 });
+
+                            doc
+                                .font('Courier-Bold')
+                                .fontSize(9)
+                                .text('1', 76, 355)
+                                .text('2', 76, 363)
+                                .text('3', 76, 371)
+                                .text('4', 76, 379)
+                                .text('5', 76, 387)
+                                ;
+                            doc.circle(78, 398, 45)
+                                .stroke()
+                                .circle(78, 398, 5)
+                                .stroke();
+
+                            // Part 2
+
+                            doc.moveTo(25, 460)
+                                .lineTo(589, 460) //top
+                                .lineTo(589, 623) //right
+                                .lineTo(25, 623) //bottom
+                                .lineTo(25, 460) //left
+                                .stroke()
+                                ;
+
+                            // Title
+
+                            doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 100 });
+
+                            doc.moveTo(25, 510)
+                                .lineTo(589, 510) // Cabeçalho
+                                .stroke();
+
+                            doc
+                                .font('Courier-Bold')
+                                .fontSize(11)
+                                .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 480);
+
+                            width1 = 15;
+                            width1val = 107;
+
+                            doc
+                                .fontSize(7.5)
+                                .font('Courier-Bold').text(f.lpad('Fornecedor: ', width1, padstr), 30, 515, { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Observação: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .moveDown(md);
+
+                            width1 = 15;
+                            width1val = 15;
+                            width2 = 25;
+                            width2val = 15;
+                            width3 = 25;
+                            width3val = 25;
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Nota Fiscal: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Data Emi.: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Data Inc.: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .moveDown(md);
+
+                            doc
+                                .font('Courier-Bold').text(f.lpad('Qtde: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('OC: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Vol.: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .moveDown(md);
+
+                            doc.moveTo(25, 578)
+                                .lineTo(589, 578)
+                                .stroke();
+
+                            svgtopdfkit(
+                                doc
+                                , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
+                                , 170, 582
+                            );
+                            doc
+                                .font('Courier')
+                                .text('-10-000002952', 285, 615);
+
+                            doc
+                                .font('Courier')
+                                .fontSize(120)
+                                .text('2952363', 25, 630);
+                        }
+
+                        doc.end();
+                        stream.on('finish', function () {
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                                }
+                            });
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
 
                 , gerarVolumes: async function (obj) {
                     if (obj.req.method == 'GET') {
-                        if (obj.ids == null) {
+                        if (obj.ids.length == 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let ids = obj.ids.split(',');
-                        if (ids.length != 1) {
+                        if (obj.ids.length > 1) {
                             return application.error(obj.res, { msg: 'Selecione apenas 1 item para gerar volumes' });
                         }
 
                         let body = '';
-                        body += application.components.html.hidden({ name: 'ids', value: obj.ids });
+                        body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
                         body += application.components.html.integer({
                             width: 6
                             , label: 'Volumes a serem Gerados'
@@ -1273,16 +1275,15 @@ var main = {
                 }
 
                 , _removerVolume: async function (obj) {
-                    if (obj.ids == null) {
+                    if (obj.ids.length == 0) {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
-                    let ids = obj.ids.split(',');
 
                     try {
 
                         let volumes = await db.getModel('est_volume').findAll({
                             where: {
-                                id: { $in: ids }
+                                id: { $in: obj.ids }
                             }
                         });
 
@@ -1302,7 +1303,7 @@ var main = {
                             return application.error(obj.res, { msg: 'Não é possível remover volumes de uma nota finalizada' });
                         }
 
-                        nfitem.qtdvolumes = nfitem.qtdvolumes - ids.length;
+                        nfitem.qtdvolumes = nfitem.qtdvolumes - obj.ids.length;
 
                         await db.getModel('est_volume').destroy({
                             where: {
@@ -1371,6 +1372,29 @@ var main = {
                     }
                 }
 
+            }
+            , volumereserva: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        let volume = await db.getModel('est_volume').find({ where: { id: obj.register.idvolume } });
+                        let qtdreservada = parseFloat(await db.getModel('est_volumereserva').sum('qtd', {
+                            where: {
+                                id: { $ne: obj.register.id }
+                                , idvolume: volume.id
+                            }
+                        })) || 0;
+
+                        if ((qtdreservada + parseFloat(obj.register.qtd)) > parseFloat(volume.qtd)) {
+                            return application.error(obj.res, { msg: 'Este volume não possui essa quantidade para ser reservado' });
+                        }
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
 
             , est_mov: {
@@ -1456,18 +1480,31 @@ var main = {
                 , __adicionar: async function (obj) {
                     try {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
-                        let approducoes = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
 
-                        if (approducoes.length > 0) {
+                        let results = await db.sequelize.query(
+                            'select'
+                            + ' ap.id'
+                            + ' , (select sum(apv.qtd) from pcp_approducaovolume apv where ap.id = apv.idapproducao) as volumes'
+                            + ' from'
+                            + ' pcp_oprecurso opr'
+                            + ' inner join pcp_approducao ap on (opr.id = ap.idoprecurso)'
+                            + ' where opr.id = :v1'
+                            , {
+                                replacements: {
+                                    v1: oprecurso.id
+                                }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
 
-                            return application.success(obj.res, { redirect: '/view/74/' + approducoes[0].id + '?parent=' + oprecurso.id });
-
-                        } else {
-
-                            let newapproducao = await db.getModel('pcp_approducao').create({ idoprecurso: oprecurso.id });
-                            return application.success(obj.res, { redirect: '/view/74/' + newapproducao.id + '?parent=' + oprecurso.id });
-
+                        for (let i = 0; i < results.length; i++) {
+                            console.log(results[i].volumes, !results[i].volumes ? 'sim' : 'nao');
+                            if (!results[i].volumes) {
+                                return application.success(obj.res, { redirect: '/view/74/' + results[i].id + '?parent=' + oprecurso.id });
+                            }
                         }
+
+                        let newapproducao = await db.getModel('pcp_approducao').create({ idoprecurso: oprecurso.id });
+                        return application.success(obj.res, { redirect: '/view/74/' + newapproducao.id + '?parent=' + oprecurso.id });
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -1475,19 +1512,103 @@ var main = {
                 }
             }
             , approducaotempo: {
-
                 onsave: async function (obj, next) {
                     try {
                         let dataini = moment(obj.register.dataini);
                         let datafim = moment(obj.register.datafim);
                         let duracao = datafim.diff(dataini, 'm');
 
+                        let minutosafrente = datafim.diff(moment(), 'm');
+                        if (minutosafrente > 10) {
+                            return application.error(obj.res, { msg: 'Verifique o dia e a hora da data final' });
+                        }
                         if (duracao <= 0) {
                             return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
                         }
                         obj.register.duracao = duracao;
 
+                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } })
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                        let results = await db.sequelize.query(
+                            'select'
+                            + ' *'
+                            + ' from'
+                            + ' (select'
+                            + ' \'produção\' as tipo'
+                            + ' , apt.dataini'
+                            + ' , apt.datafim'
+                            + ' from'
+                            + ' pcp_oprecurso opr'
+                            + ' left join pcp_approducao ap on (opr.id = ap.idoprecurso)'
+                            + ' left join pcp_approducaotempo apt on (ap.id = apt.idapproducao)'
+                            + ' where opr.idrecurso = :v1'
+                            + ' union all'
+                            + ' select'
+                            + ' \'parada\' as tipo'
+                            + ' , app.dataini'
+                            + ' , app.datafim'
+                            + ' from'
+                            + ' pcp_oprecurso opr'
+                            + ' left join pcp_apparada app on (opr.id = app.idoprecurso)'
+                            + ' where opr.idrecurso = :v1 and app.id != :v2) as x'
+                            + ' where (:v3::timestamp between dataini and datafim or :v4::timestamp between dataini and datafim) or (dataini between :v3::timestamp and :v4::timestamp and datafim between :v3::timestamp and :v4::timestamp)'
+                            , {
+                                replacements: {
+                                    v1: oprecurso.idrecurso
+                                    , v2: obj.register.id
+                                    , v3: dataini.format('YYYY-MM-DD HH:mm')
+                                    , v4: datafim.format('YYYY-MM-DD HH:mm')
+                                }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
+                        if (results.length > 0) {
+                            return application.error(obj.res, { msg: 'Existe um apontamento de ' + results[0].tipo + ' neste horário' });
+                        }
+
                         next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , __dataUltimoAp: async function (obj) {
+                    try {
+
+                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } })
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+
+                        let results = await db.sequelize.query(
+                            'select max(datafim) as max from ('
+                            + ' select'
+                            + ' apt.dataini'
+                            + ' , apt.datafim'
+                            + ' , opr.idrecurso'
+                            + ' from'
+                            + ' pcp_approducaotempo apt'
+                            + ' left join pcp_approducao app on (apt.idapproducao = app.id)'
+                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
+                            + ' union all'
+                            + ' select'
+                            + ' app.dataini'
+                            + ' , app.datafim'
+                            + ' , opr.idrecurso'
+                            + ' from'
+                            + ' pcp_apparada app'
+                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
+                            + ' ) as x'
+                            + ' where idrecurso = :v1', {
+                                replacements: { v1: oprecurso.idrecurso }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
+                        if (results[0].max) {
+                            return application.success(obj.res, {
+                                data: moment(results[0].max, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format('DD/MM/YYYY HH:mm')
+                            });
+                        } else {
+                            return application.success(obj.res, {
+                                data: ''
+                            });
+                        }
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -1502,9 +1623,10 @@ var main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
 
                         let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
                         let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where apv.id != ' + (obj.register.id || 0) + ' and ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
 
-                        if ((qtdapinsumo * 1.15) - (qtdapproducaovolume + parseFloat(obj.register.pesoliquido)) < 0) {
+                        if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.pesoliquido)) < 0) {
                             return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
 
@@ -1579,32 +1701,148 @@ var main = {
                     }
                 }
                 , _imprimirEtiqueta: async function (obj) {
-                    if (obj.ids == null) {
+                    if (obj.ids.length == 0) {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
-                    let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids.split(',') } } })
                     let ids = [];
+
+                    let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids } } })
 
                     for (let i = 0; i < volumes.length; i++) {
                         ids.push(volumes[i].id);
                     }
-                    obj.ids = ids.join(',');
+                    obj.ids = ids;
                     main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
                 }
             }
-            , apparada: {
-                onsave: function (obj, next) {
-                    let dataini = moment(obj.register.dataini);
-                    let datafim = moment(obj.register.datafim);
-                    let duracao = datafim.diff(dataini, 'm');
+            , apperda: {
+                onsave: async function (obj, next) {
+                    try {
 
-                    if (duracao <= 0) {
-                        return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                        let tipoperda = await db.getModel('pcp_tipoperda').find({ where: { id: obj.register.idtipoperda } });
+
+                        if ([300, 322].indexOf(tipoperda.codigo) >= 0) {
+                            return next(obj);
+                        }
+                        let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.id != ' + obj.register.id + ' and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+
+                        if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.peso)) < 0) {
+                            return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                        }
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
                     }
+                }
+            }
+            , apparada: {
+                onsave: async function (obj, next) {
+                    try {
 
-                    obj.register.duracao = duracao;
+                        let dataini = moment(obj.register.dataini);
+                        let datafim = moment(obj.register.datafim);
+                        let duracao = datafim.diff(dataini, 'm');
 
-                    next(obj);
+                        let minutosafrente = datafim.diff(moment(), 'm');
+                        if (minutosafrente > 10) {
+                            return application.error(obj.res, { msg: 'Verifique o dia e a hora da data final' });
+                        }
+                        if (duracao <= 0) {
+                            return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
+                        }
+                        obj.register.duracao = duracao;
+
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+
+                        let results = await db.sequelize.query(
+                            'select'
+                            + ' *'
+                            + ' from'
+                            + ' (select'
+                            + ' \'produção\' as tipo'
+                            + ' , apt.dataini'
+                            + ' , apt.datafim'
+                            + ' from'
+                            + ' pcp_oprecurso opr'
+                            + ' left join pcp_approducao ap on (opr.id = ap.idoprecurso)'
+                            + ' left join pcp_approducaotempo apt on (ap.id = apt.idapproducao)'
+                            + ' where opr.idrecurso = :v1'
+                            + ' union all'
+                            + ' select'
+                            + ' \'parada\' as tipo'
+                            + ' , app.dataini'
+                            + ' , app.datafim'
+                            + ' from'
+                            + ' pcp_oprecurso opr'
+                            + ' left join pcp_apparada app on (opr.id = app.idoprecurso)'
+                            + ' where opr.idrecurso = :v1 and app.id != :v2) as x'
+                            + ' where (:v3::timestamp between dataini and datafim or :v4::timestamp between dataini and datafim) or (dataini between :v3::timestamp and :v4::timestamp and datafim between :v3::timestamp and :v4::timestamp)'
+                            , {
+                                replacements: {
+                                    v1: oprecurso.idrecurso
+                                    , v2: obj.register.id
+                                    , v3: dataini.format('YYYY-MM-DD HH:mm')
+                                    , v4: datafim.format('YYYY-MM-DD HH:mm')
+                                }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
+
+                        if (results.length > 0) {
+                            return application.error(obj.res, { msg: 'Existe um apontamento de ' + results[0].tipo + ' neste horário' });
+                        }
+
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+
+                , __dataUltimoAp: async function (obj) {
+                    try {
+
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+
+                        let results = await db.sequelize.query(
+                            'select max(datafim) as max from ('
+                            + ' select'
+                            + ' apt.dataini'
+                            + ' , apt.datafim'
+                            + ' , opr.idrecurso'
+                            + ' from'
+                            + ' pcp_approducaotempo apt'
+                            + ' left join pcp_approducao app on (apt.idapproducao = app.id)'
+                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
+                            + ' union all'
+                            + ' select'
+                            + ' app.dataini'
+                            + ' , app.datafim'
+                            + ' , opr.idrecurso'
+                            + ' from'
+                            + ' pcp_apparada app'
+                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
+                            + ' ) as x'
+                            + ' where idrecurso = :v1', {
+                                replacements: { v1: oprecurso.idrecurso }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
+                        if (results[0].max) {
+                            return application.success(obj.res, {
+                                data: moment(results[0].max, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format('DD/MM/YYYY HH:mm')
+                            });
+                        } else {
+                            return application.success(obj.res, {
+                                data: ''
+                            });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
             }
             , apinsumo: {
@@ -1699,13 +1937,26 @@ var main = {
                             volume.consumido = true;
                         }
 
-                        await db.getModel('pcp_apinsumo').create({
-                            iduser: obj.data.iduser
-                            , idvolume: obj.data.idvolume
-                            , idoprecurso: obj.data.idoprecurso
-                            , datahora: moment()
-                            , qtd: qtd
+                        let apinsumo = await db.getModel('pcp_apinsumo').find({
+                            where: {
+                                idvolume: obj.data.idvolume
+                                , idoprecurso: obj.data.idoprecurso
+                            }
                         });
+                        if (apinsumo) {
+                            apinsumo.iduser = obj.data.iduser;
+                            apinsumo.datahora = moment();
+                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + qtd).toFixed(4);
+                            await apinsumo.save();
+                        } else {
+                            await db.getModel('pcp_apinsumo').create({
+                                iduser: obj.data.iduser
+                                , idvolume: obj.data.idvolume
+                                , idoprecurso: obj.data.idoprecurso
+                                , datahora: moment()
+                                , qtd: qtd
+                            });
+                        }
 
                         await volume.save();
 
@@ -1733,6 +1984,88 @@ var main = {
                             volumes[i].save();
                         }
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , apsobra: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: obj.register.idapinsumo } });
+                        let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+
+                        if (obj.id > 0) {
+                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(obj.register._previousDataValues.qtd)).toFixed(4);
+                            volume.qtdreal = (parseFloat(volume.qtdreal) - parseFloat(obj.register._previousDataValues.qtd)).toFixed(4);
+                        }
+
+                        apinsumo.qtd = (parseFloat(apinsumo.qtd) - parseFloat(obj.register.qtd)).toFixed(4);
+                        volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(obj.register.qtd)).toFixed(4);
+                        volume.consumido = false;
+
+                        if (parseFloat(apinsumo.qtd) < 0) {
+                            return application.error(obj.res, { msg: 'Não é possível sobrar mais do que o componente' });
+                        }
+
+                        // Valida Pesos
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+
+                        let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where id != ' + obj.register.idapinsumo + ' and idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+
+                        if (((qtdapinsumo + parseFloat(apinsumo.qtd) - parseFloat(obj.register.qtd)) * 1.15) - (qtdapperda + qtdapproducaovolume) < 0) {
+                            return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                        }
+                        //
+
+
+                        await next(obj);
+
+                        apinsumo.save();
+                        volume.save();
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+                        let apsobras = await db.getModel('pcp_apsobra').findAll({ where: { id: { $in: obj.ids } } });
+
+                        for (let i = 0; i < apsobras.length; i++) {
+                            let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: apsobras[i].idapinsumo } });
+                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(apsobras[i].qtd)).toFixed(4);
+                            apinsumo.save();
+
+                            let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+                            volume.qtdreal = (parseFloat(volume.qtdreal) - parseFloat(apsobras[i].qtd)).toFixed(4);
+                            if (parseFloat(volume.qtdreal) == 0) {
+                                volume.consumido = true;
+                            }
+                            volume.save();
+                        }
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , _imprimirEtiqueta: async function (obj) {
+                    try {
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let ids = [];
+                        let results = await db.sequelize.query('select v.id from pcp_apsobra aps left join pcp_apinsumo api on (aps.idapinsumo = api.id) left join est_volume v on (api.idvolume = v.id) where aps.id in (' + obj.ids.join(',') + ')', { type: db.sequelize.QueryTypes.SELECT });
+
+                        for (let i = 0; i < results.length; i++) {
+                            ids.push(results[i].id);
+                        }
+                        obj.ids = ids;
+                        main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

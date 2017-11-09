@@ -237,16 +237,22 @@ module.exports = function (app) {
                 }
             }
 
-            let registers = await db.getModel(view.model.name).findAndCountAll({
+            let pagination = {};
+            if (req.body.length > 0) {
+                pagination = {
+                    limit: req.body.length
+                    , offset: req.body.start
+                }
+            }
+
+            let registers = await db.getModel(view.model.name).findAndCountAll(lodash.extend(pagination, {
                 attributes: attributes
                 , raw: true
                 , include: [{ all: true }]
                 , where: where
                 , order: [[ordercolumn, orderdir]]
-                , limit: req.body.length
-                , offset: req.body.start
-            });
-
+            }));
+            
             registers = fixResults(registers, modelattributes);
 
             return application.success(res, {

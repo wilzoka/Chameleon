@@ -1,10 +1,25 @@
 $(function () {
     $('#form').find('button:submit').remove();
 
+    function customTable(table) {
+        tables[table].page.len(-1);
+        $('#' + table + '_wrapper').css('height', '350px');
+        $('#' + table + '_paginate').remove();
+    }
+
+
     $(document).on('app-datatable', function (e, table) {
+
+
+        $('button.btnfilter[data-table="' + table + '"]').remove();
 
         switch (table) {
             case 'tableview73':// Insumo
+                customTable(table);
+                setTimeout(function () {
+                    tables['tableview73'].column(0).order('desc');
+                    tables['tableview73'].draw()
+                }, 100);
 
                 $('button#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', {}, function (response) {
@@ -14,11 +29,31 @@ $(function () {
 
                 break;
             case 'tableview74':// Produção
+                customTable(table);
+
                 $('#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.approducao.__adicionar', { idoprecurso: application.functions.getId() }, function (response) {
                         application.handlers.responseSuccess(response);
                     });
                 });
+                break;
+            case 'tableview51':// Perda
+                customTable(table);
+
+                break;
+            case 'tableview52':// Parada
+                customTable(table);
+                setTimeout(function () {
+                    tables['tableview52'].column(1).order('desc');
+                    tables['tableview52'].draw()
+                }, 100);
+
+                break;
+            case 'tableview77':// Sobra
+
+                break;
+            default:
+                tables[table].draw();
                 break;
         }
 
@@ -70,5 +105,18 @@ $(function () {
         }
 
     });
+
+    $('#sobra').click(function () {
+        $('#modalsobra').modal('show');
+    });
+    $('#modalsobra').on('shown.bs.modal', function () {
+        Cookies.set('modalsobra', true);
+    });
+    $('#modalsobra').on('hidden.bs.modal', function () {
+        Cookies.remove('modalsobra');
+    });
+    if (Cookies.get('modalsobra')) {
+        $('#modalsobra').modal('show');
+    }2
 
 });

@@ -19,11 +19,16 @@ module.exports = function (app) {
 
             var realfunction = application.functions.getRealReference(custom, viewevent.function);
 
+            let ids = [];
+            if (req.query.ids) {
+                ids = req.query.ids.split(',');
+            }
+
             if (realfunction) {
                 return realfunction({
                     req: req
                     , res: res
-                    , ids: req.query.ids || null
+                    , ids: ids
                     , id: req.query.id || null
                     , parent: req.query.parent || null
                     , event: viewevent

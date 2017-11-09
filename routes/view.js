@@ -1232,7 +1232,7 @@ module.exports = function (app) {
                 });
                 let register = await db.getModel(view.model.name).find({ where: { id: req.params.id } });
                 if (!register) {
-                    register = db.getModel(view.model.name).build();
+                    register = db.getModel(view.model.name).build({ id: 0 });
                 }
 
                 let obj = {

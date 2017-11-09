@@ -26,6 +26,8 @@ var application = {
             $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
         }
 
+        document.title = $('section.content-header').text() || 'Chameleon';
+
         var pathname = window.location.pathname;
         pathname = pathname.split('/');
         path = pathname[0] + '/' + pathname[1] + '/' + pathname[2];
@@ -468,14 +470,14 @@ var application = {
 
                 var editButton = '';
                 if ($('#' + sTableId).attr('data-editable') == 'true') {
-                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-warning" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
+                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
                 } else {
                     editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-info" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
                 }
 
                 var deleteButton = '';
                 if ($('#' + sTableId).attr('data-deletable') == 'true') {
-                    deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-danger" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
+                    deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
                 }
 
                 $('#' + sTableId).closest('div#' + sTableId + '_wrapper').after('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');

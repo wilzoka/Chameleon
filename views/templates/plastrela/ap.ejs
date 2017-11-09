@@ -11,8 +11,11 @@
                             <i class="fa fa-5x fa-bars"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-right">
-                            <li><a href="#">Dropdown link</a></li>
-                            <li><a href="#">Dropdown link</a></li>
+                            <li>
+                                <a id="sobra" href="javascript:void(0)">
+                                    <i class="fa fa-recycle blue"></i> Registrar Sobras                                
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -20,8 +23,6 @@
         </div>
     </div>
 </div>
-
-
 
 <div class="col-md-2 no-padding-right">
     <div class="box box-primary">
@@ -41,7 +42,7 @@
         </div>
     </div>
 </div>
-<div class="col-md-2 no-padding-right">
+<div class="col-md-3 no-padding-right">
     <div class="box box-primary">
         <div class="box-body">
             <div class="row">
@@ -50,11 +51,26 @@
         </div>
     </div>
 </div>
-<div class="col-md-4">
+<div class="col-md-3">
     <div class="box box-primary">
         <div class="box-body">
             <div class="row">
                 <%- parada %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalsobra">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <%- sobra %>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
             </div>
         </div>
     </div>

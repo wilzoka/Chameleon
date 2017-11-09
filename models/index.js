@@ -8,6 +8,7 @@ var application = require('../routes/application')
       , min: 0
       , idle: 10000
     }
+    , timezone: 'America/Sao_Paulo'
     , logging: function (query) {
       // console.log(query);
       // console.log('');
