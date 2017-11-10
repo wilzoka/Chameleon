@@ -48,6 +48,7 @@ var application = {
 		success: 'Ação realizada com sucesso'
 		, invalidFields: 'Informe os campos em vermelho'
 		, selectOneEvent: 'Selecione um registro para esta executar este evento'
+		, selectOnlyOneEvent: 'Selecione apenas um registro para esta executar este evento'
 		, permissionDenied: 'Você não tem permissão para executar esta ação'
 	}
 

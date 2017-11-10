@@ -122,6 +122,12 @@ var application = {
         $('button.btnreturn').click(function () {
             window.history.back();
         });
+        $(document).ajaxStart(function () {
+            $('.pace').removeClass('pace-inactive').addClass('pace-active');
+        });
+        $(document).ajaxComplete(function () {
+            $('.pace').removeClass('pace-active').addClass('pace-inactive');
+        });
         //Filter
         $(document).on('click', 'button.btnfilter', function () {
             var $this = $(this);
@@ -472,7 +478,7 @@ var application = {
                 if ($('#' + sTableId).attr('data-editable') == 'true') {
                     editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
                 } else {
-                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-info" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
+                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
                 }
 
                 var deleteButton = '';

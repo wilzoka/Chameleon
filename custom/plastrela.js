@@ -8,36 +8,38 @@ var application = require('../routes/application')
 var main = {
     plataform: {
         model: {
-            save: function (obj, next) {
-                db.getModel('model').find({ where: { id: { $ne: obj.id }, name: obj.register.name } }).then(register => {
+            onsave: async function (obj, next) {
+                try {
+
+                    let register = await db.getModel('model').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
                     if (register) {
                         return application.error(obj.res, { msg: 'Já existe um modelo com este nome' });
                     } else {
                         next(obj);
                     }
-                });
+
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
             }
-            , delete: function (obj, next) {
+            , ondelete: async function (obj, next) {
+                try {
 
-                const queryInterface = db.sequelize.getQueryInterface();
-                db.getModel('model').findAll({ where: { id: { $in: obj.ids } } }).then(models => {
+                    const queryInterface = db.sequelize.getQueryInterface();
+                    let models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } } })
 
-                    try {
-                        for (var i = 0; i < models.length; i++) {
-                            db.sequelize.modelManager.removeModel(db.sequelize.modelManager.getModel(models[i].name));
-                            queryInterface.dropTable(models[i].name, {
-                                force: true,
-                                cascade: false,
-                            });
-                        }
-                    } catch (error) {
+                    for (var i = 0; i < models.length; i++) {
+                        db.sequelize.modelManager.removeModel(db.sequelize.modelManager.getModel(models[i].name));
+                        queryInterface.dropTable(models[i].name, {
+                            force: true,
+                            cascade: false,
+                        });
                     }
 
                     next(obj);
-                }).catch(err => {
-                    application.fatal(obj.res, err);
-                });
-
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
             }
             , syncAll: function (obj) {
                 var models = {};
@@ -251,7 +253,7 @@ var main = {
             }
         }
         , menu: {
-            save: async function (obj, next) {
+            onsave: async function (obj, next) {
                 await next(obj);
                 main.plataform.menu.treeAll();
             }
@@ -288,59 +290,69 @@ var main = {
             }
         }
         , schedule: {
-            save: async function (obj, next) {
-                obj.register.active = false;
-                await next(obj);
-                schedule.removeSchedule();
-            }
-            , active: function (json) {
-                if (json.ids != null && json.ids.split(',').length <= 0) {
-                    return application.error(json.res, { msg: application.message.selectOneEvent });
+            onsave: async function (obj, next) {
+                try {
+                    obj.register.active = false;
+                    await next(obj);
+                    schedule.removeSchedule(obj.register);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
                 }
-                var ids = json.ids.split(',');
+            }
+            , _active: async function (obj) {
+                try {
 
-                db.getModel('schedule').findAll({ where: { id: { $in: ids } } }).then(scheds => {
+                    if (obj.ids.length == 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+
+                    let scheds = await db.getModel('schedule').findAll({ where: { id: { $in: obj.ids } } });
                     scheds.map(sched => {
                         schedule.addSchedule(sched);
                         sched.active = true;
                         sched.save();
                     });
-                });
 
-                return application.success(json.res, { msg: application.message.success, reloadtables: true });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
             }
-            , desactive: function (json) {
-                var ids = [];
-                if (json.ids) {
-                    ids = json.ids.split(',');
-                }
-                if (ids.length <= 0) {
-                    return application.error(json.res, { msg: application.message.selectOneEvent });
-                }
+            , _desactive: async function (obj) {
+                try {
 
-                db.getModel('schedule').findAll({ where: { id: { $in: ids } } }).then(scheds => {
+                    if (obj.ids.length == 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+
+                    let scheds = await db.getModel('schedule').findAll({ where: { id: { $in: obj.ids } } });
                     scheds.map(sched => {
                         schedule.removeSchedule(sched);
                         sched.active = false;
                         sched.save();
                     });
-                });
 
-                return application.success(json.res, { msg: application.message.success, reloadtables: true });
-            }
-            , execute: function (json) {
-                if (json.ids && json.ids.split(',').length <= 0) {
-                    return application.error(json.res, { msg: application.message.selectOneEvent });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
                 }
-                var ids = json.ids.split(',');
+            }
+            , _execute: async function (obj) {
+                try {
 
-                db.getModel('schedule').findAll({ where: { id: { $in: ids } } }).then(scheds => {
+                    if (obj.ids.length == 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+
+                    let scheds = await db.getModel('schedule').findAll({ where: { id: { $in: obj.ids } } })
                     scheds.map(sched => {
                         schedule.executeSchedule(sched);
                     });
-                });
 
-                return application.success(json.res, { msg: application.message.success });
+                    return application.success(obj.res, { msg: application.message.success });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
             }
         }
         , config: {
@@ -379,7 +391,6 @@ var main = {
                 }
             }
         }
-
         , manutencao: {
             os: {
                 save: function (json, next) {
@@ -408,7 +419,6 @@ var main = {
                 }
             }
         }
-
         , estoque: {
 
             criarNotaChaveAcesso: async function (obj) {
@@ -521,6 +531,15 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
 
+                }
+            }
+            , _finalizarEntrada: async function (obj) {
+                try {
+
+                    
+
+                } catch (err) {
+                    return application.fatal(obj.res, err);
                 }
             }
 
@@ -786,6 +805,14 @@ var main = {
                             let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
 
                             let nfentradaitem = await db.getModel('est_nfentradaitem').find({ where: { id: volume.idnfentradaitem } });
+                            let nfentrada = await db.getModel('est_nfentrada').find({ where: { id: nfentradaitem ? nfentradaitem.idnfentrada : 0 } });
+                            let approducaovolume = await db.getModel('pcp_approducaovolume').find({ where: { id: volume.idapproducaovolume } });
+                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: approducaovolume ? approducaovolume.idapproducao : 0 } });
+                            let approducaotempos = await db.getModel('pcp_approducaotempo').findAll({ where: { idapproducao: approducao ? approducao.id : 0 }, order: [['dataini', 'asc']] });
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao ? approducao.idoprecurso : 0 } });
+                            let oprecurso_recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso ? oprecurso.idrecurso : 0 } });
+                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
 
                             doc.addPage({ margin: 30 });
 
@@ -834,7 +861,7 @@ var main = {
                                 .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
                                 .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('', width3val, padstr))
+                                .font('Courier').text(f.rpad(op ? op.codigo : '', width3val, padstr))
                                 .moveDown(md);
 
                             doc
@@ -847,7 +874,7 @@ var main = {
 
                             doc
                                 .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('AB BRASIL', 87, padstr))
+                                .font('Courier').text(f.rpad('', 87, padstr))
                                 .moveDown(md);
 
                             doc
@@ -861,7 +888,7 @@ var main = {
                                 .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
                                 .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
-                                .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.metragem, 4) + ' M', width3val, padstr))
+                                .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.metragem || 0, 4) + ' M', width3val, padstr))
                                 .moveDown(md);
 
                             doc
@@ -937,12 +964,32 @@ var main = {
                                 )
                                 .moveDown(md);
 
+                            let str = '';
+                            if (approducaotempos.length > 0) {
+                                let hora = application.formatters.fe.datetime(approducaotempos[0].dataini);
+                                hora = hora.split(' ')[1].split(':');
+                                let horaint = parseInt((hora[0] * 60)) + parseInt(hora[1]);
+                                if (horaint >= 415 && horaint <= 915) {
+                                    str = '[x]A [ ]B [ ]C';
+                                } else if (horaint >= 916 && horaint <= 1400) {
+                                    str = '[ ]A [x]B [ ]C';
+                                } else {
+                                    str = '[ ]A [ ]B [x]C';
+                                }
+                            } else {
+                                str = '[ ]A [ ]B [ ]C';
+                            }
                             doc
                                 .font('Courier-Bold')
                                 .text(
                                 f.lpad('Impressão:', 14, padstr) +
-                                f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                                f.lpad('[ ] A [ ] R', 72, padstr) +
+                                f.lpad(str, 21, padstr) +
+                                f.lpad(oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
+                                f.lpad('', 13, padstr) +
+                                f.lpad(approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                f.lpad(approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                f.lpad(approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
+                                f.lpad('[ ] A [ ] R', 12, padstr) +
                                 f.lpad('[ ] A [ ] R', 14, padstr)
                                 )
                                 .moveDown(md);
@@ -1012,7 +1059,9 @@ var main = {
                                 .font('Courier-Bold')
                                 .text(
                                 'Fornecedor:' +
-                                f.lpad('Código do Produto:', 55, padstr)
+                                f.rpad(nfentrada ? nfentrada.razaosocial : '', 35, padstr) +
+                                '  Código do Produto: ' +
+                                f.rpad(versao.descricaocompleta, 55, padstr)
                                 )
                                 .moveDown(md);
 
@@ -1040,9 +1089,25 @@ var main = {
                                 .font('Courier-Bold')
                                 .text('Observações da Bobina:', 30, 342);
 
+                            str = [];
+                            if (approducaotempos.length > 0) {
+                                let paradas = await db.getModel('pcp_apparada').findAll({
+                                    where: {
+                                        idoprecurso: oprecurso.id
+                                        , dataini: { $gte: approducaotempos[0].dataini }
+                                        , datafim: { $lte: approducaotempos[approducaotempos.length - 1].datafim }
+                                    }
+                                    , include: [{ all: true }]
+                                    , order: [['dataini', 'desc']]
+                                });
+                                for (var z = 0; z < paradas.length; z++) {
+                                    str.push('(' + (z + 1) + ') ' + (paradas[z].emenda ? 'EMENDA ' : '') + paradas[i].pcp_motivoparada.codigo + '-' + paradas[i].pcp_motivoparada.descricao + (paradas[i].observacao ? ' (' + paradas[i].observacao + ') ' : ''));
+                                }
+                            }
+
                             doc
                                 .font('Courier')
-                                .text(f.rpad('obsasd as d', 700), 131, 342, { width: 450, height: 70, underline: true });
+                                .text(f.rpad(str.join(', ') + (volume.observacao || ''), 700), 131, 342, { width: 450, height: 70, underline: true });
 
                             doc
                                 .font('Courier-Bold')
@@ -1050,18 +1115,18 @@ var main = {
 
                             svgtopdfkit(
                                 doc
-                                , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
+                                , barcode('-10-' + f.lpad(volume.id, 9, '0'), 'code39', { width: 380, barHeight: 40, toFile: false })
                                 , 230, 405
                             );
                             doc
                                 .font('Courier')
-                                .text('-10-000002952', 345, 438);
+                                .text('-10-' + f.lpad(volume.id, 9, '0'), 345, 438);
 
                             doc
                                 .font('Courier-Bold')
                                 .text('Data Inc.:', 530, 410, { width: 50 })
                                 .font('Courier')
-                                .text('23/10/2017', 530, 420, { width: 50 });
+                                .text(application.formatters.fe.date(volume.datahora), 530, 420, { width: 50 });
 
                             doc
                                 .font('Courier-Bold')
@@ -1106,17 +1171,17 @@ var main = {
                             doc
                                 .fontSize(7.5)
                                 .font('Courier-Bold').text(f.lpad('Fornecedor: ', width1, padstr), 30, 515, { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .font('Courier').text(f.rpad(nfentrada ? nfentrada.razaosocial : '', width1val, padstr))
                                 .moveDown(md);
 
                             doc
                                 .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .font('Courier').text(f.rpad(versao.descricaocompleta, width1val, padstr))
                                 .moveDown(md);
 
                             doc
                                 .font('Courier-Bold').text(f.lpad('Observação: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .font('Courier').text(f.rpad(application.functions.singleSpace(volume.observacao || ''), width1val, padstr))
                                 .moveDown(md);
 
                             width1 = 15;
@@ -1128,20 +1193,20 @@ var main = {
 
                             doc
                                 .font('Courier-Bold').text(f.lpad('Nota Fiscal: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(nfentrada ? nfentrada.documento : '', width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Data Emi.: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(nfentrada ? application.formatters.fe.date(nfentrada.dataemissao) : '', width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Data Inc.: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .font('Courier').text(f.rpad(application.formatters.fe.date(volume.datahora), width1val, padstr))
                                 .moveDown(md);
 
                             doc
                                 .font('Courier-Bold').text(f.lpad('Qtde: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtd, 4), width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('OC: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(nfentradaitem ? nfentrada.oc : '', width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Vol.: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad('27578', width1val, padstr))
+                                .font('Courier').text(f.rpad(volume.id, width1val, padstr))
                                 .moveDown(md);
 
                             doc.moveTo(25, 578)
@@ -1150,17 +1215,17 @@ var main = {
 
                             svgtopdfkit(
                                 doc
-                                , barcode("-10-000002952", "code39", { width: 380, barHeight: 40, toFile: false })
+                                , barcode('-10-' + f.lpad(volume.id, 9, '0'), 'code39', { width: 380, barHeight: 40, toFile: false })
                                 , 170, 582
                             );
                             doc
                                 .font('Courier')
-                                .text('-10-000002952', 285, 615);
+                                .text('-10-' + f.lpad(volume.id, 9, '0'), 285, 615);
 
                             doc
                                 .font('Courier')
                                 .fontSize(120)
-                                .text('2952363', 25, 630);
+                                .text(volume.id, 25, 630);
                         }
 
                         doc.end();
@@ -1434,8 +1499,25 @@ var main = {
                     }
                 }
             }
+            , nfentradaitem: {
+                _imprimirEtiquetas: async function (obj) {
+                    try {
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let volumes = await db.getModel('est_volume').findAll({ where: { idnfentradaitem: { $in: obj.ids } } });
+                        let ids = [];
+                        for (let i = 0; i < volumes.length; i++) {
+                            ids.push(volumes[i].id);
+                        }
+                        obj.ids = ids;
+                        main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
         }
-
         , pcp: {
             approducao: {
                 _recalcula: function (id) {
@@ -1497,7 +1579,6 @@ var main = {
                             });
 
                         for (let i = 0; i < results.length; i++) {
-                            console.log(results[i].volumes, !results[i].volumes ? 'sim' : 'nao');
                             if (!results[i].volumes) {
                                 return application.success(obj.res, { redirect: '/view/74/' + results[i].id + '?parent=' + oprecurso.id });
                             }
@@ -2072,7 +2153,7 @@ var main = {
                 }
             }
             , oprecurso: {
-                save: function (obj, next) {
+                onsave: function (obj, next) {
                     if (obj.id == 0) {
                         db.getModel('pcp_config').find().then(config => {
                             if (config && config.idestadoinicial) {

@@ -6,10 +6,15 @@ var application = require('./application')
 
 var schedules = [];
 
-var addSchedule = function (sch) {
-    var custom = reload('../custom/functions');
-    var realfunction = application.functions.getRealReference(custom, sch.function);
-    schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
+var addSchedule = async function (sch) {
+    try {
+        let config = await db.getModel('config').find();
+        let custom = reload('../custom/' + config.customfile);
+        var realfunction = application.functions.getRealReference(custom, sch.function);
+        schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 var removeSchedule = function (sch) {
@@ -19,10 +24,15 @@ var removeSchedule = function (sch) {
     }
 }
 
-var executeSchedule = function (sch) {
-    var custom = reload('../custom/functions');
-    var realfunction = application.functions.getRealReference(custom, sch.function);
-    realfunction();
+var executeSchedule = async function (sch) {
+    try {
+        let config = await db.getModel('config').find();
+        let custom = reload('../custom/' + config.customfile);
+        var realfunction = application.functions.getRealReference(custom, sch.function);
+        realfunction();
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 db.sequelize.query("SELECT * FROM schedule where active", { type: db.sequelize.QueryTypes.SELECT }).then(scheds => {
