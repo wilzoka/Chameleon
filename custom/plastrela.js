@@ -369,7 +369,7 @@ var main = {
 
     , plastrela: {
         compra: {
-            cmp_solicitacaoitem: {
+            solicitacaoitem: {
                 onsave: async function (obj, next) {
                     try {
 
@@ -388,6 +388,272 @@ var main = {
                     }
 
                     next(obj);
+                }
+                , _dividir: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.decimal({
+                                width: '12'
+                                , label: 'Quantidade'
+                                , name: 'qtd'
+                                , precision: '4'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: 'Dividir Solicitação'
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Dividir</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'qtd']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let qtd = parseFloat(application.formatters.be.decimal(obj.req.body.qtd, 4));
+
+                            let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').find({ where: { id: obj.req.body.id } });
+                            if (qtd > parseFloat(solicitacaoitem.qtd)) {
+                                return application.error(obj.res, { msg: 'A quantidade informada excede a quantidade da solicitação' });
+                            }
+
+                            await db.getModel('cmp_solicitacaoitem').create({
+                                iduser: solicitacaoitem.iduser,
+                                idversao: solicitacaoitem.idversao,
+                                idpedidoitem: solicitacaoitem.idpedidoitem,
+                                idestado: solicitacaoitem.idestado,
+                                ociniflex: solicitacaoitem.ociniflex,
+                                dataprevisao: solicitacaoitem.dataprevisao,
+                                qtd: qtd.toFixed(4)
+                            });
+
+                            solicitacaoitem.qtd = (parseFloat(solicitacaoitem.qtd) - qtd).toFixed(4);
+                            await solicitacaoitem.save();
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , _alterarEstado: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Estado'
+                                , name: 'idestado'
+                                , model: 'cmp_solicitacaoestado'
+                                , attribute: 'descricao'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: 'Alterar Estado'
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Alterar</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idestado']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            await db.getModel('cmp_solicitacaoitem').update({ idestado: obj.req.body.idestado }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , _imprimir: async function (obj) {
+                    try {
+
+                        let f = application.functions;
+                        let pdfkit = require('pdfkit');
+                        let pdftable = require('voilab-pdf-table');
+
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        const doc = new pdfkit({
+                            autoFirstPage: false
+                        });
+
+                        let config = await db.getModel('config').find({ raw: true });
+                        let image = JSON.parse(config.imagemrelatorio)[0];
+                        var filename = process.hrtime()[1] + '.pdf';
+                        var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+
+                        doc.addPage();
+
+                        doc.moveTo(25, 25)
+                            .lineTo(589, 25) //top
+                            .lineTo(589, 75) //right
+                            .lineTo(25, 75) //bottom
+                            .lineTo(25, 25) //bottom
+                            .stroke();
+
+                        doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+
+                        // Title
+                        doc
+                            .font('Courier-Bold')
+                            .fontSize(11)
+                            .text('ITENS PARA COMPRA', 265, 47);
+
+
+                        doc
+                            .fontSize(7.5)
+                            .text(moment().format('DD/MM/YYYY'), 520, 40)
+                            .text(moment().format('HH:mm'), 532, 55);
+
+                        let padstr = ' ';
+                        let w = [11, 33, 15, 15, 46]
+                        let basew = 4.75;
+                        let mdt = 10;
+                        let mdb = 11;
+                        let md = 0.6;
+
+                        let results = await db.sequelize.query(
+                            'select'
+                            + ' si.id'
+                            + ' , c.descricao as tipo'
+                            + ' , si.qtd'
+                            + ' , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.idversao = v.id and af.codigo = 22) as espessura'
+                            + ' , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.idversao = v.id and af.codigo = 20) as largura'
+                            + ' from'
+                            + ' cmp_solicitacaoitem si'
+                            + ' left join pcp_versao v on (si.idversao = v.id)'
+                            + ' left join cad_item i on (v.iditem = i.id)'
+                            + ' left join est_classe c on (i.idclasse = c.id)'
+                            + ' left join cad_unidade u on (i.idunidade = u.id)'
+                            + ' where'
+                            + ' si.id in (' + obj.ids.join(',') + ')'
+                            , {
+                                type: db.sequelize.QueryTypes.SELECT
+                            });
+
+                        let sum = 25;
+                        for (let i = 0; i < results.length; i++) {
+                            sum = 25;
+                            if (i == 0) {
+
+                                doc.y = 85;
+                                // top
+                                doc.moveTo(25, doc.y - 6)
+                                    .lineTo(589, doc.y - 6)
+                                    .stroke();
+                                // bottom
+                                doc.moveTo(25, doc.y + 7)
+                                    .lineTo(589, doc.y + 7)
+                                    .stroke();
+
+                                // first
+                                doc.moveTo(25, doc.y - (md * mdt))
+                                    .lineTo(25, doc.y + (md * mdb))
+                                    .stroke();
+                                // last
+                                doc.moveTo(589, doc.y - (md * mdt))
+                                    .lineTo(589, doc.y + (md * mdb))
+                                    .stroke();
+
+                                for (let z = 0; z < w.length - 1; z++) {
+                                    doc.moveTo(sum + (basew * w[z]), doc.y - (md * mdt))
+                                        .lineTo(sum + (basew * w[z]), doc.y + (md * mdb))
+                                        .stroke();
+                                    sum += (basew * w[z]);
+                                }
+
+                                doc
+                                    .font('Courier-Bold')
+                                    .text(
+                                    f.lpad(' OC ', w[0], padstr) + ' '
+                                    + f.lpad('Tipo', w[1], padstr) + ' '
+                                    + f.lpad('Largura(mm)', w[2], padstr) + ' '
+                                    + f.lpad('Espessura(mm)', w[3], padstr) + ' '
+                                    + f.lpad('Peso(kg)', w[4], padstr)
+                                    , 27, 85)
+                                    .moveDown(md);
+
+                            }
+
+                            // bottom
+                            doc.moveTo(25, doc.y + 7)
+                                .lineTo(589, doc.y + 7)
+                                .stroke();
+
+                            // first
+                            doc.moveTo(25, doc.y - (md * mdt))
+                                .lineTo(25, doc.y + (md * mdb))
+                                .stroke();
+                            // last
+                            doc.moveTo(589, doc.y - (md * mdt))
+                                .lineTo(589, doc.y + (md * mdb))
+                                .stroke();
+                            sum = 25;
+                            for (let z = 0; z < w.length - 1; z++) {
+                                doc.moveTo(sum + (basew * w[z]), doc.y - (md * mdt))
+                                    .lineTo(sum + (basew * w[z]), doc.y + (md * mdb))
+                                    .stroke();
+                                sum += (basew * w[z]);
+                            }
+
+                            doc
+                                .font('Courier')
+                                .text(
+                                f.lpad(results[i].id, w[0] - 1, padstr) + '  '
+                                + f.lpad(results[i].tipo, w[1], padstr) + ' '
+                                + f.lpad(results[i].largura, w[2], padstr) + ' '
+                                + f.lpad(results[i].espessura, w[3], padstr) + ' '
+                                + f.lpad(results[i].qtd, w[4], padstr)
+                                )
+                                .moveDown(md);
+                        }
+
+                        doc.end();
+                        stream.on('finish', function () {
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                                }
+                            });
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
             }
         }
@@ -536,7 +802,7 @@ var main = {
             , _finalizarEntrada: async function (obj) {
                 try {
 
-                    
+                    return application.success(obj.res, { msg: 'rá' });
 
                 } catch (err) {
                     return application.fatal(obj.res, err);

@@ -53,7 +53,7 @@ h4.title_subview {
 .sidebar-menu ul li a {
     white-space: normal;
     word-wrap: break-word;
- }
+}
 
 /* Bootstrap Fixes */
 @media (min-width: 768px) {
@@ -127,15 +127,6 @@ div.dz-image img {
 }
 .dropzone .dz-preview.dz-error .dz-error-mark {
     color: red
-}
-
-/* Custom */
-table.dataTable thead tr th, table.dataTable tfoot tr td {
-    background-color: #f4f4f4;
-    font-weight: bold;
-}
-.btn-group-top-datatables {
-    margin-bottom: 5px;
 }
 
 /* Wizard */
@@ -254,4 +245,16 @@ span.round-tab:hover {
         position: absolute;
         left: 35%;
     }
+}
+
+/* Custom */
+table.dataTable thead tr th, table.dataTable tfoot tr td {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+.btn-group-top-datatables {
+    margin-bottom: 5px;
+}
+a.btnevent i.fa {
+    min-width: 14px;
 }
