@@ -365,6 +365,59 @@ var main = {
                 }
             }
         }
+        , mail: {
+            f_sendmail: function (obj) {
+                let nodemailer = require('nodemailer');
+                let transporter = nodemailer.createTransport({
+                    host: 'smtp.plastrela.com.br'
+                    , port: 587
+                    , tls: { rejectUnauthorized: false }
+                    , auth: {
+                        user: 'plastrela@plastrela.com.br'
+                        , pass: 'Pl3678#$'
+                    }
+                });
+                let mailOptions = {
+                    from: '"Plastrela" <plastrela@plastrela.com.br>'
+                    , to: obj.to.join(',')
+                    , subject: obj.subject
+                    , html: obj.html
+                };
+                transporter.sendMail(mailOptions, (err, info) => {
+                    if (err) {
+                        return console.log(err);
+                    }
+                });
+            }
+        }
+        , kettle: {
+            f_runTransformation: function (filepath) {
+                let cmd = require('node-cmd');
+                // console.log(__dirname);
+
+                cmd.get(
+                    'C:\\data-integration\\Pan.bat /file:"' + __dirname + '\\' + filepath + '"',
+                    function (err, data, stderr) {
+                        console.log(err, data);
+                    }
+                );
+
+
+                // cmd.get(
+                //     'cd C:\\data-integration',
+                //     function (err, data, stderr) {
+                //         console.log(data);
+                //     }
+                // );
+                // cmd.get(
+                //     'dir',
+                //     function (err, data, stderr) {
+                //         // console.log(data);
+                //     }
+                // );
+
+            }
+        }
     }
 
     , plastrela: {
@@ -498,7 +551,6 @@ var main = {
 
                         let f = application.functions;
                         let pdfkit = require('pdfkit');
-                        let pdftable = require('voilab-pdf-table');
 
                         if (obj.ids.length == 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
@@ -513,11 +565,13 @@ var main = {
                         var filename = process.hrtime()[1] + '.pdf';
                         var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
 
-                        doc.addPage();
+                        doc.addPage({
+                            margin: 30
+                        });
 
                         doc.moveTo(25, 25)
-                            .lineTo(589, 25) //top
-                            .lineTo(589, 75) //right
+                            .lineTo(569, 25) //top
+                            .lineTo(569, 75) //right
                             .lineTo(25, 75) //bottom
                             .lineTo(25, 25) //bottom
                             .stroke();
@@ -533,12 +587,12 @@ var main = {
 
                         doc
                             .fontSize(7.5)
-                            .text(moment().format('DD/MM/YYYY'), 520, 40)
-                            .text(moment().format('HH:mm'), 532, 55);
+                            .text(moment().format('DD/MM/YYYY'), 510, 40)
+                            .text(moment().format('HH:mm'), 522, 55);
 
                         let padstr = ' ';
-                        let w = [11, 33, 15, 15, 46]
-                        let basew = 4.75;
+                        let w = [11, 33, 15, 15, 31, 10]
+                        let basew = 4.72;
                         let mdt = 10;
                         let mdb = 11;
                         let md = 0.6;
@@ -548,8 +602,9 @@ var main = {
                             + ' si.id'
                             + ' , c.descricao as tipo'
                             + ' , si.qtd'
-                            + ' , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.idversao = v.id and af.codigo = 22) as espessura'
-                            + ' , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.idversao = v.id and af.codigo = 20) as largura'
+                            + ' , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22)) as espessura'
+                            + ' , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20)) as largura'
+                            + ' , u.unidade'
                             + ' from'
                             + ' cmp_solicitacaoitem si'
                             + ' left join pcp_versao v on (si.idversao = v.id)'
@@ -570,11 +625,11 @@ var main = {
                                 doc.y = 85;
                                 // top
                                 doc.moveTo(25, doc.y - 6)
-                                    .lineTo(589, doc.y - 6)
+                                    .lineTo(569, doc.y - 6)
                                     .stroke();
                                 // bottom
                                 doc.moveTo(25, doc.y + 7)
-                                    .lineTo(589, doc.y + 7)
+                                    .lineTo(569, doc.y + 7)
                                     .stroke();
 
                                 // first
@@ -582,8 +637,8 @@ var main = {
                                     .lineTo(25, doc.y + (md * mdb))
                                     .stroke();
                                 // last
-                                doc.moveTo(589, doc.y - (md * mdt))
-                                    .lineTo(589, doc.y + (md * mdb))
+                                doc.moveTo(569, doc.y - (md * mdt))
+                                    .lineTo(569, doc.y + (md * mdb))
                                     .stroke();
 
                                 for (let z = 0; z < w.length - 1; z++) {
@@ -597,10 +652,11 @@ var main = {
                                     .font('Courier-Bold')
                                     .text(
                                     f.lpad(' OC ', w[0], padstr) + ' '
-                                    + f.lpad('Tipo', w[1], padstr) + ' '
+                                    + f.rpad('Tipo', w[1], padstr) + ' '
                                     + f.lpad('Largura(mm)', w[2], padstr) + ' '
                                     + f.lpad('Espessura(mm)', w[3], padstr) + ' '
-                                    + f.lpad('Peso(kg)', w[4], padstr)
+                                    + f.lpad('Quantidade', w[4], padstr) + ' '
+                                    + f.rpad('Unidade', w[5], padstr)
                                     , 27, 85)
                                     .moveDown(md);
 
@@ -608,7 +664,7 @@ var main = {
 
                             // bottom
                             doc.moveTo(25, doc.y + 7)
-                                .lineTo(589, doc.y + 7)
+                                .lineTo(569, doc.y + 7)
                                 .stroke();
 
                             // first
@@ -616,8 +672,8 @@ var main = {
                                 .lineTo(25, doc.y + (md * mdb))
                                 .stroke();
                             // last
-                            doc.moveTo(589, doc.y - (md * mdt))
-                                .lineTo(589, doc.y + (md * mdb))
+                            doc.moveTo(569, doc.y - (md * mdt))
+                                .lineTo(569, doc.y + (md * mdb))
                                 .stroke();
                             sum = 25;
                             for (let z = 0; z < w.length - 1; z++) {
@@ -631,10 +687,11 @@ var main = {
                                 .font('Courier')
                                 .text(
                                 f.lpad(results[i].id, w[0] - 1, padstr) + '  '
-                                + f.lpad(results[i].tipo, w[1], padstr) + ' '
-                                + f.lpad(results[i].largura, w[2], padstr) + ' '
-                                + f.lpad(results[i].espessura, w[3], padstr) + ' '
-                                + f.lpad(results[i].qtd, w[4], padstr)
+                                + f.rpad(results[i].tipo, w[1], padstr) + ' '
+                                + f.lpad(application.formatters.fe.decimal(results[i].largura, 2), w[2], padstr) + ' '
+                                + f.lpad(application.formatters.fe.decimal(results[i].espessura, 4), w[3], padstr) + ' '
+                                + f.lpad(application.formatters.fe.decimal(results[i].qtd, 4), w[4], padstr) + ' '
+                                + f.rpad(results[i].unidade, w[5], padstr)
                                 )
                                 .moveDown(md);
                         }
@@ -776,7 +833,7 @@ var main = {
                             }
 
                             bulkitens.push({
-                                codigoviniflex: 1
+                                codigoviniflex: null
                                 , idnfentrada: nf.id
                                 , sequencial: spednfitem[i].item
                                 , codigo: spednfitem[i].codigo_produto
@@ -801,6 +858,12 @@ var main = {
             }
             , _finalizarEntrada: async function (obj) {
                 try {
+
+                    if (obj.ids.length == 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+
+                    main.plataform.kettle.f_runTransformation('plastrela\\estoque\\nfentradaitem_codigoviniflex.ktr');
 
                     return application.success(obj.res, { msg: 'rá' });
 
