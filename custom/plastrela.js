@@ -392,30 +392,20 @@ var main = {
         }
         , kettle: {
             f_runTransformation: function (filepath) {
-                let cmd = require('node-cmd');
-                // console.log(__dirname);
-
-                cmd.get(
-                    'C:\\data-integration\\Pan.bat /file:"' + __dirname + '\\' + filepath + '"',
-                    function (err, data, stderr) {
-                        console.log(err, data);
-                    }
-                );
-
-
-                // cmd.get(
-                //     'cd C:\\data-integration',
-                //     function (err, data, stderr) {
-                //         console.log(data);
-                //     }
-                // );
-                // cmd.get(
-                //     'dir',
-                //     function (err, data, stderr) {
-                //         // console.log(data);
-                //     }
-                // );
-
+                var nrc = require('node-run-cmd');
+                nrc.run('Pan.bat /file:' + __dirname + '\\' + filepath + ''
+                    , {
+                        onDone: function (code) {
+                            console.log('done', filepath);
+                        }
+                        , onData: function (data) {
+                            // console.log('data', data);
+                        }
+                        , onError: function (data) {
+                            // console.log('error', filepath);
+                        }
+                        , cwd: 'C:\\data-integration'
+                    });
             }
         }
     }
@@ -859,13 +849,83 @@ var main = {
             , _finalizarEntrada: async function (obj) {
                 try {
 
-                    if (obj.ids.length == 0) {
-                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                     }
 
-                    main.plataform.kettle.f_runTransformation('plastrela\\estoque\\nfentradaitem_codigoviniflex.ktr');
+                    let nfentrada = await db.getModel('est_nfentrada').find({ where: { id: obj.ids[0] } });
 
-                    return application.success(obj.res, { msg: 'rá' });
+                    let results = await db.sequelize.query(`
+                    select * from (select
+                        ni.sequencial
+                        , ni.qtd
+                        , (select sum(v.qtd) from est_volume v where v.idnfentradaitem = ni.id) as totalgerado
+                    from
+                        est_nfentrada n
+                    left join est_nfentradaitem ni on (n.id = ni.idnfentrada)
+                    where
+                        n.id = :v1) as x
+                    where qtd != totalgerado
+                    `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: nfentrada.id } });
+                    if (results.length > 0) {
+                        return application.error(obj.res, { msg: 'O peso gerado do item com sequencial ' + results[0].sequencial + ' não bate com o da nota, verifique' });
+                    }
+
+                    let config = await db.getModel('cmp_config').find();
+                    let nfentradaitens = await db.getModel('est_nfentradaitem').findAll({ where: { idnfentrada: nfentrada.id } });
+                    let bulkreservas = [];
+                    let solicitacoesparafinalizar = [];
+
+                    for (var i = 0; i < nfentradaitens.length; i++) {
+                        let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').find({
+                            where: {
+                                idversao: nfentradaitens[i].idversao
+                                , ociniflex: nfentradaitens[i].oc
+                                , idestado: config.idsolicitacaoestadocomprado
+                            }
+                        });
+                        if (solicitacaoitem) {
+
+                            // Reservas
+                            let pesorestante = parseFloat(solicitacaoitem.qtd);
+                            let volumes = await db.getModel('est_volume').findAll({ where: { idnfentradaitem: nfentradaitens[i].id } });
+                            for (var z = 0; z < volumes.length; z++) {
+                                let qtd = parseFloat(volumes[z].qtd);
+                                if (pesorestante < parseFloat(volumes[z].qtd)) {
+                                    qtd = pesorestante;
+                                } else {
+                                    pesorestante -= qtd;
+                                }
+                                bulkreservas.push({
+                                    idvolume: volumes[z].id
+                                    , idpedidoitem: solicitacaoitem.idpedidoitem
+                                    , qtd: qtd.toFixed(4)
+                                    , apontado: false
+                                });
+                            }
+
+                            // Finalizar OC
+                            solicitacoesparafinalizar.push(solicitacaoitem);
+                        } else {
+                            return application.error(obj.res, { msg: 'Solicitação de compra não encontrado para o item com sequencial ' + nfentradaitens[i].sequencial })
+                        }
+                    }
+
+                    if (bulkreservas.length > 0) {
+                        await db.getModel('est_volumereserva').bulkCreate(bulkreservas);
+                    }
+                    for (var i = 0; i < solicitacoesparafinalizar.length; i++) {
+                        solicitacoesparafinalizar[i].idestado = config.idsolicitacaoestadofinal;
+                        await solicitacoesparafinalizar[i].save();
+                    }
+
+                    nfentrada.integrado = 'P';
+                    nfentrada.finalizado = true;
+                    await nfentrada.save();
+
+                    main.plataform.kettle.f_runTransformation('plastrela/estoque/integrarvolumes.ktr');
+
+                    return application.success(obj.res, { msg: application.message.success });
 
                 } catch (err) {
                     return application.fatal(obj.res, err);
