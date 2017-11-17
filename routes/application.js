@@ -263,6 +263,9 @@ var application = {
 			}
 			return value.substring(0, length);
 		}
+		, isWindows: function () {
+			return /^win/.test(process.platform);
+		}
 	}
 
 	, modelattribute: {

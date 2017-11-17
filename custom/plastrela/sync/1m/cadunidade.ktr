@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>integrarvolumes</name>
+    <name>cadunidade</name>
     <description/>
     <extended_description/>
     <trans_version/>
     <trans_type>Normal</trans_type>
-    <trans_status>0</trans_status>
     <directory>&#x2f;</directory>
     <parameters>
     </parameters>
@@ -67,10 +66,10 @@
     <clusterschemas>
     </clusterschemas>
   <created_user>-</created_user>
-  <created_date>2017&#x2f;11&#x2f;14 14&#x3a;17&#x3a;40.093</created_date>
+  <created_date>2017&#x2f;10&#x2f;24 13&#x3a;40&#x3a;42.714</created_date>
   <modified_user>-</modified_user>
-  <modified_date>2017&#x2f;11&#x2f;14 14&#x3a;17&#x3a;40.093</modified_date>
-    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA&#x3d;</key_for_session_key>
+  <modified_date>2017&#x2f;10&#x2f;24 13&#x3a;40&#x3a;42.714</modified_date>
+    <key_for_session_key/>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
@@ -124,30 +123,6 @@
     </attributes>
   </connection>
   <connection>
-    <name>Iniflex Integracao</name>
-    <server>172.10.30.8</server>
-    <type>ORACLE</type>
-    <access>Native</access>
-    <database>oracle10</database>
-    <port>1521</port>
-    <username>integracao</username>
-    <password>Encrypted 2be98afc86aa79b8abf1ca962df91aed5</password>
-    <servername/>
-    <data_tablespace/>
-    <index_tablespace/>
-    <attributes>
-      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
-      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
-      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
-      <attribute><code>PORT_NUMBER</code><attribute>1521</attribute></attribute>
-      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
-      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
-      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
-      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
-      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
-    </attributes>
-  </connection>
-  <connection>
     <name>SIP</name>
     <server>172.10.30.18</server>
     <type>POSTGRESQL</type>
@@ -172,37 +147,8 @@
     </attributes>
   </connection>
   <order>
-  <hop> <from>Table input</from><to>Call DB Procedure</to><enabled>Y</enabled> </hop>
-  <hop> <from>Call DB Procedure</from><to>Update</to><enabled>Y</enabled> </hop>
+  <hop> <from>Table input</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
   </order>
-  <step>
-    <name>Call DB Procedure</name>
-    <type>DBProc</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>Iniflex Integracao</connection>
-    <procedure>F_VOLUME_ID</procedure>
-    <lookup>
-    </lookup>
-    <result>
-      <name>codigoviniflex</name>
-      <type>Number</type>
-    </result>
-    <auto_commit>Y</auto_commit>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>181</xloc>
-      <yloc>49</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
   <step>
     <name>Table input</name>
     <type>TableInput</type>
@@ -214,8 +160,8 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>Chameleon</connection>
-    <sql>select id from est_nfentradaitem where codigoviniflex is null</sql>
+    <connection>Iniflex</connection>
+    <sql>SELECT&#xd;&#xa;	unidade&#xd;&#xa;	, nome as descricao&#xd;&#xa;from&#xd;&#xa;	cadunidade</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -223,15 +169,15 @@
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>47</xloc>
-      <yloc>49</yloc>
+      <xloc>65</xloc>
+      <yloc>41</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
 
   <step>
-    <name>Update</name>
-    <type>Update</type>
+    <name>Insert &#x2f; Update</name>
+    <type>InsertUpdate</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -241,33 +187,32 @@
            <schema_name/>
            </partitioning>
     <connection>Chameleon</connection>
-    <skip_lookup>N</skip_lookup>
     <commit>100</commit>
-    <use_batch>N</use_batch>
-    <error_ignored>N</error_ignored>
-    <ignore_flag_field/>
+    <update_bypassed>N</update_bypassed>
     <lookup>
       <schema/>
-      <table>est_nfentradaitem</table>
+      <table>cad_unidade</table>
       <key>
-        <name>id</name>
-        <field>id</field>
+        <name>UNIDADE</name>
+        <field>unidade</field>
         <condition>&#x3d;</condition>
         <name2/>
-        </key>
+      </key>
       <value>
-        <name>id</name>
-        <rename>id</rename>
-        </value>
+        <name>unidade</name>
+        <rename>UNIDADE</rename>
+        <update>Y</update>
+      </value>
       <value>
-        <name>codigoviniflex</name>
-        <rename>codigoviniflex</rename>
-        </value>
-      </lookup>
+        <name>descricao</name>
+        <rename>DESCRICAO</rename>
+        <update>N</update>
+      </value>
+    </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>307</xloc>
-      <yloc>49</yloc>
+      <xloc>214</xloc>
+      <yloc>41</yloc>
       <draw>Y</draw>
       </GUI>
     </step>

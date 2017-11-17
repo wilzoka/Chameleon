@@ -391,27 +391,48 @@ var main = {
             }
         }
         , kettle: {
-            f_runTransformation: function (filepath) {
-                var nrc = require('node-run-cmd');
-                nrc.run('Pan.bat /file:' + __dirname + '\\' + filepath + ''
-                    , {
-                        onDone: function (code) {
-                            console.log('done', filepath);
-                        }
-                        , onData: function (data) {
-                            // console.log('data', data);
-                        }
-                        , onError: function (data) {
-                            // console.log('error', filepath);
-                        }
-                        , cwd: 'C:\\data-integration'
-                    });
+            f_path: 'C:\\data-integration'
+            , f_runTransformation: function (filepath) {
+                let nrc = require('node-run-cmd');
+                if (application.functions.isWindows()) {
+                    nrc.run('Pan.bat /file:' + __dirname + '/' + filepath
+                        , { cwd: main.plataform.kettle.f_path });
+                } else {
+                    nrc.run('pan.sh -file=' + __dirname + '/' + filepath
+                        , { cwd: main.plataform.kettle.f_path });
+                }
+            }
+            , f_runJob: function (filepath) {
+                let nrc = require('node-run-cmd');
+                if (application.functions.isWindows()) {
+                    nrc.run('Kitchen.bat /file:' + __dirname + '/' + filepath
+                        , {
+                            cwd: main.plataform.kettle.f_path
+                            // , onData: function (data) {
+                            //     console.log('data', data);
+                            // }
+                            // , onDone: function (data) {
+                            //     console.log('done', data);
+                            // }
+                            // , onError: function (data) {
+                            //     console.log('err', data);
+                            // }
+                        });
+                } else {
+                    nrc.run('kitchen.sh -file=' + __dirname + '/' + filepath
+                        , { cwd: main.plataform.kettle.f_path });
+                }
             }
         }
     }
 
     , plastrela: {
-        compra: {
+        sync: {
+            s_1: function () {
+                main.plataform.kettle.f_runJob('plastrela/sync/1m/Job.kjb');
+            }
+        }
+        , compra: {
             solicitacaoitem: {
                 onsave: async function (obj, next) {
                     try {
@@ -854,6 +875,9 @@ var main = {
                     }
 
                     let nfentrada = await db.getModel('est_nfentrada').find({ where: { id: obj.ids[0] } });
+                    if (nfentrada.finalizado) {
+                        return application.error(obj.res, { msg: 'Não é possível finalizar uma nota já finalizada' });
+                    }
 
                     let results = await db.sequelize.query(`
                     select * from (select
@@ -923,9 +947,9 @@ var main = {
                     nfentrada.finalizado = true;
                     await nfentrada.save();
 
-                    main.plataform.kettle.f_runTransformation('plastrela/estoque/integrarvolumes.ktr');
+                    main.plataform.kettle.f_runJob('plastrela/estoque/integracaovolumes/Job.kjb');
 
-                    return application.success(obj.res, { msg: application.message.success });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
                 } catch (err) {
                     return application.fatal(obj.res, err);
