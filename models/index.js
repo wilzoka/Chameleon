@@ -1,6 +1,6 @@
 var application = require('../routes/application')
   , Sequelize = require('sequelize')
-  , sequelize = new Sequelize('chameleon', 'postgres', 'postgres', {
+  , sequelize = new Sequelize('sipfinancas', 'postgres', 'postgres', {
     host: 'localhost'
     , dialect: 'postgres'
     , pool: {
