@@ -1160,7 +1160,7 @@ module.exports = function (app) {
 
                 let js = '';
                 if (view.js) {
-                    js = '<script type="text/javascript">' + fs.readFileSync(__dirname + '/../views/js/' + view.js, 'utf8') + '</script>';
+                    js = '<script type="text/javascript">' + fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8') + '</script>';
                 }
 
                 return application.render(res, 'templates/viewregister', lodash.extend({
