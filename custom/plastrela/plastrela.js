@@ -1,6 +1,6 @@
-var application = require('../routes/application')
-    , db = require('../models')
-    , schedule = require('../routes/schedule')
+var application = require('../../routes/application')
+    , db = require('../../models')
+    , schedule = require('../../routes/schedule')
     , moment = require('moment')
     , fs = require('fs')
     ;

@@ -1219,7 +1219,6 @@ module.exports = function (app) {
     });
 
     app.post('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {
-
         try {
             let permission = await hasPermission(req.user.id, req.params.idview);
             if ((req.params.id == 0 && permission.insertable) || (req.params.id > 0 && permission.editable)) {
@@ -1252,7 +1251,7 @@ module.exports = function (app) {
                     let custom = reload('../custom/' + config.customfile);
                     return application.functions.getRealReference(custom, view.model.onsave)(obj, validateAndSave);
                 } else {
-                    validateAndSave(obj);
+                    await validateAndSave(obj);
                 }
 
             } else {
@@ -1260,9 +1259,8 @@ module.exports = function (app) {
             }
 
         } catch (err) {
-            return application.fatal(obj.res, err);
+            return application.fatal(res, err);
         }
-
     });
 
 }

@@ -833,7 +833,7 @@ var application = {
                     return '<i class="fa fa-check"></i>'
                 }
             }
-            , fin_mov_dc: function (value) {
+            , fin_categoria_dc: function (value) {
                 if (value == 1) {
                     return '<span class="label label-danger">Débito</span>';
                 } else {
@@ -964,7 +964,7 @@ var application = {
 
                 if ('modal' in response) {
                     if ('form' in response.modal && response.modal.form) {
-                        $('body').append('<form class="xhr" autocomplete="off" data-modal="true" action="' + response.modal.action + '">' + application.modal.create(response.modal) + '</form>');
+                        $('body').append('<form class="xhr" autocomplete="off" data-modal="true" action="' + (response.modal.action || '') + '">' + application.modal.create(response.modal) + '</form>');
                     } else {
                         $('body').append(application.modal.create(response.modal));
                     }
