@@ -485,7 +485,53 @@ var main = {
                 }
             }
             , movparc: {
-                __venda_adicionarModal: async function (obj) {
+                onsave: async function (obj, next) {
+                    try {
+
+                        let mov = await db.getModel('fin_mov').find({ where: { id: obj.register.idmov } });
+                        let sql = await db.sequelize.query(`
+                            select
+                                fin_mov.valor - coalesce(
+                                    (select
+                                        sum(mp.valor)
+                                    from fin_movparc mp where fin_mov.id = mp.idmov and mp.id != :v2)                                        
+                                , 0) as valoraberto
+                            from
+                                fin_mov
+                            where
+                                id = :v1
+                            `
+                            , {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    v1: mov.id
+                                    , v2: obj.register.id
+                                }
+                            });
+                        sql = parseFloat(sql[0].valoraberto) - parseFloat(obj.register.valor);
+                        if (sql <= 0) {
+                            mov.quitado = true;
+                            await mov.save();
+                        }
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+
+                        let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: obj.ids } } });
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , __venda_adicionarModal: async function (obj) {
                     try {
 
                         let body = '';
@@ -555,12 +601,193 @@ var main = {
                                 , valor: (sum / parseInt(obj.data.qtd)).toFixed(2)
                                 , idcorr: pedido.idcliente
                                 , detalhes: 'Venda ' + pedido.id + ' NF ' + pedido.nfe
+                                , quitado: false
                             });
                         }
 
                         await db.getModel('fin_mov').bulkCreate(bulkmov);
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , mov: {
+                e_baixarTitulos: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+
+                            let body = '';
+                            body += '<div class="row no-margin">';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.autocomplete({
+                                width: '2'
+                                , label: 'Conta*'
+                                , name: 'idconta'
+                                , model: 'fin_conta'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.date({
+                                width: '3'
+                                , label: 'Data Recebimento/Pagamento*'
+                                , name: 'data'
+                            });
+                            body += '</div><hr>';
+                            for (let i = 0; i < obj.ids.length; i++) {
+
+                                let mov = await db.getModel('fin_mov').find({ where: { id: obj.ids[i] }, include: [{ all: true }] });
+                                let valoraberto = application.formatters.fe.decimal((await db.sequelize.query(`
+                                    select
+                                        m.valor - coalesce(
+                                            (select
+                                            sum(mp.valor)
+                                            from fin_movparc mp where m.id = mp.idmov)                                        
+                                        , 0) as valoraberto
+                                    from
+                                        fin_mov m
+                                    where m.id = :v1
+                                    `
+                                    , {
+                                        type: db.sequelize.QueryTypes.SELECT
+                                        , replacements: {
+                                            v1: mov.id
+                                        }
+                                    }))[0].valoraberto, 2);
+
+                                body += '<div class="row no-margin">';
+
+                                body += application.components.html.integer({
+                                    width: '1'
+                                    , label: 'ID'
+                                    , name: 'id' + obj.ids[i]
+                                    , value: mov.id
+                                    , disabled: 'disabled="disabled"'
+                                });
+
+                                body += application.components.html.text({
+                                    width: '3'
+                                    , label: 'Correntista'
+                                    , name: 'cliente' + obj.ids[i]
+                                    , value: mov.cad_corr.nome
+                                    , disabled: 'disabled="disabled"'
+                                });
+
+                                body += application.components.html.autocomplete({
+                                    width: '2'
+                                    , label: 'Forma de Pagamento*'
+                                    , name: 'idformapgto' + obj.ids[i]
+                                    , model: 'fin_formapgto'
+                                    , attribute: 'descricao'
+                                });
+
+                                body += application.components.html.decimal({
+                                    width: '2'
+                                    , label: 'Valor*'
+                                    , name: 'valor' + obj.ids[i]
+                                    , precision: 2
+                                    , value: valoraberto
+                                });
+
+                                body += application.components.html.decimal({
+                                    width: '2'
+                                    , label: 'Juro'
+                                    , name: 'juro' + obj.ids[i]
+                                    , precision: 2
+                                });
+
+                                body += application.components.html.decimal({
+                                    width: '2'
+                                    , label: 'Desconto'
+                                    , name: 'desconto' + obj.ids[i]
+                                    , precision: 2
+                                });
+
+                                body += '</div>';
+                                if (i != obj.ids.length - 1) {
+                                    body += '<hr>';
+                                }
+
+                            }
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , fullscreen: true
+                                    , id: 'modalevt'
+                                    , action: '/event/' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Baixar</button>'
+                                }
+                            });
+
+                            return application.success(obj.res, { msg: 'aa' });
+
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idconta', 'data']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let ids = obj.req.body.ids.split(',');
+                            let requiredFields = [];
+                            for (let i = 0; i < ids.length; i++) {
+                                requiredFields = requiredFields.concat(application.functions.getEmptyFields(obj.req.body, [
+                                    'idformapgto' + ids[i]
+                                    , 'valor' + ids[i]
+                                ]));
+                            }
+                            if (requiredFields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: requiredFields });
+                            }
+
+                            let bulkmovparc = [];
+                            for (let i = 0; i < ids.length; i++) {
+                                bulkmovparc.push({
+                                    valor: application.formatters.be.decimal(obj.req.body['valor' + ids[i]], 2)
+                                    , idmov: ids[i]
+                                    , idformapgto: obj.req.body['idformapgto' + ids[i]]
+                                    , idconta: obj.req.body.idconta
+                                    , desconto: obj.req.body['desconto' + ids[i]] ? application.formatters.be.decimal(obj.req.body['desconto' + ids[i]], 2) : null
+                                    , juro: obj.req.body['juro' + ids[i]] ? application.formatters.be.decimal(obj.req.body['juro' + ids[i]], 2) : null
+                                    , data: application.formatters.be.date(obj.req.body.data)
+                                });
+                            }
+                            await db.getModel('fin_movparc').bulkCreate(bulkmovparc);
+
+                            for (let i = 0; i < ids.length; i++) {
+                                let valoraberto = parseFloat((await db.sequelize.query(`
+                                select
+                                    m.valor - coalesce(
+                                        (select
+                                        sum(mp.valor)
+                                        from fin_movparc mp where m.id = mp.idmov)                                        
+                                    , 0) as valoraberto
+                                from
+                                    fin_mov m
+                                where m.id = :v1
+                                `
+                                    , {
+                                        type: db.sequelize.QueryTypes.SELECT
+                                        , replacements: {
+                                            v1: ids[i]
+                                        }
+                                    }))[0].valoraberto);
+                                if (valoraberto <= 0) {
+                                    let mov = await db.getModel('fin_mov').find({ where: { id: ids[i] } });
+                                    mov.quitado = true;
+                                    await mov.save();
+                                }
+                            }
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);

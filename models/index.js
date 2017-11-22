@@ -10,8 +10,8 @@ var application = require('../routes/application')
     }
     , timezone: 'America/Sao_Paulo'
     , logging: function (query) {
-      console.log(query);
-      console.log('');
+      // console.log(query);
+      // console.log('');
     }
     , operatorsAliases: {
       $eq: Sequelize.Op.eq,
