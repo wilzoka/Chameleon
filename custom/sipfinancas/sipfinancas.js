@@ -511,8 +511,10 @@ var main = {
                         sql = parseFloat(sql[0].valoraberto) - parseFloat(obj.register.valor);
                         if (sql <= 0) {
                             mov.quitado = true;
-                            await mov.save();
+                        } else {
+                            mov.quitado = false;
                         }
+                        await mov.save();
 
                         next(obj);
 
@@ -523,9 +525,19 @@ var main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: obj.ids } } });
+                        let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
+                        let ids = [];
+                        for (let i = 0; i < movparcs.length; i++) {
+                            ids.push(movparcs[i].idmov);
+                        }
+                        let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: ids } } });
 
                         next(obj);
+
+                        for (let i = 0; i < movs.length; i++) {
+                            movs[i].quitado = false;
+                            movs[i].save();
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -639,6 +651,8 @@ var main = {
                                 , name: 'data'
                             });
                             body += '</div><hr>';
+
+                            let valortotalselecionado = 0;
                             for (let i = 0; i < obj.ids.length; i++) {
 
                                 let mov = await db.getModel('fin_mov').find({ where: { id: obj.ids[i] }, include: [{ all: true }] });
@@ -659,6 +673,7 @@ var main = {
                                             v1: mov.id
                                         }
                                     }))[0].valoraberto, 2);
+                                valortotalselecionado += parseFloat(application.formatters.be.decimal(valoraberto, 2))
 
                                 body += '<div class="row no-margin">';
 
@@ -708,12 +723,20 @@ var main = {
                                     , precision: 2
                                 });
 
-                                body += '</div>';
-                                if (i != obj.ids.length - 1) {
-                                    body += '<hr>';
-                                }
+                                body += '</div><hr>';
 
                             }
+
+                            body += '<div class="row no-margin">';
+                            body += application.components.html.decimal({
+                                width: '2 col-md-offset-6'
+                                , label: 'Total Valor'
+                                , name: 'valortotal'
+                                , precision: 2
+                                , disabled: 'disabled="disabled"'
+                                , value: application.formatters.fe.decimal(valortotalselecionado, 2)
+                            });
+                            body += '</div>';
 
                             return application.success(obj.res, {
                                 modal: {

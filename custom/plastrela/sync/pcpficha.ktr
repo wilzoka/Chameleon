@@ -377,7 +377,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	f.produto&#xd;&#xa;	, f.versao&#xd;&#xa;	, f.atributo&#xd;&#xa;	, f.valor_padrao&#xd;&#xa;from&#xd;&#xa;	pcpficha f&#xd;&#xa;left join pcpversao v on &#x28;f.empresa &#x3d; v.empresa and f.produto &#x3d; v.produto and f.versao &#x3d; v.versao&#x29;&#xd;&#xa;where&#xd;&#xa;	f.empresa &#x3d; 1&#xd;&#xa;	&#x2f;&#x2a;and f.atributo in &#x28;&#xd;&#xa;	20&#xd;&#xa;	,22&#xd;&#xa;	,23&#xd;&#xa;	,44&#xd;&#xa;	,120&#xd;&#xa;	,122&#xd;&#xa;	,123&#xd;&#xa;	,144&#xd;&#xa;	,173&#xd;&#xa;	,175&#xd;&#xa;	,176&#xd;&#xa;	,948&#xd;&#xa;	,1124&#xd;&#xa;	,1162&#xd;&#xa;	,1176&#xd;&#xa;	,1190&#xd;&#xa;	,1192&#xd;&#xa;	,1193&#xd;&#xa;	,1197&#xd;&#xa;	,1198&#xd;&#xa;	,15028&#xd;&#xa;	,15041&#xd;&#xa;	,15046&#xd;&#xa;	,150028&#xd;&#xa;	,150029&#xd;&#xa;	,150038&#xd;&#xa;	,150039&#xd;&#xa;	&#x29;&#xd;&#xa;	&#x2a;&#x2f;&#xd;&#xa;--	and v.situacao like &#x27;A&#x27;&#xd;&#xa;	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 10</sql>
+    <sql>select&#xd;&#xa;	f.produto&#xd;&#xa;	, f.versao&#xd;&#xa;	, f.atributo&#xd;&#xa;	, f.valor_padrao&#xd;&#xa;from&#xd;&#xa;	pcpficha f&#xd;&#xa;left join pcpversao v on &#x28;f.empresa &#x3d; v.empresa and f.produto &#x3d; v.produto and f.versao &#x3d; v.versao&#x29;&#xd;&#xa;where&#xd;&#xa;	f.empresa &#x3d; 1&#xd;&#xa;	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 1</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

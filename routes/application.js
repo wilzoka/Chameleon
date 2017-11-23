@@ -179,10 +179,12 @@ var application = {
 				value = value.replace(/\,/g, ".");
 				return parseFloat(value).toFixed(precision);
 			}
+			, date_format: 'YYYY-MM-DD'
+			, datetime_format: 'YYYY-MM-DD HH:mm'
 			, date: function (value) {
 				value = moment(value, 'DD/MM/YYYY');
 				return value.isValid() ? value.format('YYYY-MM-DD') : null;
-			}
+			}			
 			, datetime: function (value) {
 				value = moment(value, 'DD/MM/YYYY HH:mm');
 				return value.isValid() ? value.format('YYYY-MM-DD HH:mm') : null;
@@ -210,6 +212,8 @@ var application = {
 				var reg = '\\d(?=(\\d{3})+\\D)';
 				return value.toFixed(precision).replace('.', ',').replace(new RegExp(reg, 'g'), '$&.');
 			}
+			, date_format: 'DD/MM/YYYY'
+			, datetime_format: 'DD/MM/YYYY HH:mm'
 			, date: function (value) {
 				value = moment(value, 'YYYY-MM-DD');
 				return value.isValid() ? value.format('DD/MM/YYYY') : null;

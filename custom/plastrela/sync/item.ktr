@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>itemversao</name>
+    <name>item</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -66,9 +66,9 @@
     <clusterschemas>
     </clusterschemas>
   <created_user>-</created_user>
-  <created_date>2017&#x2f;09&#x2f;26 07&#x3a;59&#x3a;27.508</created_date>
+  <created_date>2017&#x2f;09&#x2f;26 07&#x3a;48&#x3a;34.984</created_date>
   <modified_user>-</modified_user>
-  <modified_date>2017&#x2f;09&#x2f;26 07&#x3a;59&#x3a;27.508</modified_date>
+  <modified_date>2017&#x2f;09&#x2f;26 07&#x3a;48&#x3a;34.984</modified_date>
     <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA&#x3d;</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
@@ -175,9 +175,10 @@
     </attributes>
   </connection>
   <order>
-  <hop> <from>LK Item</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
-  <hop> <from>String operations</from><to>LK Item</to><enabled>Y</enabled> </hop>
-  <hop> <from>Table input</from><to>String operations</to><enabled>Y</enabled> </hop>
+  <hop> <from>Select values</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
+  <hop> <from>Table input</from><to>LK Unidade</to><enabled>Y</enabled> </hop>
+  <hop> <from>LK Unidade</from><to>LK Classe</to><enabled>Y</enabled> </hop>
+  <hop> <from>LK Classe</from><to>Select values</to><enabled>Y</enabled> </hop>
   </order>
   <step>
     <name>Insert &#x2f; Update</name>
@@ -195,50 +196,44 @@
     <update_bypassed>N</update_bypassed>
     <lookup>
       <schema>public</schema>
-      <table>pcp_versao</table>
+      <table>cad_item</table>
       <key>
-        <name>iditem</name>
-        <field>iditem</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <key>
-        <name>VERSAO</name>
+        <name>CODIGO</name>
         <field>codigo</field>
         <condition>&#x3d;</condition>
         <name2/>
       </key>
       <value>
         <name>codigo</name>
-        <rename>VERSAO</rename>
+        <rename>CODIGO</rename>
         <update>N</update>
-      </value>
-      <value>
-        <name>iditem</name>
-        <rename>iditem</rename>
-        <update>N</update>
-      </value>
-      <value>
-        <name>descricaocompleta</name>
-        <rename>FULLNAME</rename>
-        <update>Y</update>
       </value>
       <value>
         <name>descricao</name>
         <rename>DESCRICAO</rename>
-        <update>N</update>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>idunidade</name>
+        <rename>idunidade</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>idclasse</name>
+        <rename>idclasse</rename>
+        <update>Y</update>
       </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>433</xloc>
-      <yloc>39</yloc>
+      <xloc>584</xloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
 
   <step>
-    <name>LK Item</name>
+    <name>LK Classe</name>
     <type>DBLookup</type>
     <description/>
     <distribute>Y</distribute>
@@ -254,34 +249,34 @@
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
-      <table>cad_item</table>
+      <table>est_classe</table>
       <orderby/>
       <fail_on_multiple>N</fail_on_multiple>
       <eat_row_on_failure>Y</eat_row_on_failure>
       <key>
-        <name>PRODUTO</name>
+        <name>CLASSE_PRODUTO</name>
         <field>codigo</field>
         <condition>&#x3d;</condition>
         <name2/>
       </key>
       <value>
         <name>id</name>
-        <rename>iditem</rename>
-        <default>0</default>
+        <rename>idclasse</rename>
+        <default/>
         <type>Integer</type>
       </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>309</xloc>
-      <yloc>39</yloc>
+      <xloc>326</xloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
 
   <step>
-    <name>String operations</name>
-    <type>StringOperations</type>
+    <name>LK Unidade</name>
+    <type>DBLookup</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -290,51 +285,129 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <fields>
-      <field>
-        <in_stream_name>VERSAO</in_stream_name>
-        <out_stream_name/>
-        <trim_type>both</trim_type>
-        <lower_upper>upper</lower_upper>
-        <padding_type>none</padding_type>
-        <pad_char/>
-        <pad_len/>
-        <init_cap>no</init_cap>
-        <mask_xml>none</mask_xml>
-        <digits>none</digits>
-        <remove_special_characters>none</remove_special_characters>
-      </field>
-      <field>
-        <in_stream_name>FULLNAME</in_stream_name>
-        <out_stream_name/>
-        <trim_type>both</trim_type>
-        <lower_upper>upper</lower_upper>
-        <padding_type>none</padding_type>
-        <pad_char/>
-        <pad_len/>
-        <init_cap>no</init_cap>
-        <mask_xml>none</mask_xml>
-        <digits>none</digits>
-        <remove_special_characters>none</remove_special_characters>
-      </field>
-      <field>
-        <in_stream_name>DESCRICAO</in_stream_name>
-        <out_stream_name/>
-        <trim_type>both</trim_type>
-        <lower_upper>upper</lower_upper>
-        <padding_type>none</padding_type>
-        <pad_char/>
-        <pad_len/>
-        <init_cap>no</init_cap>
-        <mask_xml>none</mask_xml>
-        <digits>none</digits>
-        <remove_special_characters>none</remove_special_characters>
-      </field>
-    </fields>
+    <connection>Chameleon</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema/>
+      <table>cad_unidade</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>Y</eat_row_on_failure>
+      <key>
+        <name>UNIDADE</name>
+        <field>unidade</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>id</name>
+        <rename>idunidade</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>174</xloc>
-      <yloc>39</yloc>
+      <xloc>186</xloc>
+      <yloc>48</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Select values</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <fields>      <field>        <name>CODIGO</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>DESCRICAO</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>idunidade</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>idclasse</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>        <select_unspecified>N</select_unspecified>
+      <meta>        <name>CODIGO</name>
+        <rename>CODIGO</rename>
+        <type>Integer</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>      <meta>        <name>DESCRICAO</name>
+        <rename>DESCRICAO</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>      <meta>        <name>idunidade</name>
+        <rename>idunidade</rename>
+        <type>Integer</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>      <meta>        <name>idclasse</name>
+        <rename>idclasse</rename>
+        <type>Integer</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>464</xloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
@@ -351,7 +424,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	v.produto&#xd;&#xa;	, v.versao&#xd;&#xa;	, v.detalhes as descricao&#xd;&#xa;	, v.produto &#x7c;&#x7c; &#x27;&#x2f;&#x27; &#x7c;&#x7c; v.versao &#x7c;&#x7c; &#x27; - &#x27; &#x7c;&#x7c; i.descricao &#x7c;&#x7c; &#x27; &#x28;&#x27; &#x7c;&#x7c; v.detalhes &#x7c;&#x7c; &#x27;&#x29;&#x27; as fullname&#xd;&#xa;from&#xd;&#xa;	pcpversao v&#xd;&#xa;inner join estitem i on &#x28;v.empresa &#x3d; i.empresa and v.produto &#x3d; i.codigo&#x29;&#xd;&#xa;where&#xd;&#xa;	v.empresa &#x3d; 1&#xd;&#xa;--	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 30</sql>
+    <sql>select codigo, descricao, unidade, classe_produto from estitem where empresa &#x3d; 1 and coalesce&#x28;data_alteracao, data_cadastro&#x29; &#x3e; sysdate - 30</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -359,8 +432,8 @@
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>39</xloc>
-      <yloc>39</yloc>
+      <xloc>61</xloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
       </GUI>
     </step>

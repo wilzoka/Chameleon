@@ -117,6 +117,16 @@ $(function () {
     });
     if (Cookies.get('modalsobra')) {
         $('#modalsobra').modal('show');
-    }2
+    }
+
+    $('#encerrar').click(function () {
+        application.functions.confirmMessage('Confirma o encerramento desta OP?', function () {
+            application.jsfunction('plastrela.pcp.oprecurso.js_encerrar', {
+                idoprecurso: application.functions.getId()
+            }, function (response) {
+                application.handlers.responseSuccess(response);
+            });
+        });
+    });
 
 });

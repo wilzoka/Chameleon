@@ -47,6 +47,11 @@ var application = {
 
         $('#appusername').text(localStorage.getItem('username'));
 
+        var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
+        if ('currentTab' in pagecookie) {
+            $('ul.nav a[href="' + pagecookie.currentTab + '"]').tab('show');
+        }
+
         // Events
         $(window).on('resize', function () {
             if ($(window).width() < 768) {
@@ -58,6 +63,9 @@ var application = {
             if (event.originalEvent.persisted) {
                 window.location.reload();
             }
+        });
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
         });
         $(document).on('submit', 'form.xhr', function (e) {
             e.preventDefault();
@@ -127,6 +135,11 @@ var application = {
         });
         $(document).ajaxComplete(function () {
             $('.pace').removeClass('pace-active').addClass('pace-inactive');
+        });
+        $('.nav-tabs a').click(function (e) {
+            var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
+            pagecookie.currentTab = this.hash;
+            Cookies.set(window.location.href, JSON.stringify(pagecookie));
         });
         //Filter
         $(document).on('click', 'button.btnfilter', function () {
@@ -599,7 +612,7 @@ var application = {
                 id: 'tableview' + data.name + 'filter'
                 , title: 'Filtro'
                 , body: data.filter.html
-                , footer: '<button type="button" class="btn btncleanfilter btn-default" title="Limpar"><i class="fa fa-eraser"></i></button> <button type="button" class="btn btngofilter btn-primary" title="Filtrar"><i class="fa fa-search"></i></button>'
+                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="button" class="btn btncleanfilter btn-default">Limpar</button> <button type="button" class="btn btngofilter btn-primary">Filtrar</button>'
                 , attr: [
                     { key: 'data-table', value: 'tableview' + data.name }
                     , { key: 'data-role', value: 'filter' }

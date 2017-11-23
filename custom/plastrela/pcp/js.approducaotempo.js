@@ -2,7 +2,7 @@ $(function () {
 
     if (application.functions.getId() == 0) {
 
-        application.jsfunction('plastrela.pcp.approducaotempo.__dataUltimoAp', { idapproducao: application.functions.getUrlParameter('parent') }, function (response) {
+        application.jsfunction('plastrela.pcp.approducaotempo.js_dataUltimoAp', { idapproducao: application.functions.getUrlParameter('parent') }, function (response) {
             if (response.success) {
                 $('input[name="dataini"]').val(response.data);
             }

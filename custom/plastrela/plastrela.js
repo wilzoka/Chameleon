@@ -429,10 +429,8 @@ var main = {
     }
 
     , plastrela: {
-        sync: {
-            s_1: function () {
-                main.plataform.kettle.f_runJob('plastrela/sync/1m/Job.kjb');
-            }
+        sync: function () {
+            main.plataform.kettle.f_runJob('sync/Job.kjb');
         }
         , compra: {
             solicitacaoitem: {
@@ -950,7 +948,7 @@ var main = {
                     nfentrada.finalizado = true;
                     await nfentrada.save();
 
-                    main.plataform.kettle.f_runJob('plastrela/estoque/integracaovolumes/Job.kjb');
+                    main.plataform.kettle.f_runJob('estoque/integracaovolumes/Job.kjb');
 
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
@@ -1756,11 +1754,11 @@ var main = {
                 }
 
                 , _removerVolume: async function (obj) {
-                    if (obj.ids.length == 0) {
-                        return application.error(obj.res, { msg: application.message.selectOneEvent });
-                    }
-
                     try {
+
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
 
                         let volumes = await db.getModel('est_volume').findAll({
                             where: {
@@ -1935,7 +1933,97 @@ var main = {
             }
         }
         , pcp: {
-            approducao: {
+            ap: {
+                f_dataUltimoAp: function (idoprecurso) {
+                    return new Promise((resolve) => {
+                        db.getModel('pcp_oprecurso').find({ where: { id: idoprecurso } }).then(oprecurso => {
+                            db.sequelize.query(`
+                                select
+                                    max(datafim) as max
+                                from
+                                    (select
+                                        apt.dataini
+                                        , apt.datafim
+                                        , opr.idrecurso
+                                    from
+                                        pcp_approducaotempo apt
+                                    left join pcp_approducao app on (apt.idapproducao = app.id)
+                                    left join pcp_oprecurso opr on (app.idoprecurso = opr.id)
+                                    
+                                    union all
+                                    
+                                    select
+                                        app.dataini
+                                        , app.datafim
+                                        , opr.idrecurso
+                                    from
+                                        pcp_apparada app
+                                    left join pcp_oprecurso opr on (app.idoprecurso = opr.id)
+                                    ) as x
+                                where
+                                    idrecurso = :v1
+                                `
+                                , {
+                                    replacements: { v1: oprecurso.idrecurso }
+                                    , type: db.sequelize.QueryTypes.SELECT
+                                }
+                            ).then(results => {
+                                resolve(results[0].max);
+                            });
+                        });
+                    });
+                }
+                , js_dataUltimoAp: async function (obj) {
+                    try {
+
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+
+                        let results = await db.sequelize.query(`
+                            select
+                                max(datafim) as max
+                            from
+                                (select
+                                    apt.dataini
+                                    , apt.datafim
+                                    , opr.idrecurso
+                                from
+                                    pcp_approducaotempo apt
+                                left join pcp_approducao app on (apt.idapproducao = app.id)
+                                left join pcp_oprecurso opr on (app.idoprecurso = opr.id)
+                                
+                                union all
+                                
+                                select
+                                    app.dataini
+                                    , app.datafim
+                                    , opr.idrecurso
+                                from
+                                    pcp_apparada app
+                                left join pcp_oprecurso opr on (app.idoprecurso = opr.id)
+                                ) as x
+                            where
+                                idrecurso = :v1
+                            `
+                            , {
+                                replacements: { v1: oprecurso.idrecurso }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
+                        if (results[0].max) {
+                            return application.success(obj.res, {
+                                data: moment(results[0].max, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format('DD/MM/YYYY HH:mm')
+                            });
+                        } else {
+                            return application.success(obj.res, {
+                                data: ''
+                            });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , approducao: {
                 _recalcula: function (id) {
                     return new Promise((resolve, reject) => {
                         db.getModel('pcp_approducao').find({ where: { id: id } }).then(approducao => {
@@ -2026,29 +2114,35 @@ var main = {
 
                         let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } })
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
-                        let results = await db.sequelize.query(
-                            'select'
-                            + ' *'
-                            + ' from'
-                            + ' (select'
-                            + ' \'produção\' as tipo'
-                            + ' , apt.dataini'
-                            + ' , apt.datafim'
-                            + ' from'
-                            + ' pcp_oprecurso opr'
-                            + ' left join pcp_approducao ap on (opr.id = ap.idoprecurso)'
-                            + ' left join pcp_approducaotempo apt on (ap.id = apt.idapproducao)'
-                            + ' where opr.idrecurso = :v1'
-                            + ' union all'
-                            + ' select'
-                            + ' \'parada\' as tipo'
-                            + ' , app.dataini'
-                            + ' , app.datafim'
-                            + ' from'
-                            + ' pcp_oprecurso opr'
-                            + ' left join pcp_apparada app on (opr.id = app.idoprecurso)'
-                            + ' where opr.idrecurso = :v1 and app.id != :v2) as x'
-                            + ' where (:v3::timestamp between dataini and datafim or :v4::timestamp between dataini and datafim) or (dataini between :v3::timestamp and :v4::timestamp and datafim between :v3::timestamp and :v4::timestamp)'
+                        let results = await db.sequelize.query(`
+                            select
+                                *
+                            from
+                                (select
+                                    'produção' as tipo
+                                    , apt.dataini
+                                    , apt.datafim
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_approducao ap on (opr.id = ap.idoprecurso)
+                                left join pcp_approducaotempo apt on (ap.id = apt.idapproducao)
+                                where
+                                    opr.idrecurso = :v1 and apt.id != :v2
+                                union all
+                                select
+                                    'parada' as tipo
+                                    , app.dataini
+                                    , app.datafim
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_apparada app on (opr.id = app.idoprecurso)
+                                where
+                                    opr.idrecurso = :v1) as x
+                            where 
+                                (:v3::timestamp between dataini and datafim or :v4::timestamp between dataini and datafim) 
+                                or
+                                (dataini between :v3::timestamp and :v4::timestamp and datafim between :v3::timestamp and :v4::timestamp)
+                            `
                             , {
                                 replacements: {
                                     v1: oprecurso.idrecurso
@@ -2067,43 +2161,16 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , __dataUltimoAp: async function (obj) {
+                , js_dataUltimoAp: async function (obj) {
                     try {
 
-                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } })
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } });
+                        let dataUltimoAp = await main.plastrela.pcp.ap.f_dataUltimoAp(approducao.idoprecurso);
 
-                        let results = await db.sequelize.query(
-                            'select max(datafim) as max from ('
-                            + ' select'
-                            + ' apt.dataini'
-                            + ' , apt.datafim'
-                            + ' , opr.idrecurso'
-                            + ' from'
-                            + ' pcp_approducaotempo apt'
-                            + ' left join pcp_approducao app on (apt.idapproducao = app.id)'
-                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
-                            + ' union all'
-                            + ' select'
-                            + ' app.dataini'
-                            + ' , app.datafim'
-                            + ' , opr.idrecurso'
-                            + ' from'
-                            + ' pcp_apparada app'
-                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
-                            + ' ) as x'
-                            + ' where idrecurso = :v1', {
-                                replacements: { v1: oprecurso.idrecurso }
-                                , type: db.sequelize.QueryTypes.SELECT
-                            });
-                        if (results[0].max) {
-                            return application.success(obj.res, {
-                                data: moment(results[0].max, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format('DD/MM/YYYY HH:mm')
-                            });
+                        if (dataUltimoAp) {
+                            return application.success(obj.res, { data: moment(dataUltimoAp, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format('DD/MM/YYYY HH:mm') });
                         } else {
-                            return application.success(obj.res, {
-                                data: ''
-                            });
+                            return application.success(obj.res, { data: '' });
                         }
 
                     } catch (err) {
@@ -2216,7 +2283,11 @@ var main = {
                 onsave: async function (obj, next) {
                     try {
 
+                        let config = await db.getModel('pcp_config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
                         let tipoperda = await db.getModel('pcp_tipoperda').find({ where: { id: obj.register.idtipoperda } });
 
                         if ([300, 322].indexOf(tipoperda.codigo) >= 0) {
@@ -2229,6 +2300,15 @@ var main = {
                         if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.peso)) < 0) {
                             return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) { // NEED TO IMPLEMENT
+                    try {
 
                         next(obj);
 
@@ -2256,87 +2336,93 @@ var main = {
 
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
 
-                        let results = await db.sequelize.query(
-                            'select'
-                            + ' *'
-                            + ' from'
-                            + ' (select'
-                            + ' \'produção\' as tipo'
-                            + ' , apt.dataini'
-                            + ' , apt.datafim'
-                            + ' from'
-                            + ' pcp_oprecurso opr'
-                            + ' left join pcp_approducao ap on (opr.id = ap.idoprecurso)'
-                            + ' left join pcp_approducaotempo apt on (ap.id = apt.idapproducao)'
-                            + ' where opr.idrecurso = :v1'
-                            + ' union all'
-                            + ' select'
-                            + ' \'parada\' as tipo'
-                            + ' , app.dataini'
-                            + ' , app.datafim'
-                            + ' from'
-                            + ' pcp_oprecurso opr'
-                            + ' left join pcp_apparada app on (opr.id = app.idoprecurso)'
-                            + ' where opr.idrecurso = :v1 and app.id != :v2) as x'
-                            + ' where (:v3::timestamp between dataini and datafim or :v4::timestamp between dataini and datafim) or (dataini between :v3::timestamp and :v4::timestamp and datafim between :v3::timestamp and :v4::timestamp)'
+                        let results = await db.sequelize.query(`
+                            select
+                                *
+                            from
+                                (select
+                                    'produção' as tipo
+                                    , apt.dataini
+                                    , apt.datafim
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_approducao ap on (opr.id = ap.idoprecurso)
+                                left join pcp_approducaotempo apt on (ap.id = apt.idapproducao)
+                                where
+                                    opr.idrecurso = :v1
+                                union all
+                                select
+                                    'parada' as tipo
+                                    , app.dataini
+                                    , app.datafim
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_apparada app on (opr.id = app.idoprecurso)
+                                where
+                                    opr.idrecurso = :v1 and app.id != :v2) as x
+                            where 
+                                (:v3::timestamp between dataini and datafim or :v4::timestamp between dataini and datafim) 
+                                or
+                                (dataini between :v3::timestamp and :v4::timestamp and datafim between :v3::timestamp and :v4::timestamp)
+                            `
                             , {
                                 replacements: {
                                     v1: oprecurso.idrecurso
                                     , v2: obj.register.id
-                                    , v3: dataini.format('YYYY-MM-DD HH:mm')
-                                    , v4: datafim.format('YYYY-MM-DD HH:mm')
+                                    , v3: dataini.format(application.formatters.be.datetime_format)
+                                    , v4: datafim.format(application.formatters.be.datetime_format)
                                 }
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
-
                         if (results.length > 0) {
                             return application.error(obj.res, { msg: 'Existe um apontamento de ' + results[0].tipo + ' neste horário' });
                         }
 
-                        next(obj);
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
 
-                , __dataUltimoAp: async function (obj) {
-                    try {
+                        let dataUltimoAp = moment((await main.plastrela.pcp.ap.f_dataUltimoAp(oprecurso.id)), application.formatters.be.datetime_format).add(1, 'minutes');
+                        duracao = dataini.diff(dataUltimoAp, 'm');
+                        if (duracao > 0) {
+                            // Precisa criar tempo
+                            let sql = await db.sequelize.query(`
+                                select
+                                    app.id
+                                    , (select max(apt.datafim) from pcp_approducaotempo apt where apt.idapproducao = app.id) as max
+                                    , (select count(*) from pcp_approducaovolume apv where apv.idapproducao = app.id) as qtdvolume
+                                from
+                                    pcp_approducao app
+                                where
+                                    app.idoprecurso = :v1
+                                order by 2 desc
+                                limit 1
+                                `
+                                , {
+                                    replacements: {
+                                        v1: oprecurso.id
+                                    }
+                                    , type: db.sequelize.QueryTypes.SELECT
+                                });
+                            if (sql.length > 0 && parseInt(sql[0].qtdvolume) == 0) {
+                                await db.getModel('pcp_approducaotempo').create({
+                                    idapproducao: sql[0].id
+                                    , duracao: duracao
+                                    , dataini: dataUltimoAp.format(application.formatters.be.datetime_format)
+                                    , datafim: dataini.format(application.formatters.be.datetime_format)
+                                });
+                            } else {
+                                let approducao = await db.getModel('pcp_approducao').create({
+                                    idoprecurso: oprecurso.id
+                                });
 
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
-
-                        let results = await db.sequelize.query(
-                            'select max(datafim) as max from ('
-                            + ' select'
-                            + ' apt.dataini'
-                            + ' , apt.datafim'
-                            + ' , opr.idrecurso'
-                            + ' from'
-                            + ' pcp_approducaotempo apt'
-                            + ' left join pcp_approducao app on (apt.idapproducao = app.id)'
-                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
-                            + ' union all'
-                            + ' select'
-                            + ' app.dataini'
-                            + ' , app.datafim'
-                            + ' , opr.idrecurso'
-                            + ' from'
-                            + ' pcp_apparada app'
-                            + ' left join pcp_oprecurso opr on (app.idoprecurso = opr.id)'
-                            + ' ) as x'
-                            + ' where idrecurso = :v1', {
-                                replacements: { v1: oprecurso.idrecurso }
-                                , type: db.sequelize.QueryTypes.SELECT
-                            });
-                        if (results[0].max) {
-                            return application.success(obj.res, {
-                                data: moment(results[0].max, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format('DD/MM/YYYY HH:mm')
-                            });
-                        } else {
-                            return application.success(obj.res, {
-                                data: ''
-                            });
+                                await db.getModel('pcp_approducaotempo').create({
+                                    idapproducao: approducao.id
+                                    , duracao: duracao - 1
+                                    , dataini: dataUltimoAp.format(application.formatters.be.datetime_format)
+                                    , datafim: dataini.add(-1, 'minutes').format(application.formatters.be.datetime_format)
+                                });
+                            }
                         }
 
+                        next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -2420,6 +2506,12 @@ var main = {
                         let invalidfields = application.functions.getEmptyFields(obj.data, ['idoprecurso', 'idvolume', 'iduser', 'qtd']);
                         if (invalidfields.length > 0) {
                             return application.error(obj.res, { invalidfields: invalidfields });
+                        }
+
+                        let config = await db.getModel('pcp_config').find();
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
 
                         let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
@@ -2583,6 +2675,21 @@ var main = {
                         next(obj);
                     }
 
+                }
+                , js_encerrar: async function (obj) {
+                    try {
+
+                        let config = await db.getModel('pcp_config').find();
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+
+                        oprecurso.idestado = config.idestadoencerrada;
+                        await oprecurso.save();
+
+                        return application.success(obj.res, { msg: application.message.success, redirect: '/view/50' });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
             }
         }
