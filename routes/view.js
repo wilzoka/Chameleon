@@ -1049,6 +1049,23 @@ module.exports = function (app) {
                                     });
 
                                     break;
+
+                                case 'autocomplete':
+
+                                    filtername += separator + 'iv';
+                                    filter += application.components.html.autocomplete({
+                                        width: 12
+                                        , label: viewfields[i].modelattribute.label
+                                        , name: filtername
+                                        , disabled: ''
+                                        , model: json.model
+                                        , attribute: json.attribute
+                                        , datawhere: req.body.issubview == 'true' && json.where ? json.where : ''
+                                        , multiple: 'multiple="multiple"'
+                                        , option: getFilterValue(filtername, cookiefilter).options || ''
+                                    });
+
+                                    break;
                             }
 
                             break;

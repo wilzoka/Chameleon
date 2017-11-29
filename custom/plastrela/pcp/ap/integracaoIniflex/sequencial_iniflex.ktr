@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>pcpatribficha</name>
+    <name>sequencial_iniflex</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -66,10 +66,10 @@
     <clusterschemas>
     </clusterschemas>
   <created_user>-</created_user>
-  <created_date>2017&#x2f;10&#x2f;25 08&#x3a;11&#x3a;42.456</created_date>
+  <created_date>2017&#x2f;11&#x2f;28 08&#x3a;59&#x3a;48.895</created_date>
   <modified_user>-</modified_user>
-  <modified_date>2017&#x2f;10&#x2f;25 08&#x3a;11&#x3a;42.456</modified_date>
-    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA&#x3d;</key_for_session_key>
+  <modified_date>2017&#x2f;11&#x2f;28 08&#x3a;59&#x3a;48.895</modified_date>
+    <key_for_session_key/>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
@@ -200,6 +200,58 @@
     </attributes>
   </connection>
   <connection>
+    <name>SIPMS</name>
+    <server>172.10.30.18</server>
+    <type>POSTGRESQL</type>
+    <access>Native</access>
+    <database>sipms</database>
+    <port>5432</port>
+    <username>postgres</username>
+    <password>Encrypted 2be98afc86aa7f2e4bb16bd64d980aac9</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+    </attributes>
+  </connection>
+  <connection>
+    <name>SIPRS</name>
+    <server>172.10.30.18</server>
+    <type>POSTGRESQL</type>
+    <access>Native</access>
+    <database>siprs</database>
+    <port>5432</port>
+    <username>postgres</username>
+    <password>Encrypted 2be98afc86aa7f2e4bb16bd64d980aac9</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+    </attributes>
+  </connection>
+  <connection>
     <name>SIPv2</name>
     <server>&#x24;&#x7b;host&#x7d;</server>
     <type>POSTGRESQL</type>
@@ -226,104 +278,9 @@
     </attributes>
   </connection>
   <order>
-  <hop> <from>Table input</from><to>LK Ficha</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Ficha</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
+  <hop> <from>Table input</from><to>Call DB Procedure</to><enabled>Y</enabled> </hop>
+  <hop> <from>Call DB Procedure</from><to>Update</to><enabled>Y</enabled> </hop>
   </order>
-  <step>
-    <name>Insert &#x2f; Update</name>
-    <type>InsertUpdate</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <commit>100</commit>
-    <update_bypassed>N</update_bypassed>
-    <lookup>
-      <schema/>
-      <table>pcp_atribficha</table>
-      <key>
-        <name>CODIGO</name>
-        <field>codigo</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <key>
-        <name>idtpficha</name>
-        <field>idtpficha</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>codigo</name>
-        <rename>CODIGO</rename>
-        <update>N</update>
-      </value>
-      <value>
-        <name>descricao</name>
-        <rename>DESCRICAO</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>idtpficha</name>
-        <rename>idtpficha</rename>
-        <update>N</update>
-      </value>
-    </lookup>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>473</xloc>
-      <yloc>47</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>LK Ficha</name>
-    <type>DBLookup</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
-    <cache_size>0</cache_size>
-    <lookup>
-      <schema/>
-      <table>pcp_tpficha</table>
-      <orderby/>
-      <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>Y</eat_row_on_failure>
-      <key>
-        <name>TIPO_FICHA</name>
-        <field>codigo</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>id</name>
-        <rename>idtpficha</rename>
-        <default>0</default>
-        <type>Integer</type>
-      </value>
-    </lookup>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>208</xloc>
-      <yloc>49</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
   <step>
     <name>Table input</name>
     <type>TableInput</type>
@@ -335,8 +292,8 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>Iniflex</connection>
-    <sql>select tipo_ficha, atributo as codigo, campo_prompt as descricao from pcpatribficha where empresa &#x3d; 1</sql>
+    <connection>SIPRS</connection>
+    <sql>select &#x2a; from pcp_approducao where sequencial_iniflex is null</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -344,8 +301,75 @@
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>63</xloc>
-      <yloc>49</yloc>
+      <xloc>64</xloc>
+      <yloc>59</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Call DB Procedure</name>
+    <type>DBProc</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>Iniflex Integracao</connection>
+    <procedure>f_busca_id&#x28;&#x27;seq_pcpapproducao&#x27;&#x29;</procedure>
+    <lookup>
+    </lookup>
+    <result>
+      <name>result</name>
+      <type>Integer</type>
+    </result>
+    <auto_commit>Y</auto_commit>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>180</xloc>
+      <yloc>59</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Update</name>
+    <type>Update</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>SIPRS</connection>
+    <skip_lookup>N</skip_lookup>
+    <commit>100</commit>
+    <use_batch>N</use_batch>
+    <error_ignored>N</error_ignored>
+    <ignore_flag_field/>
+    <lookup>
+      <schema/>
+      <table>pcp_approducao</table>
+      <key>
+        <name>id</name>
+        <field>id</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+        </key>
+      <value>
+        <name>sequencial_iniflex</name>
+        <rename>result</rename>
+        </value>
+      </lookup>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>301</xloc>
+      <yloc>59</yloc>
       <draw>Y</draw>
       </GUI>
     </step>

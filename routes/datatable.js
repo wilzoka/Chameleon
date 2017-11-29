@@ -168,6 +168,13 @@ var getFilter = function (cookie, modelattributes) {
                         }
                     }
                     break;
+                case 'iv':
+                    for (let z = 0; z < modelattributes.length; z++) {
+                        if (field[0] == modelattributes[z].name) {
+                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
+                        }
+                    }
+                    break;
             }
 
             if (o && obj[field[0]]) {
@@ -252,7 +259,7 @@ module.exports = function (app) {
                 , where: where
                 , order: [[ordercolumn, orderdir]]
             }));
-            
+
             registers = fixResults(registers, modelattributes);
 
             return application.success(res, {

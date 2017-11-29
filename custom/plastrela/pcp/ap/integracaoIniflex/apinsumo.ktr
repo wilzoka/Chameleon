@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>pcpatribficha</name>
+    <name>apinsumo</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -66,9 +66,9 @@
     <clusterschemas>
     </clusterschemas>
   <created_user>-</created_user>
-  <created_date>2017&#x2f;10&#x2f;25 08&#x3a;11&#x3a;42.456</created_date>
+  <created_date>2017&#x2f;11&#x2f;24 09&#x3a;58&#x3a;13.241</created_date>
   <modified_user>-</modified_user>
-  <modified_date>2017&#x2f;10&#x2f;25 08&#x3a;11&#x3a;42.456</modified_date>
+  <modified_date>2017&#x2f;11&#x2f;24 09&#x3a;58&#x3a;13.241</modified_date>
     <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA&#x3d;</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
@@ -200,6 +200,58 @@
     </attributes>
   </connection>
   <connection>
+    <name>SIPMS</name>
+    <server>172.10.30.18</server>
+    <type>POSTGRESQL</type>
+    <access>Native</access>
+    <database>sipms</database>
+    <port>5432</port>
+    <username>postgres</username>
+    <password>Encrypted 2be98afc86aa7f2e4bb16bd64d980aac9</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+    </attributes>
+  </connection>
+  <connection>
+    <name>SIPRS</name>
+    <server>172.10.30.18</server>
+    <type>POSTGRESQL</type>
+    <access>Native</access>
+    <database>siprs</database>
+    <port>5432</port>
+    <username>postgres</username>
+    <password>Encrypted 2be98afc86aa7f2e4bb16bd64d980aac9</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+    </attributes>
+  </connection>
+  <connection>
     <name>SIPv2</name>
     <server>&#x24;&#x7b;host&#x7d;</server>
     <type>POSTGRESQL</type>
@@ -226,12 +278,12 @@
     </attributes>
   </connection>
   <order>
-  <hop> <from>Table input</from><to>LK Ficha</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Ficha</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
+  <hop> <from>Table input</from><to>Modified Java Script Value</to><enabled>Y</enabled> </hop>
+  <hop> <from>Modified Java Script Value</from><to>Table output</to><enabled>Y</enabled> </hop>
   </order>
   <step>
-    <name>Insert &#x2f; Update</name>
-    <type>InsertUpdate</type>
+    <name>Modified Java Script Value</name>
+    <type>ScriptValueMod</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -240,86 +292,57 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>SIPv2</connection>
-    <commit>100</commit>
-    <update_bypassed>N</update_bypassed>
-    <lookup>
-      <schema/>
-      <table>pcp_atribficha</table>
-      <key>
-        <name>CODIGO</name>
-        <field>codigo</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <key>
-        <name>idtpficha</name>
-        <field>idtpficha</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>codigo</name>
-        <rename>CODIGO</rename>
-        <update>N</update>
-      </value>
-      <value>
-        <name>descricao</name>
-        <rename>DESCRICAO</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>idtpficha</name>
-        <rename>idtpficha</rename>
-        <update>N</update>
-      </value>
-    </lookup>
-     <cluster_schema/>
+    <compatible>N</compatible>
+    <optimizationLevel>9</optimizationLevel>
+    <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>var texto_integ &#x3d; &#x27;40&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; &#x27;1&#x27; &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; op &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; seq_etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; recurso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operador &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; datahora &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; qtd &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; peso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; rnc &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; deposito &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; identificacao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; lote&#x3b;&#xd;&#xa;&#xd;&#xa;var sistemas_envol &#x3d; &#x27;PESA X INIFLEX&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var leiaute_integ &#x3d; &#x27;PCPAPINSUMO&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var operacao_integ &#x3d; &#x27;INS&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var campos_chave &#x3d; &#x27;1&#x3b;1515&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var separador &#x3d; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var situacao_integ &#x3d; &#x27;N&#x27;&#x3b;</jsScript_script>
+      </jsScript>    </jsScripts>    <fields>      <field>        <name>texto_integ</name>
+        <rename>texto_integ</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>sistemas_envol</name>
+        <rename>sistemas_envol</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>leiaute_integ</name>
+        <rename>leiaute_integ</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>operacao_integ</name>
+        <rename>operacao_integ</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>campos_chave</name>
+        <rename>campos_chave</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>separador</name>
+        <rename>separador</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>situacao_integ</name>
+        <rename>situacao_integ</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>    </fields>     <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>473</xloc>
-      <yloc>47</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>LK Ficha</name>
-    <type>DBLookup</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
-    <cache_size>0</cache_size>
-    <lookup>
-      <schema/>
-      <table>pcp_tpficha</table>
-      <orderby/>
-      <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>Y</eat_row_on_failure>
-      <key>
-        <name>TIPO_FICHA</name>
-        <field>codigo</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>id</name>
-        <rename>idtpficha</rename>
-        <default>0</default>
-        <type>Integer</type>
-      </value>
-    </lookup>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>208</xloc>
-      <yloc>49</yloc>
+      <xloc>157</xloc>
+      <yloc>35</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
@@ -335,8 +358,8 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>Iniflex</connection>
-    <sql>select tipo_ficha, atributo as codigo, campo_prompt as descricao from pcpatribficha where empresa &#x3d; 1</sql>
+    <connection>SIPRS</connection>
+    <sql>select&#xd;&#xa;	opr.id&#xd;&#xa;&#xd;&#xa;	, op.codigo as op&#xd;&#xa;	, e.codigo as etapa&#xd;&#xa;	, ope.seq as seq_etapa&#xd;&#xa;	, r.codigo as recurso&#xd;&#xa;	, u.c_codigosenior as operador&#xd;&#xa;	, i.codigo as insumo&#xd;&#xa;	, v.codigo as versao&#xd;&#xa;	, to_char&#x28;api.datahora, &#x27;dd&#x2f;mm&#x2f;yyyy HH24&#x3a;MI&#x27;&#x29; as datahora &#xd;&#xa;	, api.qtd as qtd&#xd;&#xa;	, api.qtd as peso&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as insumo_sub&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as versao_sub&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as rnc&#xd;&#xa;	, vd.codigo as deposito&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as identificacao&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as lote&#xd;&#xa;&#xd;&#xa;	, now&#x28;&#x29; as data_hora_integ&#xd;&#xa;from&#xd;&#xa;	pcp_oprecurso opr&#xd;&#xa;left join pcp_opetapa ope on &#x28;opr.idopetapa &#x3d; ope.id&#x29;&#xd;&#xa;left join pcp_etapa e on &#x28;ope.idetapa &#x3d; e.id&#x29;&#xd;&#xa;left join pcp_recurso r on &#x28;opr.idrecurso &#x3d; r.id&#x29;&#xd;&#xa;left join pcp_op op on &#x28;ope.idop &#x3d; op.id&#x29;&#xd;&#xa;&#xd;&#xa;left join pcp_apinsumo api on &#x28;opr.id &#x3d; api.idoprecurso&#x29;&#xd;&#xa;left join users u on &#x28;api.iduser &#x3d; u.id&#x29;&#xd;&#xa;left join est_volume vol on &#x28;api.idvolume &#x3d; vol.id&#x29;&#xd;&#xa;left join pcp_versao v on &#x28;vol.idversao &#x3d; v.id&#x29;&#xd;&#xa;left join cad_item i on &#x28;v.iditem &#x3d; i.id&#x29;&#xd;&#xa;left join est_depositoendereco vde on &#x28;vol.iddepositoendereco &#x3d; vde.id&#x29;&#xd;&#xa;left join est_deposito vd on &#x28;vde.iddeposito &#x3d; vd.id&#x29;&#xd;&#xa;&#xd;&#xa;where&#xd;&#xa;	opr.integrado &#x3d; &#x27;P&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -344,8 +367,78 @@
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>63</xloc>
-      <yloc>49</yloc>
+      <xloc>37</xloc>
+      <yloc>35</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Table output</name>
+    <type>TableOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>Iniflex Integracao</connection>
+    <schema/>
+    <table>integracaoiniflex2</table>
+    <commit>1000</commit>
+    <truncate>N</truncate>
+    <ignore_errors>N</ignore_errors>
+    <use_batch>Y</use_batch>
+    <specify_fields>Y</specify_fields>
+    <partitioning_enabled>N</partitioning_enabled>
+    <partitioning_field/>
+    <partitioning_daily>N</partitioning_daily>
+    <partitioning_monthly>Y</partitioning_monthly>
+    <tablename_in_field>N</tablename_in_field>
+    <tablename_field/>
+    <tablename_in_table>Y</tablename_in_table>
+    <return_keys>N</return_keys>
+    <return_field/>
+    <fields>
+        <field>
+          <column_name>DATA_HORA_INTEG</column_name>
+          <stream_name>data_hora_integ</stream_name>
+        </field>
+        <field>
+          <column_name>TEXTO_INTEG</column_name>
+          <stream_name>texto_integ</stream_name>
+        </field>
+        <field>
+          <column_name>SISTEMAS_ENVOL</column_name>
+          <stream_name>sistemas_envol</stream_name>
+        </field>
+        <field>
+          <column_name>LEIAUTE_INTEG</column_name>
+          <stream_name>leiaute_integ</stream_name>
+        </field>
+        <field>
+          <column_name>OPERACAO_INTEG</column_name>
+          <stream_name>operacao_integ</stream_name>
+        </field>
+        <field>
+          <column_name>CAMPOS_CHAVE</column_name>
+          <stream_name>campos_chave</stream_name>
+        </field>
+        <field>
+          <column_name>SEPARADOR</column_name>
+          <stream_name>separador</stream_name>
+        </field>
+        <field>
+          <column_name>SITUACAO_INTEG</column_name>
+          <stream_name>situacao_integ</stream_name>
+        </field>
+    </fields>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>280</xloc>
+      <yloc>35</yloc>
       <draw>Y</draw>
       </GUI>
     </step>

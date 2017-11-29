@@ -23,8 +23,14 @@ passport.deserializeUser(function (user, done) {
 
 // For Authentication Purposes
 passport.use(new LocalStrategy(
-    function (email, password, done) {
-        db.getModel('users').find({ where: { email: email, password: password } }).then(register => {
+    function (username, password, done) {
+        db.getModel('users').find({
+            where: {
+                active: true
+                , $or: [{ username: username }, { email: username }]
+                , password: password
+            }
+        }).then(register => {
             if (register) {
                 return done(null, register);
             } else {
@@ -73,9 +79,10 @@ module.exports = function (app) {
                     menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
                 }
 
-                for (var i = 0; i < menu.length; i++) {
+                for (let i = 0; i < menu.length; i++) {
                     if (menu[i].children.length == 0) {
                         menu.splice(i, 1);
+                        i--;
                     }
                 }
 

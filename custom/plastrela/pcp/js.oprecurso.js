@@ -30,6 +30,10 @@ $(function () {
                 break;
             case 'tableview74':// Produção
                 customTable(table);
+                setTimeout(function () {
+                    tables['tableview74'].column(0).order('desc');
+                    tables['tableview74'].draw()
+                }, 100);
 
                 $('#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.approducao.__adicionar', { idoprecurso: application.functions.getId() }, function (response) {
@@ -44,7 +48,7 @@ $(function () {
             case 'tableview52':// Parada
                 customTable(table);
                 setTimeout(function () {
-                    tables['tableview52'].column(1).order('desc');
+                    tables['tableview52'].column(0).order('desc');
                     tables['tableview52'].draw()
                 }, 100);
 

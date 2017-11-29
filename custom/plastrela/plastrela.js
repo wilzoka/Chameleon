@@ -432,6 +432,11 @@ var main = {
         sync: function () {
             main.plataform.kettle.f_runJob('sync/Job.kjb');
         }
+        , schedule: {
+            integracaoApontamentos: function () {
+                main.plataform.kettle.f_runJob('pcp/ap/integracaoIniflex/Job.kjb');
+            }
+        }
         , compra: {
             solicitacaoitem: {
                 onsave: async function (obj, next) {
@@ -439,6 +444,7 @@ var main = {
 
                         if (obj.id == 0) {
                             obj.register.iduser = obj.req.user.id;
+                            obj.register.datainclusao = moment();
 
                             let config = await db.getModel('cmp_config').find();
 
@@ -818,6 +824,11 @@ var main = {
                         });
                         if (!spednfitem) {
                             return application.error(obj.res, { msg: 'Esta nota não possui itens' });
+                        }
+                        for (var i = 0; i < spednfitem.length; i++) {
+                            if (!spednfitem[i].ordem_compra) {
+                                return application.error(obj.res, { msg: 'Existe algum item desta nota sem ordem de compra vinculado' });
+                            }
                         }
 
                         let nf = await db.getModel('est_nfentrada').create({
@@ -2065,7 +2076,13 @@ var main = {
 
                 , __adicionar: async function (obj) {
                     try {
+
+                        let config = await db.getModel('pcp_config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                        }
 
                         let results = await db.sequelize.query(
                             'select'
@@ -2099,10 +2116,17 @@ var main = {
             , approducaotempo: {
                 onsave: async function (obj, next) {
                     try {
+
+                        let config = await db.getModel('pcp_config').find();
+                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } })
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                        }
+
                         let dataini = moment(obj.register.dataini);
                         let datafim = moment(obj.register.datafim);
                         let duracao = datafim.diff(dataini, 'm');
-
                         let minutosafrente = datafim.diff(moment(), 'm');
                         if (minutosafrente > 10) {
                             return application.error(obj.res, { msg: 'Verifique o dia e a hora da data final' });
@@ -2112,8 +2136,6 @@ var main = {
                         }
                         obj.register.duracao = duracao;
 
-                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } })
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
                         let results = await db.sequelize.query(`
                             select
                                 *
@@ -2161,6 +2183,23 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , ondelete: async function (obj, next) {
+                    try {
+
+                        let config = await db.getModel('pcp_config').find();
+                        let tempos = await db.getModel('pcp_approducaotempo').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                        for (let i = 0; i < tempos.length; i++) {
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: tempos[i].pcp_approducao.idoprecurso } })
+                            if (oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
+                            }
+                        }
+
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
                 , js_dataUltimoAp: async function (obj) {
                     try {
 
@@ -2181,10 +2220,15 @@ var main = {
             , approducaovolume: {
                 onsave: async function (obj, next) {
                     try {
-                        obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
+                        let config = await db.getModel('pcp_config').find();
                         let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } });
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                        }
+
+                        obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
                         let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
                         let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
@@ -2250,7 +2294,17 @@ var main = {
                 }
                 , ondelete: async function (obj, next) {
                     try {
-                        let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids } } });
+
+                        let config = await db.getModel('pcp_config').find();
+                        let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids } }, include: [{ all: true }] });
+
+                        for (let i = 0; i < volumes.length; i++) {
+                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: volumes[i].pcp_approducaovolume.idapproducao }, include: [{ all: true }] })
+                            if (approducao.pcp_oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
+                            }
+                        }
+
                         for (let i = 0; i < volumes.length; i++) {
                             if (volumes[i].consumido) {
                                 return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' se encontra consumido, verifique' });
@@ -2307,11 +2361,18 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , ondelete: async function (obj, next) { // NEED TO IMPLEMENT
+                , ondelete: async function (obj, next) {
                     try {
 
-                        next(obj);
+                        let config = await db.getModel('pcp_config').find();
+                        let apperdas = await db.getModel('pcp_apperda').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                        for (let i = 0; i < apperdas.length; i++) {
+                            if (apperdas[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
+                            }
+                        }
 
+                        next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -2320,6 +2381,12 @@ var main = {
             , apparada: {
                 onsave: async function (obj, next) {
                     try {
+
+                        let config = await db.getModel('pcp_config').find();
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
 
                         let dataini = moment(obj.register.dataini);
                         let datafim = moment(obj.register.datafim);
@@ -2333,8 +2400,6 @@ var main = {
                             return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
                         }
                         obj.register.duracao = duracao;
-
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
 
                         let results = await db.sequelize.query(`
                             select
@@ -2419,6 +2484,22 @@ var main = {
                                     , dataini: dataUltimoAp.format(application.formatters.be.datetime_format)
                                     , datafim: dataini.add(-1, 'minutes').format(application.formatters.be.datetime_format)
                                 });
+                            }
+                        }
+
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+
+                        let config = await db.getModel('pcp_config').find();
+                        let apparadas = await db.getModel('pcp_apparada').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                        for (let i = 0; i < apparadas.length; i++) {
+                            if (apparadas[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
                             }
                         }
 
@@ -2557,9 +2638,16 @@ var main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { id: { $in: obj.ids } } });
+                        let config = await db.getModel('pcp_config').find();
+                        let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                        for (let i = 0; i < apinsumos.length; i++) {
+                            if (apinsumos[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
+                            }
+                        }
+
                         let volumes = [];
-                        for (var i = 0; i < apinsumos.length; i++) {
+                        for (let i = 0; i < apinsumos.length; i++) {
                             let apinsumo = apinsumos[i];
                             let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
                             volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
@@ -2582,6 +2670,12 @@ var main = {
                 onsave: async function (obj, next) {
                     try {
 
+                        let config = await db.getModel('pcp_config').find();
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
+
                         let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: obj.register.idapinsumo } });
                         let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
 
@@ -2599,7 +2693,6 @@ var main = {
                         }
 
                         // Valida Pesos
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
 
                         let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where id != ' + obj.register.idapinsumo + ' and idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
                         let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
@@ -2621,7 +2714,15 @@ var main = {
                 }
                 , ondelete: async function (obj, next) {
                     try {
-                        let apsobras = await db.getModel('pcp_apsobra').findAll({ where: { id: { $in: obj.ids } } });
+
+                        let config = await db.getModel('pcp_config').find();
+                        let apsobras = await db.getModel('pcp_apsobra').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+
+                        for (let i = 0; i < apsobras.length; i++) {
+                            if (apsobras[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
+                            }
+                        }
 
                         for (let i = 0; i < apsobras.length; i++) {
                             let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: apsobras[i].idapinsumo } });
@@ -2674,18 +2775,47 @@ var main = {
                     } else {
                         next(obj);
                     }
-
                 }
                 , js_encerrar: async function (obj) {
                     try {
 
                         let config = await db.getModel('pcp_config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'OP já se encontra encerrada' });
+                        }
 
                         oprecurso.idestado = config.idestadoencerrada;
-                        await oprecurso.save();
+                        if (!oprecurso.integrado) {
+                            oprecurso.integrado = 'P';
+                            await oprecurso.save();
+                        }
 
                         return application.success(obj.res, { msg: application.message.success, redirect: '/view/50' });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_retornarProducao: async function (obj) {
+                    try {
+
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let config = await db.getModel('pcp_config').find();
+
+                        await db.getModel('pcp_oprecurso').update({
+                            idestado: config.idestadoinicial
+                        },
+                            {
+                                where: {
+                                    id: { $in: obj.ids }
+                                }
+                            });
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
