@@ -3,7 +3,8 @@ var application = require('../../routes/application')
     , schedule = require('../../routes/schedule')
     , moment = require('moment')
     , fs = require('fs')
-    ;
+    , lodash = require('lodash');
+;
 
 var main = {
     plataform: {
@@ -1735,12 +1736,10 @@ var main = {
                                 qtdvolume = (nfitem.qtd / obj.req.body.qtd).toFixed(4);
                             }
 
-                            let depositopadrao = await db.getModel('est_depositoendereco').find({ where: { iddeposito: nf.iddeposito, depositopadrao: true } });
-
                             for (var i = 0; i < obj.req.body.qtd; i++) {
                                 bulkvolume.push({
                                     idversao: nfitem.idversao
-                                    , iddepositoendereco: nf.iddeposito
+                                    , iddeposito: nf.iddeposito
                                     , iduser: obj.req.user.id
                                     , datahora: moment()
                                     , qtd: qtdvolume
@@ -1834,28 +1833,214 @@ var main = {
                 , onsave: async function (obj, next) {
                     try {
 
-                        if (obj.view.id == 66) {
-                            let volume = await db.getModel('est_volume').find({
-                                where: {
-                                    id: obj.id
-                                }
-                            });
-                            let nfitem = await db.getModel('est_nfentradaitem').find({
-                                where: {
-                                    id: volume.idnfentradaitem
-                                }
-                            });
-                            let nf = await db.getModel('est_nfentrada').find({
-                                where: {
-                                    id: nfitem.idnfentrada
-                                }
-                            });
+                        if (obj.view.id == 66) { // Geração de Volume - Item - Volume
+                            let volume = await db.getModel('est_volume').find({ where: { id: obj.id } });
+                            let nfitem = await db.getModel('est_nfentradaitem').find({ where: { id: volume.idnfentradaitem } });
+                            let nf = await db.getModel('est_nfentrada').find({ where: { id: nfitem.idnfentrada } });
                             if (nf.finalizado) {
                                 return application.error(obj.res, { msg: 'Não é possível alterar volumes de uma nota finalizada' });
                             }
+                            obj.register.qtdreal = obj.register.qtd;
                         }
 
-                        let save = await next(obj);
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            let results = await db.sequelize.query(`
+                            select
+                                *
+                                , round(qtd / (largura::decimal / 10) / (espessura::decimal / 10) / (densidade / 10), 2) as metragem
+                            from
+                                (select
+                                    ev.id
+                                    , ev.qtd
+                                    , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22)) as espessura
+                                    , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20)) as largura
+                                    , c.densidade
+                                from
+                                    est_volume ev
+                                left join pcp_versao v on (ev.idversao = v.id)
+                                left join cad_item i on (v.iditem = i.id)
+                                left join est_classe c on (i.idclasse = c.id)
+                                left join cad_unidade u on (i.idunidade = u.id)
+                                where
+                                    ev.id = :v1
+                                ) as x
+                            `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: { v1: saved.register.id }
+                                });
+
+                            if (results.length > 0) {
+                                saved.register.metragem = results[0].metragem;
+                                saved.register.save();
+                            }
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_movimentarVolumes: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+
+                            let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < volumes.length; i++) {
+                                if (volumes[i].consumido) {
+                                    return application.error(obj.res, { msg: 'Não é possível movimentar volumes consumidos' });
+                                }
+                            }
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.autocomplete({
+                                width: 12
+                                , label: 'Depósito'
+                                , name: 'iddeposito'
+                                , model: 'est_deposito'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.checkbox({
+                                width: 12
+                                , name: 'consumido'
+                                , checked: ''
+                                , label: 'Consumido?'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Movimentar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'iddeposito']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let consumido = 'consumido' in obj.req.body;
+                            let changes = { iddeposito: obj.req.body.iddeposito, consumido: consumido };
+                            if (consumido) {
+                                changes = lodash.extend(changes, { qtdreal: '0.0000' });
+                            }
+                            await db.getModel('est_volume').update(changes, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_estornarVolume: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+
+                            let volume = await db.getModel('est_volume').find({ where: { id: { $in: obj.ids } } });
+                            if (!volume.consumido) {
+                                return application.error(obj.res, { msg: 'Não é possível estornar um volume que não foi consumido' });
+                            }
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.decimal({
+                                width: 12
+                                , label: 'Quantidade'
+                                , name: 'qtd'
+                                , precision: '4'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Movimentar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'qtd']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            await db.getModel('est_volume').update({ consumido: false, qtdreal: application.formatters.be.decimal(obj.req.body.qtd, 4) }, { where: { id: obj.req.body.id } });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_reservarVolumes: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'OP'
+                                , name: 'idop'
+                                , model: 'pcp_op'
+                                , attribute: 'codigo'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Reservar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idop']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            bulkreservas = [];
+                            let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.req.body.ids.split(',') } } });
+                            for (let i = 0; i < volumes.length; i++) {
+                                if (parseFloat(volumes[i].qtdreal) > 0) {
+                                    let sum = (await db.getModel('est_volumereserva').sum('qtd', { where: { idvolume: volumes[i].id } })) || 0;
+                                    bulkreservas.push({
+                                        idvolume: volumes[i].id
+                                        , idpedidoitem: null
+                                        , qtd: (parseFloat(volumes[i].qtdreal) - sum).toFixed(4)
+                                        , idop: obj.req.body.idop
+                                        , apontado: false
+                                    });
+                                }
+                            }
+                            if (bulkreservas.length > 0) {
+                                await db.getModel('est_volumereserva').bulkCreate(bulkreservas);
+                            }
+
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -1875,7 +2060,7 @@ var main = {
                             }
                         })) || 0;
 
-                        if ((qtdreservada + parseFloat(obj.register.qtd)) > parseFloat(volume.qtd)) {
+                        if ((qtdreservada + parseFloat(obj.register.qtd)) > parseFloat(volume.qtdreal)) {
                             return application.error(obj.res, { msg: 'Este volume não possui essa quantidade para ser reservado' });
                         }
 
@@ -1914,10 +2099,19 @@ var main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        await next(obj);
-
-                        db.sequelize.query("update est_depositoendereco set descricaocompleta = (select descricao from est_deposito where id = iddeposito) || '(' || descricao || ')';", { type: db.sequelize.QueryTypes.UPDATE });
-
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            db.sequelize.query("update est_depositoendereco set descricaocompleta = (select descricao from est_deposito where id = iddeposito) || '(' || descricao || ')';", { type: db.sequelize.QueryTypes.UPDATE });
+                            if (saved.register.depositopadrao) {
+                                db.sequelize.query("update est_depositoendereco set depositopadrao = false where id != :v1 and iddeposito = :v2", {
+                                    type: db.sequelize.QueryTypes.UPDATE
+                                    , replacements: {
+                                        v1: saved.register.id
+                                        , v2: saved.register.iddeposito
+                                    }
+                                });
+                            }
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -2032,6 +2226,47 @@ var main = {
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
+                }
+                , f_corrigeEstadoOps: function (idoprecurso) {
+                    return new Promise((resolve) => {
+                        db.getModel('pcp_config').find().then(config => {
+                            db.getModel('pcp_oprecurso').find({ where: { id: idoprecurso } }).then(oprecurso => {
+
+                                db.getModel('pcp_oprecurso').update({
+                                    idestado: config.idestadoproducao
+                                }, { where: { id: oprecurso.id } });
+
+                                db.sequelize.query(`
+                                select
+                                    opr.id
+                                from
+                                    pcp_oprecurso opr
+                                inner join pcp_config c on (opr.idestado = c.idestadoproducao)
+                                where
+                                    opr.idrecurso = :v1
+                                    and opr.id != :v2
+                                `
+                                    , {
+                                        replacements: {
+                                            v1: oprecurso.idrecurso
+                                            , v2: oprecurso.id
+                                        }
+                                        , type: db.sequelize.QueryTypes.SELECT
+                                    }
+                                ).then(results => {
+                                    let ids = [];
+                                    for (let i = 0; i < results.length; i++) {
+                                        ids.push(results[i].id);
+                                    }
+                                    if (ids.length > 0) {
+                                        db.getModel('pcp_oprecurso').update({
+                                            idestado: config.idestadointerrompida
+                                        }, { where: { id: { $in: ids } } });
+                                    }
+                                });
+                            });
+                        });
+                    });
                 }
             }
             , approducao: {
@@ -2252,7 +2487,6 @@ var main = {
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
                             let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
                             let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
-                            let depositopadrao = await db.getModel('est_depositoendereco').find({ where: { iddeposito: deposito.id, depositopadrao: true } });
 
                             let qtd = saved.register.qtd;
                             let metragem = null;
@@ -2275,7 +2509,7 @@ var main = {
                                 db.getModel('est_volume').create({
                                     idapproducaovolume: saved.register.id
                                     , idversao: op.idversao
-                                    , iddepositoendereco: depositopadrao.id
+                                    , iddeposito: deposito.id
                                     , iduser: obj.req.user.id
                                     , datahora: moment()
                                     , qtd: qtd
@@ -2487,7 +2721,9 @@ var main = {
                             }
                         }
 
+                        main.plastrela.pcp.ap.f_corrigeEstadoOps(obj.register.idoprecurso);
                         next(obj);
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -2591,28 +2827,40 @@ var main = {
 
                         let config = await db.getModel('pcp_config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
-                        if (oprecurso.idestado == config.idestadoencerrada) {
-                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
-                        }
-
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
                         let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
+                        let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
+                        let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
                         let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
-                        let qtdreal = parseFloat(volume.qtdreal)
-
-                        if (qtd > qtdreal) {
-                            return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
-                        }
-                        volume.qtdreal = (qtdreal - qtd).toFixed(4);
-                        if (parseFloat(volume.qtdreal) == 0) {
-                            volume.consumido = true;
-                        }
-
+                        let qtdreal = parseFloat(volume.qtdreal);
                         let apinsumo = await db.getModel('pcp_apinsumo').find({
                             where: {
                                 idvolume: obj.data.idvolume
                                 , idoprecurso: obj.data.idoprecurso
                             }
                         });
+
+                        if (deposito.descricao == 'Almoxarifado') {
+                            return application.error(obj.res, { msg: 'Não é possível consumir bobinas que estão no almoxarifado' });
+                        }
+                        if (oprecurso.idestado == config.idestadoencerrada) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
+                        if (qtd > qtdreal) {
+                            return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
+                        }
+
+                        if (volume.metragem) {
+                            volume.metragem = (((qtdreal - qtd) * parseFloat(volume.metragem)) / qtdreal).toFixed(2);
+                        }
+                        volume.qtdreal = (qtdreal - qtd).toFixed(4);
+                        if (parseFloat(volume.qtdreal) == 0) {
+                            volume.consumido = true;
+                        }
+                        volume.iddeposito = recurso.iddepositoprodutivo;
+
                         if (apinsumo) {
                             apinsumo.iduser = obj.data.iduser;
                             apinsumo.datahora = moment();
@@ -2630,6 +2878,13 @@ var main = {
 
                         await volume.save();
 
+                        for (let i = 0; i < volumereservas.length; i++) {
+                            if (volumereservas[i].idop = op.id) {
+                                volumereservas[i].apontado = true;
+                                volumereservas[i].save();
+                            }
+                        }
+
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -2640,6 +2895,9 @@ var main = {
 
                         let config = await db.getModel('pcp_config').find();
                         let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: apinsumos[0].idoprecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
                         for (let i = 0; i < apinsumos.length; i++) {
                             if (apinsumos[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
@@ -2647,18 +2905,32 @@ var main = {
                         }
 
                         let volumes = [];
+                        let volumesreservas = [];
                         for (let i = 0; i < apinsumos.length; i++) {
                             let apinsumo = apinsumos[i];
                             let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+                            let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
+
+                            if (volume.metragem) {
+                                volume.metragem = ((parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal).toFixed(2);
+                            }
+
                             volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
                             volume.consumido = false;
                             volumes.push(volume);
+                            volumesreservas = volumesreservas.concat(volumereservas);
                         }
 
                         await next(obj);
 
                         for (let i = 0; i < volumes.length; i++) {
                             volumes[i].save();
+                            for (let i = 0; i < volumesreservas.length; i++) {
+                                if (volumesreservas[i].idop = op.id) {
+                                    volumesreservas[i].apontado = false;
+                                    volumesreservas[i].save();
+                                }
+                            }
                         }
 
                     } catch (err) {
@@ -2682,6 +2954,10 @@ var main = {
                         if (obj.id > 0) {
                             apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(obj.register._previousDataValues.qtd)).toFixed(4);
                             volume.qtdreal = (parseFloat(volume.qtdreal) - parseFloat(obj.register._previousDataValues.qtd)).toFixed(4);
+                        }
+
+                        if (volume.metragem) {
+                            volume.metragem = (((parseFloat(volume.qtdreal) + parseFloat(obj.register.qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal)).toFixed(2);
                         }
 
                         apinsumo.qtd = (parseFloat(apinsumo.qtd) - parseFloat(obj.register.qtd)).toFixed(4);
@@ -2730,6 +3006,11 @@ var main = {
                             apinsumo.save();
 
                             let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+
+                            if (volume.metragem) {
+                                volume.metragem = (((parseFloat(volume.qtdreal) - parseFloat(apsobras[i].qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal)).toFixed(2);
+                            }
+
                             volume.qtdreal = (parseFloat(volume.qtdreal) - parseFloat(apsobras[i].qtd)).toFixed(4);
                             if (parseFloat(volume.qtdreal) == 0) {
                                 volume.consumido = true;
@@ -2788,8 +3069,8 @@ var main = {
                         oprecurso.idestado = config.idestadoencerrada;
                         if (!oprecurso.integrado) {
                             oprecurso.integrado = 'P';
-                            await oprecurso.save();
                         }
+                        await oprecurso.save();
 
                         return application.success(obj.res, { msg: application.message.success, redirect: '/view/50' });
 

@@ -1050,6 +1050,29 @@ module.exports = function (app) {
 
                                     break;
 
+                                case 'decimal':
+
+                                    var filterbegin = filtername + separator + 'bv';
+                                    var filterend = filtername + separator + 'ev';
+
+                                    filter += application.components.html.decimal({
+                                        width: 6
+                                        , label: viewfields[i].modelattribute.label + ' - Inicial'
+                                        , name: filterbegin
+                                        , value: getFilterValue(filterbegin, cookiefilter)
+                                        , precision: json.precision
+                                    });
+
+                                    filter += application.components.html.decimal({
+                                        width: 6
+                                        , label: viewfields[i].modelattribute.label + ' - Final'
+                                        , name: filterend
+                                        , value: getFilterValue(filterend, cookiefilter)
+                                        , precision: json.precision
+                                    });
+
+                                    break;
+
                                 case 'autocomplete':
 
                                     filtername += separator + 'iv';
@@ -1180,6 +1203,7 @@ module.exports = function (app) {
                     js = '<script type="text/javascript">' + fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8') + '</script>';
                 }
 
+                res.setHeader('Cache-Control', 'no-cache, no-store');
                 return application.render(res, 'templates/viewregister', lodash.extend({
                     template: view.template.name
                     , title: view.name

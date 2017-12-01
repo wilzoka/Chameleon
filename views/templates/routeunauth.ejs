@@ -5,17 +5,18 @@
   <% include ../parts/head %>
 </head>
 
-<body class="hold-transition skin-blue">
-  <div class="pace pace-inactive">
-    <div class="pace-activity"></div>
-  </div>
-
-  <script type="text/javascript">
-    if (Cookies.get('sidebar-collapse')) {
-      document.getElementsByTagName('body')[0].className += ' sidebar-collapse';
-    }
-  </script>
+<body class="skin-blue layout-top-nav">
   <div class="wrapper">
+
+    <header class="main-header">
+      <nav class="navbar navbar-static-top">
+        <div class="container">
+          <div class="navbar-header">
+            <a href="/home" class="navbar-brand"><b>Admin</b>LTE</a>
+          </div>
+      </nav>
+    </header>
+
     <div class="content-wrapper">
       <section class="content-header">
         <h1>
@@ -29,15 +30,14 @@
         </div>
       </section>
     </div>
-  </div>
 
-  <% include ../parts/js %>
+    <% include ../parts/js %>
 
-    <script type="text/javascript">
-      $(document).ready(function () {
-        application.components.renderAll();
-      });
-    </script>
+      <script type="text/javascript">
+        $(document).ready(function () {
+          application.components.renderAll();
+        });
+      </script>
 </body>
 
 </html>

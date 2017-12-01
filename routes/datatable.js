@@ -157,14 +157,14 @@ var getFilter = function (cookie, modelattributes) {
                 case 'bv':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " >= " + cookie[i][k]);
+                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal >= " + cookie[i][k]);
                         }
                     }
                     break;
                 case 'ev':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " <= " + cookie[i][k]);
+                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal <= " + cookie[i][k]);
                         }
                     }
                     break;

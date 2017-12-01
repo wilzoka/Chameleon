@@ -3,7 +3,6 @@
 
 <head>
     <% include parts/head %>
-
         <style>
             body {
                 padding-top: 40px;
@@ -52,13 +51,10 @@
                 border-top-right-radius: 0;
             }
         </style>
-
 </head>
 
 <body>
-
     <div class="container">
-
         <form class="form-signin xhr">
             <h2 class="form-signin-heading">Please sign in</h2>
             <label for="inputUsername" class="sr-only">Email address</label>
@@ -66,21 +62,14 @@
                 autofocus>
             <label for="inputPassword" class="sr-only">Password</label>
             <input id="inputPassword" name="password" class="form-control" type="password" placeholder="Password" required>
-            <div class="checkbox">
-                <label>
-            <input type="checkbox" value="remember-me"> Remember me
-          </label>
-            </div>
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Entrar</button>
         </form>
-
     </div>
-
     <% include parts/js %>
         <script type="text/javascript">
             application.index();
         </script>
-
 </body>
 
 </html>

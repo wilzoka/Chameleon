@@ -60,7 +60,7 @@ var application = {
             }
         });
         $(window).bind('pageshow', function (event) {
-            if (event.originalEvent.persisted) {
+            if (event.originalEvent.persisted || event.persisted) {
                 window.location.reload();
             }
         });
@@ -554,7 +554,7 @@ var application = {
                                 , success: function (response) {
                                     application.handlers.responseSuccess(response);
                                     if (response.success) {
-                                        application.tables.reload(tableid);
+                                        application.tables.reloadAll();
                                     }
                                 }
                                 , error: function (response) {
