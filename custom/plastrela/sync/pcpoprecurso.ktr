@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>item</name>
+    <name>pcpoprecurso</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -66,9 +66,9 @@
     <clusterschemas>
     </clusterschemas>
   <created_user>-</created_user>
-  <created_date>2017&#x2f;09&#x2f;26 07&#x3a;48&#x3a;34.984</created_date>
+  <created_date>2017&#x2f;12&#x2f;04 08&#x3a;58&#x3a;47.795</created_date>
   <modified_user>-</modified_user>
-  <modified_date>2017&#x2f;09&#x2f;26 07&#x3a;48&#x3a;34.984</modified_date>
+  <modified_date>2017&#x2f;12&#x2f;04 08&#x3a;58&#x3a;47.795</modified_date>
     <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA&#x3d;</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
@@ -278,13 +278,11 @@
     </attributes>
   </connection>
   <order>
-  <hop> <from>Select values</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Unidade</from><to>LK Classe</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Classe</from><to>LK Grupo</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Grupo</from><to>LK Tipo Item</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Tipo Item</from><to>Select values</to><enabled>Y</enabled> </hop>
-  <hop> <from>Table input</from><to>Modified Java Script Value</to><enabled>Y</enabled> </hop>
-  <hop> <from>Modified Java Script Value</from><to>LK Unidade</to><enabled>Y</enabled> </hop>
+  <hop> <from>Table input</from><to>LK OP</to><enabled>Y</enabled> </hop>
+  <hop> <from>LK OP</from><to>LK Etapa</to><enabled>Y</enabled> </hop>
+  <hop> <from>LK OPEtapa</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
+  <hop> <from>LK Etapa</from><to>LK Recurso</to><enabled>Y</enabled> </hop>
+  <hop> <from>LK Recurso</from><to>LK OPEtapa</to><enabled>Y</enabled> </hop>
   </order>
   <step>
     <name>Insert &#x2f; Update</name>
@@ -301,60 +299,50 @@
     <commit>100</commit>
     <update_bypassed>N</update_bypassed>
     <lookup>
-      <schema>public</schema>
-      <table>cad_item</table>
+      <schema/>
+      <table>pcp_oprecurso</table>
       <key>
-        <name>CODIGO</name>
-        <field>codigo</field>
+        <name>idopetapa</name>
+        <field>idopetapa</field>
         <condition>&#x3d;</condition>
         <name2/>
       </key>
       <value>
-        <name>codigo</name>
-        <rename>CODIGO</rename>
+        <name>idrecurso</name>
+        <rename>idrecurso</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>peso</name>
+        <rename>PESO</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>idopetapa</name>
+        <rename>idopetapa</rename>
         <update>N</update>
       </value>
       <value>
-        <name>descricao</name>
-        <rename>DESCRICAO</rename>
+        <name>quantidade</name>
+        <rename>QUANTIDADE</rename>
         <update>Y</update>
       </value>
       <value>
-        <name>idunidade</name>
-        <rename>idunidade</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>idclasse</name>
-        <rename>idclasse</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>idgrupo</name>
-        <rename>idgrupo</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>idtpitem</name>
-        <rename>idtpitem</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>ativo</name>
-        <rename>ativo</rename>
+        <name>idestado</name>
+        <rename>idestado</rename>
         <update>Y</update>
       </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>926</xloc>
-      <yloc>48</yloc>
+      <xloc>537</xloc>
+      <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
 
   <step>
-    <name>LK Classe</name>
+    <name>LK Etapa</name>
     <type>DBLookup</type>
     <description/>
     <distribute>Y</distribute>
@@ -370,33 +358,33 @@
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
-      <table>est_classe</table>
+      <table>pcp_etapa</table>
       <orderby/>
       <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
+      <eat_row_on_failure>Y</eat_row_on_failure>
       <key>
-        <name>CLASSE_PRODUTO</name>
+        <name>ETAPA</name>
         <field>codigo</field>
         <condition>&#x3d;</condition>
         <name2/>
       </key>
       <value>
         <name>id</name>
-        <rename>idclasse</rename>
+        <rename>idetapa</rename>
         <default/>
         <type>Integer</type>
       </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>455</xloc>
-      <yloc>48</yloc>
+      <xloc>261</xloc>
+      <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
 
   <step>
-    <name>LK Grupo</name>
+    <name>LK OP</name>
     <type>DBLookup</type>
     <description/>
     <distribute>Y</distribute>
@@ -412,33 +400,33 @@
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
-      <table>est_grupo</table>
+      <table>pcp_op</table>
       <orderby/>
       <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
+      <eat_row_on_failure>Y</eat_row_on_failure>
       <key>
-        <name>GRUPO</name>
+        <name>OP</name>
         <field>codigo</field>
         <condition>&#x3d;</condition>
         <name2/>
       </key>
       <value>
         <name>id</name>
-        <rename>idgrupo</rename>
+        <rename>idop</rename>
         <default/>
         <type>Integer</type>
       </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>573</xloc>
-      <yloc>48</yloc>
+      <xloc>169</xloc>
+      <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
 
   <step>
-    <name>LK Tipo Item</name>
+    <name>LK OPEtapa</name>
     <type>DBLookup</type>
     <description/>
     <distribute>Y</distribute>
@@ -454,252 +442,81 @@
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
-      <table>est_tpitem</table>
+      <table>pcp_opetapa</table>
       <orderby/>
       <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
+      <eat_row_on_failure>Y</eat_row_on_failure>
       <key>
-        <name>TIPO_ITEM</name>
+        <name>idop</name>
+        <field>idop</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+      </key>
+      <key>
+        <name>idetapa</name>
+        <field>idetapa</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+      </key>
+      <key>
+        <name>SEQ_ETAPA</name>
+        <field>seq</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>id</name>
+        <rename>idopetapa</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>444</xloc>
+      <yloc>49</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>LK Recurso</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>SIPRS</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema/>
+      <table>pcp_recurso</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>Y</eat_row_on_failure>
+      <key>
+        <name>RECURSO</name>
         <field>codigo</field>
         <condition>&#x3d;</condition>
         <name2/>
       </key>
       <value>
         <name>id</name>
-        <rename>idtpitem</rename>
+        <rename>idrecurso</rename>
         <default/>
         <type>Integer</type>
       </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>685</xloc>
-      <yloc>48</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>LK Unidade</name>
-    <type>DBLookup</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPRS</connection>
-    <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
-    <cache_size>0</cache_size>
-    <lookup>
-      <schema/>
-      <table>cad_unidade</table>
-      <orderby/>
-      <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
-      <key>
-        <name>UNIDADE</name>
-        <field>unidade</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>id</name>
-        <rename>idunidade</rename>
-        <default/>
-        <type>Integer</type>
-      </value>
-    </lookup>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>329</xloc>
-      <yloc>48</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Modified Java Script Value</name>
-    <type>ScriptValueMod</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <compatible>N</compatible>
-    <optimizationLevel>9</optimizationLevel>
-    <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
-        <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var ativo &#x3d; SITUACAO &#x3d;&#x3d; &#x27;A&#x27; &#x3f; true &#x3a; false&#x3b;</jsScript_script>
-      </jsScript>    </jsScripts>    <fields>      <field>        <name>ativo</name>
-        <rename>ativo</rename>
-        <type>Boolean</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>    </fields>     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>192</xloc>
-      <yloc>48</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Select values</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <fields>      <field>        <name>CODIGO</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>DESCRICAO</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>idunidade</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>idclasse</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>idgrupo</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>idtpitem</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>ativo</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>        <select_unspecified>N</select_unspecified>
-      <meta>        <name>CODIGO</name>
-        <rename>CODIGO</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>DESCRICAO</name>
-        <rename>DESCRICAO</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>idunidade</name>
-        <rename>idunidade</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>idclasse</name>
-        <rename>idclasse</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>idgrupo</name>
-        <rename>idgrupo</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>idtpitem</name>
-        <rename>idtpitem</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>ativo</name>
-        <rename>ativo</rename>
-        <type>Boolean</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>    </fields>     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>806</xloc>
-      <yloc>48</yloc>
+      <xloc>354</xloc>
+      <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
@@ -716,7 +533,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select situacao, codigo, descricao, unidade, classe_produto, grupo, tipo_item from estitem where empresa &#x3d; 1 and coalesce&#x28;data_alteracao, data_cadastro&#x29; &#x3e; sysdate - 3</sql>
+    <sql>select&#xd;&#xa;	opr.&#x2a;&#xd;&#xa;	, 1 as idestado&#xd;&#xa;from &#xd;&#xa;	pcpoprecurso opr&#xd;&#xa;left join pcpopetapa ope on &#x28;opr.empresa &#x3d; ope.empresa and opr.op &#x3d; ope.op and opr.seq_etapa &#x3d; ope.seq_etapa and opr.etapa &#x3d; ope.etapa&#x29;&#xd;&#xa;left join pcpop op on &#x28;ope.empresa &#x3d; op.empresa and ope.op &#x3d; op.op&#x29;&#xd;&#xa;where &#xd;&#xa;	opr.empresa &#x3d; 1&#xd;&#xa;	and op.data_inc &#x3e;&#x3d; sysdate - 180&#xd;&#xa;	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -724,8 +541,8 @@
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>61</xloc>
-      <yloc>48</yloc>
+      <xloc>57</xloc>
+      <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
     </step>

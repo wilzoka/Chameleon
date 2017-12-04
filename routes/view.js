@@ -785,21 +785,21 @@ module.exports = function (app) {
                         width: 4
                         , label: 'ID'
                         , name: 'id' + separator + 'integer' + separator + 'r'
-                        , value: getFilterValue('id.integer.r', cookiefilter)
+                        , value: getFilterValue('id' + separator + 'integer' + separator + 'r', cookiefilter)
                     });
 
                     filter += application.components.html.integer({
                         width: 4
                         , label: 'ID - Inicial'
                         , name: 'id' + separator + 'integer' + separator + 'b'
-                        , value: getFilterValue('id.integer.b', cookiefilter)
+                        , value: getFilterValue('id' + separator + 'integer' + separator + 'b', cookiefilter)
                     });
 
                     filter += application.components.html.integer({
                         width: 4
                         , label: 'ID - Final'
-                        , name: 'id.integer.e'
-                        , value: getFilterValue('id.integer.e', cookiefilter)
+                        , name: 'id' + separator + 'integer' + separator + 'e'
+                        , value: getFilterValue('id' + separator + 'integer' + separator + 'e', cookiefilter)
                     });
                 }
 

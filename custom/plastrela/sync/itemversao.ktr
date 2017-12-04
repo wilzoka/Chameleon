@@ -454,7 +454,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	v.produto&#xd;&#xa;	, v.versao&#xd;&#xa;	, v.detalhes as descricao&#xd;&#xa;	, v.produto &#x7c;&#x7c; &#x27;&#x2f;&#x27; &#x7c;&#x7c; v.versao &#x7c;&#x7c; &#x27; - &#x27; &#x7c;&#x7c; i.descricao &#x7c;&#x7c; &#x27; &#x28;&#x27; &#x7c;&#x7c; v.detalhes &#x7c;&#x7c; &#x27;&#x29;&#x27; as fullname&#xd;&#xa;from&#xd;&#xa;	pcpversao v&#xd;&#xa;inner join estitem i on &#x28;v.empresa &#x3d; i.empresa and v.produto &#x3d; i.codigo&#x29;&#xd;&#xa;where&#xd;&#xa;	v.empresa &#x3d; 1&#xd;&#xa;	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 1</sql>
+    <sql>select&#xd;&#xa;	v.produto&#xd;&#xa;	, v.versao&#xd;&#xa;	, v.detalhes as descricao&#xd;&#xa;	, v.produto &#x7c;&#x7c; &#x27;&#x2f;&#x27; &#x7c;&#x7c; v.versao &#x7c;&#x7c; &#x27; - &#x27; &#x7c;&#x7c; i.descricao &#x7c;&#x7c; &#x27; &#x28;&#x27; &#x7c;&#x7c; v.detalhes &#x7c;&#x7c; &#x27;&#x29;&#x27; as fullname&#xd;&#xa;from&#xd;&#xa;	pcpversao v&#xd;&#xa;inner join estitem i on &#x28;v.empresa &#x3d; i.empresa and v.produto &#x3d; i.codigo&#x29;&#xd;&#xa;where&#xd;&#xa;	v.empresa &#x3d; 1&#xd;&#xa;	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 3</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

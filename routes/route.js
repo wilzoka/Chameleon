@@ -25,10 +25,23 @@ module.exports = function (app) {
                 }
 
             } else {
-                return application.render(res, 'templates/routeunauth', {
-                    title: route.description
-                    , template: '../../custom/' + route.file
-                });
+
+                if (req.isAuthenticated()) {
+
+                    return application.render(res, 'templates/routeauth', {
+                        title: route.description
+                        , template: '../../custom/' + route.file
+                    });
+
+                } else {
+
+                    return application.render(res, 'templates/routeunauth', {
+                        title: route.description
+                        , template: '../../custom/' + route.file
+                    });
+
+                }
+
             }
 
         } catch (err) {
