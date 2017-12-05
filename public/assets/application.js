@@ -1099,6 +1099,21 @@ var application = {
             }, $.extend(application.notify.getOptions(), { type: 'warning' }));
         }
     }
+    , route: {
+        handler: function (data, func) {
+            $.ajax({
+                type: 'POST'
+                , dataType: 'json'
+                , data: data
+                , success: function (response) {
+                    func(response);
+                }
+                , error: function (response) {
+                    application.handlers.responseError(response);
+                }
+            });
+        }
+    }
     , jsfunction: function (name, obj, func) {
         $.ajax({
             url: '/jsfunction'

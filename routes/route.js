@@ -50,4 +50,30 @@ module.exports = function (app) {
 
     });
 
+    app.post('/route/:id', async (req, res) => {
+
+        try {
+
+            let route = await db.getModel('route').find({ where: { id: req.params.id } });
+
+            if (route) {
+
+                let config = await db.getModel('config').find();
+                let custom = reload('../custom/' + config.customfile);
+                return application.functions.getRealReference(custom, route.function)({
+                    route: route
+                    , req: req
+                    , res: res
+                });
+
+            } else {
+                return application.error(res, { msg: 'Route not found' });
+            }
+
+        } catch (err) {
+            return application.fatal(res, err);
+        }
+
+    });
+
 }
