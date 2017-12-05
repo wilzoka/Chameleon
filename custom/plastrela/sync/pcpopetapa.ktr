@@ -253,28 +253,26 @@
   </connection>
   <connection>
     <name>SIPv2</name>
-    <server>&#x24;&#x7b;host&#x7d;</server>
+    <server>&#x24;&#x7b;HOSTNAME&#x7d;</server>
     <type>POSTGRESQL</type>
     <access>Native</access>
-    <database>&#x24;&#x7b;database&#x7d;</database>
+    <database>&#x24;&#x7b;DATABASE&#x7d;</database>
     <port>5432</port>
-    <username>&#x24;&#x7b;username&#x7d;</username>
-    <password>&#x24;&#x7b;password&#x7d;</password>
+    <username>&#x24;&#x7b;USERNAME&#x7d;</username>
+    <password>&#x24;&#x7b;PASSWORD&#x7d;</password>
     <servername/>
     <data_tablespace/>
     <index_tablespace/>
     <attributes>
       <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
       <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
-      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
       <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
-      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
       <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
       <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
       <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
       <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
       <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
-      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
     </attributes>
   </connection>
   <order>
@@ -293,7 +291,7 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>SIPRS</connection>
+    <connection>SIPv2</connection>
     <commit>100</commit>
     <update_bypassed>N</update_bypassed>
     <lookup>
@@ -352,7 +350,7 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>SIPRS</connection>
+    <connection>SIPv2</connection>
     <cache>N</cache>
     <cache_load_all>N</cache_load_all>
     <cache_size>0</cache_size>
@@ -394,7 +392,7 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>SIPRS</connection>
+    <connection>SIPv2</connection>
     <cache>N</cache>
     <cache_load_all>N</cache_load_all>
     <cache_size>0</cache_size>
@@ -437,11 +435,11 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	e.&#x2a;&#xd;&#xa;from &#xd;&#xa;	pcpopetapa e &#xd;&#xa;left join pcpop op on &#x28;e.empresa &#x3d; op.empresa and e.op &#x3d; op.op&#x29;&#xd;&#xa;where&#xd;&#xa;	e.empresa &#x3d; 1&#xd;&#xa;	and op.data_inc &#x3e;&#x3d; sysdate - 180&#xd;&#xa;	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
+    <sql>select&#xd;&#xa;	e.&#x2a;&#xd;&#xa;from &#xd;&#xa;	pcpopetapa e &#xd;&#xa;left join pcpop op on &#x28;e.empresa &#x3d; op.empresa and e.op &#x3d; op.op&#x29;&#xd;&#xa;where&#xd;&#xa;	e.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and op.data_inc &#x3e;&#x3d; sysdate - 180&#xd;&#xa;	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
-    <variables_active>N</variables_active>
+    <variables_active>Y</variables_active>
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
