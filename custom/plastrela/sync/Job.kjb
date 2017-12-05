@@ -191,28 +191,26 @@
   </connection>
   <connection>
     <name>SIPv2</name>
-    <server>&#x24;&#x7b;host&#x7d;</server>
+    <server>&#x24;&#x7b;HOSTNAME&#x7d;</server>
     <type>POSTGRESQL</type>
     <access>Native</access>
-    <database>&#x24;&#x7b;database&#x7d;</database>
+    <database>&#x24;&#x7b;DATABASE&#x7d;</database>
     <port>5432</port>
-    <username>&#x24;&#x7b;username&#x7d;</username>
-    <password>&#x24;&#x7b;password&#x7d;</password>
+    <username>&#x24;&#x7b;USERNAME&#x7d;</username>
+    <password>&#x24;&#x7b;PASSWORD&#x7d;</password>
     <servername/>
     <data_tablespace/>
     <index_tablespace/>
     <attributes>
       <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
       <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
-      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
       <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
-      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
       <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
       <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
       <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
       <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
       <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
-      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
     </attributes>
   </connection>
     <slaveservers>
@@ -251,11 +249,11 @@
       <minutes>0</minutes>
       <weekDay>1</weekDay>
       <DayOfMonth>1</DayOfMonth>
-      <parallel>Y</parallel>
+      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>660</xloc>
-      <yloc>360</yloc>
+      <xloc>38</xloc>
+      <yloc>246</yloc>
       </entry>
     <entry>
       <name>cadunidade</name>
@@ -287,8 +285,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>691</xloc>
-      <yloc>18</yloc>
+      <xloc>662</xloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>correntista</name>
@@ -320,8 +318,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>215</xloc>
-      <yloc>17</yloc>
+      <xloc>355</xloc>
+      <yloc>197</yloc>
       </entry>
     <entry>
       <name>spednfentradait</name>
@@ -353,8 +351,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>35</xloc>
-      <yloc>111</yloc>
+      <xloc>355</xloc>
+      <yloc>135</yloc>
       </entry>
     <entry>
       <name>pcptipoperda</name>
@@ -386,8 +384,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1205</xloc>
-      <yloc>36</yloc>
+      <xloc>355</xloc>
+      <yloc>266</yloc>
       </entry>
     <entry>
       <name>pcpatribficha</name>
@@ -419,8 +417,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>472</xloc>
-      <yloc>19</yloc>
+      <xloc>1142</xloc>
+      <yloc>197</yloc>
       </entry>
     <entry>
       <name>pcpetapaperda</name>
@@ -452,8 +450,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1300</xloc>
-      <yloc>36</yloc>
+      <xloc>469</xloc>
+      <yloc>266</yloc>
       </entry>
     <entry>
       <name>pcpetapacausaperda</name>
@@ -485,8 +483,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1414</xloc>
-      <yloc>36</yloc>
+      <xloc>572</xloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcpmotivoparada</name>
@@ -518,8 +516,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1598</xloc>
-      <yloc>36</yloc>
+      <xloc>355</xloc>
+      <yloc>337</yloc>
       </entry>
     <entry>
       <name>pcpetapaparada</name>
@@ -551,8 +549,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1702</xloc>
-      <yloc>36</yloc>
+      <xloc>469</xloc>
+      <yloc>341</yloc>
       </entry>
     <entry>
       <name>spednfentrada</name>
@@ -584,8 +582,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>133</xloc>
-      <yloc>17</yloc>
+      <xloc>355</xloc>
+      <yloc>72</yloc>
       </entry>
     <entry>
       <name>pcptpficha</name>
@@ -617,8 +615,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>376</xloc>
-      <yloc>19</yloc>
+      <xloc>1047</xloc>
+      <yloc>197</yloc>
       </entry>
     <entry>
       <name>venpedidoit</name>
@@ -650,8 +648,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1702</xloc>
-      <yloc>104</yloc>
+      <xloc>1142</xloc>
+      <yloc>124</yloc>
       </entry>
     <entry>
       <name>venpedido</name>
@@ -683,8 +681,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1598</xloc>
-      <yloc>104</yloc>
+      <xloc>1047</xloc>
+      <yloc>124</yloc>
       </entry>
     <entry>
       <name>estclasse</name>
@@ -716,8 +714,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>624</xloc>
-      <yloc>17</yloc>
+      <xloc>572</xloc>
+      <yloc>197</yloc>
       </entry>
     <entry>
       <name>item</name>
@@ -749,8 +747,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>838</xloc>
-      <yloc>21</yloc>
+      <xloc>843</xloc>
+      <yloc>197</yloc>
       </entry>
     <entry>
       <name>itemversao</name>
@@ -779,11 +777,11 @@
       <create_parent_folder>N</create_parent_folder>
       <logging_remote_work>N</logging_remote_work>
       <parameters>        <pass_all_parameters>Y</pass_all_parameters>
-      </parameters>      <parallel>N</parallel>
+      </parameters>      <parallel>Y</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>916</xloc>
-      <yloc>21</yloc>
+      <xloc>939</xloc>
+      <yloc>196</yloc>
       </entry>
     <entry>
       <name>pcpficha</name>
@@ -815,8 +813,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>988</xloc>
-      <yloc>21</yloc>
+      <xloc>1231</xloc>
+      <yloc>197</yloc>
       </entry>
     <entry>
       <name>users</name>
@@ -848,8 +846,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1598</xloc>
-      <yloc>170</yloc>
+      <xloc>355</xloc>
+      <yloc>406</yloc>
       </entry>
     <entry>
       <name>estgrupo</name>
@@ -881,8 +879,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>553</xloc>
-      <yloc>17</yloc>
+      <xloc>469</xloc>
+      <yloc>197</yloc>
       </entry>
     <entry>
       <name>esttpitem</name>
@@ -914,8 +912,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>775</xloc>
-      <yloc>20</yloc>
+      <xloc>755</xloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>pcptprecurso</name>
@@ -947,8 +945,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>499</xloc>
-      <yloc>359</yloc>
+      <xloc>1045</xloc>
+      <yloc>269</yloc>
       </entry>
     <entry>
       <name>pcpetapa</name>
@@ -980,8 +978,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>406</xloc>
-      <yloc>359</yloc>
+      <xloc>1158</xloc>
+      <yloc>269</yloc>
       </entry>
     <entry>
       <name>pcprecurso</name>
@@ -1013,8 +1011,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>305</xloc>
-      <yloc>359</yloc>
+      <xloc>1261</xloc>
+      <yloc>268</yloc>
       </entry>
     <entry>
       <name>pcpop</name>
@@ -1046,8 +1044,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>219</xloc>
-      <yloc>359</yloc>
+      <xloc>1351</xloc>
+      <yloc>269</yloc>
       </entry>
     <entry>
       <name>pcpopetapa</name>
@@ -1079,8 +1077,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>137</xloc>
-      <yloc>359</yloc>
+      <xloc>1444</xloc>
+      <yloc>269</yloc>
       </entry>
     <entry>
       <name>pcpoprecurso</name>
@@ -1112,8 +1110,41 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>44</xloc>
-      <yloc>359</yloc>
+      <xloc>1532</xloc>
+      <yloc>268</yloc>
+      </entry>
+    <entry>
+      <name>conn</name>
+      <description/>
+      <type>TRANS</type>
+      <specification_method>filename</specification_method>
+      <trans_object_id/>
+      <filename>&#x24;&#x7b;Internal.Job.Filename.Directory&#x7d;&#x2f;conn.ktr</filename>
+      <transname/>
+      <arg_from_previous>N</arg_from_previous>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <cluster>N</cluster>
+      <slave_server_name/>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <follow_abort_remote>N</follow_abort_remote>
+      <create_parent_folder>N</create_parent_folder>
+      <logging_remote_work>N</logging_remote_work>
+      <parameters>        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>      <parallel>Y</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>130</xloc>
+      <yloc>245</yloc>
       </entry>
   </entries>
   <hops>
@@ -1172,98 +1203,8 @@
       <unconditional>Y</unconditional>
     </hop>
     <hop>
-      <from>itemversao</from>
-      <to>pcpficha</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>N</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>spednfentradait</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>spednfentrada</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>correntista</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>pcptpficha</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>pcptipoperda</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>pcpmotivoparada</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>venpedido</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>users</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
       <from>estclasse</from>
       <to>cadunidade</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>pcpatribficha</from>
-      <to>estgrupo</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
@@ -1291,15 +1232,6 @@
     <hop>
       <from>esttpitem</from>
       <to>item</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>START</from>
-      <to>pcptprecurso</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
@@ -1345,6 +1277,114 @@
     <hop>
       <from>pcpopetapa</from>
       <to>pcpoprecurso</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>START</from>
+      <to>conn</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>conn</from>
+      <to>spednfentradait</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>conn</from>
+      <to>spednfentrada</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>conn</from>
+      <to>pcptipoperda</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>conn</from>
+      <to>pcpmotivoparada</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>conn</from>
+      <to>users</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>conn</from>
+      <to>correntista</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>pcpatribficha</from>
+      <to>pcpficha</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>correntista</from>
+      <to>estgrupo</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>itemversao</from>
+      <to>pcptpficha</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>itemversao</from>
+      <to>venpedido</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>itemversao</from>
+      <to>pcptprecurso</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>

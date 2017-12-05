@@ -8,7 +8,114 @@ var application = require('../../routes/application')
 
 var main = {
     plataform: {
-        model: {
+        config: {
+            __getGoogleMapsKey: async function (obj) {
+                try {
+                    let config = await db.getModel('config').find();
+                    return application.success(obj.res, { data: config.googlemapskey });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
+        , kettle: {
+            f_runTransformation: function (filepath) {
+                db.getModel('config').find().then(config => {
+                    let nrc = require('node-run-cmd');
+                    if (application.functions.isWindows()) {
+                        nrc.run('Pan.bat /file:' + __dirname + '/' + filepath
+                            , { cwd: config.kettlepath });
+                    } else {
+                        nrc.run('pan.sh -file=' + __dirname + '/' + filepath
+                            , { cwd: config.kettlepath });
+                    }
+                });
+            }
+            , f_runJob: function (filepath) {
+                db.getModel('config').find().then(config => {
+                    let nrc = require('node-run-cmd');
+                    if (application.functions.isWindows()) {
+                        nrc.run('Kitchen.bat /file:' + __dirname + '/' + filepath
+                            , {
+                                cwd: config.kettlepath
+                                , onData: function (data) {
+                                    console.log('data', data);
+                                }
+                                , onDone: function (data) {
+                                    console.log('done', data);
+                                }
+                                , onError: function (data) {
+                                    console.log('err', data);
+                                }
+                            });
+                    } else {
+                        nrc.run('kitchen.sh -file=' + __dirname + '/' + filepath
+                            , { cwd: config.kettlepath });
+                    }
+                });
+            }
+        }
+        , mail: {
+            f_sendmail: function (obj) {
+                let nodemailer = require('nodemailer');
+                let transporter = nodemailer.createTransport({
+                    host: 'smtp.plastrela.com.br'
+                    , port: 587
+                    , tls: { rejectUnauthorized: false }
+                    , auth: {
+                        user: 'plastrela@plastrela.com.br'
+                        , pass: 'Pl3678#$'
+                    }
+                });
+                let mailOptions = {
+                    from: '"Plastrela" <plastrela@plastrela.com.br>'
+                    , to: obj.to.join(',')
+                    , subject: obj.subject
+                    , html: obj.html
+                };
+                transporter.sendMail(mailOptions, (err, info) => {
+                    if (err) {
+                        return console.log(err);
+                    }
+                });
+            }
+        }
+        , menu: {
+            onsave: async function (obj, next) {
+                await next(obj);
+                main.plataform.menu.treeAll();
+            }
+            , treeAll: function () {
+                var getChildren = function (current, childs) {
+
+                    for (var i = 0; i < childs.length; i++) {
+                        if (current.idmenuparent == childs[i].id) {
+
+                            if (childs[i].idmenuparent) {
+                                return getChildren(childs[i], childs) + childs[i].description + ' - ';
+                            } else {
+                                return childs[i].description + ' - ';
+                            }
+
+                        }
+                    }
+
+                }
+
+                db.getModel('menu').findAll().then(menus => {
+                    menus.map(menu => {
+                        if (menu.idmenuparent) {
+                            menu.tree = getChildren(menu, menus) + menu.description;
+                        } else {
+                            menu.tree = menu.description;
+                        }
+
+                        menu.save();
+                    });
+                });
+            }
+        }
+        , model: {
             onsave: async function (obj, next) {
                 try {
 
@@ -123,173 +230,26 @@ var main = {
 
             }
         }
-        , view: {
+        , permission: {
             onsave: async function (obj, next) {
-                await next(obj);
-                main.plataform.view.concatAll();
-            }
-            , concatAll: function () {
-                db.getModel('view').findAll().then(views => {
-                    views.map(view => {
-                        db.getModel('module').find({ where: { id: view.idmodule } }).then(modulee => {
-                            if (modulee) {
-                                view.namecomplete = modulee.description + ' - ' + view.name;
-                            } else {
-                                view.namecomplete = view.name;
-                            }
-                            view.save();
-                        });
-                    });
-                });
-            }
-        }
-        , viewfield: {
-            changezone: async function (obj) {
                 try {
-                    if (obj.req.method == 'GET') {
-                        if (obj.ids.length == 0) {
-                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+
+                    let permission = await db.getModel('permission').find({
+                        where: {
+                            id: { $ne: obj.register.id }
+                            , iduser: obj.register.iduser
+                            , idmenu: obj.register.idmenu
                         }
+                    });
 
-                        let viewfield = await db.getModel('viewfield').find({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
-
-                        let body = '';
-                        body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
-                        body += application.components.html.autocomplete({
-                            width: 12
-                            , label: 'Zona'
-                            , name: 'zona'
-                            , model: 'templatezone'
-                            , attribute: 'name'
-                            , datawhere: 'idtemplate = ' + viewfield.view.idtemplate
-                        });
-
-                        return application.success(obj.res, {
-                            modal: {
-                                form: true
-                                , action: '/event/' + obj.event.id
-                                , id: 'modalevt'
-                                , title: obj.event.description
-                                , body: body
-                                , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Alterar</button>'
-                            }
-                        });
-                    } else {
-
-                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'zona']);
-                        if (invalidfields.length > 0) {
-                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                        }
-
-                        await db.getModel('viewfield').update({ idtemplatezone: obj.req.body.zona }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
-
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-
+                    if (permission) {
+                        return application.error(obj.res, { msg: 'Este usuário já possui acesso a este menu' });
                     }
+
+                    next(obj);
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
-            }
-        }
-        , viewevent: {
-            _incrementorder: function (obj) {
-                if (obj.ids.length == 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
-                }
-
-                db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
-                    viewfields.map(viewfield => {
-                        viewfield.order++;
-                        viewfield.save();
-                    });
-                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                }).catch(err => {
-                    return application.fatal(obj.res, err);
-                });
-            }
-            , _decrementorder: function (obj) {
-                if (obj.ids.length == 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
-                }
-
-                db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
-                    viewfields.map(viewfield => {
-                        viewfield.order--;
-                        viewfield.save();
-                    });
-                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                }).catch(err => {
-                    return application.fatal(obj.res, err);
-                });
-            }
-        }
-        , viewtable: {
-            _incrementorder: function (obj) {
-                if (obj.ids.length == 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
-                }
-
-                db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
-                    viewtables.map(viewtable => {
-                        viewtable.ordertable++;
-                        viewtable.save();
-                    });
-                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                }).catch(err => {
-                    return application.fatal(obj.res, err);
-                });
-            }
-            , _decrementorder: function (obj) {
-                if (obj.ids.length == 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
-                }
-
-                db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
-                    viewtables.map(viewtable => {
-                        viewtable.ordertable--;
-                        viewtable.save();
-                    });
-                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                }).catch(err => {
-                    return application.fatal(obj.res, err);
-                });
-            }
-        }
-        , menu: {
-            onsave: async function (obj, next) {
-                await next(obj);
-                main.plataform.menu.treeAll();
-            }
-            , treeAll: function () {
-
-                var getChildren = function (current, childs) {
-
-                    for (var i = 0; i < childs.length; i++) {
-                        if (current.idmenuparent == childs[i].id) {
-
-                            if (childs[i].idmenuparent) {
-                                return getChildren(childs[i], childs) + childs[i].description + ' - ';
-                            } else {
-                                return childs[i].description + ' - ';
-                            }
-
-                        }
-                    }
-
-                }
-
-                db.getModel('menu').findAll().then(menus => {
-                    menus.map(menu => {
-                        if (menu.idmenuparent) {
-                            menu.tree = getChildren(menu, menus) + menu.description;
-                        } else {
-                            menu.tree = menu.description;
-                        }
-
-                        menu.save();
-                    });
-                });
-
             }
         }
         , schedule: {
@@ -358,73 +318,136 @@ var main = {
                 }
             }
         }
-        , config: {
-            __getGoogleMapsKey: async function (obj) {
+        , view: {
+            onsave: async function (obj, next) {
+                await next(obj);
+                main.plataform.view.concatAll();
+            }
+            , concatAll: function () {
+                db.getModel('view').findAll().then(views => {
+                    views.map(view => {
+                        db.getModel('module').find({ where: { id: view.idmodule } }).then(modulee => {
+                            if (modulee) {
+                                view.namecomplete = modulee.description + ' - ' + view.name;
+                            } else {
+                                view.namecomplete = view.name;
+                            }
+                            view.save();
+                        });
+                    });
+                });
+            }
+        }
+        , viewevent: {
+            _incrementorder: function (obj) {
+                if (obj.ids.length == 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+
+                db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
+                    viewfields.map(viewfield => {
+                        viewfield.order++;
+                        viewfield.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
+                });
+            }
+            , _decrementorder: function (obj) {
+                if (obj.ids.length == 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+
+                db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
+                    viewfields.map(viewfield => {
+                        viewfield.order--;
+                        viewfield.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
+                });
+            }
+        }
+        , viewfield: {
+            changezone: async function (obj) {
                 try {
-                    let config = await db.getModel('config').find();
-                    return application.success(obj.res, { data: config.googlemapskey });
+                    if (obj.req.method == 'GET') {
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let viewfield = await db.getModel('viewfield').find({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+
+                        let body = '';
+                        body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                        body += application.components.html.autocomplete({
+                            width: 12
+                            , label: 'Zona'
+                            , name: 'zona'
+                            , model: 'templatezone'
+                            , attribute: 'name'
+                            , datawhere: 'idtemplate = ' + viewfield.view.idtemplate
+                        });
+
+                        return application.success(obj.res, {
+                            modal: {
+                                form: true
+                                , action: '/event/' + obj.event.id
+                                , id: 'modalevt'
+                                , title: obj.event.description
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Alterar</button>'
+                            }
+                        });
+                    } else {
+
+                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'zona']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
+
+                        await db.getModel('viewfield').update({ idtemplatezone: obj.req.body.zona }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    }
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
             }
         }
-        , mail: {
-            f_sendmail: function (obj) {
-                let nodemailer = require('nodemailer');
-                let transporter = nodemailer.createTransport({
-                    host: 'smtp.plastrela.com.br'
-                    , port: 587
-                    , tls: { rejectUnauthorized: false }
-                    , auth: {
-                        user: 'plastrela@plastrela.com.br'
-                        , pass: 'Pl3678#$'
-                    }
-                });
-                let mailOptions = {
-                    from: '"Plastrela" <plastrela@plastrela.com.br>'
-                    , to: obj.to.join(',')
-                    , subject: obj.subject
-                    , html: obj.html
-                };
-                transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) {
-                        return console.log(err);
-                    }
+        , viewtable: {
+            _incrementorder: function (obj) {
+                if (obj.ids.length == 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+
+                db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
+                    viewtables.map(viewtable => {
+                        viewtable.ordertable++;
+                        viewtable.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
                 });
             }
-        }
-        , kettle: {
-            f_path: 'C:\\data-integration'
-            , f_runTransformation: function (filepath) {
-                let nrc = require('node-run-cmd');
-                if (application.functions.isWindows()) {
-                    nrc.run('Pan.bat /file:' + __dirname + '/' + filepath
-                        , { cwd: main.plataform.kettle.f_path });
-                } else {
-                    nrc.run('pan.sh -file=' + __dirname + '/' + filepath
-                        , { cwd: main.plataform.kettle.f_path });
+            , _decrementorder: function (obj) {
+                if (obj.ids.length == 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-            }
-            , f_runJob: function (filepath) {
-                let nrc = require('node-run-cmd');
-                if (application.functions.isWindows()) {
-                    nrc.run('Kitchen.bat /file:' + __dirname + '/' + filepath
-                        , {
-                            cwd: main.plataform.kettle.f_path
-                            // , onData: function (data) {
-                            //     console.log('data', data);
-                            // }
-                            // , onDone: function (data) {
-                            //     console.log('done', data);
-                            // }
-                            // , onError: function (data) {
-                            //     console.log('err', data);
-                            // }
-                        });
-                } else {
-                    nrc.run('kitchen.sh -file=' + __dirname + '/' + filepath
-                        , { cwd: main.plataform.kettle.f_path });
-                }
+
+                db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
+                    viewtables.map(viewtable => {
+                        viewtable.ordertable--;
+                        viewtable.save();
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }).catch(err => {
+                    return application.fatal(obj.res, err);
+                });
             }
         }
     }
@@ -2831,6 +2854,7 @@ var main = {
                         let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
                         let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
                         let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
+                        let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
                         let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
                         let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
                         let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
@@ -2873,6 +2897,7 @@ var main = {
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
                                 , qtd: qtd
+                                , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta
                             });
                         }
 
@@ -3065,6 +3090,19 @@ var main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'OP já se encontra encerrada' });
                         }
+
+                        let sql = await db.sequelize.query(`
+                        select
+                            sum(apv.pesoliquido) as pesoliquido
+                        from
+                            pcp_approducao ap
+                        left join pcp_approducaovolume apv on (ap.id = apv.idapproducao)
+                        where
+                            ap.idoprecurso = :v1
+                        `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements : {}
+                            });
 
                         oprecurso.idestado = config.idestadoencerrada;
                         if (!oprecurso.integrado) {
