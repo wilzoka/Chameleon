@@ -437,6 +437,25 @@ var main = {
                 return application.fatal(obj.res, err);
             }
         }
+        , lugar: {
+            onsave: async function(obj, next){
+                try {
+
+                    if(obj.register.id==0){
+                        obj.register.iduser = obj.req.user.id;
+                    }
+
+                    if(obj.register.iduser != obj.req.user.id){
+                        return application.error(obj.res, {msg: 'Você não é o proprietário deste lugar'});
+                    }
+
+                    next(obj);
+                    
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
     }
 }
 

@@ -51,7 +51,8 @@ module.exports = function (app) {
             try {
 
                 let menu = await db.getModel('menu').findAll({
-                    where: { idmenuparent: { $eq: null } }
+                    include: { all: true }
+                    , where: { idmenuparent: { $eq: null } }
                     , order: [['description', 'asc']]
                     , raw: true
                 });
@@ -80,7 +81,7 @@ module.exports = function (app) {
                 }
 
                 for (let i = 0; i < menu.length; i++) {
-                    if (menu[i].children.length == 0) {
+                    if (menu[i].children.length == 0 && (menu[i].idview == null && menu[i].url == null)) {
                         menu.splice(i, 1);
                         i--;
                     }

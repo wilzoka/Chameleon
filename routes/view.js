@@ -737,7 +737,7 @@ module.exports = function (app) {
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
                             : decodeClass(viewtables[i].modelattribute.type))
-                        + (viewtables[i].class || '')
+                        +  (viewtables[i].class ? ' ' + viewtables[i].class : '')
                     });
 
                     if (viewtables[i].totalize) {
