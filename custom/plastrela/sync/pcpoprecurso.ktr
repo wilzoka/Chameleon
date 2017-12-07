@@ -330,6 +330,11 @@
         <rename>idestado</rename>
         <update>Y</update>
       </value>
+      <value>
+        <name>seqfila</name>
+        <rename>PRIORIDADE</rename>
+        <update>Y</update>
+      </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
@@ -531,7 +536,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	opr.&#x2a;&#xd;&#xa;	, 1 as idestado&#xd;&#xa;from &#xd;&#xa;	pcpoprecurso opr&#xd;&#xa;left join pcpopetapa ope on &#x28;opr.empresa &#x3d; ope.empresa and opr.op &#x3d; ope.op and opr.seq_etapa &#x3d; ope.seq_etapa and opr.etapa &#x3d; ope.etapa&#x29;&#xd;&#xa;left join pcpop op on &#x28;ope.empresa &#x3d; op.empresa and ope.op &#x3d; op.op&#x29;&#xd;&#xa;where &#xd;&#xa;	opr.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and op.data_inc &#x3e;&#x3d; sysdate - 180&#xd;&#xa;	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
+    <sql>select&#xd;&#xa;	opr.&#x2a;&#xd;&#xa;	, case when opr.descricao_situacao like &#x27;Produ&#xe7;&#xe3;o Encerrada&#x27; then 2 &#xd;&#xa;	when opr.descricao_situacao like &#x27;em Produ&#xe7;&#xe3;o&#x27; then 6&#xd;&#xa;	when opr.descricao_situacao like &#x27;em Temporariamente Interrompida&#x27; then 5&#xd;&#xa;	else 1 end as idestado&#xd;&#xa;from &#xd;&#xa;	pcpoprecurso opr&#xd;&#xa;left join pcpopetapa ope on &#x28;opr.empresa &#x3d; ope.empresa and opr.op &#x3d; ope.op and opr.seq_etapa &#x3d; ope.seq_etapa and opr.etapa &#x3d; ope.etapa&#x29;&#xd;&#xa;left join pcpop op on &#x28;ope.empresa &#x3d; op.empresa and ope.op &#x3d; op.op&#x29;&#xd;&#xa;where &#xd;&#xa;	opr.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;--	and op.data_inc &#x3e;&#x3d; sysdate - 90&#xd;&#xa;--	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

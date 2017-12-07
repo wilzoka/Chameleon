@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>apinsumo</name>
+    <name>conn</name>
     <description/>
     <extended_description/>
     <trans_version/>
     <trans_type>Normal</trans_type>
+    <trans_status>0</trans_status>
     <directory>&#x2f;</directory>
     <parameters>
     </parameters>
@@ -66,9 +67,9 @@
     <clusterschemas>
     </clusterschemas>
   <created_user>-</created_user>
-  <created_date>2017&#x2f;11&#x2f;24 09&#x3a;58&#x3a;13.241</created_date>
+  <created_date>2017&#x2f;11&#x2f;27 09&#x3a;59&#x3a;14.511</created_date>
   <modified_user>-</modified_user>
-  <modified_date>2017&#x2f;11&#x2f;24 09&#x3a;58&#x3a;13.241</modified_date>
+  <modified_date>2017&#x2f;11&#x2f;27 09&#x3a;59&#x3a;14.511</modified_date>
     <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA&#x3d;</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
@@ -276,12 +277,11 @@
     </attributes>
   </connection>
   <order>
-  <hop> <from>Table input</from><to>Modified Java Script Value</to><enabled>Y</enabled> </hop>
-  <hop> <from>Modified Java Script Value</from><to>Table output</to><enabled>Y</enabled> </hop>
+  <hop> <from>Text file input</from><to>Set Variables</to><enabled>Y</enabled> </hop>
   </order>
   <step>
-    <name>Modified Java Script Value</name>
-    <type>ScriptValueMod</type>
+    <name>Set Variables</name>
+    <type>SetVariable</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -290,153 +290,201 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <compatible>N</compatible>
-    <optimizationLevel>9</optimizationLevel>
-    <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
-        <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var texto_integ &#x3d; &#x27;40&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; empresa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; op &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; seq_etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; recurso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operador &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; datahora &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; qtd &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; peso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; rnc &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; deposito &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; identificacao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; lote&#x3b;&#xd;&#xa;&#xd;&#xa;var sistemas_envol &#x3d; &#x27;PESA X INIFLEX&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var leiaute_integ &#x3d; &#x27;PCPAPINSUMO&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var operacao_integ &#x3d; &#x27;INS&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var campos_chave &#x3d; &#x27;1&#x3b;1515&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var separador &#x3d; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var situacao_integ &#x3d; &#x27;N&#x27;&#x3b;</jsScript_script>
-      </jsScript>    </jsScripts>    <fields>      <field>        <name>texto_integ</name>
-        <rename>texto_integ</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>      <field>        <name>sistemas_envol</name>
-        <rename>sistemas_envol</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>      <field>        <name>leiaute_integ</name>
-        <rename>leiaute_integ</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>      <field>        <name>operacao_integ</name>
-        <rename>operacao_integ</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>      <field>        <name>campos_chave</name>
-        <rename>campos_chave</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>      <field>        <name>separador</name>
-        <rename>separador</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>      <field>        <name>situacao_integ</name>
-        <rename>situacao_integ</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>    </fields>     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>157</xloc>
-      <yloc>35</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Table input</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <sql>select&#xd;&#xa;	opr.id&#xd;&#xa;	, &#x24;&#x7b;EMPRESA&#x7d; as empresa&#xd;&#xa;&#xd;&#xa;	, op.codigo as op&#xd;&#xa;	, e.codigo as etapa&#xd;&#xa;	, ope.seq as seq_etapa&#xd;&#xa;	, r.codigo as recurso&#xd;&#xa;	, u.c_codigosenior as operador&#xd;&#xa;	, i.codigo as insumo&#xd;&#xa;	, v.codigo as versao&#xd;&#xa;	, to_char&#x28;api.datahora, &#x27;dd&#x2f;mm&#x2f;yyyy HH24&#x3a;MI&#x27;&#x29; as datahora &#xd;&#xa;	, api.qtd as qtd&#xd;&#xa;	, api.qtd as peso&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as insumo_sub&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as versao_sub&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as rnc&#xd;&#xa;	, vd.codigo as deposito&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as identificacao&#xd;&#xa;	, &#x27;&#x27;&#x3a;&#x3a;text as lote&#xd;&#xa;&#xd;&#xa;	, now&#x28;&#x29; as data_hora_integ&#xd;&#xa;from&#xd;&#xa;	pcp_oprecurso opr&#xd;&#xa;left join pcp_opetapa ope on &#x28;opr.idopetapa &#x3d; ope.id&#x29;&#xd;&#xa;left join pcp_etapa e on &#x28;ope.idetapa &#x3d; e.id&#x29;&#xd;&#xa;left join pcp_recurso r on &#x28;opr.idrecurso &#x3d; r.id&#x29;&#xd;&#xa;left join pcp_op op on &#x28;ope.idop &#x3d; op.id&#x29;&#xd;&#xa;&#xd;&#xa;left join pcp_apinsumo api on &#x28;opr.id &#x3d; api.idoprecurso&#x29;&#xd;&#xa;left join users u on &#x28;api.iduser &#x3d; u.id&#x29;&#xd;&#xa;left join est_volume vol on &#x28;api.idvolume &#x3d; vol.id&#x29;&#xd;&#xa;left join pcp_versao v on &#x28;vol.idversao &#x3d; v.id&#x29;&#xd;&#xa;left join cad_item i on &#x28;v.iditem &#x3d; i.id&#x29;&#xd;&#xa;left join est_deposito vd on &#x28;vol.iddeposito &#x3d; vd.id&#x29;&#xd;&#xa;&#xd;&#xa;where&#xd;&#xa;	opr.integrado &#x3d; &#x27;P&#x27;</sql>
-    <limit>0</limit>
-    <lookup/>
-    <execute_each_row>N</execute_each_row>
-    <variables_active>Y</variables_active>
-    <lazy_conversion_active>N</lazy_conversion_active>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>37</xloc>
-      <yloc>35</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Table output</name>
-    <type>TableOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>Iniflex Integracao</connection>
-    <schema/>
-    <table>integracaoiniflex2</table>
-    <commit>1000</commit>
-    <truncate>N</truncate>
-    <ignore_errors>N</ignore_errors>
-    <use_batch>Y</use_batch>
-    <specify_fields>Y</specify_fields>
-    <partitioning_enabled>N</partitioning_enabled>
-    <partitioning_field/>
-    <partitioning_daily>N</partitioning_daily>
-    <partitioning_monthly>Y</partitioning_monthly>
-    <tablename_in_field>N</tablename_in_field>
-    <tablename_field/>
-    <tablename_in_table>Y</tablename_in_table>
-    <return_keys>N</return_keys>
-    <return_field/>
     <fields>
-        <field>
-          <column_name>DATA_HORA_INTEG</column_name>
-          <stream_name>data_hora_integ</stream_name>
+      <field>
+        <field_name>hostname</field_name>
+        <variable_name>HOSTNAME</variable_name>
+        <variable_type>JVM</variable_type>
+        <default_value/>
         </field>
-        <field>
-          <column_name>TEXTO_INTEG</column_name>
-          <stream_name>texto_integ</stream_name>
+      <field>
+        <field_name>database</field_name>
+        <variable_name>DATABASE</variable_name>
+        <variable_type>JVM</variable_type>
+        <default_value/>
         </field>
-        <field>
-          <column_name>SISTEMAS_ENVOL</column_name>
-          <stream_name>sistemas_envol</stream_name>
+      <field>
+        <field_name>username</field_name>
+        <variable_name>USERNAME</variable_name>
+        <variable_type>JVM</variable_type>
+        <default_value/>
         </field>
-        <field>
-          <column_name>LEIAUTE_INTEG</column_name>
-          <stream_name>leiaute_integ</stream_name>
+      <field>
+        <field_name>password</field_name>
+        <variable_name>PASSWORD</variable_name>
+        <variable_type>JVM</variable_type>
+        <default_value/>
         </field>
-        <field>
-          <column_name>OPERACAO_INTEG</column_name>
-          <stream_name>operacao_integ</stream_name>
+      <field>
+        <field_name>empresa</field_name>
+        <variable_name>EMPRESA</variable_name>
+        <variable_type>JVM</variable_type>
+        <default_value/>
         </field>
-        <field>
-          <column_name>CAMPOS_CHAVE</column_name>
-          <stream_name>campos_chave</stream_name>
-        </field>
-        <field>
-          <column_name>SEPARADOR</column_name>
-          <stream_name>separador</stream_name>
-        </field>
-        <field>
-          <column_name>SITUACAO_INTEG</column_name>
-          <stream_name>situacao_integ</stream_name>
-        </field>
-    </fields>
+      </fields>
+    <use_formatting>Y</use_formatting>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>280</xloc>
-      <yloc>35</yloc>
+      <xloc>173</xloc>
+      <yloc>41</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Text file input</name>
+    <type>TextFileInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <accept_filenames>N</accept_filenames>
+    <passing_through_fields>N</passing_through_fields>
+    <accept_field/>
+    <accept_stepname/>
+    <separator>&#x3b;</separator>
+    <enclosure>&#x22;</enclosure>
+    <enclosure_breaks>N</enclosure_breaks>
+    <escapechar/>
+    <header>N</header>
+    <nr_headerlines>1</nr_headerlines>
+    <footer>N</footer>
+    <nr_footerlines>1</nr_footerlines>
+    <line_wrapped>N</line_wrapped>
+    <nr_wraps>1</nr_wraps>
+    <layout_paged>N</layout_paged>
+    <nr_lines_per_page>80</nr_lines_per_page>
+    <nr_lines_doc_header>0</nr_lines_doc_header>
+    <noempty>Y</noempty>
+    <include>N</include>
+    <include_field/>
+    <rownum>N</rownum>
+    <rownumByFile>N</rownumByFile>
+    <rownum_field/>
+    <format>DOS</format>
+    <encoding/>
+    <add_to_result_filenames>Y</add_to_result_filenames>
+    <file>
+      <name>&#x24;&#x7b;Internal.Transformation.Filename.Directory&#x7d;</name>
+      <filemask>.&#x2a;conf</filemask>
+      <exclude_filemask/>
+      <file_required>N</file_required>
+      <include_subfolders>N</include_subfolders>
+      <type>CSV</type>
+      <compression>None</compression>
+    </file>
+    <filters>
+    </filters>
+    <fields>
+      <field>
+        <name>hostname</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <ifnull/>
+        <position>-1</position>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+      </field>
+      <field>
+        <name>database</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <ifnull/>
+        <position>-1</position>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+      </field>
+      <field>
+        <name>username</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <ifnull/>
+        <position>-1</position>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+      </field>
+      <field>
+        <name>password</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <ifnull/>
+        <position>-1</position>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+      </field>
+      <field>
+        <name>empresa</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <ifnull/>
+        <position>-1</position>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+      </field>
+    </fields>
+    <limit>0</limit>
+    <error_ignored>N</error_ignored>
+    <skip_bad_files>N</skip_bad_files>
+    <file_error_field/>
+    <file_error_message_field/>
+    <error_line_skipped>N</error_line_skipped>
+    <error_count_field/>
+    <error_fields_field/>
+    <error_text_field/>
+    <bad_line_files_destination_directory/>
+    <bad_line_files_extension>warning</bad_line_files_extension>
+    <error_line_files_destination_directory/>
+    <error_line_files_extension>error</error_line_files_extension>
+    <line_number_files_destination_directory/>
+    <line_number_files_extension>line</line_number_files_extension>
+    <date_format_lenient>Y</date_format_lenient>
+    <date_format_locale>pt_BR</date_format_locale>
+    <shortFileFieldName/>
+    <pathFieldName/>
+    <hiddenFieldName/>
+    <lastModificationTimeFieldName/>
+    <uriNameFieldName/>
+    <rootUriNameFieldName/>
+    <extensionFieldName/>
+    <sizeFieldName/>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>46</xloc>
+      <yloc>41</yloc>
       <draw>Y</draw>
       </GUI>
     </step>

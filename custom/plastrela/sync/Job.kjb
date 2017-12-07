@@ -319,7 +319,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>355</xloc>
-      <yloc>197</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>spednfentradait</name>
@@ -385,7 +385,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>355</xloc>
-      <yloc>266</yloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcpatribficha</name>
@@ -418,7 +418,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1142</xloc>
-      <yloc>197</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>pcpetapaperda</name>
@@ -451,7 +451,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>469</xloc>
-      <yloc>266</yloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcpetapacausaperda</name>
@@ -616,7 +616,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1047</xloc>
-      <yloc>197</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>venpedidoit</name>
@@ -649,7 +649,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1142</xloc>
-      <yloc>124</yloc>
+      <yloc>135</yloc>
       </entry>
     <entry>
       <name>venpedido</name>
@@ -682,7 +682,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1047</xloc>
-      <yloc>124</yloc>
+      <yloc>135</yloc>
       </entry>
     <entry>
       <name>estclasse</name>
@@ -715,7 +715,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>572</xloc>
-      <yloc>197</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>item</name>
@@ -748,7 +748,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>843</xloc>
-      <yloc>197</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>itemversao</name>
@@ -781,7 +781,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>939</xloc>
-      <yloc>196</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>pcpficha</name>
@@ -814,7 +814,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1231</xloc>
-      <yloc>197</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>users</name>
@@ -880,7 +880,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>469</xloc>
-      <yloc>197</yloc>
+      <yloc>198</yloc>
       </entry>
     <entry>
       <name>esttpitem</name>
@@ -945,8 +945,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1045</xloc>
-      <yloc>269</yloc>
+      <xloc>1047</xloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcpetapa</name>
@@ -978,8 +978,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1158</xloc>
-      <yloc>269</yloc>
+      <xloc>1142</xloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcprecurso</name>
@@ -1011,8 +1011,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1261</xloc>
-      <yloc>268</yloc>
+      <xloc>1231</xloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcpop</name>
@@ -1044,8 +1044,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1351</xloc>
-      <yloc>269</yloc>
+      <xloc>1327</xloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcpopetapa</name>
@@ -1077,8 +1077,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1444</xloc>
-      <yloc>269</yloc>
+      <xloc>1421</xloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>pcpoprecurso</name>
@@ -1110,8 +1110,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1532</xloc>
-      <yloc>268</yloc>
+      <xloc>1514</xloc>
+      <yloc>265</yloc>
       </entry>
     <entry>
       <name>conn</name>

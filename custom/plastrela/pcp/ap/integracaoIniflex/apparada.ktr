@@ -254,28 +254,26 @@
   </connection>
   <connection>
     <name>SIPv2</name>
-    <server>&#x24;&#x7b;host&#x7d;</server>
+    <server>&#x24;&#x7b;HOSTNAME&#x7d;</server>
     <type>POSTGRESQL</type>
     <access>Native</access>
-    <database>&#x24;&#x7b;database&#x7d;</database>
+    <database>&#x24;&#x7b;DATABASE&#x7d;</database>
     <port>5432</port>
-    <username>&#x24;&#x7b;username&#x7d;</username>
-    <password>&#x24;&#x7b;password&#x7d;</password>
+    <username>&#x24;&#x7b;USERNAME&#x7d;</username>
+    <password>&#x24;&#x7b;PASSWORD&#x7d;</password>
     <servername/>
     <data_tablespace/>
     <index_tablespace/>
     <attributes>
       <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
       <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
-      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
       <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
-      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
       <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
       <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
       <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
       <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
       <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
-      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
     </attributes>
   </connection>
   <order>
@@ -297,7 +295,7 @@
     <optimizationLevel>9</optimizationLevel>
     <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
         <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var texto_integ &#x3d; &#x27;20&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; &#x27;1&#x27; &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; op &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; seq_etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; recurso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; motivo &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; data_hora_ini &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operadorini &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; data_hora_fim &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operadorfim&#x3b;&#xd;&#xa;&#xd;&#xa;var sistemas_envol &#x3d; &#x27;PESA X INIFLEX&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var leiaute_integ &#x3d; &#x27;PCPAPPARADA&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var operacao_integ &#x3d; &#x27;INS&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var campos_chave &#x3d; &#x27;1&#x3b;1515&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var separador &#x3d; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var situacao_integ &#x3d; &#x27;N&#x27;&#x3b;</jsScript_script>
+        <jsScript_script>var texto_integ &#x3d; &#x27;20&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; empresa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; op &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; seq_etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; recurso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; motivo &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; data_hora_ini &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operadorini &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; data_hora_fim &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operadorfim&#x3b;&#xd;&#xa;&#xd;&#xa;var sistemas_envol &#x3d; &#x27;PESA X INIFLEX&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var leiaute_integ &#x3d; &#x27;PCPAPPARADA&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var operacao_integ &#x3d; &#x27;INS&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var campos_chave &#x3d; &#x27;1&#x3b;1515&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var separador &#x3d; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var situacao_integ &#x3d; &#x27;N&#x27;&#x3b;</jsScript_script>
       </jsScript>    </jsScripts>    <fields>      <field>        <name>texto_integ</name>
         <rename>texto_integ</rename>
         <type>String</type>
@@ -359,12 +357,12 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>SIPRS</connection>
-    <sql>select&#xd;&#xa;	opr.id&#xd;&#xa;&#xd;&#xa;	, op.codigo as op&#xd;&#xa;	, e.codigo as etapa&#xd;&#xa;	, ope.seq as seq_etapa&#xd;&#xa;	, r.codigo as recurso&#xd;&#xa;	, mp.codigo as motivo&#xd;&#xa;	, to_char&#x28;app.dataini, &#x27;dd&#x2f;mm&#x2f;yyyy HH24&#x3a;MI&#x27;&#x29; as data_hora_ini&#xd;&#xa;	, u.c_codigosenior as operadorini&#xd;&#xa;	, to_char&#x28;app.dataini, &#x27;dd&#x2f;mm&#x2f;yyyy HH24&#x3a;MI&#x27;&#x29; as data_hora_fim&#xd;&#xa;	, u.c_codigosenior as operadorfim&#xd;&#xa;&#xd;&#xa;	, now&#x28;&#x29; as data_hora_integ&#xd;&#xa;from&#xd;&#xa;	pcp_oprecurso opr&#xd;&#xa;left join pcp_opetapa ope on &#x28;opr.idopetapa &#x3d; ope.id&#x29;&#xd;&#xa;left join pcp_etapa e on &#x28;ope.idetapa &#x3d; e.id&#x29;&#xd;&#xa;left join pcp_recurso r on &#x28;opr.idrecurso &#x3d; r.id&#x29;&#xd;&#xa;left join pcp_op op on &#x28;ope.idop &#x3d; op.id&#x29;&#xd;&#xa;&#xd;&#xa;left join pcp_apparada app on &#x28;opr.id &#x3d; app.idoprecurso&#x29;&#xd;&#xa;left join pcp_motivoparada mp on &#x28;app.idmotivoparada &#x3d; mp.id&#x29;&#xd;&#xa;left join users u on &#x28;app.iduser &#x3d; u.id&#x29;&#xd;&#xa;&#xd;&#xa;where&#xd;&#xa;	opr.integrado &#x3d; &#x27;P&#x27;</sql>
+    <connection>SIPv2</connection>
+    <sql>select&#xd;&#xa;	opr.id&#xd;&#xa;	, &#x24;&#x7b;EMPRESA&#x7d; as empresa&#xd;&#xa;	, op.codigo as op&#xd;&#xa;	, e.codigo as etapa&#xd;&#xa;	, ope.seq as seq_etapa&#xd;&#xa;	, r.codigo as recurso&#xd;&#xa;	, mp.codigo as motivo&#xd;&#xa;	, to_char&#x28;app.dataini, &#x27;dd&#x2f;mm&#x2f;yyyy HH24&#x3a;MI&#x27;&#x29; as data_hora_ini&#xd;&#xa;	, u.c_codigosenior as operadorini&#xd;&#xa;	, to_char&#x28;app.dataini, &#x27;dd&#x2f;mm&#x2f;yyyy HH24&#x3a;MI&#x27;&#x29; as data_hora_fim&#xd;&#xa;	, u.c_codigosenior as operadorfim&#xd;&#xa;&#xd;&#xa;	, now&#x28;&#x29; as data_hora_integ&#xd;&#xa;from&#xd;&#xa;	pcp_oprecurso opr&#xd;&#xa;left join pcp_opetapa ope on &#x28;opr.idopetapa &#x3d; ope.id&#x29;&#xd;&#xa;left join pcp_etapa e on &#x28;ope.idetapa &#x3d; e.id&#x29;&#xd;&#xa;left join pcp_recurso r on &#x28;opr.idrecurso &#x3d; r.id&#x29;&#xd;&#xa;left join pcp_op op on &#x28;ope.idop &#x3d; op.id&#x29;&#xd;&#xa;&#xd;&#xa;inner join pcp_apparada app on &#x28;opr.id &#x3d; app.idoprecurso&#x29;&#xd;&#xa;left join pcp_motivoparada mp on &#x28;app.idmotivoparada &#x3d; mp.id&#x29;&#xd;&#xa;left join users u on &#x28;app.iduser &#x3d; u.id&#x29;&#xd;&#xa;&#xd;&#xa;where&#xd;&#xa;	opr.integrado &#x3d; &#x27;P&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
-    <variables_active>N</variables_active>
+    <variables_active>Y</variables_active>
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>

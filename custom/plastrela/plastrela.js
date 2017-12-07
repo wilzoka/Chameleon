@@ -460,28 +460,35 @@ var main = {
             integracaoApontamentos: function () {
                 main.plataform.kettle.f_runJob('pcp/ap/integracaoIniflex/Job.kjb');
             }
+            , integracaoVolumes: function () {
+                main.plataform.kettle.f_runJob('estoque/integracaovolumes/Job.kjb');
+            }
         }
         , compra: {
             solicitacaoitem: {
                 onsave: async function (obj, next) {
                     try {
 
+                        let config = await db.getModel('cmp_config').find();
+
                         if (obj.id == 0) {
                             obj.register.iduser = obj.req.user.id;
                             obj.register.datainclusao = moment();
 
-                            let config = await db.getModel('cmp_config').find();
-
                             if (!obj.register.idestado) {
                                 obj.register.idestado = config.idsolicitacaoestadoinicial;
                             }
+                        } else {
+                            if (obj.register._previousDataValues.idestado == config.idsolicitacaoestadofinal) {
+                                return application.error(obj.res, { msg: 'Não é possivel modificar uma solicitação finalizada' });
+                            }
                         }
+
+                        next(obj);
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
-
-                    next(obj);
                 }
                 , _dividir: async function (obj) {
                     try {
@@ -513,14 +520,18 @@ var main = {
                         } else {
 
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'qtd']);
+                            let qtd = parseFloat(application.formatters.be.decimal(obj.req.body.qtd, 4));
+                            let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').find({ where: { id: obj.req.body.id } });
+                            let config = await db.getModel('cmp_config').find();
+
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                            let qtd = parseFloat(application.formatters.be.decimal(obj.req.body.qtd, 4));
-
-                            let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').find({ where: { id: obj.req.body.id } });
                             if (qtd > parseFloat(solicitacaoitem.qtd)) {
                                 return application.error(obj.res, { msg: 'A quantidade informada excede a quantidade da solicitação' });
+                            }
+                            if (solicitacaoitem.idestado == config.idsolicitacaoestadofinal) {
+                                return application.error(obj.res, { msg: 'Não é possível dividir solicitação finalizada' });
                             }
 
                             await db.getModel('cmp_solicitacaoitem').create({
@@ -576,6 +587,16 @@ var main = {
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idestado']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let config = await db.getModel('cmp_config').find();
+                            let sql = await db.getModel('cmp_solicitacaoitem').findAll({
+                                where: {
+                                    id: { $in: obj.req.body.ids.split(',') }
+                                    , idestado: config.idsolicitacaoestadofinal
+                                }
+                            });
+                            if (sql.length > 0) {
+                                return application.error(obj.res, { msg: 'Não é possível alterar o estado de solicitações finalizadas' });
                             }
 
                             await db.getModel('cmp_solicitacaoitem').update({ idestado: obj.req.body.idestado }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
@@ -959,6 +980,7 @@ var main = {
                                 bulkreservas.push({
                                     idvolume: volumes[z].id
                                     , idpedidoitem: solicitacaoitem.idpedidoitem
+                                    , idop: solicitacaoitem.idop
                                     , qtd: qtd.toFixed(4)
                                     , apontado: false
                                 });
@@ -982,8 +1004,6 @@ var main = {
                     nfentrada.integrado = 'P';
                     nfentrada.finalizado = true;
                     await nfentrada.save();
-
-                    main.plataform.kettle.f_runJob('estoque/integracaovolumes/Job.kjb');
 
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
@@ -1819,7 +1839,7 @@ var main = {
 
                         await db.getModel('est_volume').destroy({
                             where: {
-                                id: { $in: ids }
+                                id: { $in: obj.ids }
                             }
                         });
                         await nfitem.save();
@@ -1975,6 +1995,10 @@ var main = {
                             if (!volume.consumido) {
                                 return application.error(obj.res, { msg: 'Não é possível estornar um volume que não foi consumido' });
                             }
+                            let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { idvolume: volume.id } });
+                            if (apinsumo) {
+                                return application.error(obj.res, { msg: 'Não é possível estornar um volume que foi consumido por um apontamento' });
+                            }
 
                             let body = '';
                             body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
@@ -2001,7 +2025,15 @@ var main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
-                            await db.getModel('est_volume').update({ consumido: false, qtdreal: application.formatters.be.decimal(obj.req.body.qtd, 4) }, { where: { id: obj.req.body.id } });
+                            let volume = await db.getModel('est_volume').find({ where: { id: obj.req.body.id } });
+                            volume.consumido = false;
+                            volume.qtdreal = application.formatters.be.decimal(obj.req.body.qtd, 4);
+
+                            if (parseFloat(volume.qtdreal) > parseFloat(volume.qtd)) {
+                                return application.error(obj.res, { msg: 'O peso do estorno é maior que o peso original do volume' });
+                            }
+                            await volume.save();
+
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
@@ -2778,6 +2810,7 @@ var main = {
                         , name: 'iduser'
                         , model: 'users'
                         , attribute: 'fullname'
+                        , datawhere: 'active'
                     });
 
                     body += application.components.html.text({
@@ -2867,7 +2900,7 @@ var main = {
                         });
 
                         if (deposito.descricao == 'Almoxarifado') {
-                            return application.error(obj.res, { msg: 'Não é possível consumir bobinas que estão no almoxarifado' });
+                            return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
                         }
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
@@ -3093,7 +3126,7 @@ var main = {
 
                         let sql = await db.sequelize.query(`
                         select
-                            sum(apv.pesoliquido) as pesoliquido
+                            sum(apv.pesoliquido) as sum
                         from
                             pcp_approducao ap
                         left join pcp_approducaovolume apv on (ap.id = apv.idapproducao)
@@ -3101,8 +3134,11 @@ var main = {
                             ap.idoprecurso = :v1
                         `, {
                                 type: db.sequelize.QueryTypes.SELECT
-                                , replacements : {}
+                                , replacements: { v1: oprecurso.id }
                             });
+                        if (sql.length <= 0 || parseFloat(sql[0].sum) <= 0) {
+                            return application.error(obj.res, { msg: 'OP sem produção' });
+                        }
 
                         oprecurso.idestado = config.idestadoencerrada;
                         if (!oprecurso.integrado) {

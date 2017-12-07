@@ -253,28 +253,26 @@
   </connection>
   <connection>
     <name>SIPv2</name>
-    <server>&#x24;&#x7b;host&#x7d;</server>
+    <server>&#x24;&#x7b;HOSTNAME&#x7d;</server>
     <type>POSTGRESQL</type>
     <access>Native</access>
-    <database>&#x24;&#x7b;database&#x7d;</database>
+    <database>&#x24;&#x7b;DATABASE&#x7d;</database>
     <port>5432</port>
-    <username>&#x24;&#x7b;username&#x7d;</username>
-    <password>&#x24;&#x7b;password&#x7d;</password>
+    <username>&#x24;&#x7b;USERNAME&#x7d;</username>
+    <password>&#x24;&#x7b;PASSWORD&#x7d;</password>
     <servername/>
     <data_tablespace/>
     <index_tablespace/>
     <attributes>
       <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
       <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
-      <attribute><code>INITIAL_POOL_SIZE</code><attribute>0</attribute></attribute>
       <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
-      <attribute><code>MAXIMUM_POOL_SIZE</code><attribute>10000</attribute></attribute>
       <attribute><code>PORT_NUMBER</code><attribute>5432</attribute></attribute>
       <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>N</attribute></attribute>
       <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
       <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
       <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
-      <attribute><code>USE_POOLING</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
     </attributes>
   </connection>
   <order>
@@ -292,7 +290,7 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>SIPRS</connection>
+    <connection>SIPv2</connection>
     <commit>100</commit>
     <update_bypassed>N</update_bypassed>
     <lookup>
@@ -465,7 +463,7 @@
            <schema_name/>
            </partitioning>
     <connection>Senior</connection>
-    <sql>select&#xd;&#xa;	f.numcad as c_codigosenior&#xd;&#xa;	, f.nomfun as fullname&#xd;&#xa;	, c.titcar as c_funcao&#xd;&#xa;	, l.nomloc as c_local&#xd;&#xa;	, case when f.sitafa &#x21;&#x3d; 7 then 1 else 0 end as active&#xd;&#xa;from&#xd;&#xa;	r034fun f&#xd;&#xa;left join r024car c on &#x28;f.codcar &#x3d; c.codcar&#x29;&#xd;&#xa;left join r016orn l on &#x28;f.numloc &#x3d; l.numloc&#x29;&#xd;&#xa;where&#xd;&#xa;	f.codfil &#x3d; 3</sql>
+    <sql>select&#xd;&#xa;	f.numcad as c_codigosenior&#xd;&#xa;	, f.nomfun as fullname&#xd;&#xa;	, c.titcar as c_funcao&#xd;&#xa;	, l.nomloc as c_local&#xd;&#xa;	, case when f.sitafa &#x21;&#x3d; 7 then 1 else 0 end as active&#xd;&#xa;from&#xd;&#xa;	r034fun f&#xd;&#xa;left join r024car c on &#x28;f.codcar &#x3d; c.codcar&#x29;&#xd;&#xa;left join r016orn l on &#x28;f.numloc &#x3d; l.numloc&#x29;&#xd;&#xa;--where f.codfil &#x3d; case when &#x24;&#x7b;EMPRESA&#x7d; &#x3d; 1 then 3 else 4 end</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

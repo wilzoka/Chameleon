@@ -221,3 +221,6 @@ table.dataTable thead tr th, table.dataTable tfoot tr td {
 a.btnevent i.fa {
     min-width: 14px;
 }
+.nowrap {
+    white-space: nowrap;
+}

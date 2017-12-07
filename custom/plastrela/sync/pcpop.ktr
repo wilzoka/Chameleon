@@ -434,7 +434,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	op as codigo&#xd;&#xa;	, quantidade &#xd;&#xa;	, peso&#xd;&#xa;	, produto&#xd;&#xa;	, versao&#xd;&#xa;	, op.&#x2a;&#xd;&#xa;from&#xd;&#xa;	pcpop op&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and data_inc &#x3e;&#x3d; sysdate - 180&#xd;&#xa;	and descricao_situacao not like &#x27;Encerrada&#x27;</sql>
+    <sql>select&#xd;&#xa;	op as codigo&#xd;&#xa;	, quantidade &#xd;&#xa;	, peso&#xd;&#xa;	, produto&#xd;&#xa;	, versao&#xd;&#xa;	, op.&#x2a;&#xd;&#xa;from&#xd;&#xa;	pcpop op&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;--	and data_inc &#x3e;&#x3d; sysdate - 90&#xd;&#xa;--	and descricao_situacao not like &#x27;Encerrada&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

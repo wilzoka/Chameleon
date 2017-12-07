@@ -421,8 +421,10 @@ var application = {
                         where = where.replace(/\$parent/g, application.functions.getId());
                     }
                 } else {
-                    if (needreplace) {
+                    if (needreplace && application.functions.getUrlParameter('parent')) {
                         where = where.replace(/\$parent/g, application.functions.getUrlParameter('parent'));
+                    } else {
+                        where = '';
                     }
                 }
 

@@ -80,7 +80,8 @@ $(function () {
                             } else {
                                 $modal.find('input[name="idvolume"]').val('');
                                 $modal.find('input[name="qtdreal"]').val('');
-                                $modal.find('input[name="qtd"]').focus().val('');
+                                $modal.find('input[name="qtd"]').val('');
+                                $modal.find('input[name="codigodebarra"]').focus().val('');
                             }
                         });
                     }
@@ -121,6 +122,19 @@ $(function () {
     });
     if (Cookies.get('modalsobra')) {
         $('#modalsobra').modal('show');
+    }
+
+    $('#retorno').click(function () {
+        $('#modalretorno').modal('show');
+    });
+    $('#modalretorno').on('shown.bs.modal', function () {
+        Cookies.set('modalretorno', true);
+    });
+    $('#modalretorno').on('hidden.bs.modal', function () {
+        Cookies.remove('modalretorno');
+    });
+    if (Cookies.get('modalretorno')) {
+        $('#modalretorno').modal('show');
     }
 
     $('#encerrar').click(function () {

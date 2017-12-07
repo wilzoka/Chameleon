@@ -435,7 +435,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	e.&#x2a;&#xd;&#xa;from &#xd;&#xa;	pcpopetapa e &#xd;&#xa;left join pcpop op on &#x28;e.empresa &#x3d; op.empresa and e.op &#x3d; op.op&#x29;&#xd;&#xa;where&#xd;&#xa;	e.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and op.data_inc &#x3e;&#x3d; sysdate - 180&#xd;&#xa;	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
+    <sql>select&#xd;&#xa;	e.&#x2a;&#xd;&#xa;from &#xd;&#xa;	pcpopetapa e &#xd;&#xa;left join pcpop op on &#x28;e.empresa &#x3d; op.empresa and e.op &#x3d; op.op&#x29;&#xd;&#xa;where&#xd;&#xa;	e.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;--	and op.data_inc &#x3e;&#x3d; sysdate - 90&#xd;&#xa;--	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
