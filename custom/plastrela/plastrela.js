@@ -955,7 +955,7 @@ var main = {
                     let config = await db.getModel('cmp_config').find();
                     let nfentradaitens = await db.getModel('est_nfentradaitem').findAll({ where: { idnfentrada: nfentrada.id } });
                     let bulkreservas = [];
-                    let solicitacoesparafinalizar = [];
+                    let solicitacoesfinalizadas = [];
 
                     for (var i = 0; i < nfentradaitens.length; i++) {
                         let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').find({
@@ -987,18 +987,22 @@ var main = {
                             }
 
                             // Finalizar OC
-                            solicitacoesparafinalizar.push(solicitacaoitem);
+                            solicitacaoitem.idestado = config.idsolicitacaoestadofinal;
+                            await solicitacaoitem.save();
+                            solicitacoesfinalizadas.push(solicitacaoitem);
                         } else {
+
+                            for (var i = 0; i < solicitacoesfinalizadas.length; i++) {
+                                solicitacoesfinalizadas[i].idestado = config.idsolicitacaoestadocomprado;
+                                await solicitacoesfinalizadas[i].save();
+                            }
+
                             return application.error(obj.res, { msg: 'Solicitação de compra não encontrado para o item com sequencial ' + nfentradaitens[i].sequencial })
                         }
                     }
 
                     if (bulkreservas.length > 0) {
                         await db.getModel('est_volumereserva').bulkCreate(bulkreservas);
-                    }
-                    for (var i = 0; i < solicitacoesparafinalizar.length; i++) {
-                        solicitacoesparafinalizar[i].idestado = config.idsolicitacaoestadofinal;
-                        await solicitacoesparafinalizar[i].save();
                     }
 
                     nfentrada.integrado = 'P';
@@ -1924,7 +1928,7 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , e_movimentarVolumes: async function (obj) {
+                , e_movimentar: async function (obj) {
                     try {
 
                         if (obj.req.method == 'GET') {
@@ -1983,7 +1987,7 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , e_estornarVolume: async function (obj) {
+                , e_estornar: async function (obj) {
                     try {
 
                         if (obj.req.method == 'GET') {
@@ -2041,7 +2045,7 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , e_reservarVolumes: async function (obj) {
+                , e_reservar: async function (obj) {
                     try {
 
                         if (obj.req.method == 'GET') {
@@ -2101,7 +2105,58 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_requisitar: async function (obj) {
+                    try {
 
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+
+                            let volumes = await db.getModel('est_volume').findAll({
+                                where: {
+                                    id: { $in: obj.ids }
+                                }
+                            });
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Depósito*'
+                                , name: 'iddeposito'
+                                , model: 'est_deposito'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.datetime({
+                                width: '12'
+                                , label: 'Data/Hora para Atender'
+                                , name: 'datahora'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Requisitar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'iddeposito', 'datahora']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , volumereserva: {
                 onsave: async function (obj, next) {
@@ -2815,6 +2870,12 @@ var main = {
 
                     body += application.components.html.text({
                         width: 12
+                        , label: 'Camada/Estação'
+                        , name: 'recipiente'
+                    });
+
+                    body += application.components.html.text({
+                        width: 12
                         , label: 'Código de Barra'
                         , name: 'codigodebarra'
                     });
@@ -2908,6 +2969,9 @@ var main = {
                         if (qtd > qtdreal) {
                             return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
                         }
+                        if (obj.data.recipiente != null && obj.data.recipiente.length > 1) {
+                            return application.error(obj.res, { msg: 'A Camada/Estação deve conter apenas 1 caractere', invalidfields: ['recipiente'] });
+                        }
 
                         if (volume.metragem) {
                             volume.metragem = (((qtdreal - qtd) * parseFloat(volume.metragem)) / qtdreal).toFixed(2);
@@ -2931,6 +2995,7 @@ var main = {
                                 , datahora: moment()
                                 , qtd: qtd
                                 , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta
+                                , recipiente: obj.data.recipiente.toUpperCase()
                             });
                         }
 
@@ -2959,6 +3024,10 @@ var main = {
                         for (let i = 0; i < apinsumos.length; i++) {
                             if (apinsumos[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
+                            }
+                            let apretorno = await db.getModel('pcp_apretorno').find({ where: { idoprecurso: apinsumos[i].idoprecurso, estacao: apinsumos[i].recipiente } });
+                            if (apretorno) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar insumos com retornos gerados sobre este recipiente' });
                             }
                         }
 
@@ -2990,6 +3059,90 @@ var main = {
                                 }
                             }
                         }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , apretorno: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        if (obj.register.id == 0) {
+
+                            let apinsumos = await db.getModel('pcp_apinsumo').findAll({
+                                where: {
+                                    idoprecurso: obj.register.idoprecurso
+                                    , recipiente: obj.register.estacao
+                                }
+                            });
+
+                            if (apinsumos.length <= 0) {
+                                return application.error(obj.res, { msg: 'Esta estação não foi apontada nos insumos desta OP' });
+                            } else {
+
+                                let sum = 0;
+                                for (let i = 0; i < apinsumos.length; i++) {
+                                    sum += parseFloat(apinsumos[i].qtd);
+                                }
+
+                                let info = [];
+                                for (let i = 0; i < apinsumos.length; i++) {
+                                    let perc = parseFloat(apinsumos[i].qtd) / sum;
+                                    let qtd = (parseFloat(obj.register.qtd) * perc).toFixed(4);
+                                    apinsumos[i].qtd = (parseFloat(apinsumos[i].qtd) - parseFloat(qtd)).toFixed(4);
+                                    info.push({ idinsumo: apinsumos[i].id, qtd: qtd })
+                                    await apinsumos[i].save();
+                                }
+                                obj.register.info = JSON.stringify(info);
+                            }
+
+                            let saved = await next(obj);
+
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                            let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+                            let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
+
+                            db.getModel('est_volume').create({
+                                idapretorno: saved.register.id
+                                , idversao: saved.register.idversao
+                                , iddeposito: deposito.id
+                                , iduser: obj.req.user.id
+                                , datahora: moment()
+                                , qtd: saved.register.qtd
+                                , consumido: false
+                                , qtdreal: saved.register.qtd
+                            });
+                        } else {
+                            return application.error(obj.res, { msg: 'Não é permitido a edição em retornos, exclua se necessário' });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+
+                        let apretorno = await db.getModel('pcp_apretorno').find({ where: { id: obj.ids[0] } });
+
+                        let info = JSON.parse(apretorno.info);
+
+                        for (let i = 0; i < info.length; i++) {
+                            let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: info[i].idinsumo } });
+                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(info[i].qtd)).toFixed(4);
+                            await apinsumo.save();
+                        }
+
+                        let volume = await db.getModel('est_volume').find({ where: { idapretorno: obj.ids[0] } });
+                        await volume.destroy();
+
+                        next(obj);
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
