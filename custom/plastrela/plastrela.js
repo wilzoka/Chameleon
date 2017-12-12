@@ -38,28 +38,28 @@ var main = {
                         nrc.run('Kitchen.bat /file:' + __dirname + '/' + filepath
                             , {
                                 cwd: config.kettlepath
-                                , onData: function (data) {
-                                    console.log('data', data);
-                                }
-                                , onDone: function (data) {
-                                    console.log('done', data);
-                                }
-                                , onError: function (data) {
-                                    console.log('err', data);
-                                }
+                                // , onData: function (data) {
+                                //     console.log('data', data);
+                                // }
+                                // , onDone: function (data) {
+                                //     console.log('done', data);
+                                // }
+                                // , onError: function (data) {
+                                //     console.log('err', data);
+                                // }
                             });
                     } else {
                         nrc.run(config.kettlepath + '/kitchen.sh -file=' + __dirname + '/' + filepath
                             , {
-                                onData: function (data) {
-                                    console.log('data', data);
-                                }
-                                , onDone: function (data) {
-                                    console.log('done', data);
-                                }
-                                , onError: function (data) {
-                                    console.log('err', data);
-                                }
+                                // onData: function (data) {
+                                //     console.log('data', data);
+                                // }
+                                // , onDone: function (data) {
+                                //     console.log('done', data);
+                                // }
+                                // , onError: function (data) {
+                                //     console.log('err', data);
+                                // }
                             });
                     }
                 });
@@ -1317,7 +1317,7 @@ var main = {
                             doc
                                 .font('Courier-Bold')
                                 .fontSize(11)
-                                .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 47);
+                                .text('IDENTIFICAÇÃO E STATUS DO VOLUME Nº ' + volume.id, 165, 47);
 
 
                             doc
@@ -1570,7 +1570,7 @@ var main = {
 
                             doc
                                 .font('Courier-Bold')
-                                .text('Observações da Bobina:', 30, 342);
+                                .text('Observações do Volume:', 30, 342);
 
                             str = [];
                             if (approducaotempos.length > 0) {
@@ -1646,7 +1646,7 @@ var main = {
                             doc
                                 .font('Courier-Bold')
                                 .fontSize(11)
-                                .text('IDENTIFICAÇÃO E STATUS DA BOBINA Nº ' + volume.id, 165, 480);
+                                .text('IDENTIFICAÇÃO E STATUS DO VOLUME Nº ' + volume.id, 165, 480);
 
                             width1 = 15;
                             width1val = 107;
