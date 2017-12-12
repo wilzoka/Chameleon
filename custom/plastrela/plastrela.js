@@ -3148,6 +3148,23 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_imprimirEtiquetas: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let ids = [];
+                        let results = await db.sequelize.query('select v.id from pcp_apretorno apr left join est_volume v on (apr.id = v.idapretorno) where apr.id in (' + obj.ids.join(',') + ')', { type: db.sequelize.QueryTypes.SELECT });
+
+                        for (let i = 0; i < results.length; i++) {
+                            ids.push(results[i].id);
+                        }
+                        obj.ids = ids;
+                        main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , apsobra: {
                 onsave: async function (obj, next) {
