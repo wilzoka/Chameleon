@@ -2,7 +2,3 @@
 files/*
 node_modules/*
 tmp/*
-
-custom/plastrela/sync/db.conf
-custom/plastrela/pcp/ap/integracaoIniflex/db.conf
-custom/plastrela/estoque/integracaovolumes/db.conf

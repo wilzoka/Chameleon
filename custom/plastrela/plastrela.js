@@ -85,7 +85,7 @@ var main = {
                 };
                 transporter.sendMail(mailOptions, (err, info) => {
                     if (err) {
-                        return console.log(err);
+                        return console.error(err);
                     }
                 });
             }
