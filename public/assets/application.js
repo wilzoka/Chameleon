@@ -513,7 +513,7 @@ var application = {
                     }
                     window.location.href = '/view/' + idview + '/0' + add;
                 });
-                $('button#' + sTableId + '_edit').click(function () {
+                $('button#' + sTableId + '_edit').click(function (e) {
                     var tableid = $(this).attr('data-table');
                     var idview = $('#' + tableid).attr('data-view');
                     var subview = $('#' + tableid).attr('data-subview');
@@ -524,7 +524,12 @@ var application = {
                     var selected = $('#' + tableid).attr('data-selected');
                     if (selected) {
                         selected = selected.split(',');
-                        window.location.href = '/view/' + idview + '/' + selected[selected.length - 1] + add;
+                        var href = '/view/' + idview + '/' + selected[selected.length - 1] + add;
+                        if (e.ctrlKey) {
+                            window.open(href);
+                        } else {
+                            window.location.href = href;
+                        }
                     } else {
                         application.notify.info('Selecione um registro para Editar');
                     }
