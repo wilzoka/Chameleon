@@ -2,3 +2,4 @@
 files/*
 node_modules/*
 tmp/*
+custom/plastrela/sync/db.conf
