@@ -2309,7 +2309,7 @@ var main = {
                             oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
                         } else if ('idapproducao' in obj.data) {
                             let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } });
-                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: producao.idoprecurso } });
+                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
                         } else {
                             return application.error(obj.res, { msg: 'sem id' });
                         }
