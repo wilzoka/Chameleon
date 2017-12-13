@@ -328,7 +328,7 @@
       <value>
         <name>idestado</name>
         <rename>idestado</rename>
-        <update>Y</update>
+        <update>N</update>
       </value>
       <value>
         <name>seqfila</name>
