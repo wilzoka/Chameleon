@@ -2304,6 +2304,16 @@ var main = {
                 , js_usuarioUltimoAp: async function (obj) {
                     try {
 
+                        let oprecurso = null;
+                        if ('idoprecurso' in obj.data) {
+                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        } else if ('idapproducao' in obj.data) {
+                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } });
+                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: producao.idoprecurso } });
+                        } else {
+                            return application.error(obj.res, { msg: 'sem id' });
+                        }
+
                         let sql = await db.sequelize.query(`
                             select
                                 x.*
@@ -2345,7 +2355,7 @@ var main = {
                             limit 1                          
                             `
                             , {
-                                replacements: { v1: obj.data.idoprecurso }
+                                replacements: { v1: oprecurso.id }
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
 
@@ -2362,15 +2372,8 @@ var main = {
                 }
                 , js_dataUltimoAp: async function (obj) {
                     try {
-                        let oprecurso = null;
-                        if ('idoprecurso' in obj.data) {
-                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
-                        } else if ('idapproducao' in obj.data) {
-                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } });
-                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: producao.idoprecurso } });
-                        } else {
-                            return application.error(obj.res, { msg: 'sem id' });
-                        }
+
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
 
                         let results = await db.sequelize.query(`
                             select
