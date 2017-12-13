@@ -2536,6 +2536,7 @@ var main = {
                             return application.error(obj.res, { msg: 'Existe um apontamento de ' + results[0].tipo + ' neste horário' });
                         }
 
+                        main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
                         next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -2599,7 +2600,7 @@ var main = {
                         // let sumqtdapinsumo = await db.getModel('pcp_apinsumo').sum('qtd', { where: { idoprecurso: oprecurso.id } });
                         // let qtdproducao = await db.getModel('pcp_approducaovolume').sum('qtd', { where: { idoprecurso: oprecurso.id } });
 
-
+                        main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
                         let saved = await next(obj);
 
                         if (saved.success) {
@@ -2712,6 +2713,7 @@ var main = {
                             return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
 
+                        main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
                         next(obj);
 
                     } catch (err) {
@@ -2844,7 +2846,7 @@ var main = {
                             }
                         }
 
-                        main.plastrela.pcp.ap.f_corrigeEstadoOps(obj.register.idoprecurso);
+                        main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
                         next(obj);
 
                     } catch (err) {
@@ -3011,6 +3013,7 @@ var main = {
                                 , recipiente: obj.data.recipiente.toUpperCase()
                             });
                         }
+                        main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
 
                         await volume.save();
 

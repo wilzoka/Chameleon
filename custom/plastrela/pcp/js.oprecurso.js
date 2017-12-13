@@ -7,6 +7,12 @@ $(function () {
         $('#' + table + '_paginate').remove();
     }
 
+    if ($('input[name="etapa"]').val() == '70') {
+        $('#col-insumo').removeClass('col-md-2').addClass('col-md-6');
+        $('#col-producao').removeClass('col-md-4').addClass('col-md-6');
+        $('#col-perda').addClass('hide');
+        $('#col-parada').addClass('hide');
+    }
 
     $(document).on('app-datatable', function (e, table) {
 

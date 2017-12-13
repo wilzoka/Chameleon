@@ -337,7 +337,8 @@ var render = function (viewfield, register) {
             return renderGeoreference(viewfield, register);
         case 'virtual':
             return application.components.html.text({
-                width: viewfield.width
+                name: viewfield.modelattribute.name
+                , width: viewfield.width
                 , label: viewfield.modelattribute.label
                 , value: register && register.dataValues[viewfield.modelattribute.name] || ''
                 , disabled: 'disabled="disabled"'
