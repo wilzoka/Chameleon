@@ -6,7 +6,7 @@ $(function () {
             idapproducao: application.functions.getUrlParameter('parent')
         }, function (response) {
             var newOption = new Option(response.data.text, response.data.id, false, false);
-            $modal.find('select[name="iduser"]').append(newOption).trigger('change');
+            $('select[name="iduser"]').append(newOption).trigger('change');
         });
     }
 
