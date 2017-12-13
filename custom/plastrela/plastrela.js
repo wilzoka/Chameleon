@@ -38,28 +38,28 @@ var main = {
                         nrc.run('Kitchen.bat /file:' + __dirname + '/' + filepath
                             , {
                                 cwd: config.kettlepath
-                                // , onData: function (data) {
-                                //     console.log('data', data);
-                                // }
-                                // , onDone: function (data) {
-                                //     console.log('done', data);
-                                // }
-                                // , onError: function (data) {
-                                //     console.log('err', data);
-                                // }
+                                , onData: function (data) {
+                                    console.log('data', data);
+                                }
+                                , onDone: function (data) {
+                                    console.log('done', data);
+                                }
+                                , onError: function (data) {
+                                    console.log('err', data);
+                                }
                             });
                     } else {
                         nrc.run(config.kettlepath + '/kitchen.sh -file=' + __dirname + '/' + filepath
                             , {
-                                // onData: function (data) {
-                                //     console.log('data', data);
-                                // }
-                                // , onDone: function (data) {
-                                //     console.log('done', data);
-                                // }
-                                // , onError: function (data) {
-                                //     console.log('err', data);
-                                // }
+                                onData: function (data) {
+                                    console.log('data', data);
+                                }
+                                , onDone: function (data) {
+                                    console.log('done', data);
+                                }
+                                , onError: function (data) {
+                                    console.log('err', data);
+                                }
                             });
                     }
                 });
