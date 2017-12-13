@@ -2301,10 +2301,76 @@ var main = {
                         });
                     });
                 }
-                , js_dataUltimoAp: async function (obj) {
+                , js_usuarioUltimoAp: async function (obj) {
                     try {
 
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        let sql = await db.sequelize.query(`
+                            select
+                                x.*
+                                , u.fullname
+                            from
+                                (select
+                                    datahora, iduser
+                                from
+                                    pcp_apinsumo api
+                                where api.idoprecurso = :v1
+                            
+                                union all
+                            
+                                select
+                                    datahora, iduser
+                                from
+                                    pcp_apperda app
+                                where app.idoprecurso = :v1
+                            
+                                union all
+                            
+                                select
+                                    datafim, iduser
+                                from
+                                    pcp_apparada app
+                                where app.idoprecurso = :v1
+                            
+                                union all
+                            
+                                select
+                                    v.datahora, v.iduser
+                                from
+                                    pcp_approducao app
+                                left join pcp_approducaovolume apv on (app.id = apv.idapproducao)
+                                left join est_volume v on (apv.id = v.idapproducaovolume)
+                                where app.idoprecurso = :v1) as x
+                            left join users u on (x.iduser = u.id)
+                            order by datahora desc
+                            limit 1                          
+                            `
+                            , {
+                                replacements: { v1: obj.data.idoprecurso }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
+
+                        let data = { id: null, text: null };
+                        if (sql.length > 0) {
+                            data.id = sql[0].iduser;
+                            data.text = sql[0].fullname;
+                        }
+                        return application.success(obj.res, { data: data });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_dataUltimoAp: async function (obj) {
+                    try {
+                        let oprecurso = null;
+                        if ('idoprecurso' in obj.data) {
+                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        } else if ('idapproducao' in obj.data) {
+                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } });
+                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: producao.idoprecurso } });
+                        } else {
+                            return application.error(obj.res, { msg: 'sem id' });
+                        }
 
                         let results = await db.sequelize.query(`
                             select
@@ -2904,7 +2970,7 @@ var main = {
 
                     body += application.components.html.decimal({
                         width: '4'
-                        , label: 'Quantidade Disponível'
+                        , label: 'Qtd Disponível'
                         , name: 'qtdreal'
                         , precision: '4'
                         , disabled: 'disabled="disabled"'
@@ -2912,7 +2978,7 @@ var main = {
 
                     body += application.components.html.decimal({
                         width: '4'
-                        , label: 'Quantidade para Consumir'
+                        , label: 'Qtd para Consumir'
                         , name: 'qtd'
                         , precision: '4'
                     });

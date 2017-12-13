@@ -70,10 +70,21 @@ $(function () {
     });
 
     $(document).on('app-modal', function (e, modal) {
+        var $modal = $('#' + modal.id);
 
         switch (modal.id) {
             case 'apinsumoAdicionarModal':
-                var $modal = $('#apinsumoAdicionarModal');
+
+                application.jsfunction('plastrela.pcp.ap.js_usuarioUltimoAp', {
+                    idoprecurso: application.functions.getId()
+                }, function (response) {
+                    var newOption = new Option(response.data.text, response.data.id, false, false);
+                    $modal.find('select[name="iduser"]').append(newOption).trigger('change');
+                });
+
+                $modal.on('shown.bs.modal', function () {
+                    $modal.find('input[name="codigodebarra"]').focus();
+                });
 
                 $modal.find('input[name="codigodebarra"]').keydown(function (e) {
                     if (e.keyCode == 13) {
