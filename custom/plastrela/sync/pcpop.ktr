@@ -381,6 +381,48 @@
     </step>
 
   <step>
+    <name>LK OP Mae</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>SIPv2</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema/>
+      <table>pcp_op</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>OP_PRINCIPAL</name>
+        <field>codigo</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>id</name>
+        <rename>idopmae</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>420</xloc>
+      <yloc>57</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
     <name>LK Versao</name>
     <type>DBLookup</type>
     <description/>
@@ -440,7 +482,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	op as codigo&#xd;&#xa;	, quantidade &#xd;&#xa;	, peso&#xd;&#xa;	, produto&#xd;&#xa;	, versao&#xd;&#xa;	, op.&#x2a;&#xd;&#xa;from&#xd;&#xa;	pcpop op&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;--	and data_inc &#x3e;&#x3d; sysdate - 90&#xd;&#xa;--	and descricao_situacao not like &#x27;Encerrada&#x27;</sql>
+    <sql>select&#xd;&#xa;	op as codigo&#xd;&#xa;	, quantidade &#xd;&#xa;	, peso&#xd;&#xa;	, produto&#xd;&#xa;	, versao&#xd;&#xa;	, op.&#x2a;&#xd;&#xa;from&#xd;&#xa;	pcpop op&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and data_inc &#x3e;&#x3d; sysdate - 15&#xd;&#xa;--	and descricao_situacao not like &#x27;Encerrada&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -449,48 +491,6 @@
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
       <xloc>79</xloc>
-      <yloc>57</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>LK OP Mae</name>
-    <type>DBLookup</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
-    <cache_size>0</cache_size>
-    <lookup>
-      <schema/>
-      <table>pcp_op</table>
-      <orderby/>
-      <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
-      <key>
-        <name>OP_PRINCIPAL</name>
-        <field>codigo</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>id</name>
-        <rename>idopmae</rename>
-        <default/>
-        <type>Integer</type>
-      </value>
-    </lookup>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>420</xloc>
       <yloc>57</yloc>
       <draw>Y</draw>
       </GUI>
