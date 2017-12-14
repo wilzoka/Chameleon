@@ -26,7 +26,7 @@ var application = {
             $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
         }
 
-        document.title = $('section.content-header').text() || 'Chameleon';
+        document.title = $('section.content-header').text() || localStorage.getItem('descriptionmenu');
 
         var pathname = window.location.pathname;
         pathname = pathname.split('/');
@@ -458,7 +458,7 @@ var application = {
                 , language: "pt-BR"
             }).on('select2:close', function (evt) {
                 $(this).focus();
-            });;
+            });
         }
         , table: function ($obj) {
             $obj.each(function () {
