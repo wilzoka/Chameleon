@@ -414,7 +414,6 @@ var application = {
 
                 var where = $(this).attr('data-where');
                 var needreplace = where && where.indexOf('$parent') >= 0;
-                console.log($(this), needreplace);
 
                 var $modal = $(this).closest('div.modal').attr('data-table');
                 if ($modal) {
@@ -1026,7 +1025,11 @@ var application = {
             }
         }
         , responseError: function (response) {
-            application.notify.error('Alguma coisa deu errado :(');
+            if (response.status == 401) {
+                application.notify.error('Acesso não autorizado');
+            } else {
+                application.notify.error('Alguma coisa deu errado :(');
+            }
         }
     }
     , modal: {

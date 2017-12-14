@@ -184,7 +184,7 @@ var application = {
 			, date: function (value) {
 				value = moment(value, 'DD/MM/YYYY');
 				return value.isValid() ? value.format('YYYY-MM-DD') : null;
-			}			
+			}
 			, datetime: function (value) {
 				value = moment(value, 'DD/MM/YYYY HH:mm');
 				return value.isValid() ? value.format('YYYY-MM-DD HH:mm') : null;

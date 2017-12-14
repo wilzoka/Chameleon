@@ -3394,17 +3394,17 @@ var main = {
 
                         let sql = await db.sequelize.query(`
                         select
-                            sum(apv.pesoliquido) as sum
+                            sum((select sum(apv.pesoliquido) from pcp_approducaovolume apv where ap.id = apv.idapproducao)) as sumprod
+                            , sum((select count(*) from pcp_approducaotempo apt where ap.id = apt.idapproducao)) as qtdtempo
                         from
                             pcp_approducao ap
-                        left join pcp_approducaovolume apv on (ap.id = apv.idapproducao)
                         where
                             ap.idoprecurso = :v1
                         `, {
                                 type: db.sequelize.QueryTypes.SELECT
                                 , replacements: { v1: oprecurso.id }
                             });
-                        if (sql.length <= 0 || parseFloat(sql[0].sum) <= 0) {
+                        if (sql.length <= 0 || parseFloat(sql[0].sumprod || 0) <= 0 || parseFloat(sql[0].qtdtempo || 0) <= 0) {
                             return application.error(obj.res, { msg: 'OP sem produção' });
                         }
 
