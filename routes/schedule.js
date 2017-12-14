@@ -8,7 +8,7 @@ var schedules = [];
 
 var addSchedule = async function (sch) {
     try {
-        let config = await db.getModel('config').find();
+        let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
         let custom = reload('../custom/' + config.customfile);
         var realfunction = application.functions.getRealReference(custom, sch.function);
         schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
@@ -26,7 +26,7 @@ var removeSchedule = function (sch) {
 
 var executeSchedule = async function (sch) {
     try {
-        let config = await db.getModel('config').find();
+        let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
         let custom = reload('../custom/' + config.customfile);
         var realfunction = application.functions.getRealReference(custom, sch.function);
         realfunction();

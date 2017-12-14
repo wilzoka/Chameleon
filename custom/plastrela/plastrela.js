@@ -878,7 +878,7 @@ var main = {
                             }
                             , raw: true
                         });
-                        if (!spednfitem) {
+                        if (spednfitem.length <= 0) {
                             return application.error(obj.res, { msg: 'Esta nota não possui itens' });
                         }
                         for (var i = 0; i < spednfitem.length; i++) {

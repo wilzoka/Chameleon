@@ -414,6 +414,7 @@ var application = {
 
                 var where = $(this).attr('data-where');
                 var needreplace = where && where.indexOf('$parent') >= 0;
+                console.log($(this), needreplace);
 
                 var $modal = $(this).closest('div.modal').attr('data-table');
                 if ($modal) {
@@ -421,10 +422,12 @@ var application = {
                         where = where.replace(/\$parent/g, application.functions.getId());
                     }
                 } else {
-                    if (needreplace && application.functions.getUrlParameter('parent')) {
-                        where = where.replace(/\$parent/g, application.functions.getUrlParameter('parent'));
-                    } else {
-                        where = '';
+                    if (needreplace) {
+                        if (application.functions.getUrlParameter('parent')) {
+                            where = where.replace(/\$parent/g, application.functions.getUrlParameter('parent'));
+                        } else {
+                            where = '';
+                        }
                     }
                 }
 
@@ -525,11 +528,7 @@ var application = {
                     if (selected) {
                         selected = selected.split(',');
                         var href = '/view/' + idview + '/' + selected[selected.length - 1] + add;
-                        if (e.ctrlKey) {
-                            window.open(href);
-                        } else {
-                            window.location.href = href;
-                        }
+                        window.location.href = href;
                     } else {
                         application.notify.info('Selecione um registro para Editar');
                     }
@@ -732,7 +731,12 @@ var application = {
                     if (subview) {
                         add = '?parent=' + application.functions.getId()
                     }
-                    window.location.href = '/view/' + idview + '/' + tables[tableid].row(this).data().id + add;
+                    var href = '/view/' + idview + '/' + tables[tableid].row(this).data().id + add
+                    if (e.ctrlKey) {
+                        window.open(href);
+                    } else {
+                        window.location.href = href;
+                    }
                 }
             });
         }
