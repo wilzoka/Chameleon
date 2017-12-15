@@ -1042,7 +1042,112 @@ var main = {
                     nfentrada.finalizado = true;
                     await nfentrada.save();
 
-                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    let sql = await db.sequelize.query(`
+                    select
+                        v.descricaocompleta
+                        , nfi.oc
+                        , sum((select sum(vol.qtd) from est_volume vol where vol.idnfentradaitem = nfi.id)) as recebido
+                        , sum((select sum(c.qtd) from cmp_solicitacaoitem c where c.idversao = nfi.idversao and c.ociniflex = nfi.oc)) as solicitado
+                        , sum((select count(*) from  est_volume vol where vol.idnfentradaitem = nfi.id)) as qtd
+                    from
+                        est_nfentrada nf
+                    left join est_nfentradaitem nfi on (nf.id = nfi.idnfentrada)
+                    left join pcp_versao v on (nfi.idversao = v.id)
+                    where
+                        nf.id = :v1
+                    group by 1,2 
+                    `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: nfentrada.id } });
+                    let emailItens = '';
+                    for (let i = 0; i < sql.length; i++) {
+                        emailItens += `
+                        <tr>
+                            <td>`+ sql[i].descricaocompleta + `</td>
+                            <td>`+ sql[i].oc + `</td>
+                            <td>`+ application.formatters.fe.decimal(sql[i].solicitado, 4) + `</td>
+                            <td>`+ application.formatters.fe.decimal(sql[i].recebido, 4) + `</td>
+                            <td>`+ sql[i].qtd + `</td>
+                        </tr>
+                        `;
+                    }
+
+                    return main.plataform.mail.f_sendmail({
+                        to: est_config.gv_email.split(';')
+                        , subject: 'SIP - Chegada de Material no Almoxarifado'
+                        , html: `
+                        <style type="text/css">
+                            .conteudo{
+                                font-family: arial, sans-serif;
+                                font-size: 14px;
+                            }
+                        
+                            table {
+                                border-collapse: collapse;
+                                font-size: 14px;
+                            }
+                        
+                            td, th {
+                                border: 1px solid black;
+                                text-align: left;
+                                padding: 5px;
+                            }
+                        
+                            .table1 td:first-child {
+                                text-align: right;
+                            } 
+                        
+                            .table2 td:nth-child(3) {
+                                text-align: right;
+                            } 
+                            .table2 td:nth-child(4) {
+                                text-align: right;
+                            } 
+                        </style>
+                        <div class="conteudo">
+                            <table class="table1">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <b>Fornecedor</b>
+                                        </td>
+                                        <td>`+ nfentrada.razaosocial + `</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <b>NF</b>
+                                        </td>
+                                        <td>`+ nfentrada.documento + `</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <table class="table2" style="margin-top: 5px;">
+                                <thead>
+                                    <tr>
+                                        <td>
+                                            <b>Produto</b>
+                                        </td>
+                                        <td>
+                                            <b>OC</b>
+                                        </td>
+                                        <td>
+                                            <b>Qtd Solicitada</b>
+                                        </td>
+                                        <td>
+                                            <b>Qtd Recebida</b>
+                                        </td>
+                                        <td>
+                                            <b>Volumes</b>
+                                        </td>
+                                    </tr>
+                                </thead>
+                                <tbody>`+ emailItens + `</tbody>
+                            </table>
+                        </div>
+                        `
+                    });
+
 
                 } catch (err) {
                     return application.fatal(obj.res, err);
