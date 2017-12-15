@@ -1,0 +1,11 @@
+imprimir etiqueta ao realizar ap
+data validade e lote na geração de volume
+usuário automático na tela de produção
+
+
+relatório de fechamento, consumo da OP
+percentual de produção na OP
+lançamento automático de tintas em produção e na OP de impressão
+impressora de etiqueta
+exportar relação
+exportar selecionados -- joão
