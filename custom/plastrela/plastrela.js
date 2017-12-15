@@ -73,12 +73,12 @@ var main = {
                     , port: 587
                     , tls: { rejectUnauthorized: false }
                     , auth: {
-                        user: 'plastrela@plastrela.com.br'
-                        , pass: 'Pl3678#$'
+                        user: 'sip@plastrela.com.br'
+                        , pass: 'sip#$2016Pls!@'
                     }
                 });
                 let mailOptions = {
-                    from: '"Plastrela" <plastrela@plastrela.com.br>'
+                    from: '"SIP" <sip@plastrela.com.br>'
                     , to: obj.to.join(',')
                     , subject: obj.subject
                     , html: obj.html
@@ -969,7 +969,7 @@ var main = {
                     }
 
                     let config = await db.getModel('cmp_config').find();
-                    let nfentradaitens = await db.getModel('est_nfentradaitem').findAll({ where: { idnfentrada: nfentrada.id } });
+                    let nfentradaitens = await db.getModel('est_nfentradaitem').findAll({ include: [{ all: true }], where: { idnfentrada: nfentrada.id } });
                     let bulkreservas = [];
                     let solicitacoesfinalizadas = [];
 
@@ -1016,7 +1016,17 @@ var main = {
                                 await solicitacoesfinalizadas[z].save();
                             }
 
-                            return application.error(obj.res, { msg: 'Solicitação de compra não encontrado para o item com sequencial ' + nfentradaitens[i].sequencial });
+                            application.error(obj.res, { msg: 'Solicitação de compra não encontrado para o item com sequencial ' + nfentradaitens[i].sequencial });
+                            let est_config = await db.getModel('est_config').find();
+                            return main.plataform.mail.f_sendmail({
+                                to: est_config.gv_email.split(';')
+                                , subject: 'SIP - Solicitação não encontrada'
+                                , html: `Entrada de NF:<br/>
+                                    Solicitação de compra não encontrada.<br/>
+                                    <b>OC:</b> `+ nfentradaitens[i].oc + `<br/>
+                                    <b>Código do item:</b> `+ nfentradaitens[i].pcp_versao.descricaocompleta + `</br></br>
+                                    Responder o e-mail após realização do procedimento.`
+                            });
                         }
                     }
 
