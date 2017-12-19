@@ -347,6 +347,610 @@ var main = {
                     });
                 });
             }
+            , f_getFilteredRegisters: function (obj) {
+                let getFilter = function (cookie, viewfields) {
+                    var obj = {};
+
+                    cookie = JSON.parse(cookie);
+
+                    let m;
+                    let v;
+
+                    for (let i = 0; i < cookie.length; i++) {
+
+                        for (let k in cookie[i]) {
+
+                            let field = k.split('+');
+
+                            switch (field[1]) {
+                                case 'date':
+                                    m = moment(cookie[i][k], 'DD/MM/YYYY');
+                                    cookie[i][k] = m.format('YYYY-MM-DD');
+                                    break;
+                                case 'datetime':
+                                    m = moment(cookie[i][k], 'DD/MM/YYYY HH:mm');
+                                    cookie[i][k] = m.format('YYYY-MM-DD HH:mm');
+                                    break;
+                                case 'time':
+                                    cookie[i][k] = application.formatters.be.time(cookie[i][k]);
+                                    break;
+                                case 'text':
+                                    cookie[i][k] = '%' + cookie[i][k] + '%';
+                                    break;
+                                case 'decimal':
+                                    v = cookie[i][k];
+                                    v = v.replace(/\./g, "");
+                                    v = v.replace(/\,/g, ".");
+                                    let precision = v.split('.')[1].length;
+                                    v = parseFloat(v).toFixed(precision);
+                                    cookie[i][k] = v;
+                                    break;
+                            }
+
+                            let o = {};
+                            switch (field[2]) {
+                                case 's':
+                                    o['$iLike'] = cookie[i][k];
+                                    break;
+                                case 'b':
+                                    o['$gte'] = cookie[i][k];
+                                    break;
+                                case 'e':
+                                    o['$lte'] = cookie[i][k];
+                                    break;
+                                case 'i':
+                                    o['$in'] = cookie[i][k].val;
+                                    break;
+                                case 'r':
+                                    o['$eq'] = cookie[i][k];
+                                    break;
+
+                                // Virtuals
+                                case 'rv':
+                                    for (let z = 0; z < viewfields.length; z++) {
+                                        if (field[0] == viewfields[z].modelattribute.name) {
+                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + " = " + cookie[i][k]);
+                                        }
+                                    }
+                                    break;
+                                case 'sv':
+                                    for (let z = 0; z < viewfields.length; z++) {
+                                        if (field[0] == viewfields[z].modelattribute.name) {
+                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
+                                        }
+                                    }
+                                    break;
+                                case 'bv':
+                                    for (let z = 0; z < viewfields.length; z++) {
+                                        if (field[0] == viewfields[z].modelattribute.name) {
+                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal >= " + cookie[i][k]);
+                                        }
+                                    }
+                                    break;
+                                case 'ev':
+                                    for (let z = 0; z < viewfields.length; z++) {
+                                        if (field[0] == viewfields[z].modelattribute.name) {
+                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal <= " + cookie[i][k]);
+                                        }
+                                    }
+                                    break;
+                                case 'iv':
+                                    for (let z = 0; z < viewfields.length; z++) {
+                                        if (field[0] == viewfields[z].modelattribute.name) {
+                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field + ' in (' + cookie[i][k].val + ')');
+                                        }
+                                    }
+                                    break;
+                            }
+
+                            if (o && obj[field[0]]) {
+                                obj[field[0]] = lodash.extend(obj[field[0]], o);
+                            } else if (o) {
+                                obj[field[0]] = o;
+                            }
+
+                        }
+
+                    }
+
+                    return obj;
+                }
+                let fixResults = function (registers, viewfields) {
+                    let j = {};
+                    let modelattributenames = [];
+                    for (let i = 0; i < viewfields.length; i++) {
+                        modelattributenames.push(viewfields[i].modelattribute.name);
+
+                        if (viewfields[i].modelattribute.typeadd) {
+                            j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                        }
+
+                        switch (viewfields[i].modelattribute.type) {
+                            case 'text':
+                                for (let x = 0; x < registers.length; x++) {
+                                    if (!registers[x][viewfields[i].modelattribute.name]) {
+                                        registers[x][viewfields[i].modelattribute.name] = '';
+                                    }
+                                }
+                                break;
+                            case 'textarea':
+                                for (let x = 0; x < registers.length; x++) {
+                                    if (!registers[x][viewfields[i].modelattribute.name]) {
+                                        registers[x][viewfields[i].modelattribute.name] = '';
+                                    }
+                                }
+                                break;
+                            case 'autocomplete':
+                                let vas = j.as || j.model;
+                                for (let x = 0; x < registers.length; x++) {
+                                    if (registers[x][viewfields[i].modelattribute.name]) {
+                                        registers[x][viewfields[i].modelattribute.name] = registers[x][vas + '.' + j.attribute];
+                                    } else {
+                                        registers[x][viewfields[i].modelattribute.name] = '';
+                                    }
+                                }
+                                break;
+                            case 'date':
+                                for (let x = 0; x < registers.length; x++) {
+                                    if (registers[x][viewfields[i].modelattribute.name]) {
+                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.date(registers[x][viewfields[i].modelattribute.name]);
+                                    } else {
+                                        registers[x][viewfields[i].modelattribute.name] = '';
+                                    }
+                                }
+                                break;
+                            case 'datetime':
+                                for (let x = 0; x < registers.length; x++) {
+                                    if (registers[x][viewfields[i].modelattribute.name]) {
+                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.datetime(registers[x][viewfields[i].modelattribute.name]);
+                                    } else {
+                                        registers[x][viewfields[i].modelattribute.name] = '';
+                                    }
+                                }
+                                break;
+                            case 'decimal':
+                                for (let x = 0; x < registers.length; x++) {
+                                    if (registers[x][viewfields[i].modelattribute.name]) {
+                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.decimal(registers[x][viewfields[i].modelattribute.name], j.precision);
+                                    } else {
+                                        registers[x][viewfields[i].modelattribute.name] = '';
+                                    }
+                                }
+                                break;
+                            case 'time':
+                                for (let x = 0; x < registers.length; x++) {
+                                    if (registers[x][viewfields[i].modelattribute.name]) {
+                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.time(registers[x][viewfields[i].modelattribute.name]);
+                                    } else {
+                                        registers[x][viewfields[i].modelattribute.name] = '';
+                                    }
+                                }
+                                break;
+                            case 'virtual':
+
+                                switch (j.type) {
+                                    case 'decimal':
+                                        for (let x = 0; x < registers.length; x++) {
+                                            if (registers[x][viewfields[i].modelattribute.name]) {
+                                                registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.decimal(registers[x][viewfields[i].modelattribute.name], j.precision);
+                                            } else {
+                                                registers[x][viewfields[i].modelattribute.name] = '';
+                                            }
+                                        }
+                                        break;
+                                }
+
+                                break;
+                        }
+
+                    }
+
+                    for (let i = 0; i < registers.length; i++) {
+                        for (let k in registers[i]) {
+                            if (k != 'id' && modelattributenames.indexOf(k) < 0) {
+                                delete registers[i][k];
+                            }
+                        }
+                    }
+
+                    return registers;
+                }
+                return new Promise((resolve) => {
+                    db.getModel('view').find({ where: { id: obj.event.view.id }, include: [{ all: true }] }).then(view => {
+                        db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }] }).then(viewfields => {
+                            let where = {};
+                            if (view.wherefixed) {
+                                view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
+                                view.wherefixed = view.wherefixed.replace(/\$id/g, obj.req.body.id);
+                                where['$col'] = db.Sequelize.literal(view.wherefixed);
+                            }
+                            if ('tableview' + view.id + 'filter' in obj.req.cookies) {
+                                where['$and'] = getFilter(obj.req.cookies['tableview' + view.id + 'filter'], viewfields);
+                            }
+                            let attributes = ['id'];
+                            for (var i = 0; i < viewfields.length; i++) {
+                                switch (viewfields[i].modelattribute.type) {
+                                    case 'virtual':
+                                        attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
+                                        break;
+                                    default:
+                                        attributes.push(viewfields[i].modelattribute.name);
+                                        break;
+                                }
+                            }
+
+                            db.getModel(view.model.name).findAll({
+                                attributes: attributes
+                                , raw: true
+                                , include: [{ all: true }]
+                                , where: where
+                                , order: JSON.parse(application.functions.singleSpace(obj.event.parameters)).order
+                            }).then(registers => {
+                                resolve(fixResults(registers, viewfields));
+                            });
+                        });
+                    });
+                });
+            }
+            , export: {
+                xls: async function (obj) {
+                    let getFilter = function (cookie, modelattributes) {
+                        var obj = {};
+
+                        cookie = JSON.parse(cookie);
+
+                        let m;
+                        let v;
+
+                        for (let i = 0; i < cookie.length; i++) {
+
+                            for (let k in cookie[i]) {
+
+                                let field = k.split('+');
+
+                                switch (field[1]) {
+                                    case 'date':
+                                        m = moment(cookie[i][k], 'DD/MM/YYYY');
+                                        cookie[i][k] = m.format('YYYY-MM-DD');
+                                        break;
+                                    case 'datetime':
+                                        m = moment(cookie[i][k], 'DD/MM/YYYY HH:mm');
+                                        cookie[i][k] = m.format('YYYY-MM-DD HH:mm');
+                                        break;
+                                    case 'time':
+                                        cookie[i][k] = application.formatters.be.time(cookie[i][k]);
+                                        break;
+                                    case 'text':
+                                        cookie[i][k] = '%' + cookie[i][k] + '%';
+                                        break;
+                                    case 'decimal':
+                                        v = cookie[i][k];
+                                        v = v.replace(/\./g, "");
+                                        v = v.replace(/\,/g, ".");
+                                        let precision = v.split('.')[1].length;
+                                        v = parseFloat(v).toFixed(precision);
+                                        cookie[i][k] = v;
+                                        break;
+                                }
+
+                                let o = {};
+                                switch (field[2]) {
+                                    case 's':
+                                        o['$iLike'] = cookie[i][k];
+                                        break;
+                                    case 'b':
+                                        o['$gte'] = cookie[i][k];
+                                        break;
+                                    case 'e':
+                                        o['$lte'] = cookie[i][k];
+                                        break;
+                                    case 'i':
+                                        o['$in'] = cookie[i][k].val;
+                                        break;
+                                    case 'r':
+                                        o['$eq'] = cookie[i][k];
+                                        break;
+
+                                    // Virtuals
+                                    case 'rv':
+                                        for (let z = 0; z < modelattributes.length; z++) {
+                                            if (field[0] == modelattributes[z].name) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " = " + cookie[i][k]);
+                                            }
+                                        }
+                                        break;
+                                    case 'sv':
+                                        for (let z = 0; z < modelattributes.length; z++) {
+                                            if (field[0] == modelattributes[z].name) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
+                                            }
+                                        }
+                                        break;
+                                    case 'bv':
+                                        for (let z = 0; z < modelattributes.length; z++) {
+                                            if (field[0] == modelattributes[z].name) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal >= " + cookie[i][k]);
+                                            }
+                                        }
+                                        break;
+                                    case 'ev':
+                                        for (let z = 0; z < modelattributes.length; z++) {
+                                            if (field[0] == modelattributes[z].name) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal <= " + cookie[i][k]);
+                                            }
+                                        }
+                                        break;
+                                    case 'iv':
+                                        for (let z = 0; z < modelattributes.length; z++) {
+                                            if (field[0] == modelattributes[z].name) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
+                                            }
+                                        }
+                                        break;
+                                }
+
+                                if (o && obj[field[0]]) {
+                                    obj[field[0]] = lodash.extend(obj[field[0]], o);
+                                } else if (o) {
+                                    obj[field[0]] = o;
+                                }
+
+                            }
+
+                        }
+
+                        return obj;
+                    }
+                    let fixResults = function (registers, modelattributes) {
+                        let j = {};
+                        let modelattributenames = [];
+                        for (let i = 0; i < modelattributes.length; i++) {
+                            modelattributenames.push(modelattributes[i].name);
+
+                            if (modelattributes[i].typeadd) {
+                                j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
+                            }
+
+                            switch (modelattributes[i].type) {
+                                case 'autocomplete':
+                                    let vas = j.as || j.model;
+                                    for (let x = 0; x < registers.length; x++) {
+                                        if (registers[x][modelattributes[i].name]) {
+                                            registers[x][modelattributes[i].name] = registers[x][vas + '.' + j.attribute];
+                                        }
+                                    }
+                                    break;
+                                case 'datetime':
+                                    for (let x = 0; x < registers.length; x++) {
+                                        if (registers[x][modelattributes[i].name]) {
+                                            registers[x][modelattributes[i].name] = application.formatters.fe.datetime(registers[x][modelattributes[i].name]) + ':00';
+                                        }
+                                    }
+                                    break;
+                                case 'time':
+                                    for (let x = 0; x < registers.length; x++) {
+                                        if (registers[x][modelattributes[i].name]) {
+                                            registers[x][modelattributes[i].name] = application.formatters.fe.time(registers[x][modelattributes[i].name]);
+                                        }
+                                    }
+                                    break;
+                            }
+
+                        }
+
+                        for (let i = 0; i < registers.length; i++) {
+                            for (var k in registers[i]) {
+                                if (k != 'id' && modelattributenames.indexOf(k) < 0) {
+                                    delete registers[i][k];
+                                }
+                            }
+                        }
+
+                        return registers;
+                    }
+                    let toColumnName = function (num) {
+                        for (var ret = '', a = 1, b = 26; (num -= a) >= 0; a = b, b *= 26) {
+                            ret = String.fromCharCode(parseInt((num % b) / a) + 65) + ret;
+                        }
+                        return ret;
+                    }
+                    try {
+                        let XLSX = require('xlsx');
+
+                        let view = await db.getModel('view').find({ where: { id: obj.event.view.id }, include: [{ all: true }] });
+                        let viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }], order: [['order', 'asc']] });
+                        let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
+                        let where = {};
+                        if (view.wherefixed) {
+                            view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
+                            // view.wherefixed = view.wherefixed.replace(/\$id/g, obj.req.body.id);
+                            where['$col'] = db.Sequelize.literal(view.wherefixed);
+                        }
+                        if ('tableview' + view.id + 'filter' in obj.req.cookies) {
+                            where['$and'] = getFilter(obj.req.cookies['tableview' + view.id + 'filter'], modelattributes);
+                        }
+                        let attributes = ['id'];
+                        let header = ['id'];
+                        for (var i = 0; i < viewfields.length; i++) {
+                            switch (viewfields[i].modelattribute.type) {
+                                case 'virtual':
+                                    attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
+                                    break;
+                                default:
+                                    attributes.push(viewfields[i].modelattribute.name);
+                                    break;
+                            }
+                            header.push(viewfields[i].modelattribute.name);
+                        }
+
+                        let registers = await db.getModel(view.model.name).findAll({
+                            attributes: attributes
+                            , raw: true
+                            , include: [{ all: true }]
+                            , where: where
+                        });
+                        registers = fixResults(registers, modelattributes);
+
+                        let wb = XLSX.utils.book_new();
+                        wb.SheetNames.push('Sheet1');
+                        let ws = XLSX.utils.json_to_sheet(registers, { header: header, cellDates: true });
+
+                        for (let i = 0; i < viewfields.length; i++) {
+                            let cn = toColumnName(i + 2);
+                            switch (viewfields[i].modelattribute.type) {
+                                case 'decimal':
+                                    for (let z = 0; z < registers.length; z++) {
+                                        ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
+                                    }
+                                    break;
+                                case 'integer':
+                                    for (let z = 0; z < registers.length; z++) {
+                                        ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
+                                    }
+                                    break;
+                                case 'date':
+                                    for (let z = 0; z < registers.length; z++) {
+                                        ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 's' });
+                                    }
+                                    break;
+                                case 'datetime':
+                                    for (let z = 0; z < registers.length; z++) {
+                                        ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 's' });
+                                    }
+                                    break;
+                                case 'virtual':
+                                    switch (application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).type) {
+                                        case 'decimal':
+                                            for (let z = 0; z < registers.length; z++) {
+                                                ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
+                                            }
+                                            break;
+                                        case 'integer':
+                                            for (let z = 0; z < registers.length; z++) {
+                                                ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
+                                            }
+                                            break;
+                                        case 'date':
+                                            for (let z = 0; z < registers.length; z++) {
+                                                ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'd' });
+                                            }
+                                            break;
+                                        case 'datetime':
+                                            for (let z = 0; z < registers.length; z++) {
+                                                ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'd' });
+                                            }
+                                            break;
+                                    }
+                                    break;
+                            }
+                        }
+
+                        //Fix Header
+                        ws['A1'] = lodash.extend(ws['A1'], { v: 'ID' });
+                        for (let i = 0; i < viewfields.length; i++) {
+                            let cn = toColumnName(i + 2);
+                            ws[cn + '1'] = lodash.extend(ws[cn + '1'], { v: viewfields[i].modelattribute.label });
+                        }
+
+                        let filename = process.hrtime()[1] + '.xls';
+                        wb.Sheets['Sheet1'] = ws;
+                        XLSX.writeFile(wb, 'tmp/' + filename);
+
+                        return application.success(obj.res, { openurl: '/download/' + filename });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , pdf: async function (obj) {
+                    try {
+                        let pdfMakePrinter = require('pdfmake');
+                        let fontDescriptors = {
+                            Roboto: {
+                                normal: 'fonts/cour.ttf',
+                                bold: 'fonts/courbd.ttf',
+                                italics: 'fonts/couri.ttf',
+                                bolditalics: 'fonts/courbi.ttf'
+                            }
+                        };
+                        let printer = new pdfMakePrinter(fontDescriptors);
+                        let config = db.getModel('config').find();
+                        let image = JSON.parse(config.reportimage)[0];
+                        console.log(image);
+
+                        let body = [];
+
+                        let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
+                        let registers = await main.plataform.view.f_getFilteredRegisters(obj);
+                        for (let i = 0; i < registers.length; i++) {
+                            body.push([]);
+                            if (i == 0) {
+                                for (let z = 0; z < parameters.columns.length; z++) {
+                                    body[body.length - 1].push({
+                                        text: parameters.columnsLabel[z]
+                                        , fontSize: parameters.headerFontSize || 8
+                                        , bold: true
+                                    });
+                                }
+                                body.push([]);
+                            }
+                            for (let z = 0; z < parameters.columns.length; z++) {
+                                body[body.length - 1].push({
+                                    text: registers[i][parameters.columns[z]] || ''
+                                    , fontSize: parameters.bodyFontSize || 8
+                                })
+                            }
+                        }
+
+                        var dd = {
+                            pageOrientation: parameters.pageOrientation || 'portait'
+                            , content: [
+                                {
+                                    style: 'table',
+                                    table: {
+                                        heights: 40
+                                        , widths: [100, '*', 80]
+                                        , body: [[
+                                            { image: 'files/' + image.id + '.' + image.type, width: 100, border: [true, true, false, true] }
+                                            , { text: '\nTítulo', alignment: 'center', border: [false, true, false, true], bold: true }
+                                            , { text: '\n' + moment().format(application.formatters.fe.date_format) + '\n' + moment().format('HH:mm'), alignment: 'center', border: [false, true, true, true], fontSize: 9 }
+                                        ]]
+                                    }
+                                }
+                                , {
+                                    table: {
+                                        headerRows: 1
+                                        , widths: parameters.widths
+                                        , body: body
+                                    }
+                                }
+                            ]
+                            , styles: {
+                                table: {
+                                    margin: [0, 5, 0, 15]
+                                }
+                            }
+                        };
+
+                        let doc = printer.createPdfKitDocument(dd);
+                        let filename = process.hrtime()[1] + '.pdf';
+                        let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                        doc.end();
+                        stream.on('finish', function () {
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                                }
+                            });
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
         }
         , viewevent: {
             _incrementorder: function (obj) {
@@ -634,7 +1238,7 @@ var main = {
                         });
 
                         let config = await db.getModel('config').find({ raw: true });
-                        let image = JSON.parse(config.imagemrelatorio)[0];
+                        let image = JSON.parse(config.reportimage)[0];
                         var filename = process.hrtime()[1] + '.pdf';
                         var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
 
@@ -1405,7 +2009,7 @@ var main = {
                         });
 
                         let config = await db.getModel('config').find({ raw: true });
-                        let image = JSON.parse(config.imagemrelatorio)[0];
+                        let image = JSON.parse(config.reportimage)[0];
                         var filename = process.hrtime()[1] + '.pdf';
                         var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
 
@@ -1449,7 +2053,9 @@ var main = {
                                     .lineTo(25, 25) //bottom
                                     .stroke();
 
-                                doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+                                if (fs.existsSync('files/' + image.id + '.' + image.type)) {
+                                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+                                }
 
                                 doc.moveTo(25, 75)
                                     .lineTo(589, 75) // Cabeçalho
@@ -1767,8 +2373,9 @@ var main = {
                                 ;
 
                             // Title
-
-                            doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 100 });
+                            if (fs.existsSync('files/' + image.id + '.' + image.type)) {
+                                doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 100 });
+                            }
 
                             doc.moveTo(25, 510)
                                 .lineTo(589, 510) // Cabeçalho

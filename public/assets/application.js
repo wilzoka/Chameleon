@@ -152,8 +152,7 @@ var application = {
             var table = $modal.attr('data-table');
 
             application.tables.saveFilter(table);
-            application.tables.reload(table);
-            tables[table].page(0).draw(false);
+            tables[table].ajax.reload();
 
             $modal.modal('hide');
         });
