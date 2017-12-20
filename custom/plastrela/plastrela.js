@@ -567,6 +567,17 @@ var main = {
                             if ('tableview' + view.id + 'filter' in obj.req.cookies) {
                                 where['$and'] = getFilter(obj.req.cookies['tableview' + view.id + 'filter'], viewfields);
                             }
+                            let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
+                            if ('onlySelected' in parameters && parameters.onlySelected) {
+                                if (!where['$and']) {
+                                    where['$and'] = {};
+                                }
+                                where['$and'].id = { $in: obj.ids }
+                            }
+
+                            let order = parameters.order;
+                            let ordercolumn = order[0];
+                            let orderdir = order[1];
                             let attributes = ['id'];
                             for (var i = 0; i < viewfields.length; i++) {
                                 switch (viewfields[i].modelattribute.type) {
@@ -577,14 +588,26 @@ var main = {
                                         attributes.push(viewfields[i].modelattribute.name);
                                         break;
                                 }
+                                // Order
+                                if (viewfields[i].modelattribute.name == ordercolumn) {
+                                    switch (viewfields[i].modelattribute.type) {
+                                        case 'autocomplete':
+                                            let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                                            let vas = j.as || j.model;
+                                            ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
+                                            break;
+                                        case 'virtual':
+                                            ordercolumn = db.Sequelize.literal(viewfields[i].modelattribute.name);
+                                            break;
+                                    }
+                                }
                             }
-
                             db.getModel(view.model.name).findAll({
                                 attributes: attributes
                                 , raw: true
                                 , include: [{ all: true }]
                                 , where: where
-                                , order: JSON.parse(application.functions.singleSpace(obj.event.parameters)).order
+                                , order: [[ordercolumn, orderdir]]
                             }).then(registers => {
                                 resolve(fixResults(registers, viewfields));
                             });
@@ -873,11 +896,11 @@ var main = {
                             }
                         };
                         let printer = new pdfMakePrinter(fontDescriptors);
-                        let config = db.getModel('config').find();
+                        let config = await db.getModel('config').find();
                         let image = JSON.parse(config.reportimage)[0];
-                        console.log(image);
 
                         let body = [];
+                        let total = [];
 
                         let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
                         let registers = await main.plataform.view.f_getFilteredRegisters(obj);
@@ -889,6 +912,7 @@ var main = {
                                         text: parameters.columnsLabel[z]
                                         , fontSize: parameters.headerFontSize || 8
                                         , bold: true
+                                        , alignment: 'center'
                                     });
                                 }
                                 body.push([]);
@@ -897,22 +921,61 @@ var main = {
                                 body[body.length - 1].push({
                                     text: registers[i][parameters.columns[z]] || ''
                                     , fontSize: parameters.bodyFontSize || 8
-                                })
+                                    , alignment: parameters.columnsAlign[z] || 'left'
+                                });
+
+                                if ('total' in parameters && parameters.total[z]) {
+                                    if (!total[z]) {
+                                        total[z] = 0;
+                                    }
+                                    switch (parameters.total[z]) {
+                                        case 'count':
+                                            total[z]++;
+                                            break;
+                                        case 'sum':
+                                            total[z] += parseFloat(application.formatters.be.decimal(registers[i][parameters.columns[z]] || 0, parameters.totalPrecision[z]));
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if ('total' in parameters) {
+                            body.push([]);
+                            body[body.length - 1].push({
+                                text: 'Totais'
+                                , fontSize: parameters.headerFontSize || 8
+                                , colSpan: parameters.columns.length
+                                , border: [false, false, false, false]
+                                , bold: true
+                                , alignment: 'center'
+                            });
+                            body.push([]);
+                            for (let i = 0; i < parameters.columns.length; i++) {
+                                body[body.length - 1].push({
+                                    text: parameters.total[i] == 'sum' ? application.formatters.fe.decimal(total[i], parameters.totalPrecision[i] || 2) : total[i] || ''
+                                    , fontSize: parameters.bodyFontSize || 8
+                                });
                             }
                         }
 
                         var dd = {
-                            pageOrientation: parameters.pageOrientation || 'portait'
+                            footer: function (currentPage, pageCount) {
+                                return { text: 'Página ' + currentPage + '/' + pageCount, alignment: 'center', fontSize: 8, italic: true };
+                            }
+                            , pageOrientation: parameters.pageOrientation || 'portait'
                             , content: [
                                 {
-                                    style: 'table',
-                                    table: {
-                                        heights: 40
-                                        , widths: [100, '*', 80]
+                                    style: 'table'
+                                    , table: {
+                                        heights: 60
+                                        , widths: [150, '*', 80]
                                         , body: [[
-                                            { image: 'files/' + image.id + '.' + image.type, width: 100, border: [true, true, false, true] }
-                                            , { text: '\nTítulo', alignment: 'center', border: [false, true, false, true], bold: true }
-                                            , { text: '\n' + moment().format(application.formatters.fe.date_format) + '\n' + moment().format('HH:mm'), alignment: 'center', border: [false, true, true, true], fontSize: 9 }
+                                            fs.existsSync('files/' + image.id + '.' + image.type) ? { image: 'files/' + image.id + '.' + image.type, fit: [150, 100], alignment: 'center', border: [true, true, false, true] } : { text: '', border: [true, true, false, true] }
+                                            , { text: parameters.title, alignment: 'center', border: [false, true, false, true], bold: true }
+                                            , { text: '\n\n' + moment().format(application.formatters.fe.date_format) + '\n' + moment().format('HH:mm'), alignment: 'center', border: [false, true, true, true], fontSize: 9 }
                                         ]]
                                     }
                                 }

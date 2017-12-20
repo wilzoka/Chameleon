@@ -130,6 +130,15 @@ var application = {
         $('button.btnreturn').click(function () {
             window.history.back();
         });
+        $(document).on('click', 'a.btndeselectall', function () {
+            var $table = $(this).parent().siblings('table');
+            var selected = $table.attr('data-selected').split(',');
+            for (var i = 0; i < selected.length; i++) {
+                tables[$table[0].id].row('tr#' + selected[i]).deselect();
+            }
+            $table.attr('data-selected', '');
+            $('#' + $table[0].id + '_info').find('a').remove();
+        });
         $(document).ajaxStart(function () {
             $('.pace').removeClass('pace-inactive').addClass('pace-active');
         });
@@ -654,11 +663,12 @@ var application = {
                         for (var i = 0; i < selected.length; i++) {
                             tables[settings.sInstance].row('tr#' + selected[i]).select();
                         }
+                        $('#' + settings.sInstance + '_info').find('a').remove();
+                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
                     }
                 }
                 , stateSave: true
                 , columns: data.columns
-                // , scrollX: true
                 , select: {
                     style: 'multi'
                     , info: false
@@ -707,6 +717,8 @@ var application = {
                     selected = [id];
                 }
                 $this.attr('data-selected', selected);
+                $('#' + $this[0].id + '_info').find('a').remove();
+                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
             }).on('deselect', function (e, dt, type, indexes) {
                 var $this = $(this);
                 var rowData = tables[$this[0].id].rows(indexes).data().toArray()[0];
@@ -718,6 +730,8 @@ var application = {
                     selected.splice(index, 1);
                 }
                 $this.attr('data-selected', selected);
+                $('#' + $this[0].id + '_info').find('a').remove();
+                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
             }).on('dblclick', 'tbody tr', function (e) {
                 if (application.functions.isMobile()) {
                 } else {
