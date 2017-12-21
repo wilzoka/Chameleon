@@ -731,7 +731,9 @@ var application = {
                 }
                 $this.attr('data-selected', selected);
                 $('#' + $this[0].id + '_info').find('a').remove();
-                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
+                if (selected.length > 0) {
+                    $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
+                }
             }).on('dblclick', 'tbody tr', function (e) {
                 if (application.functions.isMobile()) {
                 } else {

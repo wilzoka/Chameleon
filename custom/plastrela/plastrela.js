@@ -2486,7 +2486,7 @@ var main = {
 
                             doc
                                 .font('Courier-Bold').text(f.lpad('Qtde: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtd, 4), width1val, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4), width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('OC: ', width1, padstr), { continued: true })
                                 .font('Courier').text(f.rpad(nfentradaitem ? nfentrada.oc : '', width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Vol.: ', width1, padstr), { continued: true })
@@ -4228,6 +4228,13 @@ var main = {
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
+                }
+            }
+            , r_conferenciaAp: async function (err) {
+                try {
+                    return application.success(obj.res, {msg: 'ok'});
+                } catch (err) {
+                    return application.fatal(obj.res, err);
                 }
             }
         }
