@@ -4232,7 +4232,14 @@ var main = {
             }
             , r_conferenciaAp: async function (obj) {
                 try {
-                    console.log(obj.req.body);
+
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idetapa', 'idrecurso']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    
+                    
+
                     return application.success(obj.res, { msg: 'ok' });
                 } catch (err) {
                     return application.fatal(obj.res, err);

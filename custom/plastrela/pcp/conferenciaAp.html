@@ -268,6 +268,7 @@
         });
 
         $('#pesquisar').click(function () {
+            $('div.has-error').removeClass('has-error');
             application.route.handler({
                 dataini: $('input[name="dataini"]').val()
                 , datafim: $('input[name="datafim"]').val()
@@ -280,7 +281,8 @@
                 , idrecurso: $('select[name="idrecurso"]').val()
                 , idop: $('select[name="idop"]').val()
             }, function (response) {
-                console.log(response);
+                application.handlers.responseSuccess(response);
+
             });
         });
     });
