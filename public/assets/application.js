@@ -1,5 +1,24 @@
 // Defaults
 
+// Datatable
+$.extend(true, $.fn.dataTable.defaults, {
+    language: {
+        paginate: {
+            next: 'Próximo'
+            , previous: 'Anterior'
+        }
+        , sInfo: 'Exibindo _START_ a _END_ de _TOTAL_'
+        , sInfoEmpty: ''
+        , sInfoFiltered: '(filtrado de _MAX_ registros)'
+        , sLengthMenu: '_MENU_'
+        , sLoadingRecords: 'Carregando...'
+        , sProcessing: 'Processando...'
+        , sSearch: 'Pesquisar: '
+        , sZeroRecords: 'Nenhum registro correspondente foi encontrado'
+        , sEmptyTable: 'Vazio'
+    }
+});
+
 // Dropzone
 Dropzone.autoDiscover = false;
 Dropzone.prototype.defaultOptions.dictDefaultMessage = "Clique aqui para adicionar arquivos";
@@ -201,6 +220,7 @@ var application = {
             application.components.decimal($el.find('input[data-type="decimal"]'));
             application.components.autocomplete($el.find('select[data-type="autocomplete"]'));
             application.components.file($el.find('div[data-type="file"]'));
+            application.components.georeference($el.find('div[data-type="georeference"]'));
             application.components.table($el.find('table.dataTable'));
         }
         , clearInside: function ($el) {
@@ -473,20 +493,22 @@ var application = {
         , table: function ($obj) {
             $obj.each(function () {
                 var $this = $(this);
-                $.ajax({
-                    url: '/view/' + $this.attr('data-view') + '/config'
-                    , type: 'POST'
-                    , dataType: 'json'
-                    , data: {
-                        issubview: $this.attr('data-subview') || false
-                    }
-                    , success: function (response) {
-                        application.tables.create(response);
-                    }
-                    , error: function (response) {
-                        application.notify.error(response);
-                    }
-                });
+                if ($this.attr('data-view')) {
+                    $.ajax({
+                        url: '/view/' + $this.attr('data-view') + '/config'
+                        , type: 'POST'
+                        , dataType: 'json'
+                        , data: {
+                            issubview: $this.attr('data-subview') || false
+                        }
+                        , success: function (response) {
+                            application.tables.create(response);
+                        }
+                        , error: function (response) {
+                            application.notify.error(response);
+                        }
+                    });
+                }
             });
         }
     }
@@ -641,21 +663,6 @@ var application = {
             // Datatable
             tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
                 dom: 'trip'
-                , language: {
-                    paginate: {
-                        next: 'Próximo'
-                        , previous: 'Anterior'
-                    }
-                    , sInfo: 'Exibindo _START_ a _END_ de _TOTAL_'
-                    , sInfoEmpty: ''
-                    , sInfoFiltered: '(filtrado de _MAX_ registros)'
-                    , sLengthMenu: '_MENU_'
-                    , sLoadingRecords: 'Carregando...'
-                    , sProcessing: 'Processando...'
-                    , sSearch: 'Pesquisar: '
-                    , sZeroRecords: 'Nenhum registro correspondente foi encontrado'
-                    , sEmptyTable: 'Vazio'
-                }
                 , drawCallback: function (settings) {
                     var selected = $(settings.nTable).attr('data-selected');
                     if (selected) {
@@ -728,12 +735,13 @@ var application = {
                     selected = selected.split(',');
                     var index = $.inArray(id, selected);
                     selected.splice(index, 1);
+
+                    $('#' + $this[0].id + '_info').find('a').remove();
+                    if (selected.length > 0) {
+                        $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
+                    }
                 }
                 $this.attr('data-selected', selected);
-                $('#' + $this[0].id + '_info').find('a').remove();
-                if (selected.length > 0) {
-                    $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
-                }
             }).on('dblclick', 'tbody tr', function (e) {
                 if (application.functions.isMobile()) {
                 } else {

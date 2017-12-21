@@ -1316,7 +1316,7 @@ var main = {
                             .lineTo(25, 25) //bottom
                             .stroke();
 
-                        doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+                        doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 50 });
 
                         // Title
                         doc
@@ -4230,9 +4230,10 @@ var main = {
                     }
                 }
             }
-            , r_conferenciaAp: async function (err) {
+            , r_conferenciaAp: async function (obj) {
                 try {
-                    return application.success(obj.res, {msg: 'ok'});
+                    console.log(obj.req.body);
+                    return application.success(obj.res, { msg: 'ok' });
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
