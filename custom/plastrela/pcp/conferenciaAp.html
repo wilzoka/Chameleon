@@ -1,3 +1,8 @@
+<style>
+    .description-block>.description-header {
+        font-size: 21px;
+    }
+</style>
 <div class="col-md-12">
     <div class="box box-primary">
         <div class="box-body">
@@ -40,27 +45,27 @@
                 </div>
                 <div class="col-md-2">
                     <div class="checkbox">
-                        <label><input name="producao" type="checkbox"> Produção</label>
+                        <label><input name="producao" type="checkbox" checked="checked"> Produção</label>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="checkbox">
-                        <label><input name="parada" type="checkbox"> Parada</label>
+                        <label><input name="parada" type="checkbox" checked="checked"> Parada</label>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="checkbox">
-                        <label><input name="perda" type="checkbox"> Perda</label>
+                        <label><input name="perda" type="checkbox" checked="checked"> Perda</label>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="checkbox">
-                        <label><input name="componente" type="checkbox"> Componente</label>
+                        <label><input name="insumo" type="checkbox" checked="checked"> Insumo</label>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="checkbox">
-                        <label><input name="sobra" type="checkbox"> Sobra</label>
+                        <label><input name="sobra" type="checkbox" checked="checked"> Sobra</label>
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -80,25 +85,25 @@
             <div class="row">
                 <div class="col-sm-3 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">10</h5>
+                        <h5 id="producao_nro" class="description-header">0</h5>
                         <span>Nº Produções</span>
                     </div>
                 </div>
                 <div class="col-sm-3 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">130,000</h5>
+                        <h5 id="producao_pesoliquido" class="description-header">0,0000</h5>
                         <span>Peso Líq(Kg)</span>
                     </div>
                 </div>
                 <div class="col-sm-3 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">1.850,000</h5>
-                        <span>Qtd</span>
+                        <h5 id="producao_qtd" class="description-header">0,0000</h5>
+                        <span>Quantidade</span>
                     </div>
                 </div>
                 <div class="col-sm-3">
                     <div class="description-block">
-                        <h5 class="description-header">6h 10min</h5>
+                        <h5 id="producao_tempo" class="description-header">00:00</h5>
                         <span>Tempo</span>
                     </div>
                 </div>
@@ -116,14 +121,14 @@
             <div class="row">
                 <div class="col-sm-6 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">10</h5>
-                        <span>Nº Produções</span>
+                        <h5 id="parada_nro" class="description-header">0</h5>
+                        <span>Nº Paradas</span>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="description-block">
-                        <h5 class="description-header">130,000</h5>
-                        <span>Peso Líq(Kg)</span>
+                        <h5 id="parada_tempo" class="description-header">00:00</h5>
+                        <span>Tempo</span>
                     </div>
                 </div>
             </div>
@@ -134,20 +139,20 @@
 <div class="col-md-4">
     <div class="box box-info">
         <div class="box-header with-border text-center">
-            <h3 class="box-title">Componente</h3>
+            <h3 class="box-title">Insumo</h3>
         </div>
         <div class="box-footer">
             <div class="row">
                 <div class="col-sm-6 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">10</h5>
-                        <span>Nº Produções</span>
+                        <h5 id="insumo_nro" class="description-header">0</h5>
+                        <span>Nº Insumos</span>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="description-block">
-                        <h5 class="description-header">130,000</h5>
-                        <span>Peso Líq(Kg)</span>
+                        <h5 id="insumo_qtd" class="description-header">0,0000</h5>
+                        <span>Quantidade</span>
                     </div>
                 </div>
             </div>
@@ -164,14 +169,14 @@
             <div class="row">
                 <div class="col-sm-6 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">10</h5>
-                        <span>Nº Produções</span>
+                        <h5 id="perda_nro" class="description-header">0</h5>
+                        <span>Nº Perdas</span>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="description-block">
-                        <h5 class="description-header">130,000</h5>
-                        <span>Peso Líq(Kg)</span>
+                        <h5 id="perda_qtd" class="description-header">0,0000</h5>
+                        <span>Quantidade</span>
                     </div>
                 </div>
             </div>
@@ -188,14 +193,14 @@
             <div class="row">
                 <div class="col-sm-6 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">10</h5>
-                        <span>Nº Produções</span>
+                        <h5 id="sobra_nro" class="description-header">0</h5>
+                        <span>Nº Sobras</span>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="description-block">
-                        <h5 class="description-header">130,000</h5>
-                        <span>Peso Líq(Kg)</span>
+                        <h5 id="sobra_qtd" class="description-header">0,0000</h5>
+                        <span>Quantidade</span>
                     </div>
                 </div>
             </div>
@@ -212,26 +217,26 @@
             <div class="row">
                 <div class="col-sm-3 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">10</h5>
-                        <span>Nº Produções</span>
+                        <h5 id="ind_erro" class="description-header">0</h5>
+                        <span>Tempos com Erro</span>
                     </div>
                 </div>
                 <div class="col-sm-3 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">130,000</h5>
-                        <span>Peso Líq(Kg)</span>
+                        <h5 id="ind_velmedia" class="description-header">0</h5>
+                        <span>Velocidade Média(m/min)</span>
                     </div>
                 </div>
                 <div class="col-sm-3 border-right">
                     <div class="description-block">
-                        <h5 class="description-header">1.850,000</h5>
-                        <span>Qtd</span>
+                        <h5 id="ind_velefet" class="description-header">0</h5>
+                        <span>Velocidade Efetiva(m/min)</span>
                     </div>
                 </div>
                 <div class="col-sm-3">
                     <div class="description-block">
-                        <h5 class="description-header">6h 10min</h5>
-                        <span>Tempo</span>
+                        <h5 id="ind_dif" class="description-header">0</h5>
+                        <span>Diferença de Peso</span>
                     </div>
                 </div>
             </div>
@@ -243,18 +248,6 @@
     <div class="box box-primary">
         <div class="box-body">
             <table id="table" class="table table-bordered table-hover dataTable" width="100%">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Seq</th>
-                        <th>OP</th>
-                        <th>Horário</th>
-                        <th>Duração Intervalo / Total</th>
-                        <th>Peso / Qtd</th>
-                        <th>Adicionais</th>
-                        <th>Erro</th>
-                    </tr>
-                </thead>
             </table>
         </div>
     </div>
@@ -262,10 +255,64 @@
 
 <script type="text/javascript">
     $(function ($) {
-        $('#table').DataTable({
+        $('input[name="dataini"]').val(moment().format('DD/MM/YYYY') + ' 00:00')
+        $('input[name="datafim"]').val(moment().format('DD/MM/YYYY') + ' 23:59')
+
+        var table = $('#table').DataTable({
             dom: 't'
+            , columns: [
+                { title: "Seq", data: "seq", name: "seq", orderable: false }
+                , { title: "Tipo", data: "tipo", name: "tipo", orderable: false, visible: false }
+                , { title: "ID", data: "id", name: "id", orderable: false, visible: false }
+                , { title: "OP", data: "op", name: "op", orderable: false }
+                , { title: "Horário", data: "horario", name: "horario", orderable: false, class: 'nowrap' }
+                , { title: "Duração", data: "duracao", name: "duracao", orderable: false, class: 'text-right' }
+                , { title: "Quantidades", data: "qtd", name: "qtd", orderable: false, class: 'text-right' }
+                , { title: "Adicionais", data: "adicionais", name: "adicionais", orderable: false }
+                , { title: "Erros", data: "erro", name: "erro", orderable: false }
+            ]
             , pageLength: -1
-        });
+            , rowCallback: function (row, data) {
+                switch (data.tipo) {
+                    case 'producao':
+                        $(row).addClass('success');
+                        break;
+                    case 'parada':
+                        $(row).addClass('warning');
+                        break;
+                    case 'perda':
+                        $(row).addClass('danger');
+                        break;
+                    case 'insumo':
+                        $(row).addClass('info');
+                        break;
+                    case 'sobra':
+                        $(row).css('background-color', 'lightgray');
+                        break;
+                }
+                // if (data[8] == 1) {
+                //     piscaRows.push($(row));
+                // }
+            }
+        }).on('dblclick', 'tbody tr', function (e) {
+            var data = table.row(this).data();
+            switch (data.tipo) {
+                case 'producao':
+                    window.open('/view/74/' + data.id)
+                    break;
+                case 'parada':
+                    window.open('/view/52/' + data.id)
+                    break;
+                case 'perda':
+                    window.open('/view/51/' + data.id)
+                    break;
+                case 'insumo':
+                    window.open('/view/50/' + data.id)
+                    break;
+                default:
+                    break;
+            }
+        });;
 
         $('#pesquisar').click(function () {
             $('div.has-error').removeClass('has-error');
@@ -275,14 +322,39 @@
                 , producao: $('input[name="producao"]').is(':checked')
                 , parada: $('input[name="parada"]').is(':checked')
                 , perda: $('input[name="perda"]').is(':checked')
-                , componente: $('input[name="componente"]').is(':checked')
+                , insumo: $('input[name="insumo"]').is(':checked')
                 , sobra: $('input[name="sobra"]').is(':checked')
                 , idetapa: $('select[name="idetapa"]').val()
                 , idrecurso: $('select[name="idrecurso"]').val()
                 , idop: $('select[name="idop"]').val()
             }, function (response) {
                 application.handlers.responseSuccess(response);
+                if (response.success) {
+                    table.clear();
+                    table.rows.add(response.data.table).draw();
 
+                    $('#producao_nro').text(response.data.producao.nro);
+                    $('#producao_pesoliquido').text(response.data.producao.pesoliquido);
+                    $('#producao_qtd').text(response.data.producao.qtd);
+                    $('#producao_tempo').text(response.data.producao.tempo);
+
+                    $('#parada_nro').text(response.data.parada.nro);
+                    $('#parada_tempo').text(response.data.parada.tempo);
+
+                    $('#perda_nro').text(response.data.perda.nro);
+                    $('#perda_qtd').text(response.data.perda.qtd);
+
+                    $('#insumo_nro').text(response.data.insumo.nro);
+                    $('#insumo_qtd').text(response.data.insumo.qtd);
+
+                    $('#sobra_nro').text(response.data.sobra.nro);
+                    $('#sobra_qtd').text(response.data.sobra.qtd);
+
+                    $('#ind_erro').text(response.data.ind.erro);
+                    $('#ind_velmedia').text(response.data.ind.velmedia);
+                    $('#ind_velefet').text(response.data.ind.velefet);
+                    $('#ind_dif').text(response.data.ind.dif);
+                }
             });
         });
     });

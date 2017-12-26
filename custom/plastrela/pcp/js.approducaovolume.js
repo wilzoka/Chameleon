@@ -5,8 +5,10 @@ $(function () {
         application.jsfunction('plastrela.pcp.ap.js_usuarioUltimoAp', {
             idapproducao: application.functions.getUrlParameter('parent')
         }, function (response) {
-            var newOption = new Option(response.data.text, response.data.id, false, false);
-            $('select[name="iduser"]').append(newOption).trigger('change');
+            if (response.data.id) {
+                var newOption = new Option(response.data.text, response.data.id, false, false);
+                $('select[name="iduser"]').append(newOption).trigger('change');
+            }
         });
     }
 
