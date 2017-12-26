@@ -78,8 +78,10 @@ $(function () {
                 application.jsfunction('plastrela.pcp.ap.js_usuarioUltimoAp', {
                     idoprecurso: application.functions.getId()
                 }, function (response) {
-                    var newOption = new Option(response.data.text, response.data.id, false, false);
-                    $modal.find('select[name="iduser"]').append(newOption).trigger('change');
+                    if (response.data.id) {
+                        var newOption = new Option(response.data.text, response.data.id, false, false);
+                        $modal.find('select[name="iduser"]').append(newOption).trigger('change');
+                    }
                 });
 
                 $modal.on('shown.bs.modal', function () {

@@ -1,0 +1,15 @@
+wchange 1 - Clear input after backspace in 0 values
+
+var splited = $input.val().split(settings.decimal);
+if (parseInt(splited[0]) == 0 && parseInt(splited[1]) == 0) {
+    $input.val('');
+    return;
+}
+
+wchange 2 - Fix for mobile devices
+
+if (/android/i.test(navigator.userAgent)) {
+    $input.keyup(function (e) {
+        applyMask(e);
+    });
+}
