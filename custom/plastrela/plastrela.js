@@ -896,14 +896,18 @@ var main = {
                             }
                         };
                         let printer = new pdfMakePrinter(fontDescriptors);
+
                         let config = await db.getModel('config').find();
-                        let image = JSON.parse(config.reportimage)[0];
+                        let image = config.reportimage ? JSON.parse(config.reportimage)[0] : [{ id: 0, type: '' }];
 
                         let body = [];
                         let total = [];
 
                         let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
                         let registers = await main.plataform.view.f_getFilteredRegisters(obj);
+                        if (registers.length <= 0) {
+                            return application.error(obj.res, { msg: 'Sem dados para exportar' });
+                        }
                         for (let i = 0; i < registers.length; i++) {
                             body.push([]);
                             if (i == 0) {
@@ -1169,7 +1173,6 @@ var main = {
                 }
                 , _dividir: async function (obj) {
                     try {
-
                         if (obj.req.method == 'GET') {
                             if (obj.ids.length != 1) {
                                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });

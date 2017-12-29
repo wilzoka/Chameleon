@@ -446,9 +446,9 @@ var modelate = function (obj) {
 var validate = function (obj) {
     return new Promise((resolve, reject) => {
 
-        var invalidfields = [];
+        let invalidfields = [];
 
-        for (var i = 0; i < obj.modelattributes.length; i++) {
+        for (let i = 0; i < obj.modelattributes.length; i++) {
 
             let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
 
@@ -468,11 +468,10 @@ var validate = function (obj) {
             // File
             if (obj.modelattributes[i].type == 'file') {
                 if (j.sizeTotal) {
-
                     if (obj.register[obj.modelattributes[i].name]) {
                         let filesize = 0;
                         let files = JSON.parse(obj.register[obj.modelattributes[i].name]);
-                        for (var z = 0; z < files.length; z++) {
+                        for (let z = 0; z < files.length; z++) {
                             filesize += files[z].size;
                         }
                         if (filesize > (j.sizeTotal * 1024 * 1024)) {
@@ -495,62 +494,100 @@ var validate = function (obj) {
 
 var boundFiles = function (obj) {
     let idsToBound = [];
-    for (var i = 0; i < obj.modelattributes.length; i++) {
+    for (let i = 0; i < obj.modelattributes.length; i++) {
         if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined) {
-
             let j = JSON.parse(obj.register[obj.modelattributes[i].name]);
-
             for (var z = 0; z < j.length; z++) {
                 idsToBound.push(j[z].id);
             }
-
             if (idsToBound.length > 0) {
                 db.getModel('file').update({ bounded: true }, { where: { id: { $in: idsToBound } } });
             }
-
         }
     }
 }
 
 var save = function (obj) {
     return new Promise((resolve, reject) => {
+        let changes = obj.register._changed;
         if (obj.register.changed()) {
-            let residueIds = [];
-            for (var i = 0; i < obj.modelattributes.length; i++) {
+            // File
+            for (let i = 0; i < obj.modelattributes.length; i++) {
                 if (obj.modelattributes[i].type == 'file' && obj.register._changed[obj.modelattributes[i].name]) {
-
                     let previousIds = [];
                     let currentIds = [];
                     let j = {};
-
                     // previous
                     j = obj.register._previousDataValues[obj.modelattributes[i].name] ? JSON.parse(obj.register._previousDataValues[obj.modelattributes[i].name]) : [];
-                    for (var z = 0; z < j.length; z++) {
+                    for (let z = 0; z < j.length; z++) {
                         previousIds.push(j[z].id);
                     }
-
                     // current
                     j = obj.register[obj.modelattributes[i].name] ? JSON.parse(obj.register[obj.modelattributes[i].name]) : [];
-                    for (var z = 0; z < j.length; z++) {
+                    for (let z = 0; z < j.length; z++) {
                         currentIds.push(j[z].id);
                     }
-
-                    for (var z = 0; z < previousIds.length; z++) {
+                    for (let z = 0; z < previousIds.length; z++) {
                         if (currentIds.indexOf(previousIds[z]) > 0) {
                             previousIds.splice(z, 1);
                         }
                     }
-
                     if (previousIds.length > 0) {
                         db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
                     }
                 }
             }
         }
-
+        let id = obj.register.id;
+        obj.register._user = obj.req.user;
         obj.register.save().then(register => {
             boundFiles(lodash.extend(obj, { register: register }));
-            return resolve({ success: true, register: register });
+            resolve({ success: true, register: register });
+            // Audit
+            if (Object.keys(changes).length > 0) {
+                db.getModel(register.constructor.tableName).find({ where: { id: register.id }, include: [{ all: true }] }).then(registerr => {
+                    let audit = db.getModel('audit').build();
+                    audit.datetime = moment();
+                    audit.idmodel = obj.view.model.id;
+                    audit.iduser = obj.req.user.id;
+                    audit.type = id > 0 ? 'Edição' : 'Inserção';
+                    audit.changes = [];
+                    for (let k in changes) {
+                        for (let i = 0; i < obj.modelattributes.length; i++) {
+                            if (k == obj.modelattributes[i].name) {
+                                let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+                                switch (obj.modelattributes[i].type) {
+                                    case 'autocomplete':
+                                        let vas = j.as || j.model;
+                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? registerr[vas][j.attribute] : null));
+                                        break;
+                                    case 'boolean':
+                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? 'Sim' : 'Não'));
+                                        break;
+                                    case 'decimal':
+                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.decimal(registerr[k], j.precision) : null));
+                                        break;
+                                    case 'time':
+                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.time(registerr[k]) : null));
+                                        break;
+                                    case 'date':
+                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.date(registerr[k]) : null));
+                                        break;
+                                    case 'datetime':
+                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.datetime(registerr[k]) : null));
+                                        break;
+                                    default:
+                                        audit.changes.push(obj.modelattributes[i].label + ': ' + registerr[k]);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    audit.changes = audit.changes.join(', ');
+                    audit.modelid = registerr.id;
+                    audit.save();
+                });
+            }
         });
     });
 }
@@ -584,12 +621,24 @@ var validateAndSave = function (obj) {
 
 var deleteModel = function (obj) {
     return new Promise((resolve, reject) => {
-        db.getModel(obj.view.model.name).destroy({ where: { id: { $in: obj.ids } } }).then(() => {
-            resolve({ success: true });
-            return application.success(obj.res, { msg: application.message.success });
-        }).catch(err => {
-            resolve({ success: false, err: err });
-            return application.fatal(obj.res, err);
+        db.getModel(obj.view.model.name).findAll({ where: { id: { $in: obj.ids } }, raw: true }).then(registers => {
+            db.getModel(obj.view.model.name).destroy({ where: { id: { $in: obj.ids } } }).then(() => {
+
+                resolve({ success: true });
+                application.success(obj.res, { msg: application.message.success });
+
+                let audit = db.getModel('audit').build();
+                audit.datetime = moment();
+                audit.idmodel = obj.view.model.id;
+                audit.iduser = obj.req.user.id;
+                audit.type = 'Exclusão';
+                audit.changes = JSON.stringify(registers);
+                audit.save();
+
+            }).catch(err => {
+                resolve({ success: false, err: err });
+                return application.fatal(obj.res, err);
+            });
         });
     });
 }
@@ -738,7 +787,7 @@ module.exports = function (app) {
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
                             : decodeClass(viewtables[i].modelattribute.type))
-                        +  (viewtables[i].class ? ' ' + viewtables[i].class : '')
+                        + (viewtables[i].class ? ' ' + viewtables[i].class : '')
                     });
 
                     if (viewtables[i].totalize) {
@@ -1274,7 +1323,7 @@ module.exports = function (app) {
                     where: { idview: view.id, disabled: { $eq: false } }
                     , include: [{ all: true }]
                 });
-                let register = await db.getModel(view.model.name).find({ where: { id: req.params.id } });
+                let register = await db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true }] });
                 if (!register) {
                     register = db.getModel(view.model.name).build({ id: 0 });
                 }

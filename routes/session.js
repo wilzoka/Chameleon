@@ -14,18 +14,14 @@ passport.serializeUser(function (user, done) {
 // Deserialize Sessions
 passport.deserializeUser(function (user, done) {
     done(null, user);
-    // db.getModel('users').find({ where: { id: user.id } }).then(register => {
-    //     done(null, register);
-    // }).error(function (err) {
-    //     done(err, null);
-    // });
 });
 
 // For Authentication Purposes
 passport.use(new LocalStrategy(
     function (username, password, done) {
         db.getModel('users').find({
-            where: {
+            include: [{ all: true }]
+            , where: {
                 active: true
                 , $or: [{ username: username }, { email: username }]
                 , password: password
@@ -93,7 +89,7 @@ module.exports = function (app) {
                 }
 
                 return application.success(res, {
-                    redirect: '/home'
+                    redirect: req.user.idmenu ? req.user.menu.url || '/view/' + req.user.menu.idview : '/home'
                     , localstorage: [
                         { key: 'username', value: req.user.fullname }
                         , { key: 'menu', value: menuhtml }
