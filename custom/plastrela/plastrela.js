@@ -3799,27 +3799,69 @@ var main = {
                     });
                 }
                 , __pegarVolume: async function (obj) {
-                    if (!obj.data.codigodebarra) {
-                        return application.error(obj.res, { msg: 'Informe o código de barra' });
-                    }
+                    try {
 
-                    let codigodebarra = obj.data.codigodebarra.split('-');
-                    codigodebarra = parseInt(codigodebarra[codigodebarra.length - 1]);
-
-                    let volume = await db.getModel('est_volume').find({ where: { id: codigodebarra } });
-                    if (volume) {
-                        if (volume.consumido) {
-                            return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
-                        } else {
-                            return application.success(obj.res, {
-                                data: {
-                                    id: volume.id
-                                    , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
-                                }
-                            });
+                        if (!obj.data.codigodebarra) {
+                            return application.error(obj.res, { msg: 'Informe o código de barra' });
                         }
-                    } else {
-                        return application.error(obj.res, { msg: 'Volume não encontrado' });
+
+                        switch (obj.data.codigodebarra.toLowerCase().substring(0, 1)) {
+                            case '-':
+                                let codigodebarra = obj.data.codigodebarra.split('-');
+                                codigodebarra = parseInt(codigodebarra[codigodebarra.length - 1]);
+
+                                let volume = await db.getModel('est_volume').find({ where: { id: codigodebarra } });
+                                if (volume) {
+                                    if (volume.consumido) {
+                                        return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
+                                    } else {
+                                        return application.success(obj.res, {
+                                            data: {
+                                                id: volume.id
+                                                , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    return application.error(obj.res, { msg: 'Volume não encontrado' });
+                                }
+                                break;
+
+                            case 'b':
+                                let bc = obj.data.codigodebarra.substring(1, obj.data.codigodebarra.length).split('-');
+                                let item = await db.getModel('cad_item').find({ where: { codigo: bc[0].split('/')[0] } })
+                                if (!item) {
+                                    return application.error(obj.res, { msg: 'Código de produto não encontrado' });
+                                }
+                                let versao = await db.getModel('pcp_versao').find({ where: { iditem: item.id, codigo: bc[0].split('/')[1] } });
+                                if (!versao) {
+                                    return application.error(obj.res, { msg: 'Versão de produto não encontrado' });
+                                }
+
+                                let volumeb = await db.getModel('est_volume').create({
+                                    idversao: versao.id
+                                    , iduser: obj.req.user.id
+                                    , datahora: moment()
+                                    , qtd: application.formatters.be.decimal(bc[1], 4)
+                                    , consumido: false
+                                    , qtdreal: application.formatters.be.decimal(bc[1], 4)
+                                    , observacao: 'Gerada pela Impressão'
+                                });
+                                if (volumeb) {
+                                    return application.success(obj.res, {
+                                        data: {
+                                            id: volumeb.id
+                                            , qtdreal: application.formatters.fe.decimal(volumeb.qtdreal, 4)
+                                        }
+                                    });
+                                } else {
+                                    return application.error(obj.res, { msg: 'Volume com problema' });
+                                }
+                                break;
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
                     }
                 }
                 , __apontarVolume: async function (obj) {
@@ -3847,7 +3889,7 @@ var main = {
                             }
                         });
 
-                        if (deposito.descricao == 'Almoxarifado') {
+                        if (deposito && deposito.descricao == 'Almoxarifado') {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
                         }
                         if (oprecurso.idestado == config.idestadoencerrada) {
