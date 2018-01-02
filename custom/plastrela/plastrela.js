@@ -3043,7 +3043,97 @@ var main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+
+                , e_gerarEnderecos: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            let body = '';
+                            body += application.components.html.hidden({
+                                name: 'iddeposito'
+                                , value: obj.id
+                            });
+                            body += application.components.html.text({
+                                width: 4
+                                , label: 'Prefixo'
+                                , name: 'prefixo'
+                            });
+                            body += application.components.html.integer({
+                                width: 4
+                                , label: 'Inicial'
+                                , name: 'inicial'
+                            });
+                            body += application.components.html.integer({
+                                width: 4
+                                , label: 'Final'
+                                , name: 'final'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
+                                }
+                            });
+                        } else {
+
+                            let fieldsrequired = ['iddeposito', 'prefixo', 'inicial', 'final'];
+                            let invalidfields = [];
+
+                            for (var i = 0; i < fieldsrequired.length; i++) {
+                                if (!(fieldsrequired[i] in obj.req.body && obj.req.body[fieldsrequired[i]])) {
+                                    invalidfields.push(fieldsrequired[i]);
+                                }
+                            }
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let inicial = parseInt(obj.req.body.inicial);
+                            let final = parseInt(obj.req.body.final);
+
+                            let bulkEndereco = [];
+
+                            for (let i = inicial; i <= final; i++) {
+                                if (i < 10) {
+                                    bulkEndereco.push({
+                                        descricao: obj.req.body.prefixo + '00' + i
+                                        , iddeposito: obj.req.body.iddeposito
+                                        , depositopadrao: false
+                                        , descricaocompleta: ''
+                                    });
+                                } else if (i < 100) {
+                                    bulkEndereco.push({
+                                        descricao: obj.req.body.prefixo + '0' + i
+                                        , iddeposito: obj.req.body.iddeposito
+                                        , depositopadrao: false
+                                        , descricaocompleta: ''
+                                    });
+                                } else {
+                                    bulkEndereco.push({
+                                        descricao: obj.req.body.prefixo + i
+                                        , iddeposito: obj.req.body.iddeposito
+                                        , depositopadrao: false
+                                        , descricaocompleta: ''
+                                    });
+                                }
+                            }
+
+                            await db.getModel('est_depositoendereco').bulkCreate(bulkEndereco);
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
+
             , nfentradaitem: {
                 _imprimirEtiquetas: async function (obj) {
                     try {
@@ -4487,8 +4577,10 @@ var main = {
 
                                 if (sql[i].ultimaprod == 1) {
                                     data.producao.nro++;
-                                    data.producao.pesoliquido += parseFloat(sql[i].peso);
-                                    data.producao.qtd += parseFloat(sql[i].qtd);
+                                    if (parseFloat(sql[i].peso)) {
+                                        data.producao.pesoliquido += parseFloat(sql[i].peso);
+                                        data.producao.qtd += parseFloat(sql[i].qtd);
+                                    }
                                 }
                                 data.producao.tempo += moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm');
                             } else if (sql[i].tipo == 'perda') {
@@ -4541,7 +4633,7 @@ var main = {
                                     , op: sql[i].op
                                     , horario: moment(sql[i].dataini, application.formatters.be.datetime_format).format('DD/MM HH:mm')
                                     , duracao: ''
-                                    , qtd: application.formatters.fe.decimal(sql[i].peso, 4)
+                                    , qtd: application.formatters.fe.decimal(sql[i].qtd, 4)
                                     , adicionais: sql[i].adicionais
                                     , erro: ''
                                 });
