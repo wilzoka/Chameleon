@@ -2120,7 +2120,7 @@ var main = {
                                     .stroke();
 
                                 if (fs.existsSync('files/' + image.id + '.' + image.type)) {
-                                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 100 });
+                                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 50 });
                                 }
 
                                 doc.moveTo(25, 75)
@@ -2440,7 +2440,7 @@ var main = {
 
                             // Title
                             if (fs.existsSync('files/' + image.id + '.' + image.type)) {
-                                doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 100 });
+                                doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 50 });
                             }
 
                             doc.moveTo(25, 510)

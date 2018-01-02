@@ -276,11 +276,11 @@
     </attributes>
   </connection>
   <order>
-  <hop> <from>Table input</from><to>LK OP</to><enabled>Y</enabled> </hop>
   <hop> <from>LK OP</from><to>LK Etapa</to><enabled>Y</enabled> </hop>
   <hop> <from>LK OPEtapa</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
   <hop> <from>LK Etapa</from><to>LK Recurso</to><enabled>Y</enabled> </hop>
   <hop> <from>LK Recurso</from><to>LK OPEtapa</to><enabled>Y</enabled> </hop>
+  <hop> <from>Table input</from><to>LK OP</to><enabled>Y</enabled> </hop>
   </order>
   <step>
     <name>Insert &#x2f; Update</name>
@@ -338,7 +338,7 @@
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>537</xloc>
+      <xloc>524</xloc>
       <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
@@ -380,7 +380,7 @@
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>261</xloc>
+      <xloc>248</xloc>
       <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
@@ -422,7 +422,7 @@
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>169</xloc>
+      <xloc>156</xloc>
       <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
@@ -476,7 +476,7 @@
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>444</xloc>
+      <xloc>431</xloc>
       <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
@@ -518,7 +518,7 @@
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>354</xloc>
+      <xloc>341</xloc>
       <yloc>49</yloc>
       <draw>Y</draw>
       </GUI>
@@ -536,7 +536,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	opr.&#x2a;&#xd;&#xa;	, case when opr.descricao_situacao like &#x27;Produ&#xe7;&#xe3;o Encerrada&#x27; then 2 &#xd;&#xa;	when opr.descricao_situacao like &#x27;em Produ&#xe7;&#xe3;o&#x27; then 6&#xd;&#xa;	when opr.descricao_situacao like &#x27;em Temporariamente Interrompida&#x27; then 5&#xd;&#xa;	else 1 end as idestado&#xd;&#xa;from &#xd;&#xa;	pcpoprecurso opr&#xd;&#xa;left join pcpopetapa ope on &#x28;opr.empresa &#x3d; ope.empresa and opr.op &#x3d; ope.op and opr.seq_etapa &#x3d; ope.seq_etapa and opr.etapa &#x3d; ope.etapa&#x29;&#xd;&#xa;left join pcpop op on &#x28;ope.empresa &#x3d; op.empresa and ope.op &#x3d; op.op&#x29;&#xd;&#xa;where &#xd;&#xa;	opr.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and op.data_inc &#x3e;&#x3d; sysdate - 15&#xd;&#xa;--	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
+    <sql>select&#xd;&#xa;	opr.&#x2a;&#xd;&#xa;	, case when opr.descricao_situacao like &#x27;Produ&#xe7;&#xe3;o Encerrada&#x27; then 2 &#xd;&#xa;	when opr.descricao_situacao like &#x27;em Produ&#xe7;&#xe3;o&#x27; then 6&#xd;&#xa;	when opr.descricao_situacao like &#x27;em Temporariamente Interrompida&#x27; then 5&#xd;&#xa;	else 1 end as idestado&#xd;&#xa;from &#xd;&#xa;	pcpoprecurso opr&#xd;&#xa;left join pcpopetapa ope on &#x28;opr.empresa &#x3d; ope.empresa and opr.op &#x3d; ope.op and opr.seq_etapa &#x3d; ope.seq_etapa and opr.etapa &#x3d; ope.etapa&#x29;&#xd;&#xa;left join pcpop op on &#x28;ope.empresa &#x3d; op.empresa and ope.op &#x3d; op.op&#x29;&#xd;&#xa;where &#xd;&#xa;	opr.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;--	and op.data_inc &#x3e;&#x3d; sysdate - 15&#xd;&#xa;	and op.descricao_situacao not like &#x27;Encerrada&#x27;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
