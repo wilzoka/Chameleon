@@ -1490,6 +1490,8 @@ var main = {
 
             criarNotaChaveAcesso: async function (obj) {
                 if (obj.req.method == 'GET') {
+                    main.plataform.kettle.f_runJob('estoque/sync_sped/Job.kjb');
+
                     let body = '';
 
                     body += application.components.html.autocomplete({
@@ -3834,6 +3836,7 @@ var main = {
             }
             , apinsumo: {
                 __adicionarModal: function (obj) {
+
                     let body = '';
 
                     body += application.components.html.autocomplete({
@@ -3842,7 +3845,7 @@ var main = {
                         , name: 'iduser'
                         , model: 'users'
                         , attribute: 'fullname'
-                        , datawhere: 'active'
+                        , datawhere: 'active and c_codigosenior is not null'
                     });
 
                     body += application.components.html.text({
