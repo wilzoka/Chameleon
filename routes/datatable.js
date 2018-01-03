@@ -171,7 +171,12 @@ var getFilter = function (cookie, modelattributes) {
                 case 'iv':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
+                            let f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                            if (f.indexOf('$value') > 0) {
+                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k].val));
+                            } else {
+                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
+                            }
                         }
                     }
                     break;

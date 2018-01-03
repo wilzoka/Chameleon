@@ -444,7 +444,7 @@ var modelate = function (obj) {
 }
 
 var validate = function (obj) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
 
         let invalidfields = [];
 

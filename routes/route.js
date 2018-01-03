@@ -21,7 +21,7 @@ module.exports = function (app) {
                     });
 
                 } else {
-                    return application.forbidden(res);
+                    return res.redirect('/login');
                 }
 
             } else {

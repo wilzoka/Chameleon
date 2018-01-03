@@ -161,7 +161,10 @@ var application = {
         $(document).ajaxStart(function () {
             $('.pace').removeClass('pace-inactive').addClass('pace-active');
         });
-        $(document).ajaxComplete(function () {
+        $(document).ajaxComplete(function (e, xhr) {
+            if (xhr.status == 401) {
+                window.location.href = '/login';
+            }
             $('.pace').removeClass('pace-active').addClass('pace-inactive');
         });
         $('.nav-tabs a').click(function (e) {

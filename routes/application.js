@@ -9,7 +9,11 @@ var application = {
 		if (req.isAuthenticated()) {
 			next();
 		} else {
-			res.redirect('/login');
+			if (req.xhr) {
+				res.status(401).json({});
+			} else {
+				res.redirect('/login');
+			}
 		}
 	}
 
