@@ -2097,6 +2097,9 @@ var main = {
                             let oprecurso_recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso ? oprecurso.idrecurso : 0 } });
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
+                            let opep = await db.getModel('pcp_opep').find({ where: { idop: op ? op.id : 0 } });
+                            let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
+                            let cliente = await db.getModel('cad_corr').find({ where: { id: pedido ? pedido.idcliente : 0 } });
 
                             doc.addPage({ margin: 30 });
 
@@ -2144,7 +2147,7 @@ var main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
-                                    .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(pedido ? pedido.codigo : '', width1val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
@@ -2161,7 +2164,7 @@ var main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad('', 87, padstr))
+                                    .font('Courier').text(f.rpad(cliente? cliente.nome: '', 87, padstr))
                                     .moveDown(md);
 
                                 doc
