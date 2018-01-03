@@ -2101,6 +2101,19 @@ var main = {
                             let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
                             let cliente = await db.getModel('cad_corr').find({ where: { id: pedido ? pedido.idcliente : 0 } });
 
+                            let formato = await db.sequelize.query(`
+                            select
+                                (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20))::decimal as largura
+                                , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22))::decimal as espessura
+                            from
+                                est_volume vol
+                            left join pcp_versao v on (vol.idversao = v.id)
+                            where vol.id = :v1
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: { v1: volume.id }
+                                });
+
                             doc.addPage({ margin: 30 });
 
                             let width1 = 27;
@@ -2164,7 +2177,7 @@ var main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(cliente? cliente.nome: '', 87, padstr))
+                                    .font('Courier').text(f.rpad(cliente ? cliente.nome : '', 87, padstr))
                                     .moveDown(md);
 
                                 doc
@@ -2174,7 +2187,7 @@ var main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad('', width1val, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(formato.length > 0 ? application.formatters.fe.decimal(formato[0].largura, 2) + ' x ' + application.formatters.fe.decimal(formato[0].espessura, 4) : '', width1val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
