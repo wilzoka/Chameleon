@@ -597,6 +597,7 @@ var validateAndSave = function (obj) {
 
         validate(obj).then(validation => {
             if (validation.success) {
+                let id = obj.register.id;
                 save(obj).then(saved => {
                     if (saved.success) {
                         resolve({ success: true, register: saved.register });
@@ -604,6 +605,7 @@ var validateAndSave = function (obj) {
                             msg: application.message.success
                             , data: saved.register
                             , redirect: '/view/' + obj.view.id + '/' + saved.register.id
+                            , historyBack: id == 0 && obj.hasSubview ? false : true
                         });
                     } else {
                         resolve({ success: false });
@@ -1249,6 +1251,7 @@ module.exports = function (app) {
                     where: { idview: view.id, disabled: { $eq: false } }
                     , include: [{ all: true }]
                 });
+                let subview = await db.getModel('viewsubview').find({ where: { idview: view.id } });
                 let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
                 let register = await db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true }] });
                 if (!register) {
@@ -1257,10 +1260,11 @@ module.exports = function (app) {
 
                 let obj = {
                     id: req.params.id
-                    , register: register
                     , view: view
-                    , modelattributes: modelattributes
                     , viewfields: viewfields
+                    , modelattributes: modelattributes
+                    , hasSubview: subview ? true : false
+                    , register: register
                     , req: req
                     , res: res
                 };

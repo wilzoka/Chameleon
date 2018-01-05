@@ -162,7 +162,7 @@ var application = {
             $('.pace').removeClass('pace-inactive').addClass('pace-active');
         });
         $(document).ajaxComplete(function (e, xhr) {
-            if (xhr.status == 401) {
+            if (xhr.status == 401 && window.location.pathname != '/login') {
                 window.location.href = '/login';
             }
             $('.pace').removeClass('pace-active').addClass('pace-inactive');
@@ -992,8 +992,12 @@ var application = {
                     }
                 }
 
-                if ('msg' in response && 'redirect' in response) {
+                if ('msg' in response && ('redirect' in response || 'historyBack' in response)) {
                     localStorage.setItem('msg', response.msg);
+                }
+
+                if ('historyBack' in response && response.historyBack) {
+                    return window.history.back();
                 }
 
                 if ('redirect' in response) {

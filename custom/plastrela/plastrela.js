@@ -3567,7 +3567,7 @@ var main = {
                         let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } });
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
-                            // return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                         }
 
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
@@ -3579,9 +3579,6 @@ var main = {
                         if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.pesoliquido)) < 0) {
                             return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
-
-                        // let sumqtdapinsumo = await db.getModel('pcp_apinsumo').sum('qtd', { where: { idoprecurso: oprecurso.id } });
-                        // let qtdproducao = await db.getModel('pcp_approducaovolume').sum('qtd', { where: { idoprecurso: oprecurso.id } });
 
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
                         let saved = await next(obj);
