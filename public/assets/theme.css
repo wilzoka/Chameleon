@@ -57,6 +57,9 @@ h4.title_subview {
 .dropdown-menu > li > a {
     padding: 3px 10px;
 }
+.treeview-menu > li > a {
+    padding: 10px 5px 10px 15px;
+}
 
 /* Bootstrap Fixes */
 @media (min-width: 768px) {

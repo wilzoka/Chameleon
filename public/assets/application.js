@@ -45,7 +45,7 @@ var application = {
             $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
         }
 
-        document.title = $('section.content-header').text() || localStorage.getItem('descriptionmenu');
+        document.title = $('section.content-header').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
 
         var pathname = window.location.pathname;
         pathname = pathname.split('/');
@@ -968,11 +968,11 @@ var application = {
                 , buttons: {
                     cancel: {
                         label: 'Cancelar'
-                        , className: 'btn-sm'
+                        , className: ''
                     }
                     , confirm: {
                         label: 'Sim'
-                        , className: 'btn-primary btn-sm'
+                        , className: 'btn-primary'
                         , callback: function () {
                             functionSuccess();
                         }
@@ -1051,7 +1051,9 @@ var application = {
             }
         }
         , responseError: function (response) {
-            if (response.status == 401) {
+            if (response.status == 0) {
+                application.notify.error('Sistema indisponível, tente novamente mais tarde');
+            } else if (response.status == 401) {
                 application.notify.error('Acesso não autorizado');
             } else {
                 application.notify.error('Alguma coisa deu errado :(');

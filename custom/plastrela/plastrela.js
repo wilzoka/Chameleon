@@ -1009,7 +1009,7 @@ var main = {
                                     , fullscreen: true
                                     , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
                                     , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                                 }
                             });
                         });
@@ -1079,7 +1079,7 @@ var main = {
                                 , id: 'modalevt'
                                 , title: obj.event.description
                                 , body: body
-                                , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Alterar</button>'
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Alterar</button>'
                             }
                         });
                     } else {
@@ -1194,7 +1194,7 @@ var main = {
                                     , id: 'modalevt'
                                     , title: 'Dividir Solicitação'
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Dividir</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Dividir</button>'
                                 }
                             });
                         } else {
@@ -1260,7 +1260,7 @@ var main = {
                                     , id: 'modalevt'
                                     , title: 'Alterar Estado'
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Alterar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Alterar</button>'
                                 }
                             });
                         } else {
@@ -1448,7 +1448,7 @@ var main = {
                                     , fullscreen: true
                                     , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
                                     , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                                 }
                             });
                         });
@@ -1514,7 +1514,7 @@ var main = {
                             , id: 'modalevt'
                             , title: 'Criar Nota'
                             , body: body
-                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
                         }
                     });
                 } else {
@@ -1866,7 +1866,7 @@ var main = {
                             , id: 'modalevt'
                             , title: 'Transferência'
                             , body: body
-                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Transferir</button>'
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Transferir</button>'
                         }
                     });
                 } else {
@@ -2096,6 +2096,7 @@ var main = {
                             let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao ? approducao.idoprecurso : 0 } });
                             let oprecurso_recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso ? oprecurso.idrecurso : 0 } });
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
                             let opep = await db.getModel('pcp_opep').find({ where: { idop: op ? op.id : 0 } });
                             let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
@@ -2105,6 +2106,8 @@ var main = {
                             select
                                 (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20))::decimal as largura
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22))::decimal as espessura
+                                , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (1162)) as implargura
+                                , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (1190)) as impespessura
                             from
                                 est_volume vol
                             left join pcp_versao v on (vol.idversao = v.id)
@@ -2187,7 +2190,7 @@ var main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(formato.length > 0 ? application.formatters.fe.decimal(formato[0].largura, 2) + ' x ' + application.formatters.fe.decimal(formato[0].espessura, 4) : '', width1val, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(formato.length > 0 ? etapa && etapa.codigo == 20 ? formato[0].implargura + ' x ' + formato[0].impespessura : formato[0].largura + ' x ' + formato[0].espessura : '', width1val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
@@ -2541,7 +2544,7 @@ var main = {
                                     , fullscreen: true
                                     , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
                                     , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                                 }
                             });
                         });
@@ -2580,7 +2583,7 @@ var main = {
                                 , id: 'modalevt'
                                 , title: 'Gerar Volume'
                                 , body: body
-                                , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
                             }
                         });
                     } else {
@@ -2800,7 +2803,7 @@ var main = {
                                     , id: 'modalevt'
                                     , title: obj.event.description
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Movimentar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Movimentar</button>'
                                 }
                             });
                         } else {
@@ -2854,7 +2857,7 @@ var main = {
                                     , id: 'modalevt'
                                     , title: obj.event.description
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Estornar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Estornar</button>'
                                 }
                             });
                         } else {
@@ -2904,7 +2907,7 @@ var main = {
                                     , id: 'modalevt'
                                     , title: obj.event.description
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Reservar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Reservar</button>'
                                 }
                             });
                         } else {
@@ -2975,7 +2978,7 @@ var main = {
                                     , id: 'modalevt'
                                     , title: obj.event.description
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Requisitar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Requisitar</button>'
                                 }
                             });
                         } else {
@@ -3094,7 +3097,7 @@ var main = {
                                     , id: 'modalevt'
                                     , title: obj.event.description
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Gerar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
                                 }
                             });
                         } else {
@@ -3564,7 +3567,7 @@ var main = {
                         let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } });
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
-                            return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                            // return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                         }
 
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
@@ -3903,7 +3906,7 @@ var main = {
                             id: 'apinsumoAdicionarModal'
                             , title: 'Apontamento de Insumo'
                             , body: body
-                            , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button id="apontar" type="button" class="btn btn-primary btn-sm">Apontar</button>'
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button id="apontar" type="button" class="btn btn-primary">Apontar</button>'
                         }
                     });
                 }
@@ -4677,7 +4680,7 @@ var main = {
                         }
 
                         if (data.producao.qtd > 0 && data.producao.tempo > 0) {
-                            data.ind.velmedia = application.formatters.fe.decimal(data.producao.qtd / (data.producao.tempo - data.parada.tempo), 2);
+                            data.ind.velmedia = application.formatters.fe.decimal(data.producao.qtd / (data.producao.tempo + data.parada.tempo), 2);
                             data.ind.velefet = application.formatters.fe.decimal(data.producao.qtd / data.producao.tempo, 2);
                             data.ind.dif = application.formatters.fe.decimal(data.insumo.qtd - data.producao.pesoliquido, 4);
                         }

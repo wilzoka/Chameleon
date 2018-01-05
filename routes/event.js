@@ -6,18 +6,11 @@ var application = require('./application')
 module.exports = function (app) {
 
     app.all('/event/:id', application.IsAuthenticated, async (req, res) => {
-
         try {
-
-            let viewevent = await db.getModel('viewevent').find({
-                where: { id: req.params.id }
-                , include: { all: true }
-            })
-
+            let viewevent = await db.getModel('viewevent').find({ where: { id: req.params.id }, include: { all: true } });
             let config = await db.getModel('config').find();
             let custom = reload('../custom/' + config.customfile);
-
-            var realfunction = application.functions.getRealReference(custom, viewevent.function);
+            let realfunction = application.functions.getRealReference(custom, viewevent.function);
 
             let ids = [];
             if (req.query.ids) {
@@ -36,11 +29,9 @@ module.exports = function (app) {
             } else {
                 return application.fatal(res, 'Custom function not found');
             }
-
         } catch (err) {
             return application.fatal(res, err);
         }
-
     });
 
 }

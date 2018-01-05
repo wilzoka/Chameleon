@@ -83,7 +83,7 @@ var fixResults = function (registers, modelattributes) {
 }
 
 var getFilter = function (cookie, modelattributes) {
-    var obj = {};
+    let obj = {};
 
     cookie = JSON.parse(cookie);
 
@@ -183,7 +183,11 @@ var getFilter = function (cookie, modelattributes) {
             }
 
             if (o && obj[field[0]]) {
-                obj[field[0]] = lodash.extend(obj[field[0]], o);
+                if (obj[field[0]] && 'val' in obj[field[0]]) {//Virtual concatenation
+                    obj[field[0]].val += ' and ' + o.val;
+                } else {
+                    obj[field[0]] = lodash.extend(obj[field[0]], o);
+                }
             } else if (o) {
                 obj[field[0]] = o;
             }
@@ -199,11 +203,10 @@ module.exports = function (app) {
 
     app.post('/datatables', application.IsAuthenticated, async (req, res) => {
         try {
-
             let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: [{ all: true }] });
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
 
-            var where = {};
+            let where = {};
             if (view.wherefixed) {
                 view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
                 view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
@@ -213,11 +216,11 @@ module.exports = function (app) {
                 where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter'], modelattributes);
             }
 
-            var ordercolumn = req.body.columns[req.body.order[0].column].data;
-            var orderdir = req.body.order[0].dir;
+            let ordercolumn = req.body.columns[req.body.order[0].column].data;
+            let orderdir = req.body.order[0].dir;
 
             let attributes = ['id'];
-            for (var i = 0; i < modelattributes.length; i++) {
+            for (let i = 0; i < modelattributes.length; i++) {
 
                 switch (modelattributes[i].type) {
                     case 'parent':

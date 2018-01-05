@@ -110,31 +110,19 @@ var application = {
 				;
 		}
 		, createItem: function (menu) {
-			icon = menu.icon;
 			description = menu.description;
 			url = menu.url || '/view/' + menu['view.id'];
-
-			if (icon) {
-				icon = '<i class="' + icon + '"></i> ';
-			} else {
-				icon = '';
-			}
-
-			return '<li><a href="' + url + '">' + icon + description + ' </a></li>';
+			return '<li><a href="' + url + '"><i class="' + (menu.icon || 'fa fa-angle-right') + '"></i> ' + description + ' </a></li>';
 		}
 		, closeGroup: function () {
-			return '</ul>'
-				+ '</li >'
-				;
+			return '</ul></li>';
 		}
 		, renderMenu: function (menu) {
-			var html = '';
+			let html = '';
 			if ('children' in menu && menu.children.length > 0) {
 				html = application.menu.createGroup(menu);
-				for (var i = 0; i < menu.children.length; i++) {
-
+				for (let i = 0; i < menu.children.length; i++) {
 					html += application.menu.renderMenu(menu.children[i]);
-
 				}
 				html += application.menu.closeGroup();
 			} else {
@@ -143,8 +131,8 @@ var application = {
 			return html;
 		}
 		, getChilds: function (idmenu, childs, permissionarr) {
-			var returnchilds = [];
-			for (var i = 0; i < childs.length; i++) {
+			let returnchilds = [];
+			for (let i = 0; i < childs.length; i++) {
 				if (childs[i].idmenuparent == idmenu) {
 					if (childs[i].url || childs[i].idview) {
 
@@ -213,7 +201,7 @@ var application = {
 			}
 			, decimal: function (value, precision) {
 				value = parseFloat(value);
-				var reg = '\\d(?=(\\d{3})+\\D)';
+				let reg = '\\d(?=(\\d{3})+\\D)';
 				return value.toFixed(precision).replace('.', ',').replace(new RegExp(reg, 'g'), '$&.');
 			}
 			, date_format: 'DD/MM/YYYY'
@@ -233,7 +221,7 @@ var application = {
 	, functions: {
 		getEmptyFields: function (data, fieldsrequired) {
 			let invalidfields = [];
-			for (var i = 0; i < fieldsrequired.length; i++) {
+			for (let i = 0; i < fieldsrequired.length; i++) {
 				if (!(fieldsrequired[i] in data && data[fieldsrequired[i]])) {
 					invalidfields.push(fieldsrequired[i]);
 				}
@@ -245,20 +233,20 @@ var application = {
 		}
 		, getRealReference: function (object, string) {
 			try {
-				var referencesplited = string.split('.');
-				var realreference = object[referencesplited[0]];
-				for (var i = 1; i < referencesplited.length; i++) {
+				let referencesplited = string.split('.');
+				let realreference = object[referencesplited[0]];
+				for (let i = 1; i < referencesplited.length; i++) {
 					realreference = realreference[referencesplited[i]];
 				}
 				return realreference;
-			} catch (error) {
+			} catch (err) {
 				return undefined;
 			}
 		}
 		, lpad: function (value, length, string) {
 			value = value.toString() || '';
 			string = string || ' ';
-			for (var i = value.length; i < length; i++) {
+			for (let i = value.length; i < length; i++) {
 				value = string + value;
 			}
 			return value.substring(0, length);
@@ -266,7 +254,7 @@ var application = {
 		, rpad: function (value, length, string) {
 			value = value || '';
 			string = string || ' ';
-			for (var i = value.toString().length; i < length; i++) {
+			for (let i = value.toString().length; i < length; i++) {
 				value = value + string;
 			}
 			return value.substring(0, length);
