@@ -478,7 +478,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	f.produto&#xd;&#xa;	, f.versao&#xd;&#xa;	, f.atributo&#xd;&#xa;	, f.valor_padrao&#xd;&#xa;from&#xd;&#xa;	pcpficha f&#xd;&#xa;left join pcpversao v on &#x28;f.empresa &#x3d; v.empresa and f.produto &#x3d; v.produto and f.versao &#x3d; v.versao&#x29;&#xd;&#xa;where&#xd;&#xa;	f.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 1</sql>
+    <sql>select&#xd;&#xa;	f.produto&#xd;&#xa;	, f.versao&#xd;&#xa;	, f.atributo&#xd;&#xa;	, f.valor_padrao&#xd;&#xa;from&#xd;&#xa;	pcpficha f&#xd;&#xa;left join pcpversao v on &#x28;f.empresa &#x3d; v.empresa and f.produto &#x3d; v.produto and f.versao &#x3d; v.versao&#x29;&#xd;&#xa;where&#xd;&#xa;	f.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 3</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

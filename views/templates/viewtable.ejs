@@ -50,6 +50,27 @@
 
           <script type="text/javascript">
             application.index();
+
+            $(document).keydown(function (e) {
+              switch (e.which) {
+                case 112:
+                  if ($('button[id$="_insert"]')[0]) {
+                    $('button[id$="_insert"]').trigger('click');
+                  }
+                  e.preventDefault();
+                  break;
+                case 113:
+                  if ($('button[id$="_edit"]')[0]) {
+                    $('button[id$="_edit"]').trigger('click');
+                  }
+                  e.preventDefault();
+                  break;
+                case 115:
+                  $('button.btnfilter').trigger('click');
+                  break;
+              }
+            });
+
             $(document).ready(function () {
               application.components.renderAll();
             });

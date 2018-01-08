@@ -89,18 +89,11 @@ var application = {
 
 	, menu: {
 		createGroup: function (menu) {
-			icon = menu.icon;
-			description = menu.description;
-
-			if (icon) {
-				icon = '<i class="' + icon + '"></i> ';
-			} else {
-				icon = '';
-			}
-
+			let icon = menu.icon;
+			let description = menu.description;
 			return '<li class="treeview">'
 				+ '<a href="#">'
-				+ icon
+				+ (icon ? '<i class="' + icon + '"></i> ' : '')
 				+ '<span>' + description + '</span>'
 				+ '<span class="pull-right-container">'
 				+ '<i class="fa fa-angle-left pull-right"></i>'
@@ -110,8 +103,8 @@ var application = {
 				;
 		}
 		, createItem: function (menu) {
-			description = menu.description;
-			url = menu.url || '/view/' + menu['view.id'];
+			let description = menu.description;
+			let url = menu.url || '/view/' + menu['view.id'];
 			return '<li><a href="' + url + '"><i class="' + (menu.icon || 'fa fa-angle-right') + '"></i> ' + description + ' </a></li>';
 		}
 		, closeGroup: function () {
@@ -135,18 +128,14 @@ var application = {
 			for (let i = 0; i < childs.length; i++) {
 				if (childs[i].idmenuparent == idmenu) {
 					if (childs[i].url || childs[i].idview) {
-
 						if (permissionarr.indexOf(childs[i].id) >= 0) {
 							returnchilds.push(childs[i]);
 						}
-
 					} else {
-
 						childs[i].children = application.menu.getChilds(childs[i].id, childs, permissionarr);
 						if (childs[i].children.length > 0) {
 							returnchilds.push(childs[i]);
 						}
-
 					}
 				}
 			}
@@ -201,8 +190,7 @@ var application = {
 			}
 			, decimal: function (value, precision) {
 				value = parseFloat(value);
-				let reg = '\\d(?=(\\d{3})+\\D)';
-				return value.toFixed(precision).replace('.', ',').replace(new RegExp(reg, 'g'), '$&.');
+				return value.toFixed(precision).replace('.', ',').replace(new RegExp('\\d(?=(\\d{3})+\\D)', 'g'), '$&.');
 			}
 			, date_format: 'DD/MM/YYYY'
 			, datetime_format: 'DD/MM/YYYY HH:mm'
@@ -277,7 +265,6 @@ var application = {
 					name: ''
 					, value: ''
 				}, obj);
-
 				return '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">';
 			}
 			, text: function (obj) {
@@ -288,7 +275,6 @@ var application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -307,7 +293,6 @@ var application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -327,7 +312,6 @@ var application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -346,7 +330,6 @@ var application = {
 					, precision: '2'
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
