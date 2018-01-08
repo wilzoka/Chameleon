@@ -411,9 +411,9 @@ var main = {
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
                                             if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
                                             } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " = " + cookie[i][k]);
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + " = " + cookie[i][k]);
                                             }
                                         }
                                     }
@@ -421,11 +421,11 @@ var main = {
                                 case 'sv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
                                             if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
                                             } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
                                             }
                                         }
                                     }
@@ -433,11 +433,11 @@ var main = {
                                 case 'bv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
                                             if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
                                             } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal >= " + cookie[i][k]);
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal >= " + cookie[i][k]);
                                             }
                                         }
                                     }
@@ -445,11 +445,11 @@ var main = {
                                 case 'ev':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
                                             if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
                                             } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal <= " + cookie[i][k]);
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal <= " + cookie[i][k]);
                                             }
                                         }
                                     }
@@ -457,11 +457,11 @@ var main = {
                                 case 'iv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
                                             if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k].val));
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k].val));
                                             } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field + ' in (' + cookie[i][k].val + ')');
                                             }
                                         }
                                     }
