@@ -59,6 +59,9 @@
       application.index();
       $(document).ready(function () {
         application.components.renderAll();
+        if (application.functions.getId() == 0) {
+          $('#form').find('input:visible:first').focus();
+        }
       });
     </script>
     <%- js %>

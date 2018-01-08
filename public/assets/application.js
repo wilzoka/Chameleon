@@ -177,6 +177,12 @@ var application = {
             var $this = $(this);
             var table = $this.attr('data-table');
             $('#' + table + 'filter').modal('show');
+            $('#' + table + 'filter').on('shown.bs.modal', function () {
+                setTimeout(function () {
+                    $(this).find('input:visible:first').focus();
+                }.apply(this), 200);
+                $('#' + table + 'filter').unbind('shown.bs.modal');
+            })
         });
         $(document).on('click', 'button.btngofilter', function (e) {
             var $modal = $(this).closest('div.modal');

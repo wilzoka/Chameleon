@@ -594,10 +594,8 @@ var save = function (obj) {
 
 var validateAndSave = function (obj) {
     return new Promise((resolve, reject) => {
-
         validate(obj).then(validation => {
             if (validation.success) {
-                let id = obj.register.id;
                 save(obj).then(saved => {
                     if (saved.success) {
                         resolve({ success: true, register: saved.register });
@@ -605,7 +603,7 @@ var validateAndSave = function (obj) {
                             msg: application.message.success
                             , data: saved.register
                             , redirect: '/view/' + obj.view.id + '/' + saved.register.id
-                            , historyBack: id == 0 && obj.hasSubview ? false : true
+                            , historyBack: obj.hasSubview ? false : true
                         });
                     } else {
                         resolve({ success: false });
@@ -617,7 +615,6 @@ var validateAndSave = function (obj) {
                 return application.error(obj.res, { msg: validation.msg, invalidfields: validation.invalidfields });
             }
         });
-
     });
 }
 
