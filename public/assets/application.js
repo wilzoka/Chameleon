@@ -875,6 +875,13 @@ var application = {
             , meucustomrender: function (value) {
                 return '<span class="label label-success">' + value + '</span>';
             }
+            , url: function (value) {
+                if (value) {
+                    return '<a target="_blank" href="' + value + '">' + value + '</a>';
+                } else {
+                    return '';
+                }
+            }
             , iconawesome: function (value) {
                 if (value) {
                     return value + '<i class="fa fa-check"></i>'

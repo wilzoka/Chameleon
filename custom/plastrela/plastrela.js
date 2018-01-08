@@ -355,6 +355,7 @@ var main = {
 
                     let m;
                     let v;
+                    let f;
 
                     for (let i = 0; i < cookie.length; i++) {
 
@@ -409,35 +410,59 @@ var main = {
                                 case 'rv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + " = " + cookie[i][k]);
+                                            if (f && f.indexOf('$value') > 0) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                            } else {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " = " + cookie[i][k]);
+                                            }
                                         }
                                     }
                                     break;
                                 case 'sv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
+                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            if (f && f.indexOf('$value') > 0) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                            } else {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
+                                            }
                                         }
                                     }
                                     break;
                                 case 'bv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal >= " + cookie[i][k]);
+                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            if (f && f.indexOf('$value') > 0) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                            } else {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal >= " + cookie[i][k]);
+                                            }
                                         }
                                     }
                                     break;
                                 case 'ev':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal <= " + cookie[i][k]);
+                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            if (f && f.indexOf('$value') > 0) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                                            } else {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal <= " + cookie[i][k]);
+                                            }
                                         }
                                     }
                                     break;
                                 case 'iv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field + ' in (' + cookie[i][k].val + ')');
+                                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
+                                            if (f && f.indexOf('$value') > 0) {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k].val));
+                                            } else {
+                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
+                                            }
                                         }
                                     }
                                     break;
