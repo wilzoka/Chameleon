@@ -410,6 +410,7 @@ var main = {
                                 case 'rv':
                                     for (let z = 0; z < viewfields.length; z++) {
                                         if (field[0] == viewfields[z].modelattribute.name) {
+                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
                                             if (f && f.indexOf('$value') > 0) {
                                                 o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
                                             } else {
