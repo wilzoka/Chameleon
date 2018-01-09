@@ -190,6 +190,7 @@ var application = {
 
             application.tables.saveFilter(table);
             tables[table].ajax.reload();
+            application.tables.reloadFooter(table);
 
             $modal.modal('hide');
         });
@@ -1010,7 +1011,12 @@ var application = {
                 }
 
                 if ('historyBack' in response && response.historyBack) {
-                    return window.history.back();
+                    if (window.history.length > 1) {
+                        return window.history.back();
+                    } else {
+                        localStorage.remove('msg');
+                        window.close();
+                    }
                 }
 
                 if ('redirect' in response) {

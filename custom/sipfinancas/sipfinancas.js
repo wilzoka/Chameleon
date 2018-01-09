@@ -480,6 +480,20 @@ var main = {
 
                 }
             }
+            , cheque: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            db.sequelize.query("update fin_cheque set descricaocompleta = id::text || ' - ' || (select cc.nome from cad_corr cc where cc.id = idcliente) || ' - R$ ' || valor;", { type: db.sequelize.QueryTypes.UPDATE });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
             , movparc: {
                 onsave: async function (obj, next) {
                     try {
@@ -724,8 +738,16 @@ var main = {
                             }
 
                             body += '<div class="row no-margin">';
+                            body += application.components.html.autocomplete({
+                                width: '6'
+                                , label: 'Cheques <a target="_blank" href="/view/90/0"><button style="padding: 0px 5px;" type="button" class="btn btn-success"><i class="fa fa-plus"></i></button></a>'
+                                , name: 'idcheques'
+                                , model: 'fin_cheque'
+                                , attribute: 'descricaocompleta'
+                                , multiple: 'multiple="multiple"'
+                            });
                             body += application.components.html.decimal({
-                                width: '2 col-md-offset-6'
+                                width: '2'
                                 , label: 'Total Valor'
                                 , name: 'valortotal'
                                 , precision: 2

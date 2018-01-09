@@ -53,19 +53,25 @@
 
             $(document).keydown(function (e) {
               switch (e.which) {
-                case 112:
+                case 112://F1
                   if ($('button[id$="_insert"]')[0]) {
                     $('button[id$="_insert"]').trigger('click');
                   }
                   e.preventDefault();
                   break;
-                case 113:
+                case 113://F2
                   if ($('button[id$="_edit"]')[0]) {
                     $('button[id$="_edit"]').trigger('click');
                   }
                   e.preventDefault();
                   break;
-                case 115:
+                case 114://F3
+                  if ($('button[id$="_delete"]')[0]) {
+                    $('button[id$="_delete"]').trigger('click');
+                  }
+                  e.preventDefault();
+                  break;
+                case 115://F4
                   $('button.btnfilter').trigger('click');
                   break;
               }
