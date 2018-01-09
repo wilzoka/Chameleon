@@ -2403,7 +2403,7 @@ var main = {
                                 doc.y = 78;
 
                                 let nolines = [7, 8, 15];
-                                for (var z = 0; z < 20; z++) {
+                                for (let z = 0; z < 20; z++) {
                                     doc.y = doc.y + 13;
                                     if (nolines.indexOf(z) < 0) {
                                         doc
@@ -2419,6 +2419,7 @@ var main = {
 
                                 str = [];
                                 if (approducaotempos.length > 0) {
+                                    console.log('------------------------');
                                     let paradas = await db.getModel('pcp_apparada').findAll({
                                         where: {
                                             idoprecurso: oprecurso.id
@@ -2428,8 +2429,8 @@ var main = {
                                         , include: [{ all: true }]
                                         , order: [['dataini', 'desc']]
                                     });
-                                    for (var z = 0; z < paradas.length; z++) {
-                                        str.push('(' + (z + 1) + ') ' + (paradas[z].emenda ? 'EMENDA ' : '') + paradas[i].pcp_motivoparada.codigo + '-' + paradas[i].pcp_motivoparada.descricao + (paradas[i].observacao ? ' (' + paradas[i].observacao + ') ' : ''));
+                                    for (let z = 0; z < paradas.length; z++) {
+                                        str.push('(' + (z + 1) + ') ' + (paradas[z].emenda ? 'EMENDA ' : '') + paradas[z].pcp_motivoparada.codigo + '-' + paradas[z].pcp_motivoparada.descricao + (paradas[z].observacao ? ' (' + paradas[z].observacao + ') ' : ''));
                                     }
                                 }
 

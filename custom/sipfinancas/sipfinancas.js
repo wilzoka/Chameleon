@@ -108,12 +108,8 @@ var main = {
 
                     db.setModels(models);
 
-                    db.dropForeignKeyConstraints().then(() => {
-                        db.sequelize.sync({ alter: true }).then(() => {
-                            return application.success(obj.res, { msg: application.message.success });
-                        }).catch(err => {
-                            return application.fatal(obj.res, err);
-                        });
+                    db.sequelize.sync({ alter: true }).then(() => {
+                        return application.success(obj.res, { msg: application.message.success });
                     }).catch(err => {
                         return application.fatal(obj.res, err);
                     });
