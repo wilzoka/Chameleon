@@ -1,6 +1,6 @@
 var application = require('../routes/application')
   , Sequelize = require('sequelize')
-  , sequelize = new Sequelize('sipms', 'postgres', 'postgres', {
+  , sequelize = new Sequelize('db', 'postgres', 'postgres', {
     host: '127.0.0.1'
     , dialect: 'postgres'
     , pool: {
@@ -10,8 +10,7 @@ var application = require('../routes/application')
     }
     , timezone: 'America/Sao_Paulo'
     , logging: function (query) {
-      // console.log(query);
-      // console.log('');
+      // console.log(query); console.log('');
     }
     , operatorsAliases: {
       $eq: Sequelize.Op.eq,
@@ -117,30 +116,11 @@ sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattri
 });
 
 var getModel = function (modelname) {
-
   if (models[modelname]) {
     return models[modelname];
   } else {
-    throw new Error('Model not found');
+    throw new Error("Model '" + modelname + "' not found");
   }
-
-}
-
-var dropForeignKeyConstraints = function () {
-  //this is a hack for dev only!
-  //todo: check status of posted github issue, https://github.com/sequelize/sequelize/issues/7606
-  const queryInterface = sequelize.getQueryInterface();
-  return queryInterface.showAllTables().then(tableNames => {
-    return Promise.all(tableNames.map(tableName => {
-      return queryInterface.showConstraint(tableName).then(constraints => {
-        return Promise.all(constraints.map(constraint => {
-          if (constraint.constraintType == 'FOREIGN KEY') {
-            return queryInterface.removeConstraint(tableName, constraint.constraintName);
-          }
-        }));
-      });
-    }));
-  });
 }
 
 var setModels = function (fmodels) {
@@ -150,8 +130,6 @@ var setModels = function (fmodels) {
 module.exports = {
   sequelize: sequelize
   , Sequelize: Sequelize
-  , Op: Sequelize.Op
   , getModel: getModel
   , setModels: setModels
-  , dropForeignKeyConstraints: dropForeignKeyConstraints
 };

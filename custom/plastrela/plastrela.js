@@ -226,12 +226,8 @@ var main = {
 
                     db.setModels(models);
 
-                    db.dropForeignKeyConstraints().then(() => {
-                        db.sequelize.sync({ alter: true }).then(() => {
-                            return application.success(obj.res, { msg: application.message.success });
-                        }).catch(err => {
-                            return application.fatal(obj.res, err);
-                        });
+                    db.sequelize.sync({ alter: true }).then(() => {
+                        return application.success(obj.res, { msg: application.message.success });
                     }).catch(err => {
                         return application.fatal(obj.res, err);
                     });
@@ -4006,6 +4002,7 @@ var main = {
                             return application.error(obj.res, { invalidfields: invalidfields });
                         }
 
+                        let user = await db.getModel('users').find({ where: { id: obj.data.iduser } });
                         let config = await db.getModel('pcp_config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
@@ -4035,6 +4032,9 @@ var main = {
                         }
                         if (obj.data.recipiente != null && obj.data.recipiente.length > 1) {
                             return application.error(obj.res, { msg: 'A Camada/Estação deve conter apenas 1 caractere', invalidfields: ['recipiente'] });
+                        }
+                        if (!user.c_codigosenior) {
+                            return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
 
                         if (volume.metragem) {
@@ -4559,7 +4559,7 @@ var main = {
                     if (unions.length > 0) {
 
                         let sql = await db.sequelize.query(
-                            'select * from (' + unions.join('union all') + ') as x order by dataini'
+                            'select * from (' + unions.join(' union all ') + ') as x order by dataini'
                             ,
                             {
                                 type: db.sequelize.QueryTypes.SELECT
@@ -4682,6 +4682,8 @@ var main = {
                                     , adicionais: sql[i].adicionais
                                     , erro: ''
                                 });
+                                data.sobra.nro++;
+                                data.sobra.qtd += parseFloat(sql[i].qtd);
                             }
 
                             if (obj.req.body.parada == 'true' && obj.req.body.producao == 'true') {
