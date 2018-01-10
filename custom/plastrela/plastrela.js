@@ -2419,7 +2419,6 @@ var main = {
 
                                 str = [];
                                 if (approducaotempos.length > 0) {
-                                    console.log('------------------------');
                                     let paradas = await db.getModel('pcp_apparada').findAll({
                                         where: {
                                             idoprecurso: oprecurso.id
@@ -3589,8 +3588,12 @@ var main = {
                         let config = await db.getModel('pcp_config').find();
                         let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } });
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                        let user = await db.getModel('users').find({ where: { id: obj.register.iduser } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                        }
+                        if (!user.c_codigosenior) {
+                            return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
 
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
