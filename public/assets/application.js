@@ -439,7 +439,7 @@ var application = {
                 if (typeof google === 'object' && typeof google.maps === 'object') {
                     realrender($obj);
                 } else {
-                    application.jsfunction('plataform.config.__getGoogleMapsKey', {}, function (response) {
+                    application.jsfunction('platform.config.__getGoogleMapsKey', {}, function (response) {
                         $.getScript('https://maps.googleapis.com/maps/api/js?key=' + response.data, function () {
                             realrender($obj);
                         });
@@ -449,10 +449,8 @@ var application = {
         }
         , autocomplete: function ($obj) {
             $obj.each(function () {
-
                 var where = $(this).attr('data-where');
                 var needreplace = where && where.indexOf('$parent') >= 0;
-
                 var $modal = $(this).closest('div.modal').attr('data-table');
                 if ($modal) {
                     if (needreplace) {
@@ -467,7 +465,6 @@ var application = {
                         }
                     }
                 }
-
                 $(this).attr('data-where', where);
             });
             $obj.select2({
@@ -1014,7 +1011,7 @@ var application = {
                     if (window.history.length > 1) {
                         return window.history.back();
                     } else {
-                        localStorage.remove('msg');
+                        localStorage.removeItem('msg');
                         window.close();
                     }
                 }

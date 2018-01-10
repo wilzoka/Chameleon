@@ -118,9 +118,9 @@ var renderAutocomplete = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
-    let datawhere = '';
+    let where = '';
     if ('where' in json) {
-        datawhere = json.where;
+        where = json.where;
     }
 
     let option = '';
@@ -145,7 +145,7 @@ var renderAutocomplete = function (viewfield, register) {
         , disabled: disabled
         , model: json.model
         , attribute: json.attribute
-        , datawhere: datawhere
+        , where: where
         , multiple: ''
         , option: option
     });
@@ -692,21 +692,21 @@ var hasPermission = function (iduser, idview) {
 module.exports = function (app) {
 
     app.post('/view/:idview/config', application.IsAuthenticated, async (req, res) => {
-
-        let decodeClass = function (type) {
-            switch (type) {
-                case 'decimal':
-                    return 'text-right';
-                case 'time':
-                    return 'text-right';
-                case 'file':
-                    return 'text-center';
-                default:
-                    return 'text-left';
-            }
-        }
-
         try {
+
+            let decodeClass = function (type) {
+                switch (type) {
+                    case 'decimal':
+                        return 'text-right';
+                    case 'time':
+                        return 'text-right';
+                    case 'file':
+                        return 'text-center';
+                    default:
+                        return 'text-left';
+                }
+            }
+
             let permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
 
@@ -964,7 +964,7 @@ module.exports = function (app) {
                                 , disabled: ''
                                 , model: json.model
                                 , attribute: json.attribute
-                                , datawhere: req.body.issubview == 'true' && json.where ? json.where : ''
+                                , where: req.body.issubview == 'true' && json.where ? json.where : ''
                                 , multiple: 'multiple="multiple"'
                                 , option: getFilterValue(filtername, cookiefilter).options || ''
                             });
@@ -1064,7 +1064,7 @@ module.exports = function (app) {
                                         , disabled: ''
                                         , model: json.model
                                         , attribute: json.attribute
-                                        , datawhere: req.body.issubview == 'true' && json.where ? json.where : ''
+                                        , where: req.body.issubview == 'true' && json.where ? json.where : ''
                                         , multiple: 'multiple="multiple"'
                                         , option: getFilterValue(filtername, cookiefilter).options || ''
                                     });
@@ -1093,11 +1093,9 @@ module.exports = function (app) {
         } catch (err) {
             return application.fatal(res, err);
         }
-
     });
 
     app.get('/view/:idview', application.IsAuthenticated, async (req, res) => {
-
         try {
             let permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
@@ -1115,11 +1113,9 @@ module.exports = function (app) {
         } catch (err) {
             return application.forbidden(res);
         }
-
     });
 
     app.get('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {
-
         try {
             let permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
@@ -1184,7 +1180,7 @@ module.exports = function (app) {
 
                 res.setHeader('Cache-Control', 'no-cache, no-store');
                 return application.render(res, 'templates/viewregister', lodash.extend({
-                    template: view.template.name
+                    template: view.template.name.indexOf('/') < 0 ? view.template.name : __dirname + '/../custom/' + view.template.name
                     , title: view.name
                     , id: register ? register.id : ''
                     , js: js
@@ -1196,11 +1192,9 @@ module.exports = function (app) {
         } catch (err) {
             return application.fatal(res, err);
         }
-
     });
 
     app.post('/view/:idview/delete', application.IsAuthenticated, async (req, res) => {
-
         try {
             let permission = await hasPermission(req.user.id, req.params.idview);
 
@@ -1235,7 +1229,6 @@ module.exports = function (app) {
         } catch (err) {
             return application.fatal(res, err);
         }
-
     });
 
     app.post('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {

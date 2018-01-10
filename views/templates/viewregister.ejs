@@ -60,7 +60,7 @@
       $(document).ready(function () {
         application.components.renderAll();
         if (application.functions.getId() == 0) {
-          $('#form').find('input:visible:first').focus();
+          $('#form').find('input,textarea,select,radio').filter(':enabled:visible:first').focus();
         }
       });
     </script>

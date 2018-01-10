@@ -348,11 +348,10 @@ var application = {
 					, disabled: ''
 					, model: ''
 					, attribute: ''
-					, datawhere: ''
+					, where: ''
 					, multiple: ''
 					, option: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -361,7 +360,7 @@ var application = {
 					+ 'data-type="autocomplete" '
 					+ 'data-model="' + obj.model + '" '
 					+ 'data-attribute="' + obj.attribute + '" '
-					+ 'data-where="' + obj.datawhere + '" '
+					+ 'data-where="' + obj.where + '" '
 					+ obj.multiple + '>'
 					+ obj.option
 					+ '</select></div>'
@@ -375,7 +374,6 @@ var application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -394,7 +392,6 @@ var application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -413,7 +410,6 @@ var application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -432,7 +428,6 @@ var application = {
 					, label: ''
 					, disabled: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="checkbox"> '
 					+ '<label> '
@@ -452,7 +447,6 @@ var application = {
 					, maxfiles: ''
 					, acceptedfiles: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'
@@ -469,7 +463,6 @@ var application = {
 					, name: ''
 					, value: ''
 				}, obj);
-
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
 					+ '<label>' + obj.label + '</label>'

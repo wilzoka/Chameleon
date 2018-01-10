@@ -27,7 +27,7 @@ module.exports = function (app) {
                     , event: viewevent
                 });
             } else {
-                return application.fatal(res, 'Custom function not found');
+                return application.fatal(res, "Custom function '" + viewevent.function + "' not found");
             }
         } catch (err) {
             return application.fatal(res, err);
