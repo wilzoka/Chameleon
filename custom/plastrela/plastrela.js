@@ -15,10 +15,10 @@ var main = {
         }
         , schedule: {
             integracaoApontamentos: function () {
-                main.platform.kettle.f_runJob('pcp/ap/integracaoIniflex/Job.kjb');
+                main.platform.kettle.f_runJob('plastrela/pcp/ap/integracaoIniflex/Job.kjb');
             }
             , integracaoVolumes: function () {
-                main.platform.kettle.f_runJob('estoque/integracaovolumes/Job.kjb');
+                main.platform.kettle.f_runJob('plastrela/estoque/integracaovolumes/Job.kjb');
             }
         }
         , compra: {
