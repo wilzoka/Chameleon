@@ -17,6 +17,54 @@ var platform = {
             }
         }
     }
+    , bi: {
+        js_getCube: async function (obj) {
+            try {
+
+                let cube = await db.getModel('bi_cube').find({ raw: true, where: { id: obj.data.idcube } });
+                let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id } });
+                let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: cube.id } });
+
+                let data = {
+                    hiddenAttributes: []
+                    , measures: 'var globalaggregator = {'
+                    , data: []
+                }
+
+                for (let i = 0; i < measures.length; i++) {
+                    data.hiddenAttributes.push(measures[i].label);
+                    switch (measures[i].aggregator) {
+                        case 'sum':
+                            data.measures += '"' + measures[i].label + '": function () {return $.pivotUtilities.aggregatorTemplates.sum($.pivotUtilities.numberFormat({thousandsSep: ".", decimalSep: ",", digitsAfterDecimal: "2"}))(["' + measures[i].label + '"]);}';
+                            break;
+                    }
+                    if (measures.length - 1 != i)
+                        data.measures += ', ';
+                }
+                data.measures += '}';
+
+                let sql = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
+                for (let i = 0; i < sql.length; i++) {
+                    data.data.push({});
+                    for (let z = 0; z < dimensions.length; z++) {
+                        if (dimensions[z].sqlfield in sql[i]) {
+                            data.data[data.data.length - 1][dimensions[z].label] = sql[i][dimensions[z].sqlfield];
+                        }
+                    }
+                    for (let z = 0; z < measures.length; z++) {
+                        if (measures[z].sqlfield in sql[i]) {
+                            data.data[data.data.length - 1][measures[z].label] = sql[i][measures[z].sqlfield];
+                        }
+                    }
+                }
+
+                return application.success(obj.res, { msg: 'cube', data: data });
+
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+    }
     , kettle: {
         f_runTransformation: function (filepath) {
             db.getModel('config').find().then(config => {

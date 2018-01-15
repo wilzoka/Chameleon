@@ -996,6 +996,23 @@ var application = {
         , focusFirstElement: function ($selector) {
             $selector.find('input,textarea,select,radio').filter(':enabled:visible:first').focus();
         }
+        , getCss: function (array) {
+            for (var i = 0; i < array.length; i++) {
+                $('<link/>', {
+                    rel: 'stylesheet', type: 'text/css', href: array[i]
+                }).appendTo('head');
+            }
+        }
+        , getJs: function (array) {
+            if (array.length > 0) {
+                $.getScript(array[0], function () {
+                    array.shift();
+                    application.functions.getJs(array);
+                });
+            } else {
+                $(document).trigger('app-loadjs');
+            }
+        }
     }
     , handlers: {
         responseSuccess: function (response) {
