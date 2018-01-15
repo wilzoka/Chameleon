@@ -11,7 +11,7 @@ var main = {
     platform: reload('../platform.js')
     , plastrela: {
         sync: function () {
-            main.platform.kettle.f_runJob('sync/Job.kjb');
+            main.platform.kettle.f_runJob('plastrela/sync/Job.kjb');
         }
         , schedule: {
             integracaoApontamentos: function () {
