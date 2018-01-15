@@ -177,12 +177,14 @@ var application = {
             var $this = $(this);
             var table = $this.attr('data-table');
             $('#' + table + 'filter').modal('show');
-            $('#' + table + 'filter').on('shown.bs.modal', function () {
-                setTimeout(function () {
-                    $(this).find('input:visible:first').focus();
-                }.apply(this), 200);
-                $('#' + table + 'filter').unbind('shown.bs.modal');
-            })
+            if (!application.functions.isMobile()) {
+                $('#' + table + 'filter').on('shown.bs.modal', function () {
+                    setTimeout(function () {
+                        application.functions.focusFirstElement($(this));
+                    }.apply(this), 200);
+                    $('#' + table + 'filter').unbind('shown.bs.modal');
+                });
+            }
         });
         $(document).on('click', 'button.btngofilter', function (e) {
             var $modal = $(this).closest('div.modal');
@@ -990,6 +992,9 @@ var application = {
                     }
                 }
             });
+        }
+        , focusFirstElement: function ($selector) {
+            $selector.find('input,textarea,select,radio').filter(':enabled:visible:first').focus();
         }
     }
     , handlers: {

@@ -635,8 +635,26 @@ var deleteModel = function (obj) {
                 audit.save();
 
             }).catch(err => {
-                resolve({ success: false, err: err });
-                return application.fatal(obj.res, err);
+                if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {
+                    let errsplited = err.original.detail.split('"');
+                    if (errsplited.length == 3) {
+                        db.getModel('model').find({ where: { name: err.original.detail.split('"')[1] } }).then(model => {
+                            if (model) {
+                                resolve({ success: false, err: err });
+                                return application.error(obj.res, { msg: 'Este registro está em uso em ' + (model.description || model.name) });
+                            } else {
+                                resolve({ success: false, err: err });
+                                return application.fatal(obj.res, err);
+                            }
+                        });
+                    } else {
+                        resolve({ success: false, err: err });
+                        return application.fatal(obj.res, err);
+                    }
+                } else {
+                    resolve({ success: false, err: err });
+                    return application.fatal(obj.res, err);
+                }
             });
         });
     });
@@ -1264,7 +1282,13 @@ module.exports = function (app) {
                 if (view.model.onsave) {
                     let config = await db.getModel('config').find();
                     let custom = reload('../custom/' + config.customfile);
-                    return application.functions.getRealReference(custom, view.model.onsave)(obj, validateAndSave);
+                    let realfunction = application.functions.getRealReference(custom, view.model.onsave);
+                    if (realfunction) {
+                        return realfunction(obj, validateAndSave);
+                    } else {
+                        console.error("Custom function '" + view.model.onsave + "' not found");
+                        await validateAndSave(obj);
+                    }
                 } else {
                     await validateAndSave(obj);
                 }

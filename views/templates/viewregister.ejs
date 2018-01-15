@@ -15,11 +15,10 @@
       document.getElementsByTagName('body')[0].className += ' sidebar-collapse';
     }
   </script>
-  <div class="wrapper">
 
+  <div class="wrapper">
     <% include ../parts/nav %>
       <% include ../parts/sidebar %>
-
         <div class="content-wrapper">
           <section class="content-header">
             <h1>
@@ -47,7 +46,6 @@
                   </button>
                 </div>
               </div>
-
             </section>
           </form>
         </div>
@@ -60,11 +58,12 @@
       $(document).ready(function () {
         application.components.renderAll();
         if (application.functions.getId() == 0) {
-          $('#form').find('input,textarea,select,radio').filter(':enabled:visible:first').focus();
+          application.functions.focusFirstElement($('#form'));
         }
       });
     </script>
     <%- js %>
+
 </body>
 
 </html>

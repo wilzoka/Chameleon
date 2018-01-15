@@ -22,8 +22,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 //Static Content
-app.use('/public', express.static(__dirname + '/public'));
-app.use('/files', express.static(__dirname + '/files'));
+app.use('/public', express.static(__dirname + '/public', {
+    maxAge: 120000
+}));
+app.use('/files', express.static(__dirname + '/files', {
+    maxAge: 3600000
+}));
 
 //View Path and Engine
 app.set('views', __dirname + '/views');

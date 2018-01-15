@@ -15,13 +15,11 @@
       document.getElementsByTagName('body')[0].className += ' sidebar-collapse';
     }
   </script>
+  
   <div class="wrapper">
-
     <% include ../parts/nav %>
       <% include ../parts/sidebar %>
-
         <div class="content-wrapper">
-
           <section class="content-header">
             <h1>
             </h1>
@@ -29,20 +27,15 @@
 
           <section class="content">
             <div class="row">
-
               <div class="col-md-12">
                 <div class="box box-primary">
                   <div class="box-body">
-
                     <table id="tableview<%= viewid %>" class="table table-bordered table-hover dataTable" width="100%" data-view="<%= viewid %>">
                     </table>
-
                   </div>
                 </div>
               </div>
-
           </section>
-
           </div>
         </div>
 
@@ -50,7 +43,6 @@
 
           <script type="text/javascript">
             application.index();
-
             $(document).keydown(function (e) {
               switch (e.which) {
                 case 112://F1
@@ -76,7 +68,6 @@
                   break;
               }
             });
-
             $(document).ready(function () {
               application.components.renderAll();
             });

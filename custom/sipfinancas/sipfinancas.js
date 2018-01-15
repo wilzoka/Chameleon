@@ -78,6 +78,86 @@ var main = {
                     }
                 }
             }
+            , conta: {
+                js_saldoData: async function (obj) {
+                    try {
+                        let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
+                        let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
+                        let sql = await db.sequelize.query(`
+                        select
+                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
+                        from
+                            fin_mov m
+                        left join fin_movparc mp on (m.id = mp.idmov)
+                        left join fin_categoria c on (m.idcategoria = c.id)
+                        where
+                            mp.idconta = :conta
+                            and mp.data > :dataini
+                            and mp.data <= :datafim
+                            `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    conta: obj.data.idconta
+                                    , dataini: saldoanterior ? saldoanterior.data : '1900-01-01'
+                                    , datafim: application.formatters.be.date(obj.data.data)
+                                }
+                            });
+                        if (sql.length > 0 && sql[0].soma) {
+                            return application.success(obj.res, { data: application.formatters.fe.decimal(parseFloat(sql[0].soma) + (saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0)), 2) });
+                        } else {
+                            return application.success(obj.res, { data: application.formatters.fe.decimal(saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0), 2) });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_saldoAtual: async function (obj) {
+                    try {
+                        let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
+                        let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
+                        let sql = await db.sequelize.query(`
+                        select
+                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
+                        from
+                            fin_mov m
+                        left join fin_movparc mp on (m.id = mp.idmov)
+                        left join fin_categoria c on (m.idcategoria = c.id)
+                        where
+                            mp.idconta = :conta
+                            and mp.data > :dataini
+                            `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    conta: obj.data.idconta
+                                    , dataini: saldoanterior ? saldoanterior.data : '1900-01-01'
+                                }
+                            });
+                        if (sql.length > 0 && sql[0].soma) {
+                            return application.success(obj.res, { data: application.formatters.fe.decimal(parseFloat(sql[0].soma) + (saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0)), 2) });
+                        } else {
+                            return application.success(obj.res, { data: application.formatters.fe.decimal(saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0), 2) });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , contasaldo: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, data: { $gt: obj.register.data } } });
+                        if (count > 0) {
+                            return application.error(obj.res, { msg: 'Existe um fechamento de caixa maior que desta data' });
+                        }
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
             , mov: {
                 e_baixarTitulos: async function (obj) {
                     try {
@@ -207,7 +287,7 @@ var main = {
                                     , action: '/event/' + obj.event.id
                                     , title: obj.event.description
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary btn-sm">Baixar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Baixar</button>'
                                 }
                             });
 
@@ -229,10 +309,16 @@ var main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: requiredFields });
                             }
 
+                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idconta, data: { $gte: application.formatters.be.date(obj.req.body.data) } } });
+                            if (fechamento) {
+                                return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
+                            }
+
                             for (let i = 0; i < ids.length; i++) {
+                                let mov = await db.getModel('fin_mov').find({ where: { id: ids[i] }, include: [{ all: true }] });
                                 let movparc = await db.getModel('fin_movparc').create({
                                     valor: application.formatters.be.decimal(obj.req.body['valor' + ids[i]], 2)
-                                    , idmov: ids[i]
+                                    , idmov: mov.id
                                     , idformapgto: obj.req.body.idformapgto
                                     , idconta: obj.req.body.idconta
                                     , desconto: obj.req.body['desconto' + ids[i]] ? application.formatters.be.decimal(obj.req.body['desconto' + ids[i]], 2) : null
@@ -241,21 +327,42 @@ var main = {
                                 });
 
                                 if (movparc.idformapgto == 2) {// Cheque
-                                    if (typeof obj.req.body.idcheques == undefined) {
+                                    if (obj.req.body.idcheques == undefined) {
                                         obj.req.body.idcheques = [];
                                     } else if (typeof obj.req.body.idcheques == 'string') {
                                         obj.req.body.idcheques = [obj.req.body.idcheques];
+                                    } else {
+                                        // obj.req.body.idcheques
                                     }
                                     for (let z = 0; z < obj.req.body.idcheques.length; z++) {
                                         db.getModel('fin_movparccheque').create({
                                             idmovparc: movparc.id
                                             , idcheque: obj.req.body.idcheques[z]
                                         });
+                                        db.getModel('fin_cheque').update({ utilizado: true }, { where: { id: obj.req.body.idcheques[z] } });
                                     }
                                 }
-                            }
-                            for (let i = 0; i < obj.req.body.idcheques.length; i++) {
-                                db.getModel('fin_cheque').update({ utilizado: true }, { where: { id: obj.req.body.idcheques[i] } });
+
+                                if (mov.fin_categoria.dc == 2 && mov.ven_pedido && mov.ven_pedido.idvendedor) {
+                                    let pedidoitens = await db.getModel('ven_pedidoitem').findAll({ where: { idpedido: mov.ven_pedido.id } });
+                                    let total = 0;
+                                    let comissao = 0;
+                                    for (let z = 0; z < pedidoitens.length; z++) {
+                                        total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
+                                        comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
+                                    }
+                                    if (comissao > 0) {
+                                        await db.getModel('fin_mov').create({
+                                            parcela: '1/1'
+                                            , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
+                                            , idcategoria: 8
+                                            , valor: ((parseFloat(movparc.valor) * comissao) / total).toFixed(2)
+                                            , idcorr: mov.ven_pedido.idvendedor
+                                            , detalhes: 'Comissão gerada sobre o recebimento ID ' + movparc.id
+                                            , quitado: false
+                                        });
+                                    }
+                                }
                             }
 
                             for (let i = 0; i < ids.length; i++) {
@@ -292,52 +399,26 @@ var main = {
                 }
             }
             , movparc: {
-                onsave: async function (obj, next) {
-                    try {
-
-                        let mov = await db.getModel('fin_mov').find({ where: { id: obj.register.idmov } });
-                        let sql = await db.sequelize.query(`
-                            select
-                                fin_mov.valor - coalesce(
-                                    (select
-                                        sum(mp.valor)
-                                    from fin_movparc mp where fin_mov.id = mp.idmov and mp.id != :v2)                                        
-                                , 0) as valoraberto
-                            from
-                                fin_mov
-                            where
-                                id = :v1
-                            `
-                            , {
-                                type: db.sequelize.QueryTypes.SELECT
-                                , replacements: {
-                                    v1: mov.id
-                                    , v2: obj.register.id
-                                }
-                            });
-                        sql = parseFloat(sql[0].valoraberto) - parseFloat(obj.register.valor);
-                        if (sql <= 0) {
-                            mov.quitado = true;
-                        } else {
-                            mov.quitado = false;
-                        }
-                        await mov.save();
-
-                        next(obj);
-
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , ondelete: async function (obj, next) {
+                ondelete: async function (obj, next) {
                     try {
 
                         let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
                         let ids = [];
                         for (let i = 0; i < movparcs.length; i++) {
+                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: movparcs[i].idconta, data: { $gte: movparcs[i].data } } });
+                            if (fechamento) {
+                                return application.error(obj.res, { msg: 'Conta fechada para estorno nesta competência' });
+                            }
                             ids.push(movparcs[i].idmov);
                         }
                         let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: ids } } });
+                        let listcheques = [];
+                        for (let i = 0; i < movparcs.length; i++) {
+                            let cheques = await db.getModel('fin_movparccheque').findAll({ where: { idmovparc: movparcs[i].id } });
+                            if (cheques) {
+                                listcheques = listcheques.concat(cheques);
+                            }
+                        }
 
                         next(obj);
 
@@ -345,6 +426,12 @@ var main = {
                             movs[i].quitado = false;
                             movs[i].save();
                         }
+
+                        ids = []
+                        for (let i = 0; i < listcheques.length; i++) {
+                            ids.push(listcheques[i].idcheque);
+                        }
+                        await db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -379,7 +466,7 @@ var main = {
                                 , id: 'venda_adicionarModal_modal'
                                 , title: 'Adicionar Parcelas'
                                 , body: body
-                                , footer: '<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button> <button id="venda_adicionarModal_submit" type="button" class="btn btn-primary btn-sm">Adicionar</button>'
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button id="venda_adicionarModal_submit" type="button" class="btn btn-primary">Adicionar</button>'
                             }
                         });
 

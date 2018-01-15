@@ -308,7 +308,7 @@
       <value>
         <name>idrecurso</name>
         <rename>idrecurso</rename>
-        <update>Y</update>
+        <update>N</update>
       </value>
       <value>
         <name>peso</name>
