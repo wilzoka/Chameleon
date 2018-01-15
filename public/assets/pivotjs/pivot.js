@@ -1821,5 +1821,3 @@
   });
 
 }).call(this);
-
-//# sourceMappingURL=pivot.js.map

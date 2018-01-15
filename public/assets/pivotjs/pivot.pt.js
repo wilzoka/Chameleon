@@ -100,5 +100,3 @@
     });
 
 }).call(this);
-
-//# sourceMappingURL=pivot.pt.js.map

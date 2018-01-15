@@ -64,6 +64,21 @@ var platform = {
                 return application.fatal(obj.res, err);
             }
         }
+        , analysis: {
+            onsave: async function (obj, next) {
+                try {
+
+                    if (obj.register.id == 0) {
+                        obj.register.iduser = obj.req.user.id;
+                    }
+
+                    next(obj);
+
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
     }
     , kettle: {
         f_runTransformation: function (filepath) {
@@ -208,7 +223,7 @@ var platform = {
                 return application.error(obj.res, { msg: err });
             }
         }
-        , syncAll: function (obj) {
+        , e_syncAll: function (obj) {
             var models = {};
             db.sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: db.sequelize.QueryTypes.SELECT }).then(results => {
 
@@ -281,6 +296,104 @@ var platform = {
 
             });
 
+        }
+        , e_export: async function (obj) {
+            try {
+                if (obj.ids.length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                let models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } } });
+                let j = [];
+                for (let i = 0; i < models.length; i++) {
+                    j.push({
+                        name: models[i].name
+                        , description: models[i].description
+                        , onsave: models[i].onsave
+                        , ondelete: models[i].ondelete
+                    });
+                    let attributes = await db.getModel('modelattribute').findAll({ where: { idmodel: models[i].id } });
+                    j[j.length - 1]._attributes = [];
+                    for (let z = 0; z < attributes.length; z++) {
+                        j[j.length - 1]._attributes.push({
+                            name: attributes[z].name
+                            , label: attributes[z].label
+                            , type: attributes[z].type
+                            , notnull: attributes[z].notnull
+                            , typeadd: attributes[z].typeadd
+                        });
+                    }
+                }
+                let filename = process.hrtime()[1] + '.json';
+                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                    if (err) {
+                        return application.error(obj.res, { msg: err });
+                    }
+                    return application.success(obj.res, { openurl: '/download/' + filename });
+                });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , e_import: async function (obj) {
+            try {
+                if (obj.req.method == 'GET') {
+                    let body = '';
+                    body += '<div class="row no-margin">';
+                    body += application.components.html.file({
+                        width: '12'
+                        , name: 'file'
+                        , label: 'Arquivo'
+                        , maxfiles: '1'
+                    });
+                    body += '</div>';
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , id: 'modalevt'
+                            , action: '/event/' + obj.event.id
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Importar</button>'
+                        }
+                    });
+                } else {
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['file']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    let file = JSON.parse(obj.req.body.file)[0];
+                    let models = JSON.parse(fs.readFileSync('files/' + file.id + '.' + file.type, 'utf8'));
+                    for (let i = 0; i < models.length; i++) {
+                        let model = await db.getModel('model').find({ where: { name: models[i].name } });
+                        if (!model) {
+                            model = await db.getModel('model').create({
+                                name: models[i].name
+                                , description: models[i].description
+                                , onsave: models[i].onsave
+                                , ondelete: models[i].ondelete
+                            });
+                            console.log('Created model ' + models[i].name);
+                        }
+                        for (let z = 0; z < models[i]._attributes.length; z++) {
+                            let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attributes[z].name } });
+                            if (!attribute) {
+                                await db.getModel('modelattribute').create({
+                                    idmodel: model.id
+                                    , name: models[i]._attributes[z].name
+                                    , label: models[i]._attributes[z].label
+                                    , type: models[i]._attributes[z].type
+                                    , notnull: models[i]._attributes[z].notnull
+                                    , typeadd: models[i]._attributes[z].typeadd
+                                });
+                                console.log('Created attribute ' + models[i]._attributes[z].name);
+                            }
+                        }
+                    }
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
         }
     }
     , permission: {
