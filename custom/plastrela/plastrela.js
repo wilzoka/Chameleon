@@ -366,7 +366,7 @@ var main = {
 
             criarNotaChaveAcesso: async function (obj) {
                 if (obj.req.method == 'GET') {
-                    main.platform.kettle.f_runJob('estoque/sync_sped/Job.kjb');
+                    main.platform.kettle.f_runJob('plastrela/estoque/sync_sped/Job.kjb');
 
                     let body = '';
 
