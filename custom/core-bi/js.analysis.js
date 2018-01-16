@@ -6,14 +6,14 @@ $(function () {
     ]);
     application.functions.getJs([
         '/public/assets/jquery/jquery-ui.min.js'
+        , '/public/assets/pivotjs/jquery.ui.touch-punch.min.js'
         , '/public/assets/pivotjs/pivot.js'
-        , '/public/assets/pivotjs/export_renderers.min.js'
         , '/public/assets/pivotjs/pivot.pt.js'
+        , '/public/assets/pivotjs/export_renderers.js'
         , '/public/assets/pivotjs/c3.min.js'
-        , '/public/assets/pivotjs/c3_renderers.min.js'
+        , '/public/assets/pivotjs/c3_renderers.js'
         , '/public/assets/pivotjs/d3.min.js'
-        , '/public/assets/pivotjs/d3_renderers.min.js'
-
+        , '/public/assets/pivotjs/d3_renderers.js'
     ]);
 
     function renderPivot(obj) {
@@ -49,7 +49,7 @@ $(function () {
                     }
                 }
             )
-            , false
+            , true
             , 'pt'
         );
     }

@@ -1004,6 +1004,7 @@ var application = {
             }
         }
         , getJs: function (array) {
+            $.ajaxSetup({ cache: true });
             if (array.length > 0) {
                 $.getScript(array[0], function () {
                     array.shift();
@@ -1011,6 +1012,7 @@ var application = {
                 });
             } else {
                 $(document).trigger('app-loadjs');
+                $.ajaxSetup({ cache: false });
             }
         }
     }

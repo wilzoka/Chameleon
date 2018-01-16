@@ -79,6 +79,70 @@ var platform = {
                 }
             }
         }
+        , dashboard: {
+            onsave: async function (obj, next) {
+                try {
+                    if (obj.register.id == 0) {
+                        obj.register.iduser = obj.req.user.id;
+                    }
+
+                    next(obj);
+
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
+        , dashboardanalysis: {
+            onsave: async function (obj, next) {
+                try {
+
+                    if (obj.register.width < 1 || obj.register.width > 12) {
+                        return application.error(obj.res, { msg: 'A largura deve ser entre 1 e 12', invalidfields: ['width'] });
+                    }
+
+                    next(obj);
+
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
+        , r_dashboard: async function (obj) {
+            try {
+                let nav = '';
+                let content = '';
+                let dashboards = await db.getModel('bi_dashboard').findAll({ where: { iduser: obj.req.user.id }, order: [['order', 'asc']] });
+                for (let i = 0; i < dashboards.length; i++) {
+                    nav += '<li class="' + (i == 0 ? 'active' : '') + '"><a href="#tab_' + i + '" data-toggle="tab"> ' + dashboards[i].description + '</a></li>'
+                    content += '<div class="tab-pane ' + (i == 0 ? 'active' : '') + '" id="tab_' + i + '"><div class="row">';
+                    let analysis = await db.getModel('bi_dashboardanalysis').findAll({ include: [{ all: true }], where: { iddashboard: dashboards[i].id }, order: [['order', 'asc']] });
+                    for (let z = 0; z < analysis.length; z++) {
+                        content += '<div class="col-md-' + analysis[z].width + '">';
+
+                        content += '<div class="box box-primary">';
+                        content += '<div class="box-header"><h3 class="box-title">' + analysis[z].bi_analysis.description + '</h3></div>';
+
+                        content += '<div class="box-body">';
+                        content += '<textarea class="hidden">' + analysis[z].bi_analysis.config + '</textarea>'
+                        content += '<div class="pivotdiv pivotUiHidden" data-idcube="' + analysis[z].bi_analysis.idcube + '" ></div>';
+                        content += '</div></div>';
+                        content += '</div>';
+                    }
+                    content += '</div></div>';
+                }
+
+                return application.success(obj.res, {
+                    data: {
+                        nav: nav
+                        , content: content
+                    }
+                });
+
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
     }
     , kettle: {
         f_runTransformation: function (filepath) {
@@ -323,7 +387,7 @@ var platform = {
                         });
                     }
                 }
-                let filename = process.hrtime()[1] + '.json';
+                let filename = process.hrtime()[1] + '.mjson';
                 fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });

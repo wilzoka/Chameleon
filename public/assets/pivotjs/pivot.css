@@ -66,21 +66,16 @@ table.pvtTable tbody tr td {
     background: #F3F3F3;
     border: 1px solid #DEDEDE;
     padding: 2px 5px;
-    white-space:nowrap;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
+    white-space: nowrap;
 }
 
 .pvtTriangle {
     cursor:pointer;
-    color: grey;
+    color: gray;
 }
 
 .pvtHorizList li { display: inline; }
 .pvtVertList { vertical-align: top; }
-
-.pvtFilteredAttribute { font-style: italic }
 
 .pvtFilterBox{
     z-index: 100;
@@ -112,3 +107,37 @@ table.pvtTable tbody tr td {
 .pvtCheckContainer p{ margin: 5px; }
 
 .pvtRendererArea { padding: 5px;}
+
+table.pvtUi td{
+    padding: 5px;
+}
+
+.pivotdiv {
+    overflow: auto;
+}
+.pvtSearch{
+    width: 100%;
+    margin-top: 4px;
+}
+.pvtBtnAll{
+    width: 100%;   
+}
+.pvtBtnNone{
+    width: 100%;
+    margin-top: 4px !important;
+}
+.pvtBtnOk{
+    width: 100%;
+}
+.pvtFilteredAttribute > .pvtAttr{
+    color: white;
+    background: #3c8dbc !important;
+}
+.pvtFilteredAttribute > .pvtAttr > .pvtTriangle{
+    color: white;
+}
+.pivotUiHidden > .pvtUi > tr:nth-child(1)
+, .pivotUiHidden > .pvtUi > tr:nth-child(2)
+, .pivotUiHidden > .pvtUi > tr:nth-child(3) > td:nth-child(1)  {
+    display: none;
+}

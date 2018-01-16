@@ -1,0 +1,88 @@
+<div class="col-md-12">
+    <div class="nav-tabs-custom">
+        <ul id="nav" class="nav nav-tabs">
+        </ul>
+
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div id="content" class="tab-content">
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(function ($) {
+
+        function renderPivot($selector, obj) {
+            eval(obj.measures);
+            $selector.pivotUI(
+                obj.data
+                , $.extend(
+                    JSON.parse($selector.siblings('textarea').val() || '{}')
+                    , {
+                        renderers: $.extend(
+                            $.pivotUtilities.renderers
+                            , $.pivotUtilities.c3_renderers
+                        )
+                        , rendererOptions: {
+                            c3: {
+                                size: { width: $selector.width() * 0.95 }
+                            }
+                        }
+                        , aggregators: globalaggregator
+                        , hiddenAttributes: obj.hiddenAttributes
+                    }
+                )
+                , false
+                , 'pt'
+            );
+            $selector.addClass('rendered');
+        }
+
+        function renderAll() {
+            $('.pivotdiv').filter(':visible:not(.rendered)').each(function () {
+                var $this = $(this);
+                application.jsfunction('platform.bi.js_getCube', { idcube: $(this).attr('data-idcube') }, function (response) {
+                    if (response.success) {
+                        renderPivot($this, response.data);
+                    }
+                });
+            });
+        }
+
+        application.route.handler({}, function (response) {
+            if (response.success) {
+
+                $('#nav').append(response.data.nav);
+                $('#content').append(response.data.content);
+
+                application.functions.getCss([
+                    '/public/assets/pivotjs/c3.min.css'
+                    , '/public/assets/pivotjs/pivot.css'
+                ]);
+                application.functions.getJs([
+                    '/public/assets/jquery/jquery-ui.min.js'
+                    , '/public/assets/pivotjs/pivot.js'
+                    , '/public/assets/pivotjs/pivot.pt.js'
+                    , '/public/assets/pivotjs/export_renderers.js'
+                    , '/public/assets/pivotjs/c3.min.js'
+                    , '/public/assets/pivotjs/c3_renderers.js'
+                    , '/public/assets/pivotjs/d3.min.js'
+                    , '/public/assets/pivotjs/d3_renderers.js'
+                ]);
+            }
+        });
+
+        $(document).on('app-loadjs', function () {
+            renderAll();
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                renderAll();
+            });
+        });
+
+    });
+
+</script>
