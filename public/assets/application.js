@@ -683,6 +683,7 @@ var application = {
                         $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
                     }
                 }
+                , ordering: data.permissions.orderable
                 , stateSave: true
                 , columns: data.columns
                 , select: {

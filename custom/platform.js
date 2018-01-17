@@ -551,9 +551,150 @@ var platform = {
     , view: {
         onsave: async function (obj, next) {
             await next(obj);
-            platform.view.concatAll();
+            platform.view.f_concatAll();
         }
-        , concatAll: function () {
+        , e_export: async function (obj) {
+            try {
+                if (obj.ids.length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } } });
+                let j = [];
+                for (let i = 0; i < views.length; i++) {
+                    j.push({
+                        name: views[i].name
+                        , namecomplete: views[i].namecomplete
+                        , js: views[i].js
+                        , wherefixed: views[i].wherefixed
+                        , orderfixed: views[i].orderfixed
+                        , supressid: views[i].supressid
+                        , template: views[i].template.name
+                        , model: views[i].model.name
+                        , module: views[i].module.description
+                    });
+                    let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id } });
+                    j[j.length - 1]._field = [];
+                    for (let z = 0; z < viewfields.length; z++) {
+                        j[j.length - 1]._field.push({
+                            templatezone: viewfields[z].templatezone.name
+                            , modelattribute: viewfields[z].modelattribute.name
+                            , width: viewfields[z].width
+                            , order: viewfields[z].order
+                            , disabled: viewfields[z].disabled
+                            , disablefilter: viewfields[z].disablefilter
+                        });
+                    }
+                    let viewtables = await db.getModel('viewtable').findAll({ include: [{ all: true }], where: { idview: views[i].id } });
+                    j[j.length - 1]._table = [];
+                    for (let z = 0; z < viewtables.length; z++) {
+                        j[j.length - 1]._table.push({
+                            modelattribute: viewtables[z].modelattribute.name
+                            , ordertable: viewtables[z].ordertable
+                            , orderable: viewtables[z].orderable
+                            , render: viewtables[z].render
+                            , totalize: viewtables[z].totalize
+                            , class: viewtables[z].class
+                        });
+                    }
+                    let viewsubviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: views[i].id } });
+                    j[j.length - 1]._subview = [];
+                    for (let z = 0; z < viewsubviews.length; z++) {
+                        j[j.length - 1]._subview.push({
+                            subview: viewsubviews[z].subview.name
+                            , templatezone: viewsubviews[z].templatezone.name
+                            , description: viewsubviews[z].description
+                        });
+                    }
+                    let viewevents = await db.getModel('viewevent').findAll({ where: { idview: views[i].id } });
+                    j[j.length - 1]._event = [];
+                    for (let z = 0; z < viewevents.length; z++) {
+                        j[j.length - 1]._event.push({
+                            description: viewevents[z].description
+                            , icon: viewevents[z].icon
+                            , function: viewevents[z].function
+                            , parameters: viewevents[z].parameters
+                        });
+                    }
+                }
+                let filename = process.hrtime()[1] + '.vjson';
+                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                    if (err) {
+                        return application.error(obj.res, { msg: err });
+                    }
+                    return application.success(obj.res, { openurl: '/download/' + filename });
+                });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , e_import: async function (obj) {
+            try {
+                if (obj.req.method == 'GET') {
+                    let body = '';
+                    body += '<div class="row no-margin">';
+                    body += application.components.html.file({
+                        width: '12'
+                        , name: 'file'
+                        , label: 'Arquivo'
+                        , maxfiles: '1'
+                    });
+                    body += '</div>';
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , id: 'modalevt'
+                            , action: '/event/' + obj.event.id
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Importar</button>'
+                        }
+                    });
+                } else {
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['file']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    let file = JSON.parse(obj.req.body.file)[0];
+                    let views = JSON.parse(fs.readFileSync('files/' + file.id + '.' + file.type, 'utf8'));
+                    for (let i = 0; i < views.length; i++) {
+                        let skip = '';
+                        let view = await db.getModel('view').find({ where: { name: views[i].name } });
+                        if (view) {
+                            let model = await db.getModel('model').find({ where: { name: views[i].model } });
+                            let module
+                            let template
+
+                        } else {
+                            view = await db.getModel('view').create({
+                                name: models[i].name
+                                , description: models[i].description
+                                , onsave: models[i].onsave
+                                , ondelete: models[i].ondelete
+                            });
+                            console.log('View ' + models[i].name + ' CREATED');
+                        }
+                        for (let z = 0; z < models[i]._attributes.length; z++) {
+                            let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attributes[z].name } });
+                            if (!attribute) {
+                                await db.getModel('modelattribute').create({
+                                    idmodel: model.id
+                                    , name: models[i]._attributes[z].name
+                                    , label: models[i]._attributes[z].label
+                                    , type: models[i]._attributes[z].type
+                                    , notnull: models[i]._attributes[z].notnull
+                                    , typeadd: models[i]._attributes[z].typeadd
+                                });
+                                console.log('Created attribute ' + models[i]._attributes[z].name);
+                            }
+                        }
+                    }
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , f_concatAll: function () {
             db.getModel('view').findAll().then(views => {
                 views.map(view => {
                     db.getModel('module').find({ where: { id: view.idmodule } }).then(modulee => {

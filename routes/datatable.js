@@ -237,8 +237,8 @@ module.exports = function (app) {
                 where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter'], modelattributes);
             }
 
-            let ordercolumn = req.body.columns[req.body.order[0].column].data;
-            let orderdir = req.body.order[0].dir;
+            let ordercolumn = view.orderfixed ? view.orderfixed.split(',')[0] : req.body.columns[req.body.order[0].column].data;
+            let orderdir = view.orderfixed ? view.orderfixed.split(',')[1] : req.body.order[0].dir;
 
             let attributes = ['id'];
             for (let i = 0; i < modelattributes.length; i++) {

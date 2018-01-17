@@ -299,7 +299,7 @@ var renderGeoreference = function (viewfield, register) {
 }
 
 var renderSubView = function (viewsubview) {
-    return '<div class="col-md-' + viewsubview.width + '">'
+    return '<div class="col-md-12">'
         + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
         + '<table '
         + 'id="tableview' + viewsubview.idsubview + '" '
@@ -735,7 +735,7 @@ module.exports = function (app) {
                     , include: [{ all: true }]
                 });
                 let viewfields = await db.getModel('viewfield').findAll({
-                    where: { idview: view.id }
+                    where: { idview: view.id, disablefilter: false }
                     , order: [['order', 'ASC']]
                     , include: [{ all: true }]
                 });
@@ -756,6 +756,7 @@ module.exports = function (app) {
                 permissions.insertable = permission.insertable;
                 permissions.editable = permission.editable;
                 permissions.deletable = permission.deletable;
+                permissions.orderable = view.orderfixed ? false : true;
 
                 // Events
                 for (let i = 0; i < viewevents.length; i++) {
@@ -776,6 +777,7 @@ module.exports = function (app) {
                         , data: 'id'
                         , name: 'id'
                         , width: 37
+                        , orderable: view.orderfixed ? false : true
                     });
                 }
                 for (let i = 0; i < viewtables.length; i++) {
@@ -784,7 +786,7 @@ module.exports = function (app) {
                         title: viewtables[i].modelattribute.label
                         , data: viewtables[i].modelattribute.name
                         , name: viewtables[i].modelattribute.name
-                        , orderable: viewtables[i].orderable
+                        , orderable: view.orderfixed ? false : viewtables[i].orderable
                         , render: viewtables[i].render
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
