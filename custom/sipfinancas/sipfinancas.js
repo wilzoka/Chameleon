@@ -358,7 +358,7 @@ var main = {
                                             , idcategoria: 8
                                             , valor: ((parseFloat(movparc.valor) * comissao) / total).toFixed(2)
                                             , idcorr: mov.ven_pedido.idvendedor
-                                            , detalhes: 'Comissão gerada sobre o recebimento ID ' + movparc.id
+                                            , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
                                             , quitado: false
                                         });
                                     }

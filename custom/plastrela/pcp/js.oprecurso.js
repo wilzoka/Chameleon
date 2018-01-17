@@ -167,4 +167,13 @@ $(function () {
         });
     });
 
+    application.jsfunction('plastrela.pcp.oprecurso.js_totalperda', {
+        idoprecurso: application.functions.getId()
+    }, function (response) {
+        if (response.success) {
+            $('#totalpesoperda').text(response.peso);
+            $('#totalqtdperda').text(response.qtd);
+        }
+    });
+
 });
