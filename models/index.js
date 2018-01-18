@@ -1,4 +1,4 @@
-var application = require('../routes/application')
+let application = require('../routes/application')
   , Sequelize = require('sequelize')
   , sequelize = new Sequelize('db', 'postgres', 'postgres', {
     host: '127.0.0.1'
@@ -52,44 +52,37 @@ var application = require('../routes/application')
   ;
 
 //Models
-var models = {};
+let models = {};
 sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: sequelize.QueryTypes.SELECT }).then(results => {
-  var modelname;
-  var modelattributeobj = {};
-  var defineModel = function (name, attr) {
+  let modelname;
+  let modelattributeobj = {};
+  let defineModel = function (name, attr) {
     models[name] = sequelize.define(name, attr, {
       freezeTableName: true
       , timestamps: false
     });
   }
-
   //Create Attributes
-  for (var i = 0; i < results.length; i++) {
+  for (let i = 0; i < results.length; i++) {
     // Start
     if (i == 0) {
       modelname = results[i].model;
       modelattributeobj = {};
     }
     if (modelname == results[i].model) {
-
       modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
-
     } else {
-
       defineModel(modelname, modelattributeobj);
-
       modelname = results[i].model;
       modelattributeobj = {};
       modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
     }
-
     if (i == results.length - 1) {
       defineModel(modelname, modelattributeobj);
     }
   }
-
   //Create References
-  for (var i = 0; i < results.length; i++) {
+  for (let i = 0; i < results.length; i++) {
     let j = {};
     if (results[i].typeadd) {
       j = application.modelattribute.parseTypeadd(results[i].typeadd);
@@ -112,18 +105,17 @@ sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattri
         break;
     }
   }
-
 });
 
-var getModel = function (modelname) {
+let getModel = function (modelname) {
   if (models[modelname]) {
     return models[modelname];
   } else {
-    throw new Error("Model '" + modelname + "' not found");
+    throw new Error('Model "' + modelname + '" not found');
   }
 }
 
-var setModels = function (fmodels) {
+let setModels = function (fmodels) {
   models = fmodels;
 }
 

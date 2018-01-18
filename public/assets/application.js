@@ -441,7 +441,7 @@ var application = {
                 if (typeof google === 'object' && typeof google.maps === 'object') {
                     realrender($obj);
                 } else {
-                    application.jsfunction('platform.config.__getGoogleMapsKey', {}, function (response) {
+                    application.jsfunction('platform.config.js_getGoogleMapsKey', {}, function (response) {
                         $.getScript('https://maps.googleapis.com/maps/api/js?key=' + response.data, function () {
                             realrender($obj);
                         });

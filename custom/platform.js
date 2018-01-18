@@ -9,7 +9,7 @@ db = require('../models')
 
 let platform = {
     config: {
-        __getGoogleMapsKey: async function (obj) {
+        js_getGoogleMapsKey: async function (obj) {
             try {
                 let config = await db.getModel('config').find();
                 return application.success(obj.res, { data: config.googlemapskey });
@@ -306,20 +306,40 @@ let platform = {
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
                     let models = JSON.parse(fs.readFileSync('files/' + file.id + '.' + file.type, 'utf8'));
+                    console.log('----------SYNC MODELS---------');
                     for (let i = 0; i < models.length; i++) {
+                        console.log('MODEL ' + models[i].name);
                         let model = await db.getModel('model').find({ where: { name: models[i].name } });
-                        if (!model) {
+                        if (model) {
+                            model.description = models[i].description;
+                            model.onsave = models[i].onsave;
+                            model.ondelete = models[i].ondelete;
+                            if (model.changed()) {
+                                await model.save();
+                                console.log('UPDATED');
+                            } else {
+                                console.log('OK');
+                            }
+                        } else {
                             model = await db.getModel('model').create({
                                 name: models[i].name
                                 , description: models[i].description
                                 , onsave: models[i].onsave
                                 , ondelete: models[i].ondelete
                             });
-                            console.log('Created model ' + models[i].name);
+                            console.log('CREATED');
                         }
                         for (let z = 0; z < models[i]._attributes.length; z++) {
                             let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attributes[z].name } });
-                            if (!attribute) {
+                            if (attribute) {
+                                attribute.label = models[i]._attributes[z].label;
+                                attribute.type = models[i]._attributes[z].type;
+                                attribute.notnull = models[i]._attributes[z].notnull;
+                                attribute.typeadd = models[i]._attributes[z].typeadd;
+                                if (attribute.changed()) {
+                                    await attribute.save();
+                                }
+                            } else {
                                 await db.getModel('modelattribute').create({
                                     idmodel: model.id
                                     , name: models[i]._attributes[z].name
@@ -328,10 +348,13 @@ let platform = {
                                     , notnull: models[i]._attributes[z].notnull
                                     , typeadd: models[i]._attributes[z].typeadd
                                 });
-                                console.log('Created attribute ' + models[i]._attributes[z].name);
                             }
                         }
+                        if (i != models.length - 1) {
+                            console.log('------------------------------');
+                        }
                     }
+                    console.log('-----------FINISHED-----------');
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }
             } catch (err) {

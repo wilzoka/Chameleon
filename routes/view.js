@@ -501,7 +501,7 @@ var boundFiles = function (obj) {
                 idsToBound.push(j[z].id);
             }
             if (idsToBound.length > 0) {
-                db.getModel('file').update({ bounded: true }, { where: { id: { $in: idsToBound } } });
+                db.getModel('file').update({ bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id }, { where: { id: { $in: idsToBound } } });
             }
         }
     }
