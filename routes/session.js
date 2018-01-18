@@ -74,9 +74,6 @@ module.exports = function (app) {
 
                 for (let i = 0; i < menu.length; i++) {
                     menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
-                }
-
-                for (let i = 0; i < menu.length; i++) {
                     if (menu[i].children.length == 0 && (menu[i].idview == null && menu[i].url == null)) {
                         menu.splice(i, 1);
                         i--;

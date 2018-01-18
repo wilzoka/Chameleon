@@ -1,0 +1,1623 @@
+[
+    {
+        "name": "Modelo",
+        "namecomplete": "Plataforma - Modelo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6",
+        "model": "model",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "ondelete",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "onsave",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "ondelete",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "onsave",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Modelo - Atributo",
+                "templatezone": "z2",
+                "description": "Atributos"
+            }
+        ],
+        "_event": [
+            {
+                "description": "Sincronizar",
+                "icon": "fa fa-refresh",
+                "function": "platform.model.e_syncAll",
+                "parameters": null
+            },
+            {
+                "description": "Exportar",
+                "icon": "fa fa-cloud-upload",
+                "function": "platform.model.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-cloud-download",
+                "function": "platform.model.e_import",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "View - Evento",
+        "namecomplete": "Plataforma - View - Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "viewevent",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "icon",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "parameters",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "icon",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "parameters",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Template",
+        "namecomplete": "Plataforma - Template",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6",
+        "model": "template",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "comment",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "comment",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Template - Zona",
+                "templatezone": "z2",
+                "description": "Zonas"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Template - Zona",
+        "namecomplete": "Plataforma - Template - Zona",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "templatezone",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Usuário",
+        "namecomplete": "Plataforma - Usuário",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "users",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "email",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "password",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "fullname",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "username",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmenu",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "fullname",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "username",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Modelo - Atributo",
+        "namecomplete": "Plataforma - Modelo - Atributo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "modelattribute",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "label",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "notnull",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "typeadd",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "label",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "type",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "notnull",
+                "ordertable": 3,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "typeadd",
+                "ordertable": 5,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Permissão",
+        "namecomplete": "Plataforma - Permissão",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "permission",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "insertable",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "editable",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "deletable",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "visible",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmenu",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "insertable",
+                "ordertable": 4,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "editable",
+                "ordertable": 5,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "deletable",
+                "ordertable": 6,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "visible",
+                "ordertable": 3,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "idmenu",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "iduser",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Menu",
+        "namecomplete": "Plataforma - Menu",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "menu",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idview",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "icon",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "url",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmenuparent",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idview",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "icon",
+                "ordertable": 2,
+                "orderable": true,
+                "render": "icon",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "url",
+                "ordertable": 5,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "idmenuparent",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Agendamento",
+        "namecomplete": "Plataforma - Agendamento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "schedule",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "settings",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "settings",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "active",
+                "ordertable": 1,
+                "orderable": true,
+                "render": "booleancircle",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Ativar",
+                "icon": "fa fa-check",
+                "function": "plataform.schedule._active",
+                "parameters": null
+            },
+            {
+                "description": "Desativar",
+                "icon": "fa fa-times",
+                "function": "plataform.schedule._desactive",
+                "parameters": null
+            },
+            {
+                "description": "Executar",
+                "icon": "fa fa-cog",
+                "function": "plataform.schedule._execute",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "View - Subview",
+        "namecomplete": "Plataforma - View - Subview",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "viewsubview",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtemplatezone",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idsubview",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idtemplatezone",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idsubview",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Rota",
+        "namecomplete": "Plataforma - Rota",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "route",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "file",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "needauth",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "file",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "needauth",
+                "ordertable": 4,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "View",
+        "namecomplete": "Plataforma - View",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "tpl_view",
+        "model": "view",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "view",
+                "modelattribute": "js",
+                "width": 12,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idtemplate",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idmodule",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "wherefixed",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idmodel",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "orderfixed",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "supressid",
+                "width": 6,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "js",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "namecomplete",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "View - Evento",
+                "templatezone": "viewevent",
+                "description": "Eventos"
+            },
+            {
+                "subview": "View - Subview",
+                "templatezone": "viewsubview",
+                "description": "Subviews"
+            },
+            {
+                "subview": "View - Atributo",
+                "templatezone": "viewfield",
+                "description": "Atributos"
+            },
+            {
+                "subview": "View - Tabela",
+                "templatezone": "viewtable",
+                "description": "Campos da Tabela"
+            }
+        ],
+        "_event": [
+            {
+                "description": "Exportar",
+                "icon": "fa fa-cloud-upload",
+                "function": "platform.view.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-cloud-download",
+                "function": "platform.view.e_import",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Auditoria",
+        "namecomplete": "Plataforma - Auditoria",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "datetime,desc",
+        "supressid": true,
+        "template": "box-12",
+        "model": "audit",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "datetime",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 6,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "modelid",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "changes",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datetime",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "iduser",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idmodel",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "modelid",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "changes",
+                "ordertable": 6,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "type",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "View - Atributo",
+        "namecomplete": "Plataforma - View - Atributo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "order,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "viewfield",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtemplatezone",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "width",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "order",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "disabled",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodelattribute",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "disablefilter",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idtemplatezone",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "width",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "order",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "disabled",
+                "ordertable": 5,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idmodelattribute",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "disablefilter",
+                "ordertable": 6,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Alterar Zona",
+                "icon": "fa fa-exchange",
+                "function": "platform.viewfield.e_changezone",
+                "parameters": null
+            },
+            {
+                "description": "Decrementar Ordem",
+                "icon": "fa fa-minus",
+                "function": "platform.viewfield.e_decrementorder",
+                "parameters": null
+            },
+            {
+                "description": "Incrementar Ordem",
+                "icon": "fa fa-plus",
+                "function": "platform.viewfield.e_incrementorder",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "View - Tabela",
+        "namecomplete": "Plataforma - View - Tabela",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "ordertable,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "viewtable",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "ordertable",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "orderable",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "render",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "totalize",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "class",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodelattribute",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "ordertable",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "orderable",
+                "ordertable": 3,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "render",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "totalize",
+                "ordertable": 5,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idmodelattribute",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Decrementar Ordem",
+                "icon": "fa fa-minus",
+                "function": "platform.viewtable.e_decrementorder",
+                "parameters": null
+            },
+            {
+                "description": "Incrementar Ordem",
+                "icon": "fa fa-plus",
+                "function": "platform.viewtable.e_incrementorder",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Módulo",
+        "namecomplete": "Plataforma - Módulo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "module",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Configuração da Plataforma",
+        "namecomplete": "Plataforma - Configuração da Plataforma",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "tpl_config",
+        "model": "config",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "system",
+                "modelattribute": "customfile",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "system",
+                "modelattribute": "googlemapskey",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "cnpj",
+                "width": 4,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "razaosocial",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "descriptionmenu",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "descriptionmenumini",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "fantasia",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "imagemrelatorio",
+                "width": 6,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Arquivo",
+        "namecomplete": "Plataforma - Arquivo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "datetime,desc",
+        "supressid": false,
+        "template": "box-12",
+        "model": "file",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "bounded",
+                "width": 3,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "datetime",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "mimetype",
+                "width": 2,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 2,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "filename",
+                "width": 6,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 3,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 6,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "size",
+                "width": 2,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "bounded",
+                "ordertable": 4,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "datetime",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "filename",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "size",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    }
+]

@@ -18,7 +18,7 @@ var storage = multer.diskStorage({
 
 var basepath = __dirname + '/../';
 var requiredFolders = [basepath + 'tmp', basepath + 'files'];
-for (var i = 0; i < requiredFolders.length; i++) {
+for (let i = 0; i < requiredFolders.length; i++) {
     if (!fs.existsSync(requiredFolders[i])) {
         fs.mkdirSync(requiredFolders[i]);
     }
@@ -46,7 +46,7 @@ module.exports = function (app) {
                         , fullscreen: true
                         , title: '<div class="col-sm-12" style="text-align: center;">' + file.filename + '</div>'
                         , body: body
-                        , footer: '<button type="button" class="btn btn-default btn-sm" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/file/download/' + file.id + '" target="_blank"><button type="button" class="btn btn-primary btn-sm">Download do Arquivo</button></a>'
+                        , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/file/download/' + file.id + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                     }
                 });
             } else {
@@ -65,7 +65,7 @@ module.exports = function (app) {
 
             if (fs.existsSync(filepath)) {
                 if (file.mimetype == 'application/pdf') {
-                    var filecontent = fs.readFileSync(filepath);
+                    let filecontent = fs.readFileSync(filepath);
                     res.setHeader('Content-type', 'application/pdf');
                     res.send(filecontent);
                 } else {
@@ -113,6 +113,7 @@ module.exports = function (app) {
                 , type: type
                 , bounded: false
                 , datetime: moment()
+                , iduser: req.user.id
             }).then(file => {
                 let path = 'files/' + file.id + '.' + file.type;
                 mv(req.file.path, path, function (err) {

@@ -1,0 +1,818 @@
+[
+    {
+        "name": "route",
+        "description": "Rota",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "file",
+                "label": "Arquivo Interno",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "needauth",
+                "label": "Requer Autenticação?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "function",
+                "label": "Função",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "view",
+        "description": "View",
+        "onsave": "platform.view.onsave",
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "js",
+                "label": "Arquivo JS",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "namecomplete",
+                "label": "Nome Completo",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idtemplate",
+                "label": "Template",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"template\", \"attribute\": \"name\"}"
+            },
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idmodule",
+                "label": "Módulo",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"module\", \"attribute\": \"description\"}"
+            },
+            {
+                "name": "wherefixed",
+                "label": "Where",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "Modelo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"model\", \"attribute\": \"name\", \"cascade\": true}"
+            },
+            {
+                "name": "orderfixed",
+                "label": "Ordem",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "supressid",
+                "label": "Suprimir ID?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "viewfield",
+        "description": "Campo da View",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "idtemplatezone",
+                "label": "Zona",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"templatezone\", \"attribute\": \"name\", \"where\": \"id in (select id from templatezone where idtemplate = (select idtemplate from view where id = $parent))\"}"
+            },
+            {
+                "name": "width",
+                "label": "Largura",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "order",
+                "label": "Ordem",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "disabled",
+                "label": "Desabilitado?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idview",
+                "label": "View",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"view\", \"cascade\": true}"
+            },
+            {
+                "name": "idmodelattribute",
+                "label": "Atributo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\r\n\"model\": \"modelattribute\"\r\n, \"attribute\": \"label\"\r\n, \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\"\r\n, \"cascade\": true\r\n}"
+            },
+            {
+                "name": "disablefilter",
+                "label": "Desabilitar Filtro?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "viewevent",
+        "description": "Evento da View",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "icon",
+                "label": "Ícone",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "function",
+                "label": "Função",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "parameters",
+                "label": "Parâmetros",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idview",
+                "label": "ID View",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"view\", \"cascade\": true}"
+            }
+        ]
+    },
+    {
+        "name": "viewsubview",
+        "description": "Subview da View",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "idtemplatezone",
+                "label": "Zona",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"templatezone\", \"attribute\": \"name\", \"where\": \"id in (select id from templatezone where idtemplate = (select idtemplate from view where id = $parent))\"}"
+            },
+            {
+                "name": "idview",
+                "label": "View",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"as\": \"view\", \"model\": \"view\", \"cascade\": true}"
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idsubview",
+                "label": "SubView",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"as\": \"subview\", \"model\": \"view\", \"attribute\": \"namecomplete\", \"cascade\": true}"
+            }
+        ]
+    },
+    {
+        "name": "viewtable",
+        "description": "Tabela da View",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "ordertable",
+                "label": "Ordem",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "orderable",
+                "label": "Ordenável",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "render",
+                "label": "Renderizador",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idview",
+                "label": "View",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"view\", \"cascade\": true}"
+            },
+            {
+                "name": "totalize",
+                "label": "Totalizar?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "class",
+                "label": "Classes Adicionais",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idmodelattribute",
+                "label": "Atributo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"modelattribute\", \"attribute\": \"label\", \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\", \"cascade\": true}"
+            }
+        ]
+    },
+    {
+        "name": "menu",
+        "description": "Menu",
+        "onsave": "platform.menu.onsave",
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "idview",
+                "label": "View",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"view\", \"attribute\": \"namecomplete\", \"cascade\": true}"
+            },
+            {
+                "name": "icon",
+                "label": "Ícone",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "url",
+                "label": "URL",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "tree",
+                "label": "Tree",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idmenuparent",
+                "label": "Menu Pai",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"as\":\"parentmenu\", \"model\": \"menu\", \"attribute\": \"tree\", \"where\": \"url is null and idview is null\"}"
+            }
+        ]
+    },
+    {
+        "name": "model",
+        "description": "Modelo",
+        "onsave": "platform.model.onsave",
+        "ondelete": "platform.model.ondelete",
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "ondelete",
+                "label": "Ao Deletar",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "onsave",
+                "label": "Ao Salvar",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "modelattribute",
+        "description": "Atributo do Modelo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "label",
+                "label": "Label",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "notnull",
+                "label": "NotNull?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "Model",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"model\", \"cascade\": true}"
+            },
+            {
+                "name": "typeadd",
+                "label": "Adicional",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "module",
+        "description": "Módulo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "permission",
+        "description": "Permissão",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "insertable",
+                "label": "Inserir",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "editable",
+                "label": "Editar",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "deletable",
+                "label": "Excluir",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "visible",
+                "label": "Visualizar",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\", \"cascade\": true}"
+            },
+            {
+                "name": "idmenu",
+                "label": "Menu",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\", \"where\": \"idview is not null or url is not null\", \"cascade\": true}"
+            }
+        ]
+    },
+    {
+        "name": "schedule",
+        "description": "Agendador",
+        "onsave": "platform.schedule.onsave",
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "settings",
+                "label": "Configurações",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "function",
+                "label": "Função",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "active",
+                "label": "Ativo",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "template",
+        "description": "Template",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "comment",
+                "label": "Comentário",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "templatezone",
+        "description": "Zona do Template",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idtemplate",
+                "label": "ID Template",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"template\", \"cascade\": true}"
+            }
+        ]
+    },
+    {
+        "name": "users",
+        "description": "Usuário",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "email",
+                "label": "Email",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "password",
+                "label": "Senha",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "fullname",
+                "label": "Nome Completo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "active",
+                "label": "Ativo?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "username",
+                "label": "Username",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idmenu",
+                "label": "Página Inicial",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\"}"
+            }
+        ]
+    },
+    {
+        "name": "config",
+        "description": "Configuração do Sistema",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "customfile",
+                "label": "Arquivo Customizado",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "googlemapskey",
+                "label": "Google Maps Key",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "cnpj",
+                "label": "CNPJ",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "razaosocial",
+                "label": "Razão Social",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "descriptionmenu",
+                "label": "Descrição Menu",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "descriptionmenumini",
+                "label": "Descrição Menu Mini",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "fantasia",
+                "label": "Fantasia",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "imagemrelatorio",
+                "label": "Imagem para Relatórios",
+                "type": "file",
+                "notnull": false,
+                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n}"
+            }
+        ]
+    },
+    {
+        "name": "file",
+        "description": "Arquivo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "bounded",
+                "label": "Vinculado?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "datetime",
+                "label": "Data/Hora",
+                "type": "datetime",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "mimetype",
+                "label": "Mime Type",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "filename",
+                "label": "Nome do Arquivo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "ID",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "Modelo",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"model\", \"attribute\": \"description\", \"cascade\": true}"
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "size",
+                "label": "Tamanho",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "audit",
+        "description": "Auditoria",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "datetime",
+                "label": "Data/Hora",
+                "type": "datetime",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "idmodel",
+                "label": "Modelo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"model\", \"attribute\": \"description\"}"
+            },
+            {
+                "name": "modelid",
+                "label": "ID",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "changes",
+                "label": "Alterações",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    }
+]

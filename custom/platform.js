@@ -255,9 +255,9 @@ let platform = {
                         , ondelete: models[i].ondelete
                     });
                     let attributes = await db.getModel('modelattribute').findAll({ where: { idmodel: models[i].id } });
-                    j[j.length - 1]._attributes = [];
+                    j[j.length - 1]._attribute = [];
                     for (let z = 0; z < attributes.length; z++) {
-                        j[j.length - 1]._attributes.push({
+                        j[j.length - 1]._attribute.push({
                             name: attributes[z].name
                             , label: attributes[z].label
                             , type: attributes[z].type
@@ -266,7 +266,7 @@ let platform = {
                         });
                     }
                 }
-                let filename = process.hrtime()[1] + '.mjson';
+                let filename = process.hrtime()[1] + '.json';
                 fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
@@ -329,24 +329,24 @@ let platform = {
                             });
                             console.log('CREATED');
                         }
-                        for (let z = 0; z < models[i]._attributes.length; z++) {
-                            let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attributes[z].name } });
+                        for (let z = 0; z < models[i]._attribute.length; z++) {
+                            let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attribute[z].name } });
                             if (attribute) {
-                                attribute.label = models[i]._attributes[z].label;
-                                attribute.type = models[i]._attributes[z].type;
-                                attribute.notnull = models[i]._attributes[z].notnull;
-                                attribute.typeadd = models[i]._attributes[z].typeadd;
+                                attribute.label = models[i]._attribute[z].label;
+                                attribute.type = models[i]._attribute[z].type;
+                                attribute.notnull = models[i]._attribute[z].notnull;
+                                attribute.typeadd = models[i]._attribute[z].typeadd;
                                 if (attribute.changed()) {
                                     await attribute.save();
                                 }
                             } else {
                                 await db.getModel('modelattribute').create({
                                     idmodel: model.id
-                                    , name: models[i]._attributes[z].name
-                                    , label: models[i]._attributes[z].label
-                                    , type: models[i]._attributes[z].type
-                                    , notnull: models[i]._attributes[z].notnull
-                                    , typeadd: models[i]._attributes[z].typeadd
+                                    , name: models[i]._attribute[z].name
+                                    , label: models[i]._attribute[z].label
+                                    , type: models[i]._attribute[z].type
+                                    , notnull: models[i]._attribute[z].notnull
+                                    , typeadd: models[i]._attribute[z].typeadd
                                 });
                             }
                         }
@@ -524,7 +524,7 @@ let platform = {
                         });
                     }
                 }
-                let filename = process.hrtime()[1] + '.vjson';
+                let filename = process.hrtime()[1] + '.json';
                 fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
@@ -1433,40 +1433,8 @@ let platform = {
             }
         }
     }
-    , viewevent: {
-        _incrementorder: function (obj) {
-            if (obj.ids.length == 0) {
-                return application.error(obj.res, { msg: application.message.selectOneEvent });
-            }
-
-            db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
-                viewfields.map(viewfield => {
-                    viewfield.order++;
-                    viewfield.save();
-                });
-                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-            }).catch(err => {
-                return application.fatal(obj.res, err);
-            });
-        }
-        , _decrementorder: function (obj) {
-            if (obj.ids.length == 0) {
-                return application.error(obj.res, { msg: application.message.selectOneEvent });
-            }
-
-            db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
-                viewfields.map(viewfield => {
-                    viewfield.order--;
-                    viewfield.save();
-                });
-                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-            }).catch(err => {
-                return application.fatal(obj.res, err);
-            });
-        }
-    }
     , viewfield: {
-        changezone: async function (obj) {
+        e_changezone: async function (obj) {
             try {
                 if (obj.req.method == 'GET') {
                     if (obj.ids.length == 0) {
@@ -1512,13 +1480,40 @@ let platform = {
                 return application.fatal(obj.res, err);
             }
         }
-    }
-    , viewtable: {
-        _incrementorder: function (obj) {
+        , e_incrementorder: function (obj) {
             if (obj.ids.length == 0) {
                 return application.error(obj.res, { msg: application.message.selectOneEvent });
             }
-
+            db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
+                viewfields.map(viewfield => {
+                    viewfield.order++;
+                    viewfield.save();
+                });
+                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            }).catch(err => {
+                return application.fatal(obj.res, err);
+            });
+        }
+        , e_decrementorder: function (obj) {
+            if (obj.ids.length == 0) {
+                return application.error(obj.res, { msg: application.message.selectOneEvent });
+            }
+            db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
+                viewfields.map(viewfield => {
+                    viewfield.order--;
+                    viewfield.save();
+                });
+                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            }).catch(err => {
+                return application.fatal(obj.res, err);
+            });
+        }
+    }
+    , viewtable: {
+        e_incrementorder: function (obj) {
+            if (obj.ids.length == 0) {
+                return application.error(obj.res, { msg: application.message.selectOneEvent });
+            }
             db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
                 viewtables.map(viewtable => {
                     viewtable.ordertable++;
@@ -1529,11 +1524,10 @@ let platform = {
                 return application.fatal(obj.res, err);
             });
         }
-        , _decrementorder: function (obj) {
+        , e_decrementorder: function (obj) {
             if (obj.ids.length == 0) {
                 return application.error(obj.res, { msg: application.message.selectOneEvent });
             }
-
             db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
                 viewtables.map(viewtable => {
                     viewtable.ordertable--;
