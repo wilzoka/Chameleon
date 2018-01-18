@@ -424,7 +424,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select distinct&#xd;&#xa;	op&#xd;&#xa;	, pedido&#xd;&#xa;from&#xd;&#xa;	pcpopep ep&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and pedido &#x3e; 28000</sql>
+    <sql>select distinct&#xd;&#xa;	op&#xd;&#xa;	, pedido&#xd;&#xa;from&#xd;&#xa;	pcpopep ep&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and pedido &#x3e; case when &#x24;&#x7b;EMPRESA&#x7d; &#x3d; 1 then 28000 else 5000 end</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
