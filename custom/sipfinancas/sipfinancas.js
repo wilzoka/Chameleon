@@ -1,12 +1,6 @@
-var application = require('../../routes/application')
-    , db = require('../../models')
-    , schedule = require('../../routes/schedule')
-    , moment = require('moment')
-    , fs = require('fs')
-    , reload = require('require-reload')(require)
-    ;
+let reload = require('require-reload')(require);
 
-var main = {
+let main = {
     platform: reload('../platform.js')
     , sipfinancas: {
         financeiro: {

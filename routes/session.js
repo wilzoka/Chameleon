@@ -1,10 +1,10 @@
-var passport = require('passport')
+let passport = require('passport')
     , LocalStrategy = require('passport-local').Strategy
     , db = require('../models')
     , application = require('./application')
     ;
 
-var users = {};
+let users = {};
 
 // Serialize Sessions
 passport.serializeUser(function (user, done) {
@@ -68,11 +68,11 @@ module.exports = function (app) {
                 let config = await db.getModel('config').find();
 
                 permissionarr = [];
-                for (var i = 0; i < permissions.length; i++) {
+                for (let i = 0; i < permissions.length; i++) {
                     permissionarr.push(permissions[i].idmenu);
                 }
 
-                for (var i = 0; i < menu.length; i++) {
+                for (let i = 0; i < menu.length; i++) {
                     menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
                 }
 
@@ -83,8 +83,8 @@ module.exports = function (app) {
                     }
                 }
 
-                var menuhtml = '';
-                for (var i = 0; i < menu.length; i++) {
+                let menuhtml = '';
+                for (let i = 0; i < menu.length; i++) {
                     menuhtml += application.menu.renderMenu(menu[i]);
                 }
 

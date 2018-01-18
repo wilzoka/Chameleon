@@ -58,7 +58,7 @@ $(function () {
 
         var $idcube = $('select[name="idcube"]');
         $idcube.on('select2:select', function (e) {
-            application.jsfunction('platform.bi.js_getCube', { idcube: e.params.data.id }, function (response) {
+            application.jsfunction('platform.core_bi.js_getCube', { idcube: e.params.data.id }, function (response) {
                 if (response.success) {
                     renderPivot(response.data);
                 }
@@ -66,7 +66,7 @@ $(function () {
         });
 
         if (application.functions.getId() > 0) {
-            application.jsfunction('platform.bi.js_getCube', { idcube: $idcube.val() }, function (response) {
+            application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val() }, function (response) {
                 if (response.success) {
                     renderPivot(response.data);
                 }

@@ -1,7 +1,3 @@
-relatório de fechamento, consumo da OP
-percentual de produção na OP
-
-
 // var MailListener = require("mail-listener2");
 
 // var mailListener = new MailListener({

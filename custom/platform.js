@@ -1,12 +1,13 @@
-var application = require('../routes/application')
-    , db = require('../models')
-    , schedule = require('../routes/schedule')
+db = require('../models')
     , moment = require('moment')
     , fs = require('fs')
-    , lodash = require('lodash');
-;
+    , schedule = require('../routes/schedule')
+    , lodash = require('lodash')
+    , reload = require('require-reload')(require)
+    , application = require('../routes/application')
+    ;
 
-var platform = {
+let platform = {
     config: {
         __getGoogleMapsKey: async function (obj) {
             try {
@@ -17,133 +18,7 @@ var platform = {
             }
         }
     }
-    , bi: {
-        js_getCube: async function (obj) {
-            try {
-
-                let cube = await db.getModel('bi_cube').find({ raw: true, where: { id: obj.data.idcube } });
-                let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id } });
-                let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: cube.id } });
-
-                let data = {
-                    hiddenAttributes: []
-                    , measures: 'var globalaggregator = {'
-                    , data: []
-                }
-
-                for (let i = 0; i < measures.length; i++) {
-                    data.hiddenAttributes.push(measures[i].label);
-                    switch (measures[i].aggregator) {
-                        case 'sum':
-                            data.measures += '"' + measures[i].label + '": function () {return $.pivotUtilities.aggregatorTemplates.sum($.pivotUtilities.numberFormat({thousandsSep: ".", decimalSep: ",", digitsAfterDecimal: "2"}))(["' + measures[i].label + '"]);}';
-                            break;
-                    }
-                    if (measures.length - 1 != i)
-                        data.measures += ', ';
-                }
-                data.measures += '}';
-
-                let sql = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
-                for (let i = 0; i < sql.length; i++) {
-                    data.data.push({});
-                    for (let z = 0; z < dimensions.length; z++) {
-                        if (dimensions[z].sqlfield in sql[i]) {
-                            data.data[data.data.length - 1][dimensions[z].label] = sql[i][dimensions[z].sqlfield];
-                        }
-                    }
-                    for (let z = 0; z < measures.length; z++) {
-                        if (measures[z].sqlfield in sql[i]) {
-                            data.data[data.data.length - 1][measures[z].label] = sql[i][measures[z].sqlfield];
-                        }
-                    }
-                }
-
-                return application.success(obj.res, { msg: 'cube', data: data });
-
-            } catch (err) {
-                return application.fatal(obj.res, err);
-            }
-        }
-        , analysis: {
-            onsave: async function (obj, next) {
-                try {
-
-                    if (obj.register.id == 0) {
-                        obj.register.iduser = obj.req.user.id;
-                    }
-
-                    next(obj);
-
-                } catch (err) {
-                    return application.fatal(obj.res, err);
-                }
-            }
-        }
-        , dashboard: {
-            onsave: async function (obj, next) {
-                try {
-                    if (obj.register.id == 0) {
-                        obj.register.iduser = obj.req.user.id;
-                    }
-
-                    next(obj);
-
-                } catch (err) {
-                    return application.fatal(obj.res, err);
-                }
-            }
-        }
-        , dashboardanalysis: {
-            onsave: async function (obj, next) {
-                try {
-
-                    if (obj.register.width < 1 || obj.register.width > 12) {
-                        return application.error(obj.res, { msg: 'A largura deve ser entre 1 e 12', invalidfields: ['width'] });
-                    }
-
-                    next(obj);
-
-                } catch (err) {
-                    return application.fatal(obj.res, err);
-                }
-            }
-        }
-        , r_dashboard: async function (obj) {
-            try {
-                let nav = '';
-                let content = '';
-                let dashboards = await db.getModel('bi_dashboard').findAll({ where: { iduser: obj.req.user.id }, order: [['order', 'asc']] });
-                for (let i = 0; i < dashboards.length; i++) {
-                    nav += '<li class="' + (i == 0 ? 'active' : '') + '"><a href="#tab_' + i + '" data-toggle="tab"> ' + dashboards[i].description + '</a></li>'
-                    content += '<div class="tab-pane ' + (i == 0 ? 'active' : '') + '" id="tab_' + i + '"><div class="row">';
-                    let analysis = await db.getModel('bi_dashboardanalysis').findAll({ include: [{ all: true }], where: { iddashboard: dashboards[i].id }, order: [['order', 'asc']] });
-                    for (let z = 0; z < analysis.length; z++) {
-                        content += '<div class="col-md-' + analysis[z].width + '">';
-
-                        content += '<div class="box box-primary">';
-                        content += '<div class="box-header"><h3 class="box-title">' + analysis[z].bi_analysis.description + '</h3></div>';
-
-                        content += '<div class="box-body">';
-                        content += '<textarea class="hidden">' + analysis[z].bi_analysis.config + '</textarea>'
-                        content += '<div class="pivotdiv pivotUiHidden" data-idcube="' + analysis[z].bi_analysis.idcube + '" ></div>';
-                        content += '</div></div>';
-                        content += '</div>';
-                    }
-                    content += '</div></div>';
-                }
-
-                return application.success(obj.res, {
-                    data: {
-                        nav: nav
-                        , content: content
-                    }
-                });
-
-            } catch (err) {
-                return application.fatal(obj.res, err);
-            }
-        }
-    }
+    , core_bi: reload('./core-bi/bi.js')
     , kettle: {
         f_runTransformation: function (filepath) {
             db.getModel('config').find().then(config => {
@@ -222,9 +97,9 @@ var platform = {
             platform.menu.treeAll();
         }
         , treeAll: function () {
-            var getChildren = function (current, childs) {
+            let getChildren = function (current, childs) {
 
-                for (var i = 0; i < childs.length; i++) {
+                for (let i = 0; i < childs.length; i++) {
                     if (current.idmenuparent == childs[i].id) {
 
                         if (childs[i].idmenuparent) {
@@ -258,9 +133,13 @@ var platform = {
                 let register = await db.getModel('model').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe um modelo com este nome' });
-                } else {
-                    next(obj);
                 }
+
+                if (obj.register.id > 0 && obj.register.name != obj.register._previousDataValues.name) {
+                    return application.error(obj.res, { msg: 'Não é possível alterar o nome de um modelo' });
+                }
+
+                next(obj);
 
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -272,7 +151,7 @@ var platform = {
                 const queryInterface = db.sequelize.getQueryInterface();
                 let models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } } })
 
-                for (var i = 0; i < models.length; i++) {
+                for (let i = 0; i < models.length; i++) {
                     if (db.sequelize.modelManager.getModel(models[i].name)) {
                         db.sequelize.modelManager.removeModel(db.sequelize.modelManager.getModel(models[i].name));
                         queryInterface.dropTable(models[i].name, {
@@ -288,7 +167,7 @@ var platform = {
             }
         }
         , e_syncAll: function (obj) {
-            var models = {};
+            let models = {};
             db.sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: db.sequelize.QueryTypes.SELECT }).then(results => {
 
                 let modelname;
@@ -301,7 +180,7 @@ var platform = {
                 }
 
                 //Create Attributes
-                for (var i = 0; i < results.length; i++) {
+                for (let i = 0; i < results.length; i++) {
                     // Startf
                     if (i == 0) {
                         modelname = results[i].model;
@@ -326,7 +205,7 @@ var platform = {
                 }
 
                 //Create References
-                for (var i = 0; i < results.length; i++) {
+                for (let i = 0; i < results.length; i++) {
                     let j = {};
                     if (results[i].typeadd) {
                         j = application.modelattribute.parseTypeadd(results[i].typeadd);
@@ -550,6 +429,12 @@ var platform = {
     }
     , view: {
         onsave: async function (obj, next) {
+
+            let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
+            if (register) {
+                return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
+            }
+
             await next(obj);
             platform.view.f_concatAll();
         }
@@ -656,38 +541,157 @@ var platform = {
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
                     let views = JSON.parse(fs.readFileSync('files/' + file.id + '.' + file.type, 'utf8'));
+                    console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
-                        let skip = '';
+                        console.log('VIEW ' + views[i].name);
                         let view = await db.getModel('view').find({ where: { name: views[i].name } });
-                        if (view) {
-                            let model = await db.getModel('model').find({ where: { name: views[i].model } });
-                            let module
-                            let template
-
-                        } else {
-                            view = await db.getModel('view').create({
-                                name: models[i].name
-                                , description: models[i].description
-                                , onsave: models[i].onsave
-                                , ondelete: models[i].ondelete
-                            });
-                            console.log('View ' + models[i].name + ' CREATED');
-                        }
-                        for (let z = 0; z < models[i]._attributes.length; z++) {
-                            let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attributes[z].name } });
-                            if (!attribute) {
-                                await db.getModel('modelattribute').create({
-                                    idmodel: model.id
-                                    , name: models[i]._attributes[z].name
-                                    , label: models[i]._attributes[z].label
-                                    , type: models[i]._attributes[z].type
-                                    , notnull: models[i]._attributes[z].notnull
-                                    , typeadd: models[i]._attributes[z].typeadd
+                        let model = await db.getModel('model').find({ where: { name: views[i].model } });
+                        let modulee = await db.getModel('module').findOrCreate({ where: { description: views[i].module } });
+                        let template = await db.getModel('template').findOrCreate({ where: { name: views[i].template } });
+                        if (model) {
+                            if (view) {
+                                view.name = views[i].name;
+                                view.idtemplate = template[0].id;
+                                view.idmodel = model.id;
+                                view.idmodule = modulee[0].id;
+                                view.wherefixed = views[i].wherefixed;
+                                view.supressid = views[i].supressid;
+                                view.js = views[i].js;
+                                view.namecomplete = views[i].namecomplete;
+                                view.orderfixed = views[i].orderfixed;
+                                if (view.changed()) {
+                                    await view.save();
+                                    console.log('UPDATED');
+                                } else {
+                                    console.log('OK');
+                                }
+                            } else {
+                                view = await db.getModel('view').create({
+                                    name: views[i].name
+                                    , idtemplate: template.id
+                                    , idmodel: model.id
+                                    , idmodule: modulee.id
+                                    , wherefixed: views[i].wherefixed
+                                    , supressid: views[i].supressid
+                                    , js: views[i].js
+                                    , namecomplete: views[i].namecomplete
+                                    , orderfixed: views[i].orderfixed
                                 });
-                                console.log('Created attribute ' + models[i]._attributes[z].name);
+                                console.log('CREATED');
+                            }
+                            for (let z = 0; z < views[i]._field.length; z++) {
+                                let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: template[0].id, name: views[i]._field[z].templatezone } });
+                                let modelattribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
+                                if (modelattribute) {
+                                    let viewfield = await db.getModel('viewfield').find({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                    if (viewfield) {
+                                        viewfield.idtemplatezone = templatezone[0].id;
+                                        viewfield.width = views[i]._field[z].width;
+                                        viewfield.order = views[i]._field[z].order;
+                                        viewfield.disabled = views[i]._field[z].disabled;
+                                        viewfield.disablefilter = views[i]._field[z].disablefilter;
+                                        if (viewfield.changed()) {
+                                            await viewfield.save();
+                                        }
+                                    } else {
+                                        viewfield = await db.getModel('viewfield').create({
+                                            idview: view.id
+                                            , idtemplatezone: templatezone[0].id
+                                            , idmodelattribute: modelattribute.id
+                                            , width: views[i]._field[z].width
+                                            , order: views[i]._field[z].order
+                                            , disabled: views[i]._field[z].disabled
+                                            , disablefilter: views[i]._field[z].disablefilter
+                                        });
+                                    }
+                                } else {
+                                    console.error('ERROR: Model attribute "' + views[i]._field[z].modelattribute + '" not found');
+                                }
+                            }
+                            for (let z = 0; z < views[i]._table.length; z++) {
+                                let modelattribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
+                                if (modelattribute) {
+                                    let viewtable = await db.getModel('viewtable').find({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                    if (viewtable) {
+                                        viewtable.ordertable = views[i]._table[z].ordertable;
+                                        viewtable.orderable = views[i]._table[z].orderable;
+                                        viewtable.render = views[i]._table[z].render;
+                                        viewtable.totalize = views[i]._table[z].totalize;
+                                        viewtable.class = views[i]._table[z].class;
+                                        if (viewtable.changed()) {
+                                            await viewtable.save();
+                                        }
+                                    } else {
+                                        viewtable = await db.getModel('viewtable').create({
+                                            idview: view.id
+                                            , idmodelattribute: modelattribute.id
+                                            , ordertable: views[i]._table[z].ordertable
+                                            , orderable: views[i]._table[z].orderable
+                                            , render: views[i]._table[z].render
+                                            , totalize: views[i]._table[z].totalize
+                                            , class: views[i]._table[z].class
+                                        });
+                                    }
+                                } else {
+                                    console.error('ERROR: Model attribute "' + views[i]._table[z].modelattribute + '" not found');
+                                }
+                            }
+                            for (let z = 0; z < views[i]._event.length; z++) {
+                                let viewevent = await db.getModel('viewevent').find({ where: { idview: view.id, description: views[i]._event[z].description } });
+                                if (viewevent) {
+                                    viewevent.icon = views[i]._event[z].icon;
+                                    viewevent.function = views[i]._event[z].function;
+                                    viewevent.parameters = views[i]._event[z].parameters;
+                                    if (viewevent.changed()) {
+                                        await viewevent.save();
+                                    }
+                                } else {
+                                    viewevent = await db.getModel('viewevent').create({
+                                        idview: view.id
+                                        , description: views[i]._event[z].description
+                                        , icon: views[i]._event[z].icon
+                                        , function: views[i]._event[z].function
+                                        , parameters: views[i]._event[z].parameters
+                                    });
+                                }
+                            }
+                        } else {
+                            views[i]._skipped = true;
+                            console.log('SKIPPED');
+                        }
+                        if (i != views.length - 1) {
+                            console.log('------------------------------');
+                        }
+                    }
+                    for (let i = 0; i < views.length; i++) {
+                        if (!views[i]._skipped) {
+                            let view = await db.getModel('view').find({ include: [{ all: true }], where: { name: views[i].name } });
+                            for (let z = 0; z < views[i]._subview.length; z++) {
+                                let viewsubview = await db.getModel('view').find({ where: { name: views[i]._subview[z].subview } });
+                                if (viewsubview) {
+                                    let subview = await db.getModel('viewsubview').find({ where: { idview: view.id, idsubview: viewsubview.id } });
+                                    let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone } });
+                                    if (subview) {
+                                        subview.description = views[i]._subview[z].description;
+                                        subview.idtemplatezone = templatezone[0].id;
+                                        if (subview.changed()) {
+                                            await subview.save();
+                                        }
+                                    } else {
+                                        subview = await db.getModel('viewsubview').create({
+                                            idview: view.id
+                                            , idsubview: viewsubview.id
+                                            , idtemplatezone: templatezone[0].id
+                                            , description: views[i]._subview[z].description
+                                        });
+                                    }
+                                } else {
+                                    console.error('ERROR: Subview "' + views[i]._subview[z].subview + '" not found');
+                                }
                             }
                         }
                     }
+                    console.log('-----------FINISHED-----------');
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }
             } catch (err) {
@@ -710,7 +714,7 @@ var platform = {
         }
         , f_getFilteredRegisters: function (obj) {
             let getFilter = function (cookie, viewfields) {
-                var obj = {};
+                let obj = {};
 
                 cookie = JSON.parse(cookie);
 
@@ -966,7 +970,7 @@ var platform = {
                         let ordercolumn = order[0];
                         let orderdir = order[1];
                         let attributes = ['id'];
-                        for (var i = 0; i < viewfields.length; i++) {
+                        for (let i = 0; i < viewfields.length; i++) {
                             switch (viewfields[i].modelattribute.type) {
                                 case 'virtual':
                                     attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
@@ -1005,7 +1009,7 @@ var platform = {
         , export: {
             xls: async function (obj) {
                 let getFilter = function (cookie, modelattributes) {
-                    var obj = {};
+                    let obj = {};
 
                     cookie = JSON.parse(cookie);
 
@@ -1149,7 +1153,7 @@ var platform = {
                     }
 
                     for (let i = 0; i < registers.length; i++) {
-                        for (var k in registers[i]) {
+                        for (let k in registers[i]) {
                             if (k != 'id' && modelattributenames.indexOf(k) < 0) {
                                 delete registers[i][k];
                             }
@@ -1159,7 +1163,7 @@ var platform = {
                     return registers;
                 }
                 let toColumnName = function (num) {
-                    for (var ret = '', a = 1, b = 26; (num -= a) >= 0; a = b, b *= 26) {
+                    for (let ret = '', a = 1, b = 26; (num -= a) >= 0; a = b, b *= 26) {
                         ret = String.fromCharCode(parseInt((num % b) / a) + 65) + ret;
                     }
                     return ret;
@@ -1181,7 +1185,7 @@ var platform = {
                     }
                     let attributes = ['id'];
                     let header = ['id'];
-                    for (var i = 0; i < viewfields.length; i++) {
+                    for (let i = 0; i < viewfields.length; i++) {
                         switch (viewfields[i].modelattribute.type) {
                             case 'virtual':
                                 attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
@@ -1352,7 +1356,7 @@ var platform = {
                         }
                     }
 
-                    var dd = {
+                    let dd = {
                         footer: function (currentPage, pageCount) {
                             return { text: 'Página ' + currentPage + '/' + pageCount, alignment: 'center', fontSize: 8, italic: true };
                         }

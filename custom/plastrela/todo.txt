@@ -1,0 +1,2 @@
+[ ] - Emanuele 18/01/2018 - Volume - Puxar apenas o item do pedido em vez do pedido - item;
+[ ] - Emanuele 18/01/2018 - Volume Reserva - Filtrar Apenas a OP quando selecionado o pedido - item;

@@ -1,9 +1,9 @@
-var lodash = require('lodash')
+let lodash = require('lodash')
 	, moment = require('moment')
 	, reload = require('require-reload')(require)
 	;
 
-var application = {
+let application = {
 
 	IsAuthenticated: function (req, res, next) {
 		if (req.isAuthenticated()) {

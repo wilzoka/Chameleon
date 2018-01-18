@@ -45,7 +45,7 @@
         function renderAll() {
             $('.pivotdiv').filter(':visible:not(.rendered)').each(function () {
                 var $this = $(this);
-                application.jsfunction('platform.bi.js_getCube', { idcube: $(this).attr('data-idcube') }, function (response) {
+                application.jsfunction('platform.core_bi.js_getCube', { idcube: $(this).attr('data-idcube') }, function (response) {
                     if (response.success) {
                         renderPivot($this, response.data);
                     }

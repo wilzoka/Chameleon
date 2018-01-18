@@ -1,11 +1,11 @@
-var express = require('express')
+let express = require('express')
     , passport = require('passport')
     , bodyParser = require('body-parser')
     , cookieParser = require('cookie-parser')
     , session = require('express-session')
     ;
 
-var app = express();
+let app = express();
 app.disable('x-powered-by');
 
 //Middleware

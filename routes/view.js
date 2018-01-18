@@ -550,7 +550,7 @@ var save = function (obj) {
                     audit.datetime = moment();
                     audit.idmodel = obj.view.model.id;
                     audit.iduser = obj.req.user.id;
-                    audit.type = id > 0 ? 'Edição' : 'Inserção';
+                    audit.type = id > 0 ? 2 : 1;
                     audit.changes = [];
                     for (let k in changes) {
                         for (let i = 0; i < obj.modelattributes.length; i++) {
@@ -630,7 +630,7 @@ var deleteModel = function (obj) {
                 audit.datetime = moment();
                 audit.idmodel = obj.view.model.id;
                 audit.iduser = obj.req.user.id;
-                audit.type = 'Exclusão';
+                audit.type = 3;
                 audit.changes = JSON.stringify(registers);
                 audit.save();
 
