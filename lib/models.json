@@ -496,7 +496,7 @@
                 "label": "Menu",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\", \"where\": \"idview is not null or url is not null\", \"cascade\": true}"
+                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\", \"where\": \"(idview is not null or url is not null)\", \"cascade\": true}"
             }
         ]
     },

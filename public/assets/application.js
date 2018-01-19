@@ -473,7 +473,7 @@ var application = {
                 ajax: {
                     url: '/autocomplete',
                     dataType: 'json',
-                    delay: 500,
+                    delay: 300,
                     data: function (params) {
                         var model = $(this).attr('data-model');
                         var attribute = $(this).attr('data-attribute');

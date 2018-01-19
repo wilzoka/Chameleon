@@ -124,8 +124,7 @@ module.exports = function (app) {
                     return res.json({ success: true, data: file });
                 });
             }).catch(function (err) {
-                fs.unlink(file.path);
-                return application.fata(res, err);
+                return application.fatal(res, err);
             });
         });
     });
