@@ -3193,17 +3193,22 @@ var main = {
                 }
             }
             , oprecurso: {
-                onsave: function (obj, next) {
+                onsave: async function (obj, next) {
                     if (obj.id == 0) {
-                        db.getModel('pcp_config').find().then(config => {
-                            if (config && config.idestadoinicial) {
-                                obj.register.idestado = config.idestadoinicial;
-                                next(obj);
-                            } else {
-                                return application.error(obj.res, { msg: 'Falta configuração em: Estado Inicial da OP' });
-                            }
-                        });
+                        let config = await db.getModel('pcp_config').find();
+                        if (config && config.idestadoinicial) {
+                            obj.register.idestado = config.idestadoinicial;
+                            next(obj);
+                        } else {
+                            return application.error(obj.res, { msg: 'Falta configuração em: Estado Inicial da OP' });
+                        }
                     } else {
+
+                        let apparada = await db.getModel('pcp_apparada').find({ where: { idoprecurso: obj.register.id } });
+                        if (apparada) {
+                            return application.error(obj, res, { msg: 'Não é possível alterar a máquina de uma OP com apontamentos' });
+                        }
+
                         next(obj);
                     }
                 }
