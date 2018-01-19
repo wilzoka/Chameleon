@@ -1,5 +1,4 @@
 $(function () {
-    $('#form').find('button:submit').remove();
 
     function customTable(table) {
         tables[table].page.len(-1);
