@@ -100,13 +100,16 @@ let bi = {
                 let analysis = await db.getModel('bi_dashboardanalysis').findAll({ include: [{ all: true }], where: { iddashboard: dashboards[i].id }, order: [['order', 'asc']] });
                 for (let z = 0; z < analysis.length; z++) {
                     content += '<div class="col-md-' + analysis[z].width + '">';
-
-                    content += '<div class="box box-primary">';
+                    content += '<div class="box">';
                     content += '<div class="box-header"><h3 class="box-title">' + analysis[z].bi_analysis.description + '</h3></div>';
-
                     content += '<div class="box-body">';
                     content += '<textarea class="hidden">' + analysis[z].bi_analysis.config + '</textarea>'
-                    content += '<div class="pivotdiv pivotUiHidden" data-idcube="' + analysis[z].bi_analysis.idcube + '" ></div>';
+
+                    let style = [];
+                    if (analysis[z].height) {
+                        style.push('height: ' + analysis[z].height + 'px');
+                    };
+                    content += '<div class="pivotdiv pivotUiHidden" data-idcube="' + analysis[z].bi_analysis.idcube + '" style="' + style.join(';') + '" ></div>';
                     content += '</div></div>';
                     content += '</div>';
                 }

@@ -1,4 +1,6 @@
-let reload = require('require-reload')(require);
+let application = require('../../routes/application')
+    , reload = require('require-reload')(require)
+    ;
 
 let main = {
     platform: reload('../platform.js')
@@ -33,7 +35,7 @@ let main = {
                 }
                 , treeAll: function () {
 
-                    var getChildren = function (current, childs) {
+                    let getChildren = function (current, childs) {
                         for (var i = 0; i < childs.length; i++) {
                             if (current.idcategoriapai == childs[i].id) {
                                 if (childs[i].idcategoriapai) {
@@ -292,6 +294,15 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
+                            if (obj.req.body.idcheques == undefined) {
+                                obj.req.body.idcheques = [];
+                            } else if (typeof obj.req.body.idcheques == 'string') {
+                                obj.req.body.idcheques = [obj.req.body.idcheques];
+                            }
+                            if (obj.req.body.idformapgto == 2 && obj.req.body.idcheques.length <= 0) {
+                                return application.error(obj.res, { msg: 'Selecione um cheque', invalidfields: ['idcheques'] });
+                            }
+
                             let ids = obj.req.body.ids.split(',');
                             let requiredFields = [];
                             for (let i = 0; i < ids.length; i++) {
@@ -321,19 +332,14 @@ let main = {
                                 });
 
                                 if (movparc.idformapgto == 2) {// Cheque
-                                    if (obj.req.body.idcheques == undefined) {
-                                        obj.req.body.idcheques = [];
-                                    } else if (typeof obj.req.body.idcheques == 'string') {
-                                        obj.req.body.idcheques = [obj.req.body.idcheques];
-                                    } else {
-                                        // obj.req.body.idcheques
-                                    }
                                     for (let z = 0; z < obj.req.body.idcheques.length; z++) {
                                         db.getModel('fin_movparccheque').create({
                                             idmovparc: movparc.id
                                             , idcheque: obj.req.body.idcheques[z]
                                         });
-                                        db.getModel('fin_cheque').update({ utilizado: true }, { where: { id: obj.req.body.idcheques[z] } });
+                                        if (mov.fin_categoria.dc == 1) {
+                                            db.getModel('fin_cheque').update({ utilizado: true }, { where: { id: obj.req.body.idcheques[z] } });
+                                        }
                                     }
                                 }
 
@@ -349,7 +355,7 @@ let main = {
                                         await db.getModel('fin_mov').create({
                                             parcela: '1/1'
                                             , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
-                                            , idcategoria: 8
+                                            , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
                                             , valor: ((parseFloat(movparc.valor) * comissao) / total).toFixed(2)
                                             , idcorr: mov.ven_pedido.idvendedor
                                             , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
@@ -436,6 +442,14 @@ let main = {
 
                         let body = '';
                         body += application.components.html.hidden({ name: 'idpedido', value: obj.data.id });
+                        body += application.components.html.autocomplete({
+                            width: '12'
+                            , label: 'Categoria'
+                            , name: 'idcategoria'
+                            , model: 'fin_categoria'
+                            , attribute: 'descricaocompleta'
+                            , where: 'dc = 2'
+                        });
                         body += application.components.html.integer({
                             width: '4'
                             , label: 'Quantidade de Parcelas'
@@ -471,7 +485,7 @@ let main = {
                 , __venda_adicionar: async function (obj) {
                     try {
 
-                        let invalidfields = application.functions.getEmptyFields(obj.data, ['idpedido', 'qtd', 'data', 'dias']);
+                        let invalidfields = application.functions.getEmptyFields(obj.data, ['idpedido', 'idcategoria', 'qtd', 'data', 'dias']);
                         if (invalidfields.length > 0) {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                         }
@@ -497,7 +511,7 @@ let main = {
                                 parcela: i + '/' + obj.data.qtd
                                 , datavcto: i == 1 ? application.formatters.be.date(obj.data.data) : obj.data.dias == 30 ? moment(obj.data.data, 'DD/MM/YYYY').add(i - 1, 'M').format('YYYY-MM-DD') : moment(obj.data.data, 'DD/MM/YYYY').add((i - 1) * obj.data.dias, 'day').format('YYYY-MM-DD')
                                 , idpedido: obj.data.idpedido
-                                , idcategoria: pedido.nfe ? 3 : 2
+                                , idcategoria: obj.data.idcategoria
                                 , valor: (sum / parseInt(obj.data.qtd)).toFixed(2)
                                 , idcorr: pedido.idcliente
                                 , detalhes: 'Venda ' + pedido.id + ' NF ' + pedido.nfe

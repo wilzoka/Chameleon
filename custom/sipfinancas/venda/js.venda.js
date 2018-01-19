@@ -34,6 +34,7 @@ $(function () {
                 $('#venda_adicionarModal_submit').click(function () {
                     application.jsfunction('sipfinancas.financeiro.movparc.__venda_adicionar', {
                         idpedido: application.functions.getId()
+                        , idcategoria: $modal.find('select[name="idcategoria"]').val()
                         , qtd: $modal.find('input[name="qtd"]').val()
                         , data: $modal.find('input[name="data"]').val()
                         , dias: $modal.find('input[name="dias"]').val()
@@ -46,7 +47,7 @@ $(function () {
                 });
 
                 $('#' + modal.id).on('shown.bs.modal', function () {
-                    $(this).find('input[name="qtd"]').focus();
+                    application.functions.focusFirstElement($(this));
                 });
 
                 break;
