@@ -3205,7 +3205,7 @@ var main = {
                     } else {
 
                         let apparada = await db.getModel('pcp_apparada').find({ where: { idoprecurso: obj.register.id } });
-                        if (apparada) {
+                        if (obj.register.idrecurso != obj.register._previousDataValues.idrecurso && apparada) {
                             return application.error(obj.res, { msg: 'Não é possível alterar a máquina de uma OP com apontamentos' });
                         }
 
