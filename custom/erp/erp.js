@@ -21,19 +21,28 @@ let main = {
                 }
             }
         }
-        , financeiro: {
-            categoria: {
-                __getDC: async function (obj) {
+        , comercial: {
+            venda: {
+                onsave: async function (obj, next) {
                     try {
-                        let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.data.id } });
-                        return application.success(obj.res, { data: categoria.dc });
+
+                        if (obj.register.id == 0) {
+                            obj.register.idusuario = obj.req.user.id;
+                            obj.register.datahora = moment();
+                        }
+
+                        next(obj);
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , onsave: async function (obj, next) {
+            }
+        }
+        , financeiro: {
+            categoria: {
+                onsave: async function (obj, next) {
                     try {
-
                         if (obj.register.id == 0) {
                             if (obj.register.idcategoriapai) {
                                 let categoriapai = await db.getModel('fin_categoria').find({ where: { id: obj.register.idcategoriapai } });
@@ -42,15 +51,13 @@ let main = {
                                 obj.register.dc = parseInt(obj.req.body.dc);
                             }
                         }
-
                         await next(obj);
-                        main.sipfinancas.financeiro.categoria.treeAll();
+                        main.erp.financeiro.categoria.f_treeAll();
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , treeAll: function () {
-
+                , f_treeAll: function () {
                     let getChildren = function (current, childs) {
                         for (var i = 0; i < childs.length; i++) {
                             if (current.idcategoriapai == childs[i].id) {
@@ -62,7 +69,6 @@ let main = {
                             }
                         }
                     }
-
                     db.getModel('fin_categoria').findAll().then(categorias => {
                         categorias.map(categoria => {
                             if (categoria.idcategoriapai) {
@@ -73,14 +79,40 @@ let main = {
                             categoria.save();
                         });
                     });
-
                 }
             }
             , conta: {
-                js_saldoData: async function (obj) {
+                f_recalculaSaldos: function () {
+                    db.sequelize.query(`                    
+                    update fin_conta c set saldoatual = (
+                        with saldoanterior as (
+                        select
+                            c.*
+                            , coalesce((select cs.valor from fin_contasaldo cs where cs.idconta = c.id order by datahora desc limit 1), 0) as saldoanterior
+                            , coalesce((select max(cs.datahora) from fin_contasaldo cs where cs.idconta = c.id), '1900-01-01'::timestamp ) as datahora
+                        from
+                            fin_conta c
+                        )
+                        select
+                            (
+                            coalesce(sum(mp.valor * case when cat.dc = 1 then -1 else 1 end), 0) 
+                            + coalesce(sum(mp.juro * case when cat.dc = 1 then -1 else 1 end), 0) 
+                            + coalesce(sum(mp.desconto * case when cat.dc = 1 then 1 else -1 end), 0)
+                            )::decimal(14,2)
+                        from
+                            fin_movparc mp
+                        left join fin_mov m on (mp.idmov = m.id)
+                        left join fin_categoria cat on (m.idcategoria = cat.id)
+                        where
+                            mp.idconta = c.id
+                            and mp.datahora > (select sa.datahora from saldoanterior sa where sa.id = mp.idconta)
+                    )
+                    `, { type: db.sequelize.QueryTypes.UPDATE });
+                }
+                , js_saldoData: async function (obj) {
                     try {
                         let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
-                        let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
+                        let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['datahora', 'desc']] });
                         let sql = await db.sequelize.query(`
                         select
                             sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
@@ -101,39 +133,9 @@ let main = {
                                 }
                             });
                         if (sql.length > 0 && sql[0].soma) {
-                            return application.success(obj.res, { data: application.formatters.fe.decimal(parseFloat(sql[0].soma) + (saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0)), 2) });
+                            return application.success(obj.res, { data: application.formatters.fe.decimal(parseFloat(sql[0].soma) + (saldoanterior ? parseFloat(saldoanterior.valor) : 0), 2) });
                         } else {
-                            return application.success(obj.res, { data: application.formatters.fe.decimal(saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0), 2) });
-                        }
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , js_saldoAtual: async function (obj) {
-                    try {
-                        let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
-                        let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
-                        let sql = await db.sequelize.query(`
-                        select
-                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
-                        from
-                            fin_mov m
-                        left join fin_movparc mp on (m.id = mp.idmov)
-                        left join fin_categoria c on (m.idcategoria = c.id)
-                        where
-                            mp.idconta = :conta
-                            and mp.data > :dataini
-                            `, {
-                                type: db.sequelize.QueryTypes.SELECT
-                                , replacements: {
-                                    conta: obj.data.idconta
-                                    , dataini: saldoanterior ? saldoanterior.data : '1900-01-01'
-                                }
-                            });
-                        if (sql.length > 0 && sql[0].soma) {
-                            return application.success(obj.res, { data: application.formatters.fe.decimal(parseFloat(sql[0].soma) + (saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0)), 2) });
-                        } else {
-                            return application.success(obj.res, { data: application.formatters.fe.decimal(saldoanterior ? parseFloat(saldoanterior.valor) : parseFloat(conta.saldoinicial || 0), 2) });
+                            return application.success(obj.res, { data: application.formatters.fe.decimal(saldoanterior ? parseFloat(saldoanterior.valor) : 0, 2) });
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -143,14 +145,11 @@ let main = {
             , contasaldo: {
                 onsave: async function (obj, next) {
                     try {
-
-                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, data: { $gt: obj.register.data } } });
+                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, datahora: { $gt: obj.register.datahora } } });
                         if (count > 0) {
                             return application.error(obj.res, { msg: 'Existe um fechamento de caixa maior que desta data' });
                         }
-
                         next(obj);
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -340,7 +339,7 @@ let main = {
                                     await mov.save();
                                 }
                             }
-
+                            main.erp.financeiro.conta.f_recalculaSaldos();
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
@@ -352,7 +351,6 @@ let main = {
             , movparc: {
                 ondelete: async function (obj, next) {
                     try {
-
                         let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
                         let ids = [];
                         for (let i = 0; i < movparcs.length; i++) {
@@ -363,41 +361,17 @@ let main = {
                             ids.push(movparcs[i].idmov);
                         }
                         let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: ids } } });
-
                         await next(obj);
-
                         for (let i = 0; i < movs.length; i++) {
                             movs[i].quitado = false;
                             movs[i].save();
                         }
-
+                        main.erp.financeiro.conta.f_recalculaSaldos();
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
                 }
             }
-            , movparccheque: {
-                ondelete: async function (obj, next) {
-                    try {
-
-                        let movparccheques = await db.getModel('fin_movparccheque').findAll({ where: { id: { $in: obj.ids } } });
-                        let ids = [];
-                        for (let i = 0; i < movparccheques.length; i++) {
-                            ids.push(movparccheques[i].idcheque);
-                        }
-
-                        if ((await next(obj)).success) {
-                            db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
-                        }
-
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-            }
-        }
-        , venda: {
-
         }
     }
 }
