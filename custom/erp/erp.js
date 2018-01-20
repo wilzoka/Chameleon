@@ -356,123 +356,20 @@ let main = {
                         let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
                         let ids = [];
                         for (let i = 0; i < movparcs.length; i++) {
-                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: movparcs[i].idconta, data: { $gte: movparcs[i].data } } });
+                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: movparcs[i].idconta, datahora: { $gte: movparcs[i].datahora } } });
                             if (fechamento) {
-                                return application.error(obj.res, { msg: 'Conta fechada para estorno nesta competência' });
+                                return application.error(obj.res, { msg: 'Conta fechada para estorno nesta data/hora' });
                             }
                             ids.push(movparcs[i].idmov);
                         }
                         let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: ids } } });
-                        let listcheques = [];
-                        for (let i = 0; i < movparcs.length; i++) {
-                            let cheques = await db.getModel('fin_movparccheque').findAll({ where: { idmovparc: movparcs[i].id } });
-                            if (cheques) {
-                                listcheques = listcheques.concat(cheques);
-                            }
-                        }
 
-                        next(obj);
+                        await next(obj);
 
                         for (let i = 0; i < movs.length; i++) {
                             movs[i].quitado = false;
                             movs[i].save();
                         }
-
-                        ids = []
-                        for (let i = 0; i < listcheques.length; i++) {
-                            ids.push(listcheques[i].idcheque);
-                        }
-                        await db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
-
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , __venda_adicionarModal: async function (obj) {
-                    try {
-
-                        let body = '';
-                        body += application.components.html.hidden({ name: 'idpedido', value: obj.data.id });
-                        body += application.components.html.autocomplete({
-                            width: '12'
-                            , label: 'Categoria'
-                            , name: 'idcategoria'
-                            , model: 'fin_categoria'
-                            , attribute: 'descricaocompleta'
-                            , where: 'dc = 2'
-                        });
-                        body += application.components.html.integer({
-                            width: '4'
-                            , label: 'Quantidade de Parcelas'
-                            , name: 'qtd'
-                        });
-                        body += application.components.html.date({
-                            width: '4'
-                            , label: 'Data da Primeira Parcela'
-                            , name: 'data'
-                            , value: moment().format('DD/MM/YYYY')
-                        });
-                        body += application.components.html.integer({
-                            width: '4'
-                            , label: 'Dias entre Parcelas'
-                            , name: 'dias'
-                            , value: '30'
-                        });
-
-                        return application.success(obj.res, {
-                            modal: {
-                                form: true
-                                , id: 'venda_adicionarModal_modal'
-                                , title: 'Adicionar Parcelas'
-                                , body: body
-                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button id="venda_adicionarModal_submit" type="button" class="btn btn-primary">Adicionar</button>'
-                            }
-                        });
-
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , __venda_adicionar: async function (obj) {
-                    try {
-
-                        let invalidfields = application.functions.getEmptyFields(obj.data, ['idpedido', 'idcategoria', 'qtd', 'data', 'dias']);
-                        if (invalidfields.length > 0) {
-                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                        }
-
-                        let pedido = await db.getModel('ven_pedido').find({ where: { id: obj.data.idpedido } });
-                        let sum = await db.sequelize.query(
-                            `select round(sum(qtd * unitario), 3) as sum from ven_pedidoitem where idpedido = :v1`
-                            , {
-                                type: db.sequelize.QueryTypes.SELECT
-                                , replacements: {
-                                    v1: pedido.id
-                                }
-                            });
-                        sum = parseFloat(sum[0].sum);
-                        if (sum <= 0) {
-                            return application.error(obj.res, { msg: 'A soma valor dos itens é menor ou igual a 0' });
-                        }
-
-                        let bulkmov = [];
-
-                        for (let i = 1; i <= obj.data.qtd; i++) {
-                            bulkmov.push({
-                                parcela: i + '/' + obj.data.qtd
-                                , datavcto: i == 1 ? application.formatters.be.date(obj.data.data) : obj.data.dias == 30 ? moment(obj.data.data, 'DD/MM/YYYY').add(i - 1, 'M').format('YYYY-MM-DD') : moment(obj.data.data, 'DD/MM/YYYY').add((i - 1) * obj.data.dias, 'day').format('YYYY-MM-DD')
-                                , idpedido: obj.data.idpedido
-                                , idcategoria: obj.data.idcategoria
-                                , valor: (sum / parseInt(obj.data.qtd)).toFixed(2)
-                                , idcorr: pedido.idcliente
-                                , detalhes: 'Venda ' + pedido.id + ' NF ' + pedido.nfe
-                                , quitado: false
-                            });
-                        }
-
-                        await db.getModel('fin_mov').bulkCreate(bulkmov);
-
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
