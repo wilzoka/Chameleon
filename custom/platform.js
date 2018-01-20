@@ -365,7 +365,6 @@ let platform = {
     , permission: {
         onsave: async function (obj, next) {
             try {
-
                 let permission = await db.getModel('permission').find({
                     where: {
                         id: { $ne: obj.register.id }
@@ -373,11 +372,9 @@ let platform = {
                         , idmenu: obj.register.idmenu
                     }
                 });
-
                 if (permission) {
                     return application.error(obj.res, { msg: 'Este usuário já possui acesso a este menu' });
                 }
-
                 next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);

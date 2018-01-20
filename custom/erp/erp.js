@@ -76,20 +76,6 @@ let main = {
 
                 }
             }
-            , cheque: {
-                onsave: async function (obj, next) {
-                    try {
-
-                        let saved = await next(obj);
-                        if (saved.success) {
-                            db.sequelize.query("update fin_cheque set descricaocompleta = id::text || ' - ' || (select cc.nome from cad_corr cc where cc.id = idcliente) || ' - R$ ' || valor;", { type: db.sequelize.QueryTypes.UPDATE });
-                        }
-
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-            }
             , conta: {
                 js_saldoData: async function (obj) {
                     try {
@@ -182,21 +168,21 @@ let main = {
                             let body = '';
                             body += '<div class="row no-margin">';
                             body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
-                            body += application.components.html.date({
-                                width: '2'
-                                , label: 'Data*'
-                                , name: 'data'
-                                , value: moment().format(application.formatters.fe.date_format)
+                            body += application.components.html.datetime({
+                                width: '4'
+                                , label: 'Data/Hora*'
+                                , name: 'datahora'
+                                , value: moment().format(application.formatters.fe.datetime_format)
                             });
                             body += application.components.html.autocomplete({
-                                width: '2'
+                                width: '4'
                                 , label: 'Conta*'
                                 , name: 'idconta'
                                 , model: 'fin_conta'
                                 , attribute: 'descricao'
                             });
                             body += application.components.html.autocomplete({
-                                width: '2'
+                                width: '4'
                                 , label: 'Forma de Pagamento*'
                                 , name: 'idformapgto'
                                 , model: 'fin_formapgto'
@@ -239,9 +225,9 @@ let main = {
 
                                 body += application.components.html.text({
                                     width: '4'
-                                    , label: 'Correntista'
+                                    , label: 'Pessoa'
                                     , name: 'cliente' + obj.ids[i]
-                                    , value: mov.cad_corr.nome
+                                    , value: mov.cad_pessoa.nome
                                     , disabled: 'disabled="disabled"'
                                 });
 
@@ -272,17 +258,8 @@ let main = {
                             }
 
                             body += '<div class="row no-margin">';
-                            body += application.components.html.autocomplete({
-                                width: '6'
-                                , label: 'Cheques <a target="_blank" href="/view/90/0"><button style="padding: 0px 5px;" type="button" class="btn btn-success"><i class="fa fa-plus"></i></button></a>'
-                                , name: 'idcheques'
-                                , model: 'fin_cheque'
-                                , attribute: 'descricaocompleta'
-                                , multiple: 'multiple="multiple"'
-                                , where: 'utilizado is false'
-                            });
                             body += application.components.html.decimal({
-                                width: '2'
+                                width: '2 col-sm-offset-6'
                                 , label: 'Total Valor'
                                 , name: 'valortotal'
                                 , precision: 2
@@ -305,18 +282,9 @@ let main = {
 
                         } else {
 
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idconta', 'idformapgto', 'data']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idconta', 'idformapgto', 'datahora']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                            }
-
-                            if (obj.req.body.idcheques == undefined) {
-                                obj.req.body.idcheques = [];
-                            } else if (typeof obj.req.body.idcheques == 'string') {
-                                obj.req.body.idcheques = [obj.req.body.idcheques];
-                            }
-                            if (obj.req.body.idformapgto == 2 && obj.req.body.idcheques.length <= 0) {
-                                return application.error(obj.res, { msg: 'Selecione um cheque', invalidfields: ['idcheques'] });
                             }
 
                             let ids = obj.req.body.ids.split(',');
@@ -330,9 +298,9 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: requiredFields });
                             }
 
-                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idconta, data: { $gte: application.formatters.be.date(obj.req.body.data) } } });
+                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idconta, datahora: { $gte: application.formatters.be.datetime(obj.req.body.datahora) } } });
                             if (fechamento) {
-                                return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
+                                return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta data/hora' });
                             }
 
                             for (let i = 0; i < ids.length; i++) {
@@ -344,41 +312,8 @@ let main = {
                                     , idconta: obj.req.body.idconta
                                     , desconto: obj.req.body['desconto' + ids[i]] ? application.formatters.be.decimal(obj.req.body['desconto' + ids[i]], 2) : null
                                     , juro: obj.req.body['juro' + ids[i]] ? application.formatters.be.decimal(obj.req.body['juro' + ids[i]], 2) : null
-                                    , data: application.formatters.be.date(obj.req.body.data)
+                                    , datahora: application.formatters.be.datetime(obj.req.body.datahora)
                                 });
-
-                                if (movparc.idformapgto == 2) {// Cheque
-                                    for (let z = 0; z < obj.req.body.idcheques.length; z++) {
-                                        db.getModel('fin_movparccheque').create({
-                                            idmovparc: movparc.id
-                                            , idcheque: obj.req.body.idcheques[z]
-                                        });
-                                        if (mov.fin_categoria.dc == 1) {
-                                            db.getModel('fin_cheque').update({ utilizado: true }, { where: { id: obj.req.body.idcheques[z] } });
-                                        }
-                                    }
-                                }
-
-                                if (mov.fin_categoria.dc == 2 && mov.ven_pedido && mov.ven_pedido.idvendedor) {
-                                    let pedidoitens = await db.getModel('ven_pedidoitem').findAll({ where: { idpedido: mov.ven_pedido.id } });
-                                    let total = 0;
-                                    let comissao = 0;
-                                    for (let z = 0; z < pedidoitens.length; z++) {
-                                        total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
-                                        comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
-                                    }
-                                    if (comissao > 0) {
-                                        await db.getModel('fin_mov').create({
-                                            parcela: '1/1'
-                                            , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
-                                            , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
-                                            , valor: ((parseFloat(movparc.valor) * comissao) / total).toFixed(2)
-                                            , idcorr: mov.ven_pedido.idvendedor
-                                            , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
-                                            , quitado: false
-                                        });
-                                    }
-                                }
                             }
 
                             for (let i = 0; i < ids.length; i++) {
