@@ -495,6 +495,8 @@ var main = {
                         return application.error(obj.res, { msg: 'Não é possível finalizar uma nota já finalizada' });
                     }
 
+                    let est_config = await db.getModel('est_config').find();
+
                     let results = await db.sequelize.query(`
                     select * from (select
                         ni.sequencial
@@ -565,7 +567,6 @@ var main = {
                             }
 
                             application.error(obj.res, { msg: 'Solicitação de compra não encontrado para o item com sequencial ' + nfentradaitens[i].sequencial });
-                            let est_config = await db.getModel('est_config').find();
                             return main.platform.mail.f_sendmail({
                                 to: est_config.gv_email.split(';')
                                 , subject: 'SIP - Solicitação não encontrada'
