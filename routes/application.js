@@ -105,7 +105,7 @@ let application = {
 		, createItem: function (menu) {
 			let description = menu.description;
 			let url = menu.url || '/view/' + menu['view.id'];
-			return '<li><a href="' + url + '"><i class="' + (menu.icon || 'fa fa-angle-right') + '"></i> ' + description + ' </a></li>';
+			return '<li><a href="' + url + '"><i class="' + (menu.icon || 'fa fa-angle-right') + '"></i> <span>' + description + '</span> </a></li>';
 		}
 		, closeGroup: function () {
 			return '</ul></li>';
