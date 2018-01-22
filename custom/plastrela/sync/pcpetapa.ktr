@@ -323,6 +323,11 @@
         <rename>idtprecurso</rename>
         <update>N</update>
       </value>
+      <value>
+        <name>descricaocompleta</name>
+        <rename>DESCRICAOCOMPLETA</rename>
+        <update>Y</update>
+      </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
