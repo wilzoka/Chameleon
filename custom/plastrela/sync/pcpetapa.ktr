@@ -386,7 +386,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select codigo, descricao, tipo_recurso from pcpetapa where empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;</sql>
+    <sql>select codigo, descricao, tipo_recurso, codigo &#x7c;&#x7c; &#x27; - &#x27; &#x7c;&#x7c; descricao as descricaocompleta from pcpetapa where empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
