@@ -5,17 +5,31 @@ let application = require('../../routes/application')
 let main = {
     platform: reload('../platform.js')
     , sipfinancas: {
-        financeiro: {
-            categoria: {
-                __getDC: async function (obj) {
+        cadastro: {
+            correntista: {
+                onsave: async function (obj, next) {
                     try {
-                        let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.data.id } });
-                        return application.success(obj.res, { data: categoria.dc });
+                        obj.register.nomecompleto = obj.register.codigo + ' - ' + obj.register.nome;
+                        next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , onsave: async function (obj, next) {
+            }
+            , item: {
+                onsave: async function (obj, next) {
+                    try {
+                        obj.register.descricaocompleta = obj.register.codigo + ' - ' + obj.register.descricao;
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+        }
+        , financeiro: {
+            categoria: {
+                onsave: async function (obj, next) {
                     try {
 
                         if (obj.register.id == 0) {
@@ -66,7 +80,7 @@ let main = {
 
                         let saved = await next(obj);
                         if (saved.success) {
-                            db.sequelize.query("update fin_cheque set descricaocompleta = id::text || ' - ' || (select cc.nome from cad_corr cc where cc.id = idcliente) || ' - R$ ' || valor;", { type: db.sequelize.QueryTypes.UPDATE });
+                            db.sequelize.query("update fin_cheque set descricaocompleta = id::text || ' - ' || coalesce((select cc.nome from cad_corr cc where cc.id = idcliente), ' SEM CLIENTE ') || ' - R$ ' || valor;", { type: db.sequelize.QueryTypes.UPDATE });
                         }
 
                     } catch (err) {
