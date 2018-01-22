@@ -717,238 +717,6 @@ var main = {
                 }
             }
 
-            , transferencia: function (obj) {
-
-                if (obj.req.method == 'GET') {
-
-                    let body = '';
-                    body += application.components.html.autocomplete({
-                        width: 12
-                        , label: 'Produto'
-                        , name: 'idversao'
-                        , model: 'pcp_versao'
-                        , attribute: 'descricaocompleta'
-                    });
-                    body += application.components.html.decimal({
-                        width: 4
-                        , label: 'Quantidade'
-                        , name: 'qtd'
-                        , precision: 4
-                    });
-                    body += application.components.html.autocomplete({
-                        width: 4
-                        , label: 'Depósito Origem'
-                        , name: 'iddepositode'
-                        , model: 'est_deposito'
-                        , attribute: 'descricao'
-                    });
-                    body += application.components.html.autocomplete({
-                        width: 4
-                        , label: 'Depósito Destino'
-                        , name: 'iddepositopara'
-                        , model: 'est_deposito'
-                        , attribute: 'descricao'
-                    });
-
-                    return application.success(obj.res, {
-                        modal: {
-                            form: true
-                            , action: '/event/' + obj.event.id
-                            , id: 'modalevt'
-                            , title: 'Transferência'
-                            , body: body
-                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Transferir</button>'
-                        }
-                    });
-                } else {
-
-                    let fieldsrequired = ['idversao', 'qtd', 'iddepositode', 'iddepositopara'];
-                    let invalidfields = [];
-
-                    for (var i = 0; i < fieldsrequired.length; i++) {
-                        if (!(fieldsrequired[i] in obj.req.body && obj.req.body[fieldsrequired[i]])) {
-                            invalidfields.push(fieldsrequired[i]);
-                        }
-                    }
-                    if (invalidfields.length > 0) {
-                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                    }
-
-                    return application.success(obj.res, { msg: 'ok' });
-                }
-
-            }
-
-            , _getOperacaoES: function (idoperacao) {
-                return new Promise((resolve, reject) => {
-
-                    db.getModel('est_config').find().then(config => {
-
-                        db.getModel('est_operacao').find({ where: { id: idoperacao }, include: [{ all: true }] }).then(operacao => {
-                            if (operacao && operacao.est_operacaotipo.id == config.idoperacaotipoentrada) {
-                                resolve('E');
-                            } else if (operacao && operacao.est_operacaotipo.id == config.idoperacaotiposaida) {
-                                resolve('S');
-                            } else {
-                                reject('Tipo de Operação Inválido');
-                            }
-                        });
-
-                    });
-
-                });
-            }
-
-            , _getSaldoAnterior: function (idversao, iddeposito) {
-                return new Promise((resolve, reject) => {
-
-                    db.getModel('est_saldo').find({
-                        where: {
-                            idversao: idversao
-                            , iddeposito: iddeposito
-                            , datafechamento: { $ne: null }
-                        }
-                        , order: [['datafechamento', 'desc']]
-                    }).then(saldo => {
-
-                        resolve(saldo);
-
-                    }).catch(err => {
-
-                        reject(err);
-
-                    });
-
-                });
-            }
-
-            , _getSaldoAtual: function (idversao, iddeposito) {
-                return new Promise((resolve, reject) => {
-
-                    db.getModel('est_saldo').findOrCreate({
-                        where: {
-                            idversao: idversao
-                            , iddeposito: iddeposito
-                            , datafechamento: null
-                        }
-                    }).spread((saldo, created) => {
-                        if (created) {
-                            saldo.qtd = 0;
-                            saldo.save();
-                        }
-
-                        resolve(saldo);
-
-                    }).catch(err => {
-
-                        reject(err);
-
-                    });
-
-                });
-            }
-
-            , _recalcularSaldoIndividual: async function (idversao, iddeposito) {
-                const f = main.plastrela.estoque;
-                try {
-                    let saldoanterior = await f._getSaldoAnterior(idversao, iddeposito);
-                    let saldoatual = await f._getSaldoAtual(idversao, iddeposito);
-
-                    if (!saldoanterior) {
-                        saldoanterior = { qtd: 0, datafechamento: '1900-01-01' };
-                    }
-
-                    db.sequelize.query(
-                        " select"
-                        + " sum(case when tipomov = 'S' then qtd * -1 else qtd end) as qtd"
-                        + " from "
-                        + " (select"
-                        + " m.*"
-                        + " , case when ce.id is null then 'S' else 'E' end as tipomov"
-                        + " from"
-                        + " est_mov m"
-                        + " left join est_operacao o on (m.idoperacao = o.id)"
-                        + " left join est_operacaotipo ot on (o.idoperacaotipo = ot.id)"
-                        + " left join est_config ce on (ot.id = ce.idoperacaotipoentrada)"
-                        + " where"
-                        + " m.datahora > :datahora and idversao = :idversao and iddeposito = :iddeposito) as x"
-                        , {
-                            type: db.sequelize.QueryTypes.SELECT
-                            , replacements: {
-                                datahora: saldoanterior.datafechamento
-                                , idversao: idversao
-                                , iddeposito, iddeposito
-                            }
-                        })
-                        .then(result => {
-
-                            if (result.length > 0) {
-                                saldoatual.qtd = (parseFloat(result[0].qtd) + parseFloat(saldoanterior.qtd)).toFixed(4);
-                                saldoatual.save();
-                            }
-
-                        }).catch(err => {
-                            console.error(err);
-                        });
-
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-
-            , _estoqueLiberado: function (iddeposito, datahora) {
-                return new Promise((resolve) => {
-
-                    db.getModel('est_saldo').count({
-                        where: {
-                            bloqueado: true
-                            , iddeposito: iddeposito
-                            , datafechamento: { $gt: datahora }
-                        }
-                    }).then(c => {
-                        return c == 0 ? resolve(true) : resolve(false);
-                    })
-
-                });
-            }
-
-            , _movimentar: async function (obj) {//datahora iduser idoperacao, idversao, iddeposito, qtd
-                return new Promise((resolve) => {
-
-                    const f = main.plastrela.estoque;
-
-                    let invalidfields = application.functions.getEmptyFields(obj, ['datahora', 'idoperacao', 'idversao', 'iddeposito', 'qtd']);
-                    if (invalidfields.length > 0) {
-                        return resolve({ success: false, invalidfields: invalidfields });
-                    }
-
-
-                    f._estoqueLiberado(obj.iddeposito, obj.datahora).then(liberado => {
-                        if (liberado) {
-                            f._getOperacaoES(obj.idoperacao).then(operacao => {
-                                f._getSaldoAtual(obj.idversao, obj.iddeposito).then(saldoatual => {
-
-                                    if (operacao == 'S' && obj.qtd > saldoatual.qtd) {
-                                        return resolve({ success: false, msg: 'Saldo Insuficiente' });
-                                    }
-
-                                    db.getModel('est_mov').create(obj).then(mov => {
-                                        f._recalcularSaldoIndividual(mov.idversao, mov.iddeposito);
-                                        return resolve({ success: true, register: mov });
-                                    }).catch(err => {
-                                        return resolve({ success: false, msg: err });
-                                    });
-
-                                });
-                            });
-                        } else {
-                            return resolve({ success: false, msg: 'Estoque fechado' });
-                        }
-
-                    });
-                });
-            }
-
             , est_volume: {
 
                 _imprimirEtiqueta: async function (obj) {
@@ -1879,6 +1647,231 @@ var main = {
                             }
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , r_balanco: async function (obj) {
+                    try {
+
+                        let f = {
+                            getAtual: async function (obj) {
+
+                                let notfound = await db.sequelize.query(`
+                                select
+                                    v.id
+                                    , de.descricao as depositoendereco
+                                    , v.qtdreal
+                                    , ver.descricaocompleta as produto
+                                from
+                                    est_volume v
+                                left join est_depositoendereco de on (v.iddepositoendereco = de.id)
+                                left join pcp_versao ver on (v.idversao = ver.id)
+                                where
+                                    consumido = false
+                                    and v.iddeposito = :v1
+                                    and v.id not in (select vb.idvolume from est_volumebalanco vb where v.iddeposito = :v1 and vb.iduser = :v2)
+                                `, {
+                                        type: db.sequelize.QueryTypes.SELECT
+                                        , replacements: {
+                                            v1: obj.req.body.iddeposito
+                                            , v2: obj.req.user.id
+                                        }
+                                    });
+
+                                let found = await db.sequelize.query(`
+                                select
+                                    v.id
+                                    , de.descricao as depositoendereco
+                                    , v.qtdreal
+                                    , ver.descricaocompleta as produto
+                                from
+                                    est_volumebalanco vb
+                                left join est_volume v on (vb.idvolume = v.id)
+                                left join est_depositoendereco de on (v.iddepositoendereco = de.id)
+                                left join pcp_versao ver on (v.idversao = ver.id)
+                                where
+                                    v.consumido = false
+                                    and vb.iddeposito = :v1
+                                    and vb.iduser = :v2                                    
+                                `, {
+                                        type: db.sequelize.QueryTypes.SELECT
+                                        , replacements: {
+                                            v1: obj.req.body.iddeposito
+                                            , v2: obj.req.user.id
+                                        }
+                                    });
+
+                                return application.success(obj.res
+                                    , {
+                                        data: {
+                                            notfound: notfound
+                                            , found: found
+                                        }
+                                    });
+                            }
+                            , salvar: async function (obj) {
+                                if (!obj.req.body.iddeposito) {
+                                    return application.error(obj.res, { msg: 'Selecione um depósito' });
+                                }
+                                await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.req.body.iddeposito } });
+                                let bulk = []
+                                for (let i = 0; i < obj.req.body.idsfound.length; i++) {
+                                    bulk.push({
+                                        idvolume: obj.req.body.idsfound[i]
+                                        , iduser: obj.req.user.id
+                                        , iddeposito: obj.req.body.iddeposito
+                                    })
+                                }
+                                await db.getModel('est_volumebalanco').bulkCreate(bulk);
+                                return application.success(obj.res, { msg: application.message.success });
+                            }
+                            , reiniciar: async function (obj) {
+                                if (!obj.req.body.iddeposito) {
+                                    return application.error(obj.res, { msg: 'Selecione um depósito' });
+                                }
+                                await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.req.body.iddeposito } });
+                                f.getAtual(obj);
+                            }
+                            , imprimir: async function (obj) {
+                                try {
+
+                                    if (!obj.req.body.iddeposito) {
+                                        return application.error(obj.res, { msg: 'Selecione um depósito' });
+                                    }
+
+                                    let pdfMakePrinter = require('pdfmake');
+                                    let fontDescriptors = {
+                                        Roboto: {
+                                            normal: 'fonts/cour.ttf',
+                                            bold: 'fonts/courbd.ttf',
+                                            italics: 'fonts/couri.ttf',
+                                            bolditalics: 'fonts/courbi.ttf'
+                                        }
+                                    };
+                                    let printer = new pdfMakePrinter(fontDescriptors);
+
+                                    let body = [];
+                                    let total = [];
+
+                                    let found = await db.sequelize.query(`
+                                select distinct
+                                    v.id
+                                    , de.descricao as depositoendereco
+                                    , v.qtdreal
+                                    , ver.descricaocompleta as produto
+                                from
+                                    est_volumebalanco vb
+                                left join est_volume v on (vb.idvolume = v.id)
+                                left join est_depositoendereco de on (v.iddepositoendereco = de.id)
+                                left join pcp_versao ver on (v.idversao = ver.id)
+                                where
+                                    v.id in (:v1)                                 
+                                `, {
+                                            type: db.sequelize.QueryTypes.SELECT
+                                            , replacements: {
+                                                v1: obj.req.body.idsfound || 0
+                                            }
+                                        });
+
+                                    if (found.length <= 0) {
+                                        body.push([]);
+                                        body[body.length - 1].push({
+                                            text: 'Todos Encontrados'
+                                            , fontSize: 7
+                                            , alignment: 'center'
+                                            , colSpan: 3
+                                        });
+                                    }
+
+                                    for (let i = 0; i < found.length; i++) {
+                                        body.push([]);
+                                        body[body.length - 1].push({
+                                            text: found[i].id
+                                            , fontSize: 7
+                                            , alignment: 'left'
+                                        });
+                                        body[body.length - 1].push({
+                                            text: found[i].depositoendereco || ''
+                                            , fontSize: 7
+                                            , alignment: 'left'
+                                        });
+                                        body[body.length - 1].push({
+                                            text: found[i].produto
+                                            , fontSize: 7
+                                            , alignment: 'left'
+                                        });
+                                        body[body.length - 1].push({
+                                            text: application.formatters.fe.decimal(found[i].qtdreal, 4)
+                                            , fontSize: 7
+                                            , alignment: 'right'
+                                        });
+                                    }
+
+                                    console.log(body);
+
+                                    let dd = {
+                                        footer: function (currentPage, pageCount) {
+                                            return { text: 'Página ' + currentPage + '/' + pageCount, alignment: 'center', fontSize: 8, italic: true };
+                                        }
+                                        , pageOrientation: 'portait'
+                                        , content: [
+                                            {
+                                                table: {
+                                                    headerRows: 1
+                                                    , widths: ['*']
+                                                    , body: [[{
+                                                        text: 'Bobinas Encontradas'
+                                                        , fontSize: 12
+                                                        , alignment: 'center'
+                                                        , bold: true
+                                                        , border: [false, false, false, false]
+                                                    }]]
+                                                }
+                                            }
+                                            , {
+                                                table: {
+                                                    headerRows: 1
+                                                    , widths: ['auto', 'auto', '*', 'auto']
+                                                    , body: body
+                                                }
+                                            }
+                                        ]
+                                        , styles: {
+                                            table: {
+                                                margin: [0, 5, 0, 15]
+                                            }
+                                        }
+                                    };
+
+                                    let doc = printer.createPdfKitDocument(dd);
+                                    let filename = process.hrtime()[1] + '.pdf';
+                                    let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                                    doc.end();
+                                    stream.on('finish', function () {
+                                        return application.success(obj.res, {
+                                            modal: {
+                                                id: 'modalevt'
+                                                , fullscreen: true
+                                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                                , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
+                                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                            }
+                                        });
+                                    });
+                                } catch (error) {
+                                    console.error(error);
+                                }
+
+                            }
+                        }
+
+                        if (obj.req.body.function in f) {
+                            f[obj.req.body.function](obj);
+                        } else {
+                            return application.error(obj.res, { msg: 'Função não encontrada' });
                         }
 
                     } catch (err) {

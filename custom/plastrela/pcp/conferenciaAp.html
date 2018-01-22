@@ -290,9 +290,6 @@
                         $(row).css('background-color', 'lightgray');
                         break;
                 }
-                // if (data[8] == 1) {
-                //     piscaRows.push($(row));
-                // }
             }
         }).on('dblclick', 'tbody tr', function (e) {
             var data = table.row(this).data();
@@ -312,7 +309,7 @@
                 default:
                     break;
             }
-        });;
+        });
 
         $('#pesquisar').click(function () {
             $('div.has-error').removeClass('has-error');

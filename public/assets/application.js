@@ -1101,7 +1101,11 @@ var application = {
             } else if (response.status == 401) {
                 application.notify.error('Acesso não autorizado');
             } else {
-                application.notify.error('Alguma coisa deu errado :(');
+                if ('msg' in response) {
+                    application.notify.error(response.msg);
+                } else {
+                    application.notify.error('Alguma coisa deu errado :(');
+                }
             }
         }
     }

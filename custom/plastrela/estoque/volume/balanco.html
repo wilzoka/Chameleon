@@ -1,0 +1,154 @@
+<div class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label>Depósito*</label>
+                        <select name="iddeposito" class="form-control select2" style="width: 100%;" data-type="autocomplete" data-model="est_deposito"
+                            data-attribute="descricao" data-where="">
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-12 col-xs-12">
+                    <button id="salvar" type="button" class="btn btn-default btn-block"> Salvar</button>
+                    <button id="reiniciar" type="button" class="btn btn-default btn-block"> Reiniciar</button>
+                    <button id="imprimir" type="button" class="btn btn-default btn-block"> Imprimir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab_1" data-toggle="tab"> Bobinas Restantes</a></li>
+            <li><a href="#tab_2" data-toggle="tab"> Bobinas Encontradas</a></li>
+        </ul>
+        <div class="tab-content">
+
+            <div class="tab-pane active" id="tab_1">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table id="tablenotfound" class="table table-bordered table-hover dataTable" width="100%">
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane" id="tab_2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table id="tablefound" class="table table-bordered table-hover dataTable" width="100%">
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function ($) {
+
+        var idsfound = [];
+
+        var tablefound = $('#tablefound').DataTable({
+            dom: 'ft'
+            , columns: [
+                { title: "ID", data: "id", name: "id", orderable: true }
+                , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
+                , { title: "Produto", data: "produto", name: "produto", orderable: true }
+                , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false }
+            ]
+            , pageLength: -1
+        }).on('click', 'tbody tr', function (e) {
+            var data = tablefound.row(this).data();
+            var $row = this;
+            if (data) {
+                application.functions.confirmMessage('Retirar? <h3>ID ' + data.id + '</h2>', function () {
+                    idsfound.splice(idsfound.indexOf(data.id), 1);
+                    tablenotfound.row.add(data).draw();
+                    tablefound.row($row).remove().draw();
+                });
+            }
+        });
+
+        var tablenotfound = $('#tablenotfound').DataTable({
+            dom: 'ft'
+            , columns: [
+                { title: "ID", data: "id", name: "id", orderable: true }
+                , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
+                , { title: "Produto", data: "produto", name: "produto", orderable: true }
+                , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false }
+            ]
+            , pageLength: -1
+        }).on('click', 'tbody tr', function (e) {
+            var data = tablenotfound.row(this).data();
+            var $row = this;
+            if (data) {
+                application.functions.confirmMessage('Confirma? <h3>ID ' + data.id + '</h2>', function () {
+                    idsfound.push(data.id);
+                    tablefound.row.add(data).draw();
+                    tablenotfound.row($row).remove().draw();
+                });
+            }
+        });
+
+        $('select[name="iddeposito"]').on('select2:select', function (e) {
+            application.route.handler({ function: 'getAtual', iddeposito: e.params.data.id }, function (response) {
+                if (response.success) {
+                    tablenotfound.clear().draw();
+                    tablenotfound.rows.add(response.data.notfound).draw();
+                    tablenotfound.columns.adjust().draw();
+
+                    tablefound.clear().draw();
+                    tablefound.rows.add(response.data.found).draw();
+                    tablefound.columns.adjust().draw();
+
+                    for (var i = 0; i < response.data.found.length; i++) {
+                        idsfound.push(response.data.found[i].id)
+                    }
+                } else {
+                    application.handlers.responseError(response);
+                }
+            });
+        });
+
+        $('#salvar').click(function () {
+            application.route.handler({ function: 'salvar', iddeposito: $('select[name="iddeposito"]').val(), idsfound: idsfound }, function (response) {
+                application.handlers.responseSuccess(response);
+            });
+        });
+
+        $('#reiniciar').click(function () {
+            application.functions.confirmMessage('Confirma reiniciar o balanço do depósito selecionado?', function () {
+                application.route.handler({ function: 'reiniciar', iddeposito: $('select[name="iddeposito"]').val() }, function (response) {
+                    if (response.success) {
+                        tablenotfound.clear();
+                        tablenotfound.rows.add(response.data.notfound).draw();
+                        tablenotfound.columns.adjust().draw();
+
+                        tablefound.clear();
+                        tablefound.rows.add(response.data.found).draw();
+                        tablefound.columns.adjust().draw();
+
+                        idsfound = [];
+                    } else {
+                        application.handlers.responseError(response);
+                    }
+                });
+            });
+        });
+
+        $('#imprimir').click(function () {
+            application.route.handler({ function: 'imprimir', iddeposito: $('select[name="iddeposito"]').val(), idsfound: idsfound }, function (response) {
+                application.handlers.responseSuccess(response);
+            });
+        });
+
+    });
+
+</script>
