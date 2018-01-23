@@ -1,7 +1,7 @@
 let application = require('../routes/application')
   , Sequelize = require('sequelize')
-  , sequelize = new Sequelize('siprs', 'postgres', 'postgres', {
-    host: '172.10.30.18'
+  , sequelize = new Sequelize('db', 'postgres', 'postgres', {
+    host: '127.0.0.1'
     , dialect: 'postgres'
     , pool: {
       max: 5
