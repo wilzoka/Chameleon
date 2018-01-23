@@ -1716,8 +1716,11 @@ var main = {
                                 if (!obj.req.body.iddeposito) {
                                     return application.error(obj.res, { msg: 'Selecione um depósito' });
                                 }
+                                if (!obj.req.body.idsfound) {
+                                    return application.error(obj.res, { msg: 'Encontre pelo menos um volume' });
+                                }
                                 await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.req.body.iddeposito } });
-                                let bulk = []
+                                let bulk = [];
                                 for (let i = 0; i < obj.req.body.idsfound.length; i++) {
                                     bulk.push({
                                         idvolume: obj.req.body.idsfound[i]
@@ -1754,21 +1757,20 @@ var main = {
                                     let printer = new pdfMakePrinter(fontDescriptors);
 
                                     let body = [];
-                                    let total = [];
 
-                                    let found = await db.sequelize.query(`
+                                    let registers = await db.sequelize.query(`
                                 select distinct
                                     v.id
                                     , de.descricao as depositoendereco
                                     , v.qtdreal
                                     , ver.descricaocompleta as produto
                                 from
-                                    est_volumebalanco vb
-                                left join est_volume v on (vb.idvolume = v.id)
+                                    est_volume v
                                 left join est_depositoendereco de on (v.iddepositoendereco = de.id)
                                 left join pcp_versao ver on (v.idversao = ver.id)
                                 where
-                                    v.id in (:v1)                                 
+                                    v.id in (:v1)  
+                                order by 1                               
                                 `, {
                                             type: db.sequelize.QueryTypes.SELECT
                                             , replacements: {
@@ -1776,41 +1778,106 @@ var main = {
                                             }
                                         });
 
-                                    if (found.length <= 0) {
+                                    let count = registers.length;
+                                    if (registers.length <= 0) {
                                         body.push([]);
                                         body[body.length - 1].push({
-                                            text: 'Todos Encontrados'
+                                            text: 'Nenhuma Encontrada'
                                             , fontSize: 7
                                             , alignment: 'center'
-                                            , colSpan: 3
+                                            , colSpan: 4
                                         });
+                                        body[body.length - 1].push({ text: '' });
+                                        body[body.length - 1].push({ text: '' });
+                                        body[body.length - 1].push({ text: '' });
                                     }
 
-                                    for (let i = 0; i < found.length; i++) {
+                                    for (let i = 0; i < registers.length; i++) {
                                         body.push([]);
                                         body[body.length - 1].push({
-                                            text: found[i].id
+                                            text: registers[i].id
                                             , fontSize: 7
                                             , alignment: 'left'
                                         });
                                         body[body.length - 1].push({
-                                            text: found[i].depositoendereco || ''
+                                            text: registers[i].depositoendereco || ''
                                             , fontSize: 7
                                             , alignment: 'left'
                                         });
                                         body[body.length - 1].push({
-                                            text: found[i].produto
+                                            text: registers[i].produto
                                             , fontSize: 7
                                             , alignment: 'left'
                                         });
                                         body[body.length - 1].push({
-                                            text: application.formatters.fe.decimal(found[i].qtdreal, 4)
+                                            text: application.formatters.fe.decimal(registers[i].qtdreal, 4)
                                             , fontSize: 7
                                             , alignment: 'right'
                                         });
                                     }
 
-                                    console.log(body);
+                                    let body2 = [];
+
+                                    registers = await db.sequelize.query(`
+                                    select distinct
+                                        v.id
+                                        , de.descricao as depositoendereco
+                                        , v.qtdreal
+                                        , ver.descricaocompleta as produto
+                                    from
+                                        est_volume v
+                                    left join est_depositoendereco de on (v.iddepositoendereco = de.id)
+                                    left join pcp_versao ver on (v.idversao = ver.id)
+                                    where
+                                        v.consumido = false
+                                        and v.id not in (:v1) 
+                                        and v.iddeposito = :v2   
+                                    order by 1                             
+                                    `, {
+                                            type: db.sequelize.QueryTypes.SELECT
+                                            , replacements: {
+                                                v1: obj.req.body.idsfound || 0
+                                                , v2: obj.req.body.iddeposito
+                                            }
+                                        });
+
+                                    let count2 = registers.length;
+                                    if (registers.length <= 0) {
+                                        body2.push([]);
+                                        body2[body2.length - 1].push({
+                                            text: 'Nenhuma Restante'
+                                            , fontSize: 7
+                                            , alignment: 'center'
+                                            , colSpan: 4
+                                        });
+                                        body2[body2.length - 1].push({ text: '' });
+                                        body2[body2.length - 1].push({ text: '' });
+                                        body2[body2.length - 1].push({ text: '' });
+                                    }
+
+                                    for (let i = 0; i < registers.length; i++) {
+                                        body2.push([]);
+                                        body2[body2.length - 1].push({
+                                            text: registers[i].id
+                                            , fontSize: 7
+                                            , alignment: 'left'
+                                        });
+                                        body2[body2.length - 1].push({
+                                            text: registers[i].depositoendereco || ''
+                                            , fontSize: 7
+                                            , alignment: 'left'
+                                        });
+                                        body2[body2.length - 1].push({
+                                            text: registers[i].produto
+                                            , fontSize: 7
+                                            , alignment: 'left'
+                                        });
+                                        body2[body2.length - 1].push({
+                                            text: application.formatters.fe.decimal(registers[i].qtdreal, 4)
+                                            , fontSize: 7
+                                            , alignment: 'right'
+                                        });
+                                    }
 
                                     let dd = {
                                         footer: function (currentPage, pageCount) {
@@ -1823,7 +1890,7 @@ var main = {
                                                     headerRows: 1
                                                     , widths: ['*']
                                                     , body: [[{
-                                                        text: 'Bobinas Encontradas'
+                                                        text: 'Bobinas Encontradas  (' + count + ')'
                                                         , fontSize: 12
                                                         , alignment: 'center'
                                                         , bold: true
@@ -1836,6 +1903,26 @@ var main = {
                                                     headerRows: 1
                                                     , widths: ['auto', 'auto', '*', 'auto']
                                                     , body: body
+                                                }
+                                            }
+                                            , {
+                                                table: {
+                                                    headerRows: 1
+                                                    , widths: ['*']
+                                                    , body: [[{
+                                                        text: 'Bobinas Restantes (' + count2 + ')'
+                                                        , fontSize: 12
+                                                        , alignment: 'center'
+                                                        , bold: true
+                                                        , border: [false, false, false, false]
+                                                    }]]
+                                                }
+                                            }
+                                            , {
+                                                table: {
+                                                    headerRows: 1
+                                                    , widths: ['auto', 'auto', '*', 'auto']
+                                                    , body: body2
                                                 }
                                             }
                                         ]

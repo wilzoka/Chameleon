@@ -473,7 +473,7 @@ if (typeof jQuery === 'undefined') {
       tree.slideUp(this.options.animationSpeed, function () {
         // tree.find(Selector.open + ' > ' + Selector.treeview).slideUp()
         $(this.element).trigger(collapsedEvent)
-        $(tree).attr('style', 'display: none !important');//wilchange
+        // $(tree).attr('style', 'display: none !important');//wilchange
       }.bind(this))
     }
 
