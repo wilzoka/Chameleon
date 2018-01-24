@@ -103,6 +103,11 @@ table.dataTable.compact thead th, table.dataTable.compact tbody td {
 .select2-selection:focus {
     border-color: #3c8dbc;
 }
+.select2-selection__clear {
+    padding: 0 5px;
+    font-size: 20px;
+    color: #888888;
+}
 
 /* Dropzone */
 .dropzone {
@@ -217,9 +222,6 @@ span.round-tab:hover {
 table.dataTable thead tr th, table.dataTable tfoot tr td {
     background-color: #f4f4f4;
     font-weight: bold;
-}
-.btn-group-top-datatables {
-    margin-bottom: 5px;
 }
 a.btnevent i.fa {
     min-width: 14px;

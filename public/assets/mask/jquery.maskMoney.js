@@ -494,13 +494,25 @@
                     fixMobile();
                     $input.unbind(".maskMoney");
                     //wchange 2
-                    if (/android/i.test(navigator.userAgent)) {
-                        $input.keyup(function (e) {
-                            applyMask(e);
-                        });
-                    }
-                    $input.bind("keypress.maskMoney", keypressEvent);
+                    // if (/android/i.test(navigator.userAgent)) {
+                    //     $input.keyup(function (e) {
+                    //         applyMask(e);
+                    //     });
+                    // }
+                    // $input.bind("keypress.maskMoney", keypressEvent);
                     $input.bind("keydown.maskMoney", keydownEvent);
+                    $input.on('keyup', function (e) {
+                        e = e || window.event;
+                        var key = e.which || e.charCode || e.keyCode,
+                            keyPressedChar,
+                            selection,
+                            startPos,
+                            endPos,
+                            value;
+                        selection = getInputSelection();
+                        startPos = selection.start;
+                        maskAndPosition(startPos + 1);
+                    });
                     $input.bind("blur.maskMoney", blurEvent);
                     $input.bind("focus.maskMoney", focusEvent);
                     $input.bind("click.maskMoney", clickEvent);

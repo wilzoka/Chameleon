@@ -248,26 +248,34 @@ var application = {
             $el.find('input[type="radio"]').filter('[value=""]').prop('checked', true);
         }
         , date: function ($obj) {
-            $obj.datetimepicker({
-                format: 'DD/MM/YYYY'
-                , showClear: true
-                , showTodayButton: true
-                , useCurrent: false
-                , locale: 'pt-br'
-            }).on('dp.change', function () {
-                // $(this).blur();
-            }).mask('00/00/0000');
+            if (application.functions.isMobile()) {
+                $obj.mask('00/00/0000');
+            } else {
+                $obj.datetimepicker({
+                    format: 'DD/MM/YYYY'
+                    , showClear: true
+                    , showTodayButton: true
+                    , useCurrent: false
+                    , locale: 'pt-br'
+                }).on('dp.change', function () {
+                    // $(this).blur();
+                }).mask('00/00/0000');
+            }
         }
         , datetime: function ($obj) {
-            $obj.datetimepicker({
-                format: 'DD/MM/YYYY HH:mm'
-                , showClear: true
-                , showTodayButton: true
-                , useCurrent: false
-                , locale: 'pt-br'
-            }).on('dp.change', function () {
-                // $(this).blur();
-            }).mask('00/00/0000 00:00');
+            if (application.functions.isMobile()) {
+                $obj.mask('00/00/0000 00:00');
+            } else {
+                $obj.datetimepicker({
+                    format: 'DD/MM/YYYY HH:mm'
+                    , showClear: true
+                    , showTodayButton: true
+                    , useCurrent: false
+                    , locale: 'pt-br'
+                }).on('dp.change', function () {
+                    // $(this).blur();
+                }).mask('00/00/0000 00:00');
+            }
         }
         , time: function ($obj) {
             $obj.each(function () {
@@ -614,7 +622,7 @@ var application = {
                 });
 
                 // Events
-                var html = '<div class="col-md-12 btn-group-top-datatables no-padding">';
+                var html = '<div class="row"><div class="col-sm-12">';
                 if (data.events.length > 0) {
                     html += '<div class="btn-group btn-group-events">'
                         + '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">'
@@ -634,8 +642,9 @@ var application = {
                     + '<i class="fa fa-search fa-flip-horizontal"></i>'
                     + '</button>'
                     + '</div>'
+                    + '</div>'
                     + '</div>';
-                $(html).insertBefore('#tableview' + data.name);
+                $(html).insertBefore('#tableview' + data.name + '_wrapper');
 
             }
 
