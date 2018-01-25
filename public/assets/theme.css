@@ -2,11 +2,13 @@
 
     /* Hide logo on mobile */
     .main-header .logo {
-        display: none;
+        font-size: 12px;
+        height: 25px;
+        line-height: 26px;
     }
     /* Fix Sidebar for style above */
     .main-sidebar {
-        padding-top: 54px;
+        padding-top: 75px;
     }
     /* Full Sidebar width on mobile */
     body.sidebar-open aside.main-sidebar {
@@ -15,6 +17,9 @@
     /* Align center pace mobile */
     .pace .pace-activity {
         right: 50%;
+    }
+    .sidebar-menu > li.header {
+        display: none;
     }
 
     /* Custom */
@@ -59,6 +64,9 @@ h4.title_subview {
 }
 .treeview-menu > li > a {
     padding: 10px 5px 10px 15px;
+}
+.navbar-custom-menu > .navbar-nav > li > .dropdown-menu {
+    background: none;
 }
 
 /* Bootstrap Fixes */

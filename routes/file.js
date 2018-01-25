@@ -1,4 +1,4 @@
-var application = require('./application')
+const application = require('./application')
     , db = require('../models')
     , multer = require('multer')
     , mv = require('mv')
@@ -7,7 +7,7 @@ var application = require('./application')
     , moment = require('moment')
     ;
 
-var storage = multer.diskStorage({
+let storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, __dirname + '/../tmp/');
     },
@@ -15,16 +15,17 @@ var storage = multer.diskStorage({
         cb(null, file.originalname);
     }
 });
-
-var basepath = __dirname + '/../';
-var requiredFolders = [basepath + 'tmp', basepath + 'files'];
+const basepath = __dirname + '/../';
+const requiredFolders = [
+    basepath + 'tmp'
+    , basepath + 'files'
+];
 for (let i = 0; i < requiredFolders.length; i++) {
     if (!fs.existsSync(requiredFolders[i])) {
         fs.mkdirSync(requiredFolders[i]);
     }
 }
-
-var fileupload = multer({ storage: storage }).single('file');
+let fileupload = multer({ storage: storage }).single('file');
 
 module.exports = function (app) {
 
@@ -57,12 +58,9 @@ module.exports = function (app) {
     });
 
     app.get('/file/download/:id', application.IsAuthenticated, function (req, res) {
-
         db.getModel('file').find({ where: { id: req.params.id } }).then(file => {
-
             let filename = file.id + '.' + file.type;
             let filepath = __dirname + '/../files/' + file.id + '.' + file.type;
-
             if (fs.existsSync(filepath)) {
                 if (file.mimetype == 'application/pdf') {
                     let filecontent = fs.readFileSync(filepath);
@@ -74,9 +72,7 @@ module.exports = function (app) {
             } else {
                 res.send('Arquivo inexistente');
             }
-
         });
-
     });
 
     app.get('/file/unbound/:id', application.IsAuthenticated, function (req, res) {
@@ -102,10 +98,8 @@ module.exports = function (app) {
             if (!req.file) {
                 return application.fatal(res, 'No file given');
             }
-
             let filenamesplited = req.file.filename.split('.');
             let type = filenamesplited[filenamesplited.length - 1];
-
             db.getModel('file').create({
                 filename: req.file.filename
                 , mimetype: req.file.mimetype
@@ -115,7 +109,7 @@ module.exports = function (app) {
                 , datetime: moment()
                 , iduser: req.user.id
             }).then(file => {
-                let path = 'files/' + file.id + '.' + file.type;
+                let path = __dirname + '/../files/' + file.id + '.' + file.type;
                 mv(req.file.path, path, function (err) {
                     if (err) {
                         fs.unlink(req.file.path);

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  {{> parts/head }}
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+  <div class="pace pace-inactive">
+    <div class="pace-activity"></div>
+  </div>
+
+  <script type="text/javascript">
+    if (Cookies.get('sidebar-collapse')) {
+      document.getElementsByTagName('body')[0].className += ' sidebar-collapse';
+    }
+  </script>
+  <div class="wrapper">
+
+    {{> parts/nav }} {{> parts/sidebar }}
+
+    <div class="content-wrapper">
+      <section class="content-header">
+        <h1>
+          {{title}}
+        </h1>
+      </section>
+
+      <section class="content">
+        <div class="row">
+          {{{template}}}
+        </div>
+      </section>
+    </div>
+  </div>
+
+  {{> parts/js }}
+
+  <script type="text/javascript">
+    application.index();
+    $(document).ready(function () {
+      application.components.renderAll();
+    });
+  </script>
+</body>
+
+</html>

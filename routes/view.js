@@ -1,4 +1,4 @@
-var application = require('./application')
+const application = require('./application')
     , db = require('../models')
     , lodash = require('lodash')
     , moment = require('moment')
@@ -7,7 +7,10 @@ var application = require('./application')
     , reload = require('require-reload')(require)
     ;
 
-var renderText = function (viewfield, register) {
+let Handlebars = require('handlebars');
+Handlebars.compiledTemplates = {};
+
+const renderText = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     value = escape(value);
@@ -30,7 +33,7 @@ var renderText = function (viewfield, register) {
     });
 }
 
-var renderTextArea = function (viewfield, register) {
+const renderTextArea = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     value = escape(value);
@@ -61,7 +64,7 @@ var renderTextArea = function (viewfield, register) {
     });
 }
 
-var renderInteger = function (viewfield, register) {
+const renderInteger = function (viewfield, register) {
 
     let value = register && Number.isInteger(parseInt(register[viewfield.modelattribute.name])) ? register[viewfield.modelattribute.name] : '';
 
@@ -83,7 +86,7 @@ var renderInteger = function (viewfield, register) {
     });
 }
 
-var renderDecimal = function (viewfield, register) {
+const renderDecimal = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
 
@@ -114,7 +117,7 @@ var renderDecimal = function (viewfield, register) {
     });
 }
 
-var renderAutocomplete = function (viewfield, register) {
+const renderAutocomplete = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
@@ -151,7 +154,7 @@ var renderAutocomplete = function (viewfield, register) {
     });
 }
 
-var renderDate = function (viewfield, register) {
+const renderDate = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
 
@@ -178,7 +181,7 @@ var renderDate = function (viewfield, register) {
     });
 }
 
-var renderDateTime = function (viewfield, register) {
+const renderDateTime = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
 
@@ -205,7 +208,7 @@ var renderDateTime = function (viewfield, register) {
     });
 }
 
-var renderTime = function (viewfield, register) {
+const renderTime = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
 
@@ -231,7 +234,7 @@ var renderTime = function (viewfield, register) {
     });
 }
 
-var renderCheckbox = function (viewfield, register) {
+const renderCheckbox = function (viewfield, register) {
 
     let label = viewfield.modelattribute.label;
     let disabled = '';
@@ -252,7 +255,7 @@ var renderCheckbox = function (viewfield, register) {
     });
 }
 
-var renderFile = function (viewfield, register) {
+const renderFile = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     value = escape(value);
@@ -280,7 +283,7 @@ var renderFile = function (viewfield, register) {
     });
 }
 
-var renderGeoreference = function (viewfield, register) {
+const renderGeoreference = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     value = escape(value);
@@ -298,7 +301,7 @@ var renderGeoreference = function (viewfield, register) {
     });
 }
 
-var renderSubView = function (viewsubview) {
+const renderSubView = function (viewsubview) {
     return '<div class="col-md-12">'
         + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
         + '<table '
@@ -311,7 +314,7 @@ var renderSubView = function (viewsubview) {
         + '</div>';
 }
 
-var render = function (viewfield, register) {
+const render = function (viewfield, register) {
     switch (viewfield.modelattribute.type) {
         case 'text':
             return renderText(viewfield, register);
@@ -347,7 +350,7 @@ var render = function (viewfield, register) {
     }
 }
 
-var modelate = function (obj) {
+const modelate = function (obj) {
 
     for (let i = 0; i < obj.viewfields.length; i++) {
 
@@ -443,7 +446,7 @@ var modelate = function (obj) {
     return obj;
 }
 
-var validate = function (obj) {
+const validate = function (obj) {
     return new Promise((resolve) => {
 
         let invalidfields = [];
@@ -492,7 +495,7 @@ var validate = function (obj) {
     });
 }
 
-var boundFiles = function (obj) {
+const boundFiles = function (obj) {
     let idsToBound = [];
     for (let i = 0; i < obj.modelattributes.length; i++) {
         if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined) {
@@ -507,7 +510,7 @@ var boundFiles = function (obj) {
     }
 }
 
-var save = function (obj) {
+const save = function (obj) {
     return new Promise((resolve, reject) => {
         let changes = obj.register._changed;
         if (obj.register.changed()) {
@@ -592,7 +595,7 @@ var save = function (obj) {
     });
 }
 
-var validateAndSave = function (obj) {
+const validateAndSave = function (obj) {
     return new Promise((resolve, reject) => {
         validate(obj).then(validation => {
             if (validation.success) {
@@ -618,7 +621,7 @@ var validateAndSave = function (obj) {
     });
 }
 
-var deleteModel = function (obj) {
+const deleteModel = function (obj) {
     return new Promise((resolve, reject) => {
         db.getModel(obj.view.model.name).findAll({ where: { id: { $in: obj.ids } }, raw: true }).then(registers => {
             db.getModel(obj.view.model.name).destroy({ where: { id: { $in: obj.ids } } }).then(() => {
@@ -660,7 +663,7 @@ var deleteModel = function (obj) {
     });
 }
 
-var hasPermission = function (iduser, idview) {
+const hasPermission = function (iduser, idview) {
     return new Promise((resolve, reject) => {
 
         let permissionquery = 'select p.*, v.id as idview from permission p left join menu m on (p.idmenu = m.id) left join view v on (m.idview = v.id) where p.iduser = :iduser';
@@ -707,12 +710,24 @@ var hasPermission = function (iduser, idview) {
     });
 }
 
+const getTemplate = function (template) {
+    let templatename = '';
+    if (template.indexOf('/') < 0) {
+        templatename = __dirname + '/../views/templates/' + template + '.html';
+    } else {
+        templatename = __dirname + '/../custom/' + template + '.html';
+    }
+    if (!(templatename in Handlebars.compiledTemplates)) {
+        Handlebars.compiledTemplates[templatename] = Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
+    }
+    return Handlebars.compiledTemplates[templatename];
+}
+
 module.exports = function (app) {
 
     app.post('/view/:idview/config', application.IsAuthenticated, async (req, res) => {
         try {
-
-            let decodeClass = function (type) {
+            const decodeClass = function (type) {
                 switch (type) {
                     case 'decimal':
                         return 'text-right';
@@ -724,52 +739,44 @@ module.exports = function (app) {
                         return 'text-left';
                 }
             }
-
-            let permission = await hasPermission(req.user.id, req.params.idview);
+            const permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
-
-                let view = await db.getModel('view').find({ where: { id: req.params.idview } });
-                let viewtables = await db.getModel('viewtable').findAll({
+                const view = await db.getModel('view').find({ where: { id: req.params.idview } });
+                const viewtables = await db.getModel('viewtable').findAll({
                     where: { idview: view.id }
                     , order: [['ordertable', 'ASC']]
                     , include: [{ all: true }]
                 });
-                let viewfields = await db.getModel('viewfield').findAll({
+                const viewfields = await db.getModel('viewfield').findAll({
                     where: { idview: view.id, disablefilter: false }
                     , order: [['order', 'ASC']]
                     , include: [{ all: true }]
                 });
-                let viewevents = await db.getModel('viewevent').findAll({
+                const viewevents = await db.getModel('viewevent').findAll({
                     where: { idview: view.id }
                     , order: [['description', 'ASC']]
                     , include: [{ all: true }]
                 });
-
                 let events = [];
                 let columns = [];
                 let needfooter = false;
                 let footer = '';
                 let permissions = {};
                 let filter = '';
-
                 // Permissions
                 permissions.insertable = permission.insertable;
                 permissions.editable = permission.editable;
                 permissions.deletable = permission.deletable;
                 permissions.orderable = view.orderfixed ? false : true;
-
                 // Events
                 for (let i = 0; i < viewevents.length; i++) {
-
                     events.push({
                         id: viewevents[i].id
                         , description: viewevents[i].description
                         , icon: viewevents[i].icon
                         , function: viewevents[i].function
                     });
-
                 }
-
                 // Columns
                 if (!view.supressid) {
                     columns.push({
@@ -781,7 +788,6 @@ module.exports = function (app) {
                     });
                 }
                 for (let i = 0; i < viewtables.length; i++) {
-
                     columns.push({
                         title: viewtables[i].modelattribute.label
                         , data: viewtables[i].modelattribute.name
@@ -793,7 +799,6 @@ module.exports = function (app) {
                             : decodeClass(viewtables[i].modelattribute.type))
                         + (viewtables[i].class ? ' ' + viewtables[i].class : '')
                     });
-
                     if (viewtables[i].totalize) {
                         needfooter = true;
                     }
@@ -813,9 +818,8 @@ module.exports = function (app) {
                     }
                     footer += '</tr></tfoot>';
                 }
-
                 //Filter
-                let getFilterValue = function (name, cookiefilter) {
+                const getFilterValue = function (name, cookiefilter) {
                     if (name in cookiefilter) {
                         return cookiefilter[name];
                     } else {
@@ -824,7 +828,7 @@ module.exports = function (app) {
                 }
                 let cookiefilter = {};
                 let cookiefiltercount = 0;
-                let separator = '+';
+                const separator = '+';
                 if ('tableview' + view.id + 'filter' in req.cookies) {
                     let cookiefilteraux = JSON.parse(req.cookies['tableview' + view.id + 'filter']);
                     cookiefiltercount = cookiefilteraux.length;
@@ -835,21 +839,18 @@ module.exports = function (app) {
                     }
                 }
                 if (!view.supressid) {
-
                     filter += application.components.html.integer({
                         width: 4
                         , label: 'ID'
                         , name: 'id' + separator + 'integer' + separator + 'r'
                         , value: getFilterValue('id' + separator + 'integer' + separator + 'r', cookiefilter)
                     });
-
                     filter += application.components.html.integer({
                         width: 4
                         , label: 'ID - Inicial'
                         , name: 'id' + separator + 'integer' + separator + 'b'
                         , value: getFilterValue('id' + separator + 'integer' + separator + 'b', cookiefilter)
                     });
-
                     filter += application.components.html.integer({
                         width: 4
                         , label: 'ID - Final'
@@ -858,7 +859,6 @@ module.exports = function (app) {
                     });
                 }
                 for (let i = 0; i < viewfields.length; i++) {
-
                     let filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type;
                     let filterbegin = '';
                     let filterend = '';
@@ -866,7 +866,6 @@ module.exports = function (app) {
                     if (viewfields[i].modelattribute.typeadd) {
                         json = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                     }
-
                     switch (viewfields[i].modelattribute.type) {
                         case 'text':
                             filtername += separator + 's';
@@ -990,37 +989,32 @@ module.exports = function (app) {
                             });
                             break;
                         case 'boolean':
-                            let name = viewfields[i].modelattribute.name;
-                            let type = viewfields[i].modelattribute.type;
-                            let label = viewfields[i].modelattribute.label;
-                            filtername = name + separator + type + separator + 'r';
-                            let value = getFilterValue(filtername, cookiefilter);
-                            let html = '<div class="col-md-12">'
+                            filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type + separator + 'r';
+                            filter += '<div class="col-md-12">'
                                 + '<div class="form-group">'
-                                + '<label>' + label + '</label>'
+                                + '<label>' + viewfields[i].modelattribute.label + '</label>'
                                 + '<div class="row">'
                                 + '<div class="col-xs-4">'
                                 + '<label>'
-                                + '<input type="radio" name="' + filtername + '" value="" ' + (value == '' ? 'checked="checked"' : '') + '>'
+                                + '<input type="radio" name="' + filtername + '" value="" ' + (getFilterValue(filtername, cookiefilter) == '' ? 'checked="checked"' : '') + '>'
                                 + ' Todos'
                                 + '</label>'
                                 + '</div>'
                                 + '<div class="col-xs-4">'
                                 + '<label>'
-                                + '<input type="radio" name="' + filtername + '" value="true" ' + (value == 'true' ? 'checked="checked"' : '') + '>'
+                                + '<input type="radio" name="' + filtername + '" value="true" ' + (getFilterValue(filtername, cookiefilter) == 'true' ? 'checked="checked"' : '') + '>'
                                 + ' Sim'
                                 + '</label>'
                                 + '</div>'
                                 + '<div class="col-xs-4">'
                                 + '<label>'
-                                + '<input type="radio" name="' + filtername + '" value="false" ' + (value == 'false' ? 'checked="checked"' : '') + '>'
+                                + '<input type="radio" name="' + filtername + '" value="false" ' + (getFilterValue(filtername, cookiefilter) == 'false' ? 'checked="checked"' : '') + '>'
                                 + ' Não'
                                 + '</label>'
                                 + '</div>'
                                 + '</div>'
                                 + '</div>'
                                 + '</div>';
-                            filter += html;
                             break;
                         case 'virtual':
                             filtername = viewfields[i].modelattribute.name + separator + json.type;
@@ -1092,9 +1086,7 @@ module.exports = function (app) {
                             }
                             break;
                     }
-
                 }
-
                 return application.success(res, {
                     name: view.id
                     , columns: columns
@@ -1106,7 +1098,6 @@ module.exports = function (app) {
                         , html: filter
                     }
                 });
-
             } else {
                 return application.forbidden(res);
             }
@@ -1115,18 +1106,15 @@ module.exports = function (app) {
         }
     });
 
-    app.get('/view/:idview', application.IsAuthenticated, async (req, res) => {
+    app.get('/view/:idview', async (req, res) => {
         try {
-            let permission = await hasPermission(req.user.id, req.params.idview);
+            const permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
-
-                let view = await db.getModel('view').find({ where: { id: req.params.idview } });
-
-                return application.render(res, 'templates/viewtable', {
+                const view = await db.getModel('view').find({ where: { id: req.params.idview } });
+                return application.render(res, __dirname + '/../views/templates/viewtable.html', {
                     title: view.name
                     , viewid: view.id
                 });
-
             } else {
                 return application.forbidden(res);
             }
@@ -1139,17 +1127,14 @@ module.exports = function (app) {
         try {
             let permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {
-
                 let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] });
                 let viewfields = await db.getModel('viewfield').findAll({
                     where: { idview: view.id }
                     , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]
                     , include: [{ all: true }]
                 });
-
                 let attributes = ['id'];
                 for (let i = 0; i < viewfields.length; i++) {
-
                     switch (viewfields[i].modelattribute.type) {
                         case 'virtual':
                             attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
@@ -1158,18 +1143,15 @@ module.exports = function (app) {
                             attributes.push(viewfields[i].modelattribute.name);
                             break;
                     }
-
                 }
-
                 let register = await db.getModel(view.model.name).find({
                     attributes: attributes
                     , where: { id: req.params.id }
                     , include: [{ all: true }]
                 });
                 if (!register && req.params.id != 0) {
-                    return application.render(res, 'templates/viewregisternotfound');
+                    return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
                 }
-
                 let templatezones = await db.getModel('templatezone').findAll({
                     where: { idtemplate: view.template.id }
                 });
@@ -1178,11 +1160,9 @@ module.exports = function (app) {
                 for (let i = 0; i < templatezones.length; i++) {
                     zoneobj[templatezones[i].name] = '';
                 }
-
                 for (let i = 0; i < viewfields.length; i++) {
                     zoneobj[viewfields[i].templatezone.name] += render(viewfields[i], register);
                 }
-
                 let viewsubviews = await db.getModel('viewsubview').findAll({
                     where: { idview: view.id }
                     , include: [{ all: true }]
@@ -1192,20 +1172,17 @@ module.exports = function (app) {
                         zoneobj[viewsubviews[i].templatezone.name] += renderSubView(viewsubviews[i]);
                     }
                 }
-
                 let js = '';
                 if (view.js) {
-                    js = '<script type="text/javascript">' + fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8') + '</script>';
+                    js = '<script type="text/javascript">' + fs.readFileSync('custom/' + view.js, 'utf8') + '</script>';
                 }
-
                 res.setHeader('Cache-Control', 'no-cache, no-store');
-                return application.render(res, 'templates/viewregister', lodash.extend({
-                    template: view.template.name.indexOf('/') < 0 ? view.template.name : __dirname + '/../custom/' + view.template.name
+                return application.render(res, __dirname + '/../views/templates/viewregister.html', {
+                    id: register ? register.id : ''
                     , title: view.name
-                    , id: register ? register.id : ''
+                    , template: getTemplate(view.template.name)(zoneobj)
                     , js: js
-                }, zoneobj));
-
+                });
             } else {
                 return application.forbidden(res);
             }
@@ -1216,22 +1193,17 @@ module.exports = function (app) {
 
     app.post('/view/:idview/delete', application.IsAuthenticated, async (req, res) => {
         try {
-            let permission = await hasPermission(req.user.id, req.params.idview);
-
+            const permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.deletable) {
-
                 let ids = req.body.ids.split(',');
                 if (ids) {
-
                     let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] })
-
                     let obj = {
                         ids: ids
                         , view: view
                         , req: req
                         , res: res
                     };
-
                     if (view.model.ondelete) {
                         let config = await db.getModel('config').find();
                         let custom = reload('../custom/' + config.customfile);
@@ -1239,7 +1211,6 @@ module.exports = function (app) {
                     } else {
                         deleteModel(obj);
                     }
-
                 } else {
                     return application.fatal(res, 'ids not given');
                 }
@@ -1253,9 +1224,8 @@ module.exports = function (app) {
 
     app.post('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {
         try {
-            let permission = await hasPermission(req.user.id, req.params.idview);
+            const permission = await hasPermission(req.user.id, req.params.idview);
             if ((req.params.id == 0 && permission.insertable) || (req.params.id > 0 && permission.editable)) {
-
                 let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] });
                 let viewfields = await db.getModel('viewfield').findAll({
                     where: { idview: view.id, disabled: { $eq: false } }
@@ -1267,7 +1237,6 @@ module.exports = function (app) {
                 if (!register) {
                     register = db.getModel(view.model.name).build({ id: 0 });
                 }
-
                 let obj = {
                     id: req.params.id
                     , view: view
@@ -1278,9 +1247,7 @@ module.exports = function (app) {
                     , req: req
                     , res: res
                 };
-
                 obj = modelate(obj);
-
                 if (view.model.onsave) {
                     let config = await db.getModel('config').find();
                     let custom = reload('../custom/' + config.customfile);
@@ -1294,11 +1261,9 @@ module.exports = function (app) {
                 } else {
                     await validateAndSave(obj);
                 }
-
             } else {
                 return application.error(res, { msg: application.message.permissionDenied });
             }
-
         } catch (err) {
             return application.fatal(res, err);
         }

@@ -1,4 +1,4 @@
-var application = require('./application')
+let application = require('./application')
 	, fs = require('fs')
 	;
 
@@ -10,8 +10,7 @@ module.exports = function (app) {
 			&& (file !== 'application.js')
 			&& (file !== 'schedule.js');
 	}).forEach(function (file) {
-		var name = file.substr(0, file.indexOf('.'));
-		require('./' + name)(app);
+		require('./' + file.substr(0, file.indexOf('.')))(app);
 	});
 
 	app.get('/', function (req, res) {
@@ -19,7 +18,12 @@ module.exports = function (app) {
 	});
 
 	app.get('/home', application.IsAuthenticated, function (req, res) {
-		return res.render('home.ejs');
+		return application.render(res, __dirname + '/../views/home.html', {});
+	});
+
+	//catch 404
+	app.use(function (req, res) {
+		return application.render(res, __dirname + '/../views/404.html', {});
 	});
 
 }

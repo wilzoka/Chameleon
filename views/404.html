@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <% include ../parts/head %>
+    {{> parts/head }}
 </head>
 
 <body class="hold-transition skin-blue layout-top-nav">
@@ -11,17 +11,12 @@
         <div class="content-wrapper">
             <section class="content">
                 <div class="error-page">
+                    <h2 class="headline text-yellow"> 404</h2>
                     <div class="error-content">
-                        <h3><i class="fa fa-warning text-yellow"></i> Oops! Register not found.</h3>
-
+                        <h3><i class="fa fa-warning text-yellow"></i> Oops! Page not found.</h3>
                         <p>
-                            Este registro não se encontra mais no sistema.
+                            Não conseguimos encontrar a página requisitada. Enquanto isso, você pode <a href="/home">retornar a página principal</a>                            e tentar novamente mais tarde.
                         </p>
-
-                        <p>
-                            Você pode <a href="/home">retornar a página principal</a>.
-                        </p>
-
                     </div>
                 </div>
             </section>

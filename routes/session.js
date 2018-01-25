@@ -39,7 +39,7 @@ passport.use(new LocalStrategy(
 module.exports = function (app) {
 
     app.get('/login', function (req, res) {
-        return application.render(res, 'login');
+        return application.render(res, __dirname + '/../views/login.html', {});
     });
 
     app.post('/login', passport.authenticate('local', { failWithError: true })

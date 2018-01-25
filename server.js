@@ -11,13 +11,12 @@ app.disable('x-powered-by');
 //Middleware
 app.use(cookieParser());
 app.use(session({
-    resave: true
-    , saveUninitialized: true
+    resave: false
+    , saveUninitialized: false
     , secret: 'makebettersecurity'
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -29,20 +28,11 @@ app.use('/files', express.static(__dirname + '/files', {
     maxAge: 3600000
 }));
 
-//View Path and Engine
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
-
 //Routes
 require('./routes')(app);
 
 //Schedule
 require('./routes/schedule');
-
-// catch 404
-app.use(function (req, res) {
-    res.status(404).render('404');
-});
 
 app.listen(8080, function () {
     console.log('Server UP');

@@ -1,10 +1,17 @@
 let lodash = require('lodash')
 	, moment = require('moment')
 	, reload = require('require-reload')(require)
+	, Handlebars = require('handlebars')
+	, fs = require('fs')
 	;
 
-let application = {
+Handlebars.registerPartial('parts/head', fs.readFileSync(__dirname + '/../views/parts/head.html', 'utf8'))
+Handlebars.registerPartial('parts/js', fs.readFileSync(__dirname + '/../views/parts/js.html', 'utf8'))
+Handlebars.registerPartial('parts/nav', fs.readFileSync(__dirname + '/../views/parts/nav.html', 'utf8'))
+Handlebars.registerPartial('parts/sidebar', fs.readFileSync(__dirname + '/../views/parts/sidebar.html', 'utf8'))
+Handlebars.compiledTemplates = {};
 
+let application = {
 	IsAuthenticated: function (req, res, next) {
 		if (req.isAuthenticated()) {
 			next();
@@ -16,38 +23,34 @@ let application = {
 			}
 		}
 	}
-
 	, success: function (res, obj) {
 		if (!res.headersSent) {
 			res.json(lodash.extend({ success: true }, obj));
 		}
 	}
-
 	, fatal: function (res, err) {
 		console.error(err);
 		if (!res.headersSent) {
 			res.status(500).json({});
 		}
 	}
-
 	, error: function (res, json) {
 		if (!res.headersSent) {
 			res.json(lodash.extend({ success: false }, json));
 		}
 	}
-
 	, render: function (res, template, json) {
-		res.render(template, lodash.extend({}, json));
+		if (!(template in Handlebars.compiledTemplates)) {
+			Handlebars.compiledTemplates[template] = Handlebars.compile(fs.readFileSync(template, 'utf8'));
+		}
+		res.send(Handlebars.compiledTemplates[template](json)).end();
 	}
-
 	, forbidden: function (res) {
 		res.status(403).render('403');
 	}
-
 	, notFound: function (res) {
 		res.status(404).render('404');
 	}
-
 	, message: {
 		success: 'Ação realizada com sucesso'
 		, invalidFields: 'Informe os campos em vermelho'
@@ -55,7 +58,6 @@ let application = {
 		, selectOnlyOneEvent: 'Selecione apenas um registro para esta executar este evento'
 		, permissionDenied: 'Você não tem permissão para executar esta ação'
 	}
-
 	, sequelize: {
 		decodeType: function (Sequelize, datatype) {
 			switch (datatype) {
@@ -86,7 +88,6 @@ let application = {
 			}
 		}
 	}
-
 	, menu: {
 		createGroup: function (menu) {
 			let icon = menu.icon;
@@ -142,7 +143,6 @@ let application = {
 			return returnchilds;
 		}
 	}
-
 	, formatters: {
 		be: {
 			time: function (value) {
@@ -189,8 +189,7 @@ let application = {
 				return (isNegative ? '-' : '') + application.functions.lpad(integer, integerlength, '0') + ':' + application.functions.lpad(decimal, 2, '0');
 			}
 			, decimal: function (value, precision) {
-				value = parseFloat(value);
-				return value.toFixed(precision).replace('.', ',').replace(new RegExp('\\d(?=(\\d{3})+\\D)', 'g'), '$&.');
+				return parseFloat(value).toFixed(precision).replace('.', ',').replace(new RegExp('\\d(?=(\\d{3})+\\D)', 'g'), '$&.');
 			}
 			, date_format: 'DD/MM/YYYY'
 			, datetime_format: 'DD/MM/YYYY HH:mm'
@@ -203,9 +202,7 @@ let application = {
 				return value.isValid() ? value.format('DD/MM/YYYY HH:mm') : null;
 			}
 		}
-
 	}
-
 	, functions: {
 		getEmptyFields: function (data, fieldsrequired) {
 			let invalidfields = [];
@@ -251,13 +248,11 @@ let application = {
 			return /^win/.test(process.platform);
 		}
 	}
-
 	, modelattribute: {
 		parseTypeadd: function (value) {
 			return value ? JSON.parse(application.functions.singleSpace(value)) : {};
 		}
 	}
-
 	, components: {
 		html: {
 			hidden: function (obj) {
@@ -476,7 +471,6 @@ let application = {
 			}
 		}
 	}
-
 }
 
 module.exports = application;

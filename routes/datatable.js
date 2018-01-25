@@ -1,22 +1,18 @@
-var application = require('./application')
+let application = require('./application')
     , db = require('../models')
     , moment = require('moment')
     , lodash = require('lodash')
     ;
 
-var fixResults = function (registers, modelattributes) {
-
+const fixResults = function (registers, modelattributes) {
     for (let i = 0; i < registers.rows.length; i++) {
         registers.rows[i]['DT_RowId'] = registers.rows[i].id;
     }
-
     let j = {};
     for (let i = 0; i < modelattributes.length; i++) {
-
         if (modelattributes[i].typeadd) {
             j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
         }
-
         switch (modelattributes[i].type) {
             case 'autocomplete':
                 let vas = j.as || j.model;
@@ -55,7 +51,6 @@ var fixResults = function (registers, modelattributes) {
                 }
                 break;
             case 'virtual':
-
                 switch (j.type) {
                     case 'decimal':
                         for (let x = 0; x < registers.rows.length; x++) {
@@ -65,38 +60,20 @@ var fixResults = function (registers, modelattributes) {
                         }
                         break;
                 }
-
                 break;
         }
-
     }
-
-    // for (let i = 0; i < registers.rows.length; i++) {
-    //     for (var k in registers.rows[i]) {
-    //         if (k.indexOf('.') >= 0) {
-    //             delete registers.rows[i][k];
-    //         }
-    //     }
-    // }
-
     return registers;
 }
-
-var getFilter = function (cookie, modelattributes) {
+const getFilter = function (cookie, modelattributes) {
     let obj = {};
-
     cookie = JSON.parse(cookie);
-
     let m;
     let v;
     let f;
-
     for (let i = 0; i < cookie.length; i++) {
-
         for (let k in cookie[i]) {
-
             let field = k.split('+');
-
             switch (field[1]) {
                 case 'date':
                     m = moment(cookie[i][k], 'DD/MM/YYYY');
@@ -121,7 +98,6 @@ var getFilter = function (cookie, modelattributes) {
                     cookie[i][k] = v;
                     break;
             }
-
             let o = {};
             switch (field[2]) {
                 case 's':
@@ -139,7 +115,6 @@ var getFilter = function (cookie, modelattributes) {
                 case 'r':
                     o['$eq'] = cookie[i][k];
                     break;
-
                 // Virtuals
                 case 'rv':
                     for (let z = 0; z < modelattributes.length; z++) {
@@ -202,7 +177,6 @@ var getFilter = function (cookie, modelattributes) {
                     }
                     break;
             }
-
             if (o && obj[field[0]]) {
                 if (obj[field[0]] && 'val' in obj[field[0]]) {//Virtual concatenation
                     obj[field[0]].val += ' and ' + o.val;
@@ -212,11 +186,8 @@ var getFilter = function (cookie, modelattributes) {
             } else if (o) {
                 obj[field[0]] = o;
             }
-
         }
-
     }
-
     return obj;
 }
 
@@ -225,8 +196,7 @@ module.exports = function (app) {
     app.post('/datatables', application.IsAuthenticated, async (req, res) => {
         try {
             let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: [{ all: true }] });
-            let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-
+            const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let where = {};
             if (view.wherefixed) {
                 view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
@@ -236,13 +206,10 @@ module.exports = function (app) {
             if ('tableview' + view.id + 'filter' in req.cookies) {
                 where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter'], modelattributes);
             }
-
             let ordercolumn = view.orderfixed ? view.orderfixed.split(',')[0] : req.body.columns[req.body.order[0].column].data;
             let orderdir = view.orderfixed ? view.orderfixed.split(',')[1] : req.body.order[0].dir;
-
             let attributes = ['id'];
             for (let i = 0; i < modelattributes.length; i++) {
-
                 switch (modelattributes[i].type) {
                     case 'parent':
                         if (req.body.issubview == 'true') {
@@ -257,7 +224,6 @@ module.exports = function (app) {
                         attributes.push(modelattributes[i].name);
                         break;
                 }
-
                 // Order
                 if (modelattributes[i].name == ordercolumn) {
                     switch (modelattributes[i].type) {
@@ -272,7 +238,6 @@ module.exports = function (app) {
                     }
                 }
             }
-
             let pagination = {};
             if (req.body.length > 0) {
                 pagination = {
@@ -280,7 +245,6 @@ module.exports = function (app) {
                     , offset: req.body.start
                 }
             }
-
             let registers = await db.getModel(view.model.name).findAndCountAll(lodash.extend(pagination, {
                 attributes: attributes
                 , raw: true
@@ -288,15 +252,12 @@ module.exports = function (app) {
                 , where: where
                 , order: [[ordercolumn, orderdir]]
             }));
-
             registers = fixResults(registers, modelattributes);
-
             return application.success(res, {
                 recordsTotal: registers.count,
                 recordsFiltered: registers.count,
                 data: registers.rows
             });
-
         } catch (err) {
             return application.fatal(res, err);
         }

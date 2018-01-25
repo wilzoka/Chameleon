@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <% include ../parts/head %>
+  {{> parts/head }}
 </head>
 
 <body class="skin-blue layout-top-nav">
@@ -26,24 +26,24 @@
     <div class="content-wrapper">
       <section class="content-header">
         <h1>
-          <%= title %>
+          {{title}}
         </h1>
       </section>
 
       <section class="content">
         <div class="row">
-          <%- include(template) %>
+          {{{template}}}
         </div>
       </section>
     </div>
 
-    <% include ../parts/js %>
+    {{> parts/js }}
 
-      <script type="text/javascript">
-        $(document).ready(function () {
-          application.components.renderAll();
-        });
-      </script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        application.components.renderAll();
+      });
+    </script>
 </body>
 
 </html>

@@ -294,7 +294,6 @@ var application = {
             });
         }
         , file: function ($obj) {
-
             var previewTemplate = '<div class="dz-preview dz-file-preview">'
                 + '<div class="dz-image">'
                 + '<img data-dz-thumbnail />'
@@ -319,7 +318,6 @@ var application = {
                 + '</div>'
                 + '<button type="button" class="btn btn-xs btn-block btn-danger" data-dz-remove style="border-top-left-radius: 0; border-top-right-radius: 0;">Remover</button>'
                 + '</div>';
-
             $obj.each(function () {
                 var dz = new Dropzone(this, {
                     url: "/file"
@@ -363,7 +361,6 @@ var application = {
                         }
                     }
                 });
-
                 var value = $(this).find('input[type="hidden"]').val();
                 var obj = value ? JSON.parse(value) : [];
                 for (var i = 0; i < obj.length; i++) {
@@ -375,7 +372,6 @@ var application = {
                     dz.emit("complete", mockFile);
                     dz.files.push(mockFile);
                 }
-
                 $(this).on('click', 'div.dz-preview', function () {
                     $.ajax({
                         url: '/file/preview/' + $(this).attr('data-id')
@@ -389,7 +385,6 @@ var application = {
                         }
                     });
                 });
-
             });
         }
         , georeference: function ($obj) {
@@ -401,19 +396,15 @@ var application = {
                         , gestureHandling: 'cooperative'
                         , disableDefaultUI: true
                     };
-
                     var dragfunction = function () {
                         this.hidden.val(this.getPosition().lat() + ',' + this.getPosition().lng());
                     }
-
                     $obj.each(function () {
                         $(this).css('height', '350px');
                         var $hidden = $(this).parent().find('input[type="hidden"]');
-
                         maps[$hidden.attr('name')] = new google.maps.Map(this, myOptions);
                         maps[$hidden.attr('name')].hidden = $hidden;
                         maps[$hidden.attr('name')].name = $hidden.attr('name');
-
                         if ($hidden.val()) {
                             maps[$hidden.attr('name')].marker = new google.maps.Marker({
                                 position: new google.maps.LatLng($hidden.val().split(',')[0], $hidden.val().split(',')[1])
@@ -427,7 +418,6 @@ var application = {
                         } else {
                             maps[$hidden.attr('name')].marker = null;
                         }
-
                         google.maps.event.addListener(maps[$hidden.attr('name')], 'click', function (e) {
                             if (this.marker) {
                                 this.marker.setPosition(e.latLng);
@@ -445,7 +435,6 @@ var application = {
                         });
                     });
                 }
-
                 if (typeof google === 'object' && typeof google.maps === 'object') {
                     realrender($obj);
                 } else {
@@ -695,6 +684,7 @@ var application = {
                 , ordering: data.permissions.orderable
                 , stateSave: true
                 , columns: data.columns
+                , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
                 , select: {
                     style: 'multi'
                     , info: false

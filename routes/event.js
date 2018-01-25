@@ -11,12 +11,10 @@ module.exports = function (app) {
             let config = await db.getModel('config').find();
             let custom = reload('../custom/' + config.customfile);
             let realfunction = application.functions.getRealReference(custom, viewevent.function);
-
             let ids = [];
             if (req.query.ids) {
                 ids = req.query.ids.split(',');
             }
-
             if (realfunction) {
                 return realfunction({
                     req: req

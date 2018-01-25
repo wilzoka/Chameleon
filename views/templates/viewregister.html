@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  {{> parts/head }}
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+  <div class="pace pace-inactive">
+    <div class="pace-activity"></div>
+  </div>
+
+  <script type="text/javascript">
+    if (Cookies.get('sidebar-collapse')) {
+      document.getElementsByTagName('body')[0].className += ' sidebar-collapse';
+    }
+  </script>
+
+  <div class="wrapper">
+    {{> parts/nav }} {{> parts/sidebar }}
+    <div class="content-wrapper">
+      <section class="content-header">
+        <h1>
+          {{title}}
+          <small>{{id}}</small>
+        </h1>
+      </section>
+
+      <input id="id" type="hidden" value="{{id}}" />
+      <form id="form" class="xhr" autocomplete="off">
+        <section class="content">
+          <div class="row">
+              {{{template}}}
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <button type="submit" class="btn btn-success" title="Salvar">
+                    <i class="fa fa-save"></i>
+                  </button>
+              <button type="button" class="btn btn-primary btnreturn" title="Voltar">
+                    <i class="fa fa-reply"></i>
+                  </button>
+            </div>
+          </div>
+        </section>
+      </form>
+    </div>
+  </div>
+
+  {{> parts/js }}
+
+  <script type="text/javascript">
+    application.index();
+    $(document).ready(function () {
+      application.components.renderAll();
+      if (application.functions.getId() == 0) {
+        application.functions.focusFirstElement($('#form'));
+      }
+    });
+  </script>
+  {{js}}
+
+</body>
+
+</html>
