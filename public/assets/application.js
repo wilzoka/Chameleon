@@ -1,5 +1,4 @@
 // Defaults
-
 // Datatable
 $.extend(true, $.fn.dataTable.defaults, {
     language: {
@@ -18,7 +17,6 @@ $.extend(true, $.fn.dataTable.defaults, {
         , sEmptyTable: 'Vazio'
     }
 });
-
 // Dropzone
 Dropzone.autoDiscover = false;
 Dropzone.prototype.defaultOptions.dictDefaultMessage = "Clique aqui para adicionar arquivos";
@@ -31,7 +29,6 @@ Dropzone.prototype.defaultOptions.dictCancelUpload = "Cancelar Upload";
 Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "Você tem certeza que quer cancelar este envio?";
 Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
 Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este arquivo não será salvo.";
-
 var tables = [];
 var maps = [];
 var application = {
@@ -1222,3 +1219,4 @@ var application = {
         });
     }
 }
+var socket = io();

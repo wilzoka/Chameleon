@@ -28,6 +28,7 @@
     "pg-hstore": "2.3.2",
     "require-reload": "0.2.2",
     "sequelize": "4.32.1",
+    "socket.io": "^2.0.4",
     "svg-to-pdfkit": "0.1.6",
     "xlsx": "0.11.18"
   }

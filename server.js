@@ -3,12 +3,13 @@ let express = require('express')
     , bodyParser = require('body-parser')
     , cookieParser = require('cookie-parser')
     , session = require('express-session')
+    , app = express()
+    , http = require('http').Server(app)
     ;
 
-let app = express();
+//Express Settings
 app.disable('x-powered-by');
-
-//Middleware
+//Middlewares
 app.use(cookieParser());
 app.use(session({
     resave: false
@@ -19,7 +20,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
-
+//Socket
+app.io = require('socket.io')(http);
 //Static Content
 app.use('/public', express.static(__dirname + '/public', {
     maxAge: 120000
@@ -27,13 +29,11 @@ app.use('/public', express.static(__dirname + '/public', {
 app.use('/files', express.static(__dirname + '/files', {
     maxAge: 3600000
 }));
-
 //Routes
 require('./routes')(app);
-
 //Schedule
 require('./routes/schedule');
 
-app.listen(8080, function () {
+http.listen(8080, function () {
     console.log('Server UP');
 });

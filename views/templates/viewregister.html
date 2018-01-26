@@ -54,7 +54,7 @@
     application.index();
     $(document).ready(function () {
       application.components.renderAll();
-      if (application.functions.getId() == 0) {
+      if (application.functions.getId() == 0 && !application.functions.isMobile()) {
         application.functions.focusFirstElement($('#form'));
       }
     });
