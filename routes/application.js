@@ -46,10 +46,12 @@ let application = {
 		res.send(Handlebars.compiledTemplates[template](json)).end();
 	}
 	, forbidden: function (res) {
-		res.status(403).render('403');
+		res.status(403);
+		application.render(res, __dirname + '/../views/403.html');
 	}
 	, notFound: function (res) {
-		res.status(404).render('404');
+		res.status(404);
+		application.render(res, __dirname + '/../views/404.html');
 	}
 	, message: {
 		success: 'Ação realizada com sucesso'

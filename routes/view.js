@@ -665,12 +665,9 @@ const deleteModel = function (obj) {
 
 const hasPermission = function (iduser, idview) {
     return new Promise((resolve, reject) => {
-
         let permissionquery = 'select p.*, v.id as idview from permission p left join menu m on (p.idmenu = m.id) left join view v on (m.idview = v.id) where p.iduser = :iduser';
-
         let getChilds = function (idview, subviews) {
             let returnsubviews = [];
-
             for (let i = 0; i < subviews.length; i++) {
                 if (idview == subviews[i].idview) {
                     returnsubviews.push(subviews[i].idsubview);
@@ -680,21 +677,17 @@ const hasPermission = function (iduser, idview) {
                     }
                 }
             }
-
             return returnsubviews;
         }
-
         db.sequelize.query(permissionquery, {
             replacements: { iduser: iduser }
             , type: db.sequelize.QueryTypes.SELECT
         }).then(permissions => {
-
             for (let i = 0; i < permissions.length; i++) {
                 if (permissions[i].idview == idview) {
                     return resolve(permissions[i]);
                 }
             }
-
             db.getModel('viewsubview').findAll({ raw: true }).then(subviews => {
                 for (let i = 0; i < permissions.length; i++) {
                     permissions[i].childs = getChilds(permissions[i].idview, subviews);
@@ -1106,7 +1099,7 @@ module.exports = function (app) {
         }
     });
 
-    app.get('/view/:idview', async (req, res) => {
+    app.get('/view/:idview', application.IsAuthenticated, async (req, res) => {
         try {
             const permission = await hasPermission(req.user.id, req.params.idview);
             if (permission.visible) {

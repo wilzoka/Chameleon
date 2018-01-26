@@ -524,19 +524,19 @@ var application = {
             var createButtons = function (sTableId) {
                 var insertButton = '';
                 if ($('#' + sTableId).attr('data-insertable') == 'true') {
-                    insertButton = '<button id="' + sTableId + '_insert" type="button" class="btn btn-success" data-table="' + sTableId + '" title="Incluir"><i class="fa fa-plus"></i></button>';
+                    insertButton = '<button id="' + sTableId + '_insert" type="button" class="btn btn-success btn-biggermobile" data-table="' + sTableId + '" title="Incluir"><i class="fa fa-plus"></i></button>';
                 }
 
                 var editButton = '';
                 if ($('#' + sTableId).attr('data-editable') == 'true') {
-                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
+                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
                 } else {
-                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
+                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
                 }
 
                 var deleteButton = '';
                 if ($('#' + sTableId).attr('data-deletable') == 'true') {
-                    deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
+                    deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
                 }
 
                 $('#' + sTableId).closest('div#' + sTableId + '_wrapper').after('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
