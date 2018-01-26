@@ -393,7 +393,7 @@ var application = {
                     var myOptions = {
                         zoom: 3
                         , center: { lat: -16.591987, lng: -50.520225 }
-                        , gestureHandling: 'cooperative'
+                        , gestureHandling: 'greedy'
                         , disableDefaultUI: true
                     };
                     var dragfunction = function () {

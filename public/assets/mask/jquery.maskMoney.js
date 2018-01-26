@@ -202,7 +202,7 @@
                         if (!settings.reverse) {
                             startPos = startPos - (originalLen - newLen);
                         }
-                        setCursorPosition(startPos);
+                        // setCursorPosition(startPos);
                     }
 
                     function mask() {
