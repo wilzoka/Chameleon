@@ -2,7 +2,11 @@ let express = require('express')
     , passport = require('passport')
     , bodyParser = require('body-parser')
     , cookieParser = require('cookie-parser')
-    , session = require('express-session')
+    , session = require('express-session')({
+        resave: false
+        , saveUninitialized: false
+        , secret: 'makebettersecurity'
+    })
     , app = express()
     , http = require('http').Server(app)
     ;
@@ -11,17 +15,15 @@ let express = require('express')
 app.disable('x-powered-by');
 //Middlewares
 app.use(cookieParser());
-app.use(session({
-    resave: false
-    , saveUninitialized: false
-    , secret: 'makebettersecurity'
-}));
+app.use(session);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 //Socket
-app.io = require('socket.io')(http);
+app.io = require('socket.io')(http).use(function (socket, next) {
+    session(socket.request, {}, next);
+});
 //Static Content
 app.use('/public', express.static(__dirname + '/public', {
     maxAge: 120000
