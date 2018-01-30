@@ -1,4 +1,4 @@
-let application = require('./application')
+const application = require('./application')
     , db = require('../models')
     , reload = require('require-reload')(require)
     ;

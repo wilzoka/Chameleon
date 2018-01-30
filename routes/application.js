@@ -1,9 +1,10 @@
-let lodash = require('lodash')
+const lodash = require('lodash')
 	, moment = require('moment')
 	, reload = require('require-reload')(require)
-	, Handlebars = require('handlebars')
 	, fs = require('fs')
 	;
+
+let Handlebars = require('handlebars');
 
 Handlebars.registerPartial('parts/head', fs.readFileSync(__dirname + '/../views/parts/head.html', 'utf8'))
 Handlebars.registerPartial('parts/js', fs.readFileSync(__dirname + '/../views/parts/js.html', 'utf8'))

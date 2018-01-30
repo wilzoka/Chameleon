@@ -1,4 +1,4 @@
-let application = require('./application')
+const application = require('./application')
 	, fs = require('fs')
 	;
 
