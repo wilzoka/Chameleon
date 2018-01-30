@@ -13,10 +13,10 @@ let bi = {
             }
 
             for (let i = 0; i < measures.length; i++) {
-                data.hiddenAttributes.push(measures[i].label);
+                data.hiddenAttributes.push(measures[i].sqlfield);
                 switch (measures[i].aggregator) {
                     case 'sum':
-                        data.measures += '"' + measures[i].label + '": function () {return $.pivotUtilities.aggregatorTemplates.sum($.pivotUtilities.numberFormat({thousandsSep: ".", decimalSep: ",", digitsAfterDecimal: "2"}))(["' + measures[i].label + '"]);}';
+                        data.measures += '"' + measures[i].sqlfield + '": function () {return $.pivotUtilities.aggregatorTemplates.sum($.pivotUtilities.numberFormat({thousandsSep: ".", decimalSep: ",", digitsAfterDecimal: "2"}))(["' + measures[i].sqlfield + '"]);}';
                         break;
                 }
                 if (measures.length - 1 != i)
@@ -24,20 +24,7 @@ let bi = {
             }
             data.measures += '}';
 
-            let sql = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
-            for (let i = 0; i < sql.length; i++) {
-                data.data.push({});
-                for (let z = 0; z < dimensions.length; z++) {
-                    if (dimensions[z].sqlfield in sql[i]) {
-                        data.data[data.data.length - 1][dimensions[z].label] = sql[i][dimensions[z].sqlfield];
-                    }
-                }
-                for (let z = 0; z < measures.length; z++) {
-                    if (measures[z].sqlfield in sql[i]) {
-                        data.data[data.data.length - 1][measures[z].label] = sql[i][measures[z].sqlfield];
-                    }
-                }
-            }
+            data.data = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
 
             return application.success(obj.res, { msg: 'cube', data: data });
 

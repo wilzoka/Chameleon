@@ -72,6 +72,7 @@ table.pvtTable tbody tr td {
 .pvtTriangle {
     cursor:pointer;
     color: gray;
+    display: none;
 }
 
 .pvtHorizList li { display: inline; }

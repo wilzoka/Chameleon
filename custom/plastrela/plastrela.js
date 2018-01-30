@@ -1,4 +1,4 @@
-var application = require('../../routes/application')
+let application = require('../../routes/application')
     , db = require('../../models')
     , schedule = require('../../routes/schedule')
     , moment = require('moment')
@@ -7,7 +7,7 @@ var application = require('../../routes/application')
     , reload = require('require-reload')(require)
     ;
 
-var main = {
+let main = {
     platform: reload('../platform.js')
     , plastrela: {
         sync: function () {

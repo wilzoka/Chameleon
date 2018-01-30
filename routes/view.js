@@ -710,9 +710,9 @@ const getTemplate = function (template) {
     } else {
         templatename = __dirname + '/../custom/' + template + '.html';
     }
-    if (!(templatename in Handlebars.compiledTemplates)) {
+    // if (!(templatename in Handlebars.compiledTemplates)) {
         Handlebars.compiledTemplates[templatename] = Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
-    }
+    // }
     return Handlebars.compiledTemplates[templatename];
 }
 

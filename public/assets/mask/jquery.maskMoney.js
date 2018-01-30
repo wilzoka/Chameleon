@@ -373,14 +373,6 @@
                             if (startPos === endPos) {
                                 // backspace
                                 if (key === 8) {
-
-                                    //wchange 1
-                                    var splited = $input.val().split(settings.decimal);
-                                    if (parseInt(splited[0]) == 0 && parseInt(splited[1]) == 0) {
-                                        $input.val('');
-                                        return;
-                                    }
-
                                     if (settings.suffix === "") {
                                         startPos -= 1;
                                     } else {
@@ -493,14 +485,8 @@
 
                     fixMobile();
                     $input.unbind(".maskMoney");
-                    //wchange 2
-                    // if (/android/i.test(navigator.userAgent)) {
-                    //     $input.keyup(function (e) {
-                    //         applyMask(e);
-                    //     });
-                    // }
-                    // $input.bind("keypress.maskMoney", keypressEvent);
                     $input.bind("keydown.maskMoney", keydownEvent);
+                    //wchange 2
                     $input.on('keyup', function (e) {
                         e = e || window.event;
                         var key = e.which || e.charCode || e.keyCode,
@@ -509,6 +495,13 @@
                             startPos,
                             endPos,
                             value;
+                        if (key === 229 || key === 8) {
+                            var splited = $input.val().split(settings.decimal);
+                            if (parseInt(splited[0]) == 0 && parseInt(splited[1]) == 0) {
+                                $input.val('');
+                                return;
+                            }
+                        }
                         selection = getInputSelection();
                         startPos = selection.start;
                         maskAndPosition(startPos + 1);

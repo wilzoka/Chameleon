@@ -270,7 +270,7 @@ module.exports = function (app) {
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let modelattribute = await db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 
-            var where = {};
+            let where = {};
 
             if (view.wherefixed) {
                 view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
