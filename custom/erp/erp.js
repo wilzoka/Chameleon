@@ -1,4 +1,4 @@
-let application = require('../../routes/application')
+const application = require('../../routes/application')
     , reload = require('require-reload')(require)
     ;
 

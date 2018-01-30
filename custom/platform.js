@@ -1,4 +1,4 @@
-let db = require('../models')
+const db = require('../models')
     , moment = require('moment')
     , fs = require('fs')
     , schedule = require('../routes/schedule')
