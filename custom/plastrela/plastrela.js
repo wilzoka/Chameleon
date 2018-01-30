@@ -1543,12 +1543,10 @@ let main = {
                 }
                 , e_reservar: async function (obj) {
                     try {
-
                         if (obj.req.method == 'GET') {
                             if (obj.ids.length <= 0) {
                                 return application.error(obj.res, { msg: application.message.selectOneEvent });
                             }
-
                             let body = '';
                             body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
                             body += application.components.html.autocomplete({
@@ -1558,7 +1556,6 @@ let main = {
                                 , model: 'pcp_op'
                                 , attribute: 'codigo'
                             });
-
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -1574,29 +1571,44 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-
                             bulkreservas = [];
                             let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.req.body.ids.split(',') } } });
                             for (let i = 0; i < volumes.length; i++) {
-                                if (parseFloat(volumes[i].qtdreal) > 0) {
-                                    let sum = (await db.getModel('est_volumereserva').sum('qtd', { where: { idvolume: volumes[i].id } })) || 0;
-                                    bulkreservas.push({
-                                        idvolume: volumes[i].id
-                                        , idpedidoitem: null
-                                        , qtd: (parseFloat(volumes[i].qtdreal) - sum).toFixed(4)
-                                        , idop: obj.req.body.idop
-                                        , apontado: false
-                                    });
+                                let reservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volumes[i].id } });
+                                let op = await db.getModel('pcp_op').find({ where: { id: obj.req.body.idop } });
+                                let pcp_opep = await db.getModel('pcp_opep').find({ where: { idop: op.id } });
+                                let ven_pedidoitem = await db.getModel('ven_pedidoitem').find({ where: { idpedido: pcp_opep ? pcp_opep.idpedido : 0, idversao: op.idversao } });
+                                if (!ven_pedidoitem) {
+                                    return application.error(obj.res, { msg: 'Não foi encontrado nenhum vínculo de pedido/item com a OP informada' });
+                                }
+                                switch (reservas.length) {
+                                    case 0:
+                                        bulkreservas.push({
+                                            idvolume: volumes[i].id
+                                            , idpedidoitem: ven_pedidoitem.id
+                                            , qtd: volumes[i].qtdreal
+                                            , idop: obj.req.body.idop
+                                            , apontado: false
+                                        });
+                                        break;
+                                    case 1:
+                                        if (reservas[0].idpedidoitem = ven_pedidoitem.id) {
+                                            reservas[0].idop = op.id;
+                                            await reservas[0].save();
+                                        } else {
+                                            return application.error(obj.res, { msg: 'A reserva do volume ' + volumes[i].id + ' não pertence a OP informada' });
+                                        }
+                                        break;
+                                    default:
+                                        return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' possui mais de uma reserva' });
+                                        break;
                                 }
                             }
                             if (bulkreservas.length > 0) {
                                 await db.getModel('est_volumereserva').bulkCreate(bulkreservas);
                             }
-
-
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

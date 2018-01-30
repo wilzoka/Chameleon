@@ -357,7 +357,7 @@
            </partitioning>
     <connection>SIPv2</connection>
     <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
+    <cache_load_all>Y</cache_load_all>
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
@@ -398,8 +398,8 @@
            <schema_name/>
            </partitioning>
     <connection>SIPv2</connection>
-    <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
+    <cache>Y</cache>
+    <cache_load_all>Y</cache_load_all>
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
@@ -441,7 +441,7 @@
            </partitioning>
     <connection>SIPv2</connection>
     <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
+    <cache_load_all>Y</cache_load_all>
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
@@ -495,7 +495,7 @@
            </partitioning>
     <connection>SIPv2</connection>
     <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
+    <cache_load_all>Y</cache_load_all>
     <cache_size>0</cache_size>
     <lookup>
       <schema/>

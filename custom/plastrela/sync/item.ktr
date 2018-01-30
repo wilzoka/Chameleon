@@ -714,7 +714,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select situacao, codigo, descricao, unidade, classe_produto, grupo, tipo_item from estitem where empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d; and coalesce&#x28;data_alteracao, data_cadastro&#x29; &#x3e; sysdate - 3</sql>
+    <sql>select situacao, codigo, descricao, unidade, classe_produto, grupo, tipo_item from estitem where empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d; and coalesce&#x28;data_alteracao, data_cadastro&#x29; &#x3e; sysdate - 1</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

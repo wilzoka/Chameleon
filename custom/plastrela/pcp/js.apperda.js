@@ -10,11 +10,11 @@ $(function () {
     }
 
     $idtipoperda.on('select2:select', function (e) {
-        $idetapacausa.val(null).trigger("change");
+        $idetapacausa.val(null).trigger('change');
         $idetapacausa.attr('data-where', 'id in (select idetapa from pcp_etapacausaperda where idtipoperda = ' + e.params.data.id + ')');
     });
     $idtipoperda.on('select2:unselecting', function (e) {
-        $idetapacausa.val(null).trigger("change");
+        $idetapacausa.val(null).trigger('change');
         $idetapacausa.attr('data-where', '1 != 1');
     });
 

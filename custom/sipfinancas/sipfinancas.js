@@ -1,5 +1,7 @@
 let application = require('../../routes/application')
+    , db = require('../../models')
     , reload = require('require-reload')(require)
+    , moment = require('moment')
     ;
 
 let main = {
@@ -95,7 +97,7 @@ let main = {
                         let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
                         let sql = await db.sequelize.query(`
                         select
-                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
+                            sum(case when c.dc = 1 then (mp.valor + coalesce(mp.desconto, 0) - coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
                         from
                             fin_mov m
                         left join fin_movparc mp on (m.id = mp.idmov)
@@ -169,12 +171,31 @@ let main = {
                 }
             }
             , mov: {
-                e_baixarTitulos: async function (obj) {
+                onsave: async function (obj, next) {
+                    try {
+
+                        if (!obj.register.data) {
+                            obj.register.data = moment();
+                        }
+
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_baixarTitulos: async function (obj) {
                     try {
 
                         if (obj.req.method == 'GET') {
                             if (obj.ids.length <= 0) {
                                 return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+
+                            let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < movs.length; i++) {
+                                if (movs[i].quitado) {
+                                    return application.error(obj.res, { msg: 'Na seleção contém o título ID ' + movs[i].id + ' já recebido' });
+                                }
                             }
 
                             let body = '';
@@ -366,7 +387,7 @@ let main = {
                                         comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
                                     }
                                     if (comissao > 0) {
-                                        await db.getModel('fin_mov').create({
+                                        let movcom = await db.getModel('fin_mov').create({
                                             parcela: '1/1'
                                             , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
                                             , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
@@ -374,6 +395,11 @@ let main = {
                                             , idcorr: mov.ven_pedido.idvendedor
                                             , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
                                             , quitado: false
+                                        });
+
+                                        await db.getModel('fin_movparccomissao').create({
+                                            idmov: movcom.id
+                                            , idmovparc: movparc.id
                                         });
                                     }
                                 }
@@ -418,12 +444,22 @@ let main = {
 
                         let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
                         let ids = [];
+                        let mpc = [];
                         for (let i = 0; i < movparcs.length; i++) {
                             let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: movparcs[i].idconta, data: { $gte: movparcs[i].data } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: 'Conta fechada para estorno nesta competência' });
                             }
                             ids.push(movparcs[i].idmov);
+
+                            let movparccomissao = await db.getModel('fin_movparccomissao').find({ where: { idmovparc: movparcs[i].id } });
+                            if (movparccomissao) {
+                                let mpcmov = await db.getModel('fin_movparc').find({ where: { idmov: movparccomissao.idmov } });
+                                if (mpcmov) {
+                                    return application.error(obj.res, { msg: 'Não é possível estornar uma movimentação com comissão já quitada (ID ' + movparccomissao.idmov + ')' })
+                                }
+                                mpc.push(movparccomissao);
+                            }
                         }
                         let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: ids } } });
                         let listcheques = [];
@@ -433,6 +469,10 @@ let main = {
                                 listcheques = listcheques.concat(cheques);
                             }
                         }
+                        for (let i = 0; i < mpc.length; i++) {
+                            let movaux = await db.getModel('fin_mov').find({ where: { id: mpc[i].idmov } });
+                            await movaux.destroy();
+                        }
 
                         next(obj);
 
@@ -440,12 +480,12 @@ let main = {
                             movs[i].quitado = false;
                             movs[i].save();
                         }
-
                         ids = []
                         for (let i = 0; i < listcheques.length; i++) {
                             ids.push(listcheques[i].idcheque);
                         }
                         await db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
+
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -563,7 +603,21 @@ let main = {
             }
         }
         , venda: {
+            pedido: {
+                onsave: async function (obj, next) {
+                    try {
 
+                        let register = await db.getModel('ven_pedido').find({ where: { id: { $ne: obj.id }, nfe: obj.register.nfe } })
+                        if (register) {
+                            return application.error(obj.res, { msg: 'Já existe uma venda com este número de NFE' });
+                        }
+
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
         }
     }
 }
