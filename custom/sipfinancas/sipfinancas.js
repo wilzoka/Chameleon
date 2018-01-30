@@ -97,7 +97,7 @@ let main = {
                         let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
                         let sql = await db.sequelize.query(`
                         select
-                            sum(case when c.dc = 1 then (mp.valor + coalesce(mp.desconto, 0) - coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
+                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
                         from
                             fin_mov m
                         left join fin_movparc mp on (m.id = mp.idmov)

@@ -1,3 +1,7 @@
+let application = require('../../routes/application')
+    , db = require('../../models')
+    ;
+
 let bi = {
     js_getCube: async function (obj) {
         try {
