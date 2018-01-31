@@ -386,12 +386,13 @@ let main = {
                                         total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
                                         comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
                                     }
-                                    if (comissao > 0) {
+                                    if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) > 0 && comissao > 0) {
                                         let movcom = await db.getModel('fin_mov').create({
-                                            parcela: '1/1'
+                                            data: moment()
+                                            , parcela: '1/1'
                                             , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
                                             , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
-                                            , valor: ((parseFloat(movparc.valor) * comissao) / total).toFixed(2)
+                                            , valor: (((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) * comissao) / total).toFixed(2)
                                             , idcorr: mov.ven_pedido.idvendedor
                                             , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
                                             , quitado: false
@@ -431,6 +432,47 @@ let main = {
                             }
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_recalcularComissao: async function (obj) {
+                    try {
+
+                        let movparcs = await db.getModel('fin_movparc').findAll();
+
+                        for (let i = 0; i < movparcs.length; i++) {
+                            let movparc = movparcs[i];
+                            let mov = await db.getModel('fin_mov').find({ where: { id: movparc.idmov }, include: [{ all: true }] });
+
+                            if (mov.fin_categoria.dc == 2 && mov.ven_pedido && mov.ven_pedido.idvendedor) {
+                                let pedidoitens = await db.getModel('ven_pedidoitem').findAll({ where: { idpedido: mov.ven_pedido.id } });
+                                let total = 0;
+                                let comissao = 0;
+                                for (let z = 0; z < pedidoitens.length; z++) {
+                                    total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
+                                    comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
+                                }
+                                if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) > 0 && comissao > 0) {
+                                    let movcom = await db.getModel('fin_mov').create({
+                                        data: moment()
+                                        , parcela: '1/1'
+                                        , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
+                                        , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
+                                        , valor: (((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) * comissao) / total).toFixed(2)
+                                        , idcorr: mov.ven_pedido.idvendedor
+                                        , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
+                                        , quitado: false
+                                    });
+
+                                    await db.getModel('fin_movparccomissao').create({
+                                        idmov: movcom.id
+                                        , idmovparc: movparc.id
+                                    });
+                                }
+                            }
                         }
 
                     } catch (err) {
@@ -562,7 +604,8 @@ let main = {
 
                         for (let i = 1; i <= obj.data.qtd; i++) {
                             bulkmov.push({
-                                parcela: i + '/' + obj.data.qtd
+                                data: moment()
+                                , parcela: i + '/' + obj.data.qtd
                                 , datavcto: i == 1 ? application.formatters.be.date(obj.data.data) : obj.data.dias == 30 ? moment(obj.data.data, 'DD/MM/YYYY').add(i - 1, 'M').format('YYYY-MM-DD') : moment(obj.data.data, 'DD/MM/YYYY').add((i - 1) * obj.data.dias, 'day').format('YYYY-MM-DD')
                                 , idpedido: obj.data.idpedido
                                 , idcategoria: obj.data.idcategoria
