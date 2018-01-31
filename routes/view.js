@@ -711,7 +711,7 @@ const getTemplate = function (template) {
         templatename = __dirname + '/../custom/' + template + '.html';
     }
     // if (!(templatename in Handlebars.compiledTemplates)) {
-        Handlebars.compiledTemplates[templatename] = Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
+    Handlebars.compiledTemplates[templatename] = Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
     // }
     return Handlebars.compiledTemplates[templatename];
 }
@@ -1167,7 +1167,7 @@ module.exports = function (app) {
                 }
                 let js = '';
                 if (view.js) {
-                    js = '<script type="text/javascript">' + fs.readFileSync('custom/' + view.js, 'utf8') + '</script>';
+                    js = '<script type="text/javascript">' + fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8') + '</script>';
                 }
                 res.setHeader('Cache-Control', 'no-cache, no-store');
                 return application.render(res, __dirname + '/../views/templates/viewregister.html', {
