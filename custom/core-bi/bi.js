@@ -14,6 +14,7 @@ let bi = {
                 hiddenAttributes: []
                 , measures: 'var globalaggregator = {'
                 , data: []
+                , filteravailable: []
             }
 
             for (let i = 0; i < measures.length; i++) {
@@ -29,8 +30,13 @@ let bi = {
             data.measures += '}';
 
             data.data = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
+            if (data.data.length > 0) {
+                for (let k in data.data[0]) {
+                    data.filteravailable.push(k);
+                }
+            }
 
-            return application.success(obj.res, { msg: 'cube', data: data });
+            return application.success(obj.res, { data: data });
 
         } catch (err) {
             return application.fatal(obj.res, err);

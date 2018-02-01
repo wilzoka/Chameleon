@@ -48,6 +48,9 @@ h4.title_subview {
 .navbar-custom-menu > .navbar-nav > li > .dropdown-menu {
     background: none;
 }
+.box {
+    border-top: 2px solid #d2d6de;
+}
 
 /* Bootstrap */
 @media (min-width: 768px) {

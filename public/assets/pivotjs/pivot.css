@@ -33,7 +33,11 @@ table.pvtTable tbody tr td {
     width: 15px;
     margin-left: 5px;
     display: inline-block; }
-.pvtAggregator { margin-bottom: 5px ;}
+.pvtAggregator { 
+    margin-bottom: 5px ;
+    display: block;
+    width: 100%;
+}
 
 .pvtAxisContainer, .pvtVals {
     border: 1px solid gray;
@@ -141,4 +145,9 @@ table.pvtUi td{
 , .pivotUiHidden > .pvtUi > tr:nth-child(2)
 , .pivotUiHidden > .pvtUi > tr:nth-child(3) > td:nth-child(1)  {
     display: none;
+}
+
+table.pvtUi > tr:first-child > td:first-child {
+    border: 1px solid gray;
+    background: #EEE;
 }
