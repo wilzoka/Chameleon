@@ -21,7 +21,7 @@
             $selector.pivotUI(
                 obj.data
                 , $.extend(
-                    JSON.parse($selector.siblings('textarea').val() || '{}')
+                    JSON.parse($selector.siblings('textarea.config').val() || '{}')
                     , {
                         renderers: $.extend(
                             $.pivotUtilities.renderers
@@ -45,7 +45,7 @@
         function renderAll() {
             $('.pivotdiv').filter(':visible:not(.rendered)').each(function () {
                 var $this = $(this);
-                application.jsfunction('platform.core_bi.js_getCube', { idcube: $(this).attr('data-idcube') }, function (response) {
+                application.jsfunction('platform.core_bi.js_getCube', { idcube: $(this).attr('data-idcube'), filter: $(this).siblings('textarea.filter').val() || '' }, function (response) {
                     if (response.success) {
                         renderPivot($this, response.data);
                     }

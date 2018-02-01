@@ -7,7 +7,7 @@ let bi = {
         try {
 
             let cube = await db.getModel('bi_cube').find({ raw: true, where: { id: obj.data.idcube } });
-            let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id } });
+            let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
             let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: cube.id } });
 
             let data = {
@@ -29,11 +29,41 @@ let bi = {
             }
             data.measures += '}';
 
-            data.data = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
-            if (data.data.length > 0) {
-                for (let k in data.data[0]) {
-                    data.filteravailable.push(k);
+            let filter = JSON.parse(obj.data.filter || '[]');
+            let where = [];
+            for (let i = 0; i < filter.length; i++) {
+                let values = [];
+                switch (filter[i].operador) {
+                    case '=':
+                        values = filter[i].valor.split(';');
+                        for (let z = 0; z < values.length; z++) {
+                            values[z] = "'" + values[z] + "'";
+                        }
+                        where.push('"' + filter[i].campo + '" in (' + values.join(',') + ')');
+                        break;
+                    case '!=':
+                        values = filter[i].valor.split(';');
+                        for (let z = 0; z < values.length; z++) {
+                            values[z] = "'" + values[z] + "'";
+                        }
+                        where.push('"' + filter[i].campo + '" not in (' + values.join(',') + ')');
+                        break;
+                    case 'ilike':
+                        where.push('"' + filter[i].campo + '" ' + filter[i].operador + " '%" + filter[i].valor + "%'")
+                        break;
+                    default:
+                        where.push('"' + filter[i].campo + '" ' + filter[i].valor)
+                        break;
                 }
+            }
+            if (where.length > 0) {
+                data.data = await db.sequelize.query('select * from (' + cube.sql + ') as x where ' + where.join(' and '), { type: db.sequelize.QueryTypes.SELECT });
+            } else {
+                data.data = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
+            }
+
+            for (let i = 0; i < dimensions.length; i++) {
+                data.filteravailable.push(dimensions[i].sqlfield);
             }
 
             return application.success(obj.res, { data: data });
@@ -100,7 +130,8 @@ let bi = {
                     content += '<div class="box">';
                     content += '<div class="box-header"><h3 class="box-title">' + analysis[z].bi_analysis.description + '</h3></div>';
                     content += '<div class="box-body">';
-                    content += '<textarea class="hidden">' + analysis[z].bi_analysis.config + '</textarea>'
+                    content += '<textarea class="hidden config">' + analysis[z].bi_analysis.config + '</textarea>'
+                    content += '<textarea class="hidden filter">' + (analysis[z].bi_analysis.filter || '') + '</textarea>'
 
                     let style = [];
                     if (analysis[z].height) {

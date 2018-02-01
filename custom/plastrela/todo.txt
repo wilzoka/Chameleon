@@ -1,4 +1,4 @@
-[ ] - Emanuele      18/01/2018 - Volume - Puxar apenas o item do pedido em vez do pedido - item;
-[ ] - Emanuele      18/01/2018 - Volume Reserva - Filtrar Apenas a OP quando selecionado o pedido - item;
+[x] - Emanuele      18/01/2018 - Volume - Puxar apenas o item do pedido em vez do pedido - item;
+[x] - Emanuele      18/01/2018 - Volume Reserva - Filtrar Apenas a OP quando selecionado o pedido - item;
 [x] - Fernando      19/01/2018 - Verificar esquema de reserva na OC 17186;
 [x] -               19/01/2018 - Verificar envio de email na finalização de entrada da NF;

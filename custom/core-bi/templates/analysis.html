@@ -13,19 +13,17 @@
 </div>
 
 <div id="colfilter" class="col-md-12 hidden">
-    <div class="box ">
-        <!-- collapsed-box -->
+    <div class="box collapsed-box">
         <div class="box-header">
             <i class="fa fa-filter"></i>
-            <h3 class="box-title">Filtros</h3>
+            <h3 class="box-title">Filtros (0)</h3>
             <div class="box-tools pull-right">
                 <button type="button" class="btn btn-sm btn-default" data-widget="collapse">
                     <i class="fa fa-plus"></i>
                 </button>
             </div>
         </div>
-        <div class="box-body">
-            <!-- style="display: none;" -->
+        <div class="box-body" style="display: none;">
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">
@@ -38,34 +36,30 @@
                     <div class="form-group">
                         <label>Operador</label>
                         <select name="operador" class="form-control" style="width: 100%;">
-                                <option value="equals">Igual</option>
-                                <option value="">Diferente</option>
-                                <option value="">Contém</option>
-                                <option value="">Não Contém</option>
-                                
-                                <option value="">Maior</option>
-                                <option value="">Menor</option>
-
-                                <option value="">Customizado</option>
+                            <option></option>
+                            <option value="=">Igual</option>
+                            <option value="!=">Diferente</option>
+                            <option value="ilike">Contém</option> 
+                            <option value="?">Customizado</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
                         <label>Valor</label>
-                        <input name="valor" class="form-control" style="width: 100%;"/>
+                        <input name="valor" class="form-control" style="width: 100%;" />
                     </div>
                 </div>
                 <div class="col-md-1 no-padding-left">
                     <div class="form-group">
                         <label style="color: white">.</label>
-                        <button type="button" class="btn btn-success" style="width: 100%;">
+                        <button id="addfilter" type="button" class="btn btn-success" style="width: 100%;">
                             <i class="fa fa-plus"></i>
                         </button>
                     </div>
                 </div>
             </div>
-            <table id="tablefilter" class="table table-bordered table-hover dataTable" width="100%">
+            <table id="tablefilter" class="table table-bordered table-hover dataTable" style="width: 100%;">
             </table>
             <div id="zfilter" class="row">
                 {{{zfilter}}}
@@ -76,10 +70,6 @@
 
 <div id="colpivot" class="col-md-12 hidden">
     <div class="box">
-        <!-- <div class="box-header">
-            <button type="button" class="btn btn-default btn-sm" title="Filtrar"><i class="fa fa-binoculars"></i></button>
-            <button type="button" class="btn btn-default btn-sm" title="Filtrar"><i class="fa fa-bars"></i></button>
-        </div> -->
         <div class="box-body">
             <div class="row">
                 <div class="col-sm-12">
@@ -110,23 +100,104 @@
             , '/public/assets/pivotjs/d3_renderers.js'
         ]);
 
+        var $idcube = $('select[name="idcube"]');
+        var $filter = $('textarea[name="filter"]');
+        var filter = JSON.parse($filter.val() || '[]');
+        var $filtercampo = $('select[name="campo"]');
+        var $filteroperador = $('select[name="operador"]');
+        var $filtervalor = $('input[name="valor"]');
         var tablefilter = $('#tablefilter').DataTable({
             dom: 't'
             , columns: [
-                { title: "Dimensão", data: "dimensao", name: "seq", orderable: false }
-                , { title: "Operador", data: "operador", name: "operador", orderable: false }
-                , { title: "Valor", data: "valor", name: "valor", orderable: false }
+                { title: "Campo", data: "campo", name: "campo" }
+                , {
+                    title: "Operador", data: "operador", name: "operador", render: function (data) {
+                        switch (data) {
+                            case '=':
+                                return 'Igual';
+                            case '!=':
+                                return 'Diferente';
+                            case 'ilike':
+                                return 'Contém';
+                            case '?':
+                                return 'Customizado';
+                            default:
+                                return '';
+                        }
+                    }
+                }
+                , { title: "Valor", data: "valor", name: "valor" }
+                , {
+                    title: "Opções", data: "opt", name: "opt", class: 'text-center', render: function () {
+                        return '<i class="fa fa-2x fa-trash" style="font-size: 20px; color: #dd4b39; cursor: pointer;"></i>';
+                    }
+                }
             ]
             , pageLength: -1
             , ordering: false
-        })
+        }).on('click', 'tbody td:last-child i', function (e) {
+            var $row = $(this).closest('tr');
+            var data = tablefilter.row($row).data();
+            for (var i = 0; i < filter.length; i++) {
+                if (filter[i].campo == data.campo) {
+                    filter.splice(i, 1);
+                }
+            }
+            renderTableFilter();
+            reloadPivot();
+        });;
+        $('#addfilter').click(function () {
+            if (!$filtercampo.val()) {
+                return application.notify.error('Informe um campo');
+            }
+            if (!$filteroperador.val()) {
+                return application.notify.error('Informe um operador');
+            }
+            if (!$filtervalor.val()) {
+                return application.notify.error('Informe um valor');
+            }
+            for (var i = 0; i < filter.length; i++) {
+                if (filter[i].campo == $filtercampo.val()) {
+                    return application.notify.error('Este campo já se encontra filtrado');
+                }
+            }
+            filter.push({
+                campo: $filtercampo.val()
+                , operador: $filteroperador.val()
+                , valor: $filtervalor.val()
+            });
+            renderTableFilter();
+            reloadPivot();
+        });
 
-        function renderPivot(obj) {
+        function reloadPivot() {
+            $filter.val(JSON.stringify(filter));
+            application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val(), filter: $filter.val() }, function (response) {
+                if (response.success) {
+                    renderPivot(response.data, false);
+                    $filteroperador.val('');
+                    $filtervalor.val('');
+                }
+            });
+        }
+
+        function renderTableFilter() {
+            var f = filter;
+            for (var i = 0; i < filter.length; i++) {
+                f[i] = $.extend(f[i], { opt: '' });
+            }
+            tablefilter.clear();
+            tablefilter.rows.add(f).columns.adjust().draw();
+            $('#colfilter').find('h3').text('Filtros (' + filter.length + ')');
+        }
+
+        function renderPivot(obj, resetControls) {
             $('#colfilter, #colpivot').removeClass('hidden');
 
-            $('select[name="campo"]').find('option').remove();
+            $filtercampo.find('option').remove();
+            $filtercampo.append('<option></option>');
             for (var i = 0; i < obj.filteravailable.length; i++) {
-                $('select[name="campo"]').append('<option>' + obj.filteravailable[i] + '</option>');
+                $filtercampo.append('<option>' + obj.filteravailable[i] + '</option>');
             }
 
             eval(obj.measures);
@@ -171,26 +242,26 @@
                     }
                     , JSON.parse($('textarea[name="config"]').val() || '{}')
                 )
-                , true
+                , resetControls
                 , 'pt'
             );
         }
 
         $(document).on('app-loadjs', function () {
 
-            var $idcube = $('select[name="idcube"]');
             $idcube.on('select2:select', function (e) {
                 application.jsfunction('platform.core_bi.js_getCube', { idcube: e.params.data.id }, function (response) {
                     if (response.success) {
-                        renderPivot(response.data);
+                        renderPivot(response.data, true);
                     }
                 });
             });
 
             if (application.functions.getId() > 0) {
-                application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val() }, function (response) {
+                application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val(), filter: $filter.val() }, function (response) {
                     if (response.success) {
-                        renderPivot(response.data);
+                        renderPivot(response.data, true);
+                        renderTableFilter();
                     }
                 });
             }
