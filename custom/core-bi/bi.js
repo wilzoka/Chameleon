@@ -5,18 +5,15 @@ const application = require('../../routes/application')
 let bi = {
     js_getCube: async function (obj) {
         try {
-
             let cube = await db.getModel('bi_cube').find({ raw: true, where: { id: obj.data.idcube } });
             let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
             let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: cube.id } });
-
             let data = {
                 hiddenAttributes: []
                 , measures: 'var globalaggregator = {'
                 , data: []
                 , filteravailable: []
             }
-
             for (let i = 0; i < measures.length; i++) {
                 data.hiddenAttributes.push(measures[i].sqlfield);
                 switch (measures[i].aggregator) {
@@ -28,7 +25,6 @@ let bi = {
                     data.measures += ', ';
             }
             data.measures += '}';
-
             let filter = JSON.parse(obj.data.filter || '[]');
             let where = [];
             for (let i = 0; i < filter.length; i++) {
@@ -61,13 +57,10 @@ let bi = {
             } else {
                 data.data = await db.sequelize.query(cube.sql, { type: db.sequelize.QueryTypes.SELECT });
             }
-
             for (let i = 0; i < dimensions.length; i++) {
                 data.filteravailable.push(dimensions[i].sqlfield);
             }
-
             return application.success(obj.res, { data: data });
-
         } catch (err) {
             return application.fatal(obj.res, err);
         }
@@ -75,13 +68,10 @@ let bi = {
     , analysis: {
         onsave: async function (obj, next) {
             try {
-
                 if (obj.register.id == 0) {
                     obj.register.iduser = obj.req.user.id;
                 }
-
                 next(obj);
-
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
@@ -93,9 +83,7 @@ let bi = {
                 if (obj.register.id == 0) {
                     obj.register.iduser = obj.req.user.id;
                 }
-
                 next(obj);
-
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
@@ -104,13 +92,10 @@ let bi = {
     , dashboardanalysis: {
         onsave: async function (obj, next) {
             try {
-
                 if (obj.register.width < 1 || obj.register.width > 12) {
                     return application.error(obj.res, { msg: 'A largura deve ser entre 1 e 12', invalidfields: ['width'] });
                 }
-
                 next(obj);
-
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
@@ -132,7 +117,6 @@ let bi = {
                     content += '<div class="box-body">';
                     content += '<textarea class="hidden config">' + analysis[z].bi_analysis.config + '</textarea>'
                     content += '<textarea class="hidden filter">' + (analysis[z].bi_analysis.filter || '') + '</textarea>'
-
                     let style = [];
                     if (analysis[z].height) {
                         style.push('height: ' + analysis[z].height + 'px');
@@ -143,14 +127,12 @@ let bi = {
                 }
                 content += '</div></div>';
             }
-
             return application.success(obj.res, {
                 data: {
                     nav: nav
                     , content: content
                 }
             });
-
         } catch (err) {
             return application.fatal(obj.res, err);
         }

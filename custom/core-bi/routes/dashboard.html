@@ -8,7 +8,6 @@
 
 <div class="col-md-12">
     <div id="content" class="tab-content">
-
     </div>
 </div>
 
@@ -45,7 +44,7 @@
         function renderAll() {
             $('.pivotdiv').filter(':visible:not(.rendered)').each(function () {
                 var $this = $(this);
-                application.jsfunction('platform.core_bi.js_getCube', { idcube: $(this).attr('data-idcube'), filter: $(this).siblings('textarea.filter').val() || '' }, function (response) {
+                application.jsfunction('platform.core_bi.js_getCube', { idcube: $(this).attr('data-idcube'), filter: $(this).siblings('textarea.filter').val() }, function (response) {
                     if (response.success) {
                         renderPivot($this, response.data);
                     }
@@ -55,10 +54,8 @@
 
         application.route.handler({}, function (response) {
             if (response.success) {
-
                 $('#nav').append(response.data.nav);
                 $('#content').append(response.data.content);
-
                 application.functions.getCss([
                     '/public/assets/pivotjs/c3.min.css'
                     , '/public/assets/pivotjs/pivot.css'
@@ -78,11 +75,11 @@
 
         $(document).on('app-loadjs', function () {
             renderAll();
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                renderAll();
-            });
         });
 
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            renderAll();
+        });
     });
 
 </script>

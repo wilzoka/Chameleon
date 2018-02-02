@@ -25,42 +25,43 @@
         </div>
         <div class="box-body" style="display: none;">
             <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>Campo</label>
-                        <select name="campo" class="form-control" style="width: 100%;">
-                        </select>
+                <div class="col-md-4 no-padding">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Campo</label>
+                            <select name="campo" class="form-control" style="width: 100%;">
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>Operador</label>
-                        <select name="operador" class="form-control" style="width: 100%;">
-                            <option></option>
-                            <option value="=">Igual</option>
-                            <option value="!=">Diferente</option>
-                            <option value="ilike">Contém</option> 
-                            <option value="?">Customizado</option>
-                        </select>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Operador</label>
+                            <select name="operador" class="form-control" style="width: 100%;">
+                                <option></option>
+                                <option value="=">Igual</option>
+                                <option value="!=">Diferente</option>
+                                <option value="ilike">Contém</option> 
+                                <option value="?">Customizado</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>Valor</label>
-                        <input name="valor" class="form-control" style="width: 100%;" />
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Valor</label>
+                            <input name="valor" class="form-control" style="width: 100%;" />
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-1 no-padding-left">
-                    <div class="form-group">
-                        <label style="color: white">.</label>
-                        <button id="addfilter" type="button" class="btn btn-success" style="width: 100%;">
+                    <div class="col-md-12">
+                        <button id="addfilter" type="button" class="btn btn-success btn-block" style="width: 100%;">
                             <i class="fa fa-plus"></i>
                         </button>
                     </div>
                 </div>
+                <div class="col-md-8">
+                    <table id="tablefilter" class="table table-bordered table-hover dataTable" style="width: 100%;">
+                    </table>
+                </div>
             </div>
-            <table id="tablefilter" class="table table-bordered table-hover dataTable" style="width: 100%;">
-            </table>
             <div id="zfilter" class="row">
                 {{{zfilter}}}
             </div>
@@ -83,7 +84,6 @@
 
 <script type="text/javascript">
     $(function () {
-        $pivot = $('.pivotdiv');
         application.functions.getCss([
             '/public/assets/pivotjs/c3.min.css'
             , '/public/assets/pivotjs/pivot.css'
@@ -99,7 +99,7 @@
             , '/public/assets/pivotjs/d3.min.js'
             , '/public/assets/pivotjs/d3_renderers.js'
         ]);
-
+        var $pivot = $('.pivotdiv');
         var $idcube = $('select[name="idcube"]');
         var $filter = $('textarea[name="filter"]');
         var filter = JSON.parse($filter.val() || '[]');
@@ -126,22 +126,33 @@
                         }
                     }
                 }
-                , { title: "Valor", data: "valor", name: "valor" }
+                , {
+                    title: "Valor", data: "valor", name: "valor", render: function (data) {
+                        return data.split(';').join('<br>');
+                    }
+                }
                 , {
                     title: "Opções", data: "opt", name: "opt", class: 'text-center', render: function () {
-                        return '<i class="fa fa-2x fa-trash" style="font-size: 20px; color: #dd4b39; cursor: pointer;"></i>';
+                        return `
+                        <i class="fa fa-2x fa-edit" style="font-size: 20px; color: #3991dd; cursor: pointer; margin-right: 5px;"></i>
+                        <i class="fa fa-2x fa-trash" style="font-size: 20px; color: #dd4b39; cursor: pointer;"></i>
+                        `;
                     }
                 }
             ]
             , pageLength: -1
             , ordering: false
         }).on('click', 'tbody td:last-child i', function (e) {
-            var $row = $(this).closest('tr');
-            var data = tablefilter.row($row).data();
+            var data = tablefilter.row($(this).closest('tr')).data();
             for (var i = 0; i < filter.length; i++) {
                 if (filter[i].campo == data.campo) {
                     filter.splice(i, 1);
                 }
+            }
+            if ($(this).hasClass('fa-edit')) {
+                $filtercampo.val(data.campo);
+                $filteroperador.val(data.operador);
+                $filtervalor.val(data.valor);
             }
             renderTableFilter();
             reloadPivot();
@@ -168,6 +179,9 @@
             });
             renderTableFilter();
             reloadPivot();
+            $filtercampo.val('');
+            $filteroperador.val('');
+            $filtervalor.val('');
         });
 
         function reloadPivot() {
@@ -175,8 +189,6 @@
             application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val(), filter: $filter.val() }, function (response) {
                 if (response.success) {
                     renderPivot(response.data, false);
-                    $filteroperador.val('');
-                    $filtervalor.val('');
                 }
             });
         }
@@ -191,15 +203,24 @@
             $('#colfilter').find('h3').text('Filtros (' + filter.length + ')');
         }
 
-        function renderPivot(obj, resetControls) {
-            $('#colfilter, #colpivot').removeClass('hidden');
-
+        function createCampoOptions(options) {
             $filtercampo.find('option').remove();
             $filtercampo.append('<option></option>');
-            for (var i = 0; i < obj.filteravailable.length; i++) {
-                $filtercampo.append('<option>' + obj.filteravailable[i] + '</option>');
+            for (var i = 0; i < options.length; i++) {
+                $filtercampo.append('<option>' + options[i] + '</option>');
             }
+        }
 
+        function renderPivot(obj, resetControls) {
+            $('#colfilter, #colpivot').removeClass('hidden');
+            if ($filtercampo.find('option').length <= 0) {
+                createCampoOptions(obj.filteravailable);
+            }
+            if (resetControls) {
+                createCampoOptions(obj.filteravailable);
+                $filter.val(''); filter = [];
+            }
+            renderTableFilter();
             eval(obj.measures);
             $pivot.pivotUI(
                 obj.data
@@ -248,7 +269,6 @@
         }
 
         $(document).on('app-loadjs', function () {
-
             $idcube.on('select2:select', function (e) {
                 application.jsfunction('platform.core_bi.js_getCube', { idcube: e.params.data.id }, function (response) {
                     if (response.success) {
@@ -256,16 +276,13 @@
                     }
                 });
             });
-
             if (application.functions.getId() > 0) {
                 application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val(), filter: $filter.val() }, function (response) {
                     if (response.success) {
-                        renderPivot(response.data, true);
-                        renderTableFilter();
+                        renderPivot(response.data, false);
                     }
                 });
             }
-
         });
     });
 
