@@ -1372,6 +1372,7 @@ let platform = {
                             body[body.length - 1].push({
                                 text: parameters.total[i] == 'sum' ? application.formatters.fe.decimal(total[i], parameters.totalPrecision[i] || 2) : total[i] || ''
                                 , fontSize: parameters.bodyFontSize || 8
+                                , alignment: parameters.columnsAlign[i] || 'left'
                             });
                         }
                     }
