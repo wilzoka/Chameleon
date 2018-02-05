@@ -7,7 +7,7 @@ const application = require('../../routes/application')
     ;
 
 let main = {
-    platform: reload('../platform.js')
+    platform: require('../platform.js')
     , plastrela: {
         sync: function () {
             main.platform.kettle.f_runJob('plastrela/sync/Job.kjb');
