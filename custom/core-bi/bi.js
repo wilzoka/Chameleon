@@ -20,6 +20,9 @@ let bi = {
                     case 'sum':
                         data.measures += '"' + measures[i].sqlfield + '": function () {return $.pivotUtilities.aggregatorTemplates.sum($.pivotUtilities.numberFormat({thousandsSep: ".", decimalSep: ",", digitsAfterDecimal: "2"}))(["' + measures[i].sqlfield + '"]);}';
                         break;
+                    case 'count':
+                        data.measures += '"' + measures[i].sqlfield + '": function(){ return $.pivotUtilities.aggregatorTemplates.count()(["' + measures[i].sqlfield + '"]);}';
+                        break;
                 }
                 if (measures.length - 1 != i)
                     data.measures += ', ';

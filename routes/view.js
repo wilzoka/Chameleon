@@ -4,7 +4,6 @@ const application = require('./application')
     , moment = require('moment')
     , fs = require('fs')
     , escape = require('escape-html')
-    , reload = require('require-reload')(require)
     ;
 
 let Handlebars = require('handlebars');
@@ -704,12 +703,7 @@ const hasPermission = function (iduser, idview) {
 }
 
 const getTemplate = function (template) {
-    let templatename = '';
-    if (template.indexOf('/') < 0) {
-        templatename = __dirname + '/../views/templates/' + template + '.html';
-    } else {
-        templatename = __dirname + '/../custom/' + template + '.html';
-    }
+    let templatename = __dirname + (template.indexOf('/') < 0 ? '/../views/templates/' : '/../custom/') + template + '.html';
     if (!(templatename in Handlebars.compiledTemplates)) {
         Handlebars.compiledTemplates[templatename] = Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
     }
@@ -1199,7 +1193,7 @@ module.exports = function (app) {
                     };
                     if (view.model.ondelete) {
                         let config = await db.getModel('config').find();
-                        let custom = reload('../custom/' + config.customfile);
+                        let custom = require('../custom/' + config.customfile);
                         return application.functions.getRealReference(custom, view.model.ondelete)(obj, deleteModel);
                     } else {
                         deleteModel(obj);
@@ -1243,7 +1237,7 @@ module.exports = function (app) {
                 obj = modelate(obj);
                 if (view.model.onsave) {
                     let config = await db.getModel('config').find();
-                    let custom = reload('../custom/' + config.customfile);
+                    let custom = require('../custom/' + config.customfile);
                     let realfunction = application.functions.getRealReference(custom, view.model.onsave);
                     if (realfunction) {
                         return realfunction(obj, validateAndSave);

@@ -1,10 +1,9 @@
-let application = require('../../routes/application')
+const application = require('../../routes/application')
     , db = require('../../models')
     , schedule = require('../../routes/schedule')
     , moment = require('moment')
     , fs = require('fs')
     , lodash = require('lodash')
-    , reload = require('require-reload')(require)
     ;
 
 let main = {

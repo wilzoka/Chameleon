@@ -1,6 +1,5 @@
 const application = require('./application')
     , db = require('../models')
-    , reload = require('require-reload')(require)
     ;
 
 module.exports = function (app) {

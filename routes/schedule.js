@@ -1,7 +1,6 @@
 const application = require('./application')
     , db = require('../models')
     , schedule = require('node-schedule')
-    , reload = require('require-reload')(require)
     ;
 
 let schedules = [];
@@ -9,7 +8,7 @@ let schedules = [];
 const addSchedule = async function (sch) {
     try {
         let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
-        let custom = reload('../custom/' + config.customfile);
+        let custom = require('../custom/' + config.customfile);
         let realfunction = application.functions.getRealReference(custom, sch.function);
         schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
     } catch (err) {

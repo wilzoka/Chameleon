@@ -1,6 +1,5 @@
 const lodash = require('lodash')
 	, moment = require('moment')
-	, reload = require('require-reload')(require)
 	, fs = require('fs')
 	;
 

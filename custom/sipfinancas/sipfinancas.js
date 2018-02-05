@@ -1,11 +1,10 @@
 let application = require('../../routes/application')
     , db = require('../../models')
-    , reload = require('require-reload')(require)
     , moment = require('moment')
     ;
 
 let main = {
-    platform: reload('../platform.js')
+    platform: require('../platform.js')
     , sipfinancas: {
         cadastro: {
             correntista: {

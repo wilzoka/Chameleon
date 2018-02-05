@@ -2,8 +2,8 @@ const application = require('./application')
     , db = require('../models')
     ;
 
-let users = {};
-let sockets = {};
+let users = {}
+    , sockets = {};
 
 module.exports = function (app) {
     app.io.on('connection', function (socket) {

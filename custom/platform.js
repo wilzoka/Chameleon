@@ -3,7 +3,6 @@ const db = require('../models')
     , fs = require('fs')
     , schedule = require('../routes/schedule')
     , lodash = require('lodash')
-    , reload = require('require-reload')(require)
     , application = require('../routes/application')
     ;
 
@@ -18,7 +17,7 @@ let platform = {
             }
         }
     }
-    , core_bi: reload('./core-bi/bi.js')
+    , core_bi: require('./core-bi/bi.js')
     , kettle: {
         f_runTransformation: function (filepath) {
             db.getModel('config').find().then(config => {
