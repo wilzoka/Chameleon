@@ -42,10 +42,9 @@ module.exports = function (app) {
         return application.render(res, __dirname + '/../views/login.html', {});
     });
 
-    app.post('/login', passport.authenticate('local', { failWithError: true })
+    app.post('/login', passport.authenticate('local', {})
         , async (req, res) => {
             try {
-
                 let menu = await db.getModel('menu').findAll({
                     include: { all: true }
                     , where: { idmenuparent: { $eq: null } }

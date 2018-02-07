@@ -6,6 +6,22 @@ let users = {}
     , sockets = {};
 
 module.exports = function (app) {
+    process.on('message', message => {
+        console.log(message);
+        switch (message.type) {
+            case 'socket:disconnect':
+                if (!users[sockets[message.socket]]) {
+                    return;
+                }
+                users[sockets[message.socket]].sockets.splice(users[sockets[message.socket]].sockets.indexOf(message.socket), 1);
+                if (users[sockets[message.socket]].sockets.length <= 0) {
+                    delete users[sockets[message.socket]];
+                }
+                delete sockets[message.socket];
+                break;
+        }
+    });
+
     app.io.on('connection', function (socket) {
         if (!socket.request.session.passport) {
             return socket.disconnect(true);
@@ -21,11 +37,14 @@ module.exports = function (app) {
         }
 
         socket.on('disconnect', function () {
-            users[sockets[socket.id]].sockets.splice(users[sockets[socket.id]].sockets.indexOf(socket.id), 1);
-            if (users[sockets[socket.id]].sockets.length <= 0) {
-                delete users[sockets[socket.id]];
-            }
-            delete sockets[socket.id];
+            // console.log(process);
+            // process.send({
+            //     pid: process.pid
+            //     , type: 'socket:disconnect'
+            //     , socket: socket.id
+            // });
         });
     });
 }
+
+

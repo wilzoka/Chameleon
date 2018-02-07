@@ -27,9 +27,15 @@
 .nav-tabs-custom > .nav-tabs {
     border-bottom-color: #d4d4d4;
 }
+.nav-tabs-custom > .nav-tabs > li {
+    border-top: 2px solid transparent;
+}
 .nav-tabs-custom > .nav-tabs > li.active > a {
     border-left-color: #d4d4d4;
     border-right-color: #d4d4d4;
+}
+.navbar-custom-menu > .navbar-nav > li > .dropdown-menu {
+    background: none;
 }
 h4.title_subview {
     margin: 2px 0;
@@ -44,9 +50,6 @@ h4.title_subview {
 }
 .treeview-menu > li > a {
     padding: 10px 5px 10px 15px;
-}
-.navbar-custom-menu > .navbar-nav > li > .dropdown-menu {
-    background: none;
 }
 .box {
     border-top: 2px solid #d2d6de;

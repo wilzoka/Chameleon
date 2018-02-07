@@ -1,4 +1,4 @@
-let application = require('../../routes/application')
+const application = require('../../routes/application')
     , db = require('../../models')
     , moment = require('moment')
     ;

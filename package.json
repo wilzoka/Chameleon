@@ -7,6 +7,7 @@
     "barcode-2-svg": "0.3.3",
     "body-parser": "1.18.2",
     "connect": "3.6.5",
+    "connect-session-sequelize": "5.2.0",
     "cookie-parser": "1.4.3",
     "escape-html": "1.0.3",
     "express": "4.16.2",
