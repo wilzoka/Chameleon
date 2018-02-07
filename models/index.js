@@ -1,4 +1,4 @@
-let application = require('../routes/application')
+const application = require('../routes/application')
   , Sequelize = require('sequelize')
   , sequelize = new Sequelize('db', 'postgres', 'postgres', {
     host: '127.0.0.1'
@@ -49,75 +49,88 @@ let application = require('../routes/application')
       $col: Sequelize.Op.col
     }
   })
-  ;
-
-//Models
-let models = {};
-sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: sequelize.QueryTypes.SELECT }).then(results => {
-  let modelname;
-  let modelattributeobj = {};
-  let defineModel = function (name, attr) {
+  , defineModel = function (name, attr) {
     models[name] = sequelize.define(name, attr, {
       freezeTableName: true
       , timestamps: false
     });
   }
-  //Create Attributes
-  for (let i = 0; i < results.length; i++) {
-    // Start
-    if (i == 0) {
-      modelname = results[i].model;
-      modelattributeobj = {};
-    }
-    if (modelname == results[i].model) {
-      modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
+  , getModel = function (modelname) {
+    if (models[modelname]) {
+      return models[modelname];
     } else {
-      defineModel(modelname, modelattributeobj);
-      modelname = results[i].model;
-      modelattributeobj = {};
-      modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
-    }
-    if (i == results.length - 1) {
-      defineModel(modelname, modelattributeobj);
+      throw new Error('Model "' + modelname + '" not found');
     }
   }
-  //Create References
-  for (let i = 0; i < results.length; i++) {
-    let j = {};
-    if (results[i].typeadd) {
-      j = application.modelattribute.parseTypeadd(results[i].typeadd);
-    }
-    switch (results[i].type) {
-      case 'parent':
-        models[results[i].model].belongsTo(models[j.model], {
-          as: j.model
-          , foreignKey: results[i].name
-          , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
-        });
-        break;
-      case 'autocomplete':
-        let vas = j.as || j.model;
-        models[results[i].model].belongsTo(models[j.model], {
-          as: vas
-          , foreignKey: results[i].name
-          , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
-        });
-        break;
-    }
+  , setModels = function (fmodels) {
+    models = fmodels;
   }
+  ;
+
+//Models
+let models = {};
+defineModel('session', {
+  sid: {
+    type: Sequelize.TEXT,
+    primaryKey: true
+  },
+  expires: Sequelize.DATE,
+  data: Sequelize.TEXT
 });
-
-let getModel = function (modelname) {
-  if (models[modelname]) {
-    return models[modelname];
-  } else {
-    throw new Error('Model "' + modelname + '" not found');
-  }
-}
-
-let setModels = function (fmodels) {
-  models = fmodels;
-}
+sequelize.query(`
+  SELECT
+    m.name as model
+    , ma.*
+  FROM
+    model m
+  INNER JOIN modelattribute ma ON (m.id = ma.idmodel)
+  WHERE
+    ma.type NOT IN ('virtual')
+  ORDER by m.name
+  `, { type: sequelize.QueryTypes.SELECT }).then(results => {
+    let modelname
+      , modelattributeobj = {};
+    //Create Attributes
+    for (let i = 0; i < results.length; i++) {
+      // Start
+      if (i == 0) {
+        modelname = results[i].model;
+        modelattributeobj = {};
+      }
+      if (modelname == results[i].model) {
+        modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
+      } else {
+        defineModel(modelname, modelattributeobj);
+        modelname = results[i].model;
+        modelattributeobj = {};
+        modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
+      }
+      if (i == results.length - 1) {
+        defineModel(modelname, modelattributeobj);
+      }
+    }
+    //Create References
+    for (let i = 0; i < results.length; i++) {
+      let j = results[i].typeadd ? application.modelattribute.parseTypeadd(results[i].typeadd) : {};
+      switch (results[i].type) {
+        case 'parent':
+          models[results[i].model].belongsTo(models[j.model], {
+            as: j.model
+            , foreignKey: results[i].name
+            , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
+          });
+          break;
+        case 'autocomplete':
+          let vas = j.as || j.model;
+          models[results[i].model].belongsTo(models[j.model], {
+            as: vas
+            , foreignKey: results[i].name
+            , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
+          });
+          break;
+      }
+    }
+  });
 
 module.exports = {
   sequelize: sequelize
