@@ -1,0 +1,45 @@
+[
+    {
+        "name": "route",
+        "description": "Rota",
+        "onsave": "platform.route.onsave",
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "file",
+                "label": "Arquivo Interno",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "needauth",
+                "label": "Requer Autenticação?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "function",
+                "label": "Função",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "url",
+                "label": "URL",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    }
+]
