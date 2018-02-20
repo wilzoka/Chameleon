@@ -17,24 +17,35 @@ const express = require('express')
         , saveUninitialized: false
         , secret: 'makebettersecurity'
     })
-    // , cluster = require('cluster')
+    , cluster = require('cluster')
+    , os = require('os')
     ;
 
-// let workers = [];
-// if (cluster.isMaster) {
-//     let cpus = require('os').cpus();
-//     for (let i = 0; i < cpus.length; i++) {
-//         workers.push(cluster.fork());
-//     }
-//     for (let i = 0; i < workers.length; i++) {
-//         workers[i].on('message', message => {
-//             console.log(message);
-//             for (let z = 0; z < workers.length; z++) {
-//                 workers[z].send(message);
-//             }
-//         });
-//     }
-// } else {
+let workers = [];
+if (cluster.isMaster) {
+    const createWorker = function () {
+        worker = cluster.fork();
+        worker.on('message', message => {
+            for (let z = 0; z < workers.length; z++) {
+                workers[z].send(message);
+            }
+        });
+        worker.on('exit', () => {
+            for (let z = 0; z < workers.length; z++) {
+                if (workers[z].isDead()) {
+                    workers.splice(z, 1);
+                    z--;
+                }
+            }
+            createWorker();
+        });
+        workers.push(worker);
+    }
+    for (let i = 0; i < (1 || os.cpus().length); i++) {
+        createWorker();
+    }
+
+} else {
     //Express Settings
     app.disable('x-powered-by');
     //Session
@@ -65,4 +76,4 @@ const express = require('express')
     http.listen(8080, function () {
         console.log('Server UP', 'PID ' + process.pid);
     });
-// }
+}

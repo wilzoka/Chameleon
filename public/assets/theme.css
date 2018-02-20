@@ -1,5 +1,16 @@
 /* AdminLTE */
+@media (max-width: 991px){
+    .main-header .navbar-custom-menu a, .main-header .navbar-right a {
+        color: #3c8dbc;
+    }
+}
 @media (max-width: 767px) {
+    .skin-blue .main-header .navbar .dropdown-menu li a {
+        color: #3c8dbc;
+    }
+    .skin-blue .main-header .navbar .dropdown-menu li a:hover {
+        background: none;
+    }
     .main-header .logo {
         font-size: 12px;
         height: 25px;
@@ -21,6 +32,9 @@
         font-size: 20px;
     }
 }
+div.wrapper {
+    overflow: hidden;
+}
 .nav-tabs-custom{
     border: 1px solid #d4d4d4;
 }
@@ -33,9 +47,6 @@
 .nav-tabs-custom > .nav-tabs > li.active > a {
     border-left-color: #d4d4d4;
     border-right-color: #d4d4d4;
-}
-.navbar-custom-menu > .navbar-nav > li > .dropdown-menu {
-    background: none;
 }
 h4.title_subview {
     margin: 2px 0;

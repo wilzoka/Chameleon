@@ -446,6 +446,19 @@ let platform = {
             }
         }
     }
+    , users: {
+        js_getNotifications: async function (obj) {
+            try {
+                let data = {
+                    notifications: []
+                }
+                data.notifications = await db.getModel('notification').findAll({ where: { iduser: obj.req.user.id, read: false } });
+                return application.success(obj.res, { data: data });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+    }
     , view: {
         onsave: async function (obj, next) {
 

@@ -67,7 +67,25 @@
     </div>
     {{> parts/js }}
     <script type="text/javascript">
-        application.index();
+        $(document).on('submit', 'form.xhr', function (e) {
+            e.preventDefault();
+            var $this = $(this);
+            $.ajax({
+                url: $this[0].action
+                , type: 'POST'
+                , dataType: 'json'
+                , data: $this.serialize()
+                , success: function (response) {
+                    application.handlers.responseSuccess(response);
+                }
+                , error: function (response) {
+                    application.handlers.responseError(response);
+                }
+                , complete: function () {
+                    $this.find('button:submit').prop('disabled', false);
+                }
+            });
+        });
     </script>
 </body>
 

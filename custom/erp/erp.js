@@ -1,9 +1,8 @@
 const application = require('../../routes/application')
-    , reload = require('require-reload')(require)
     ;
 
 let main = {
-    platform: reload('../platform.js')
+    platform: require('../platform.js')
     , erp: {
         cadastro: {
             pessoa: {
