@@ -19,11 +19,7 @@ const express = require('express')
     })
     , cluster = require('cluster')
     , os = require('os')
-    ;
-
-let workers = [];
-if (cluster.isMaster) {
-    const createWorker = function () {
+    , createWorker = function () {
         worker = cluster.fork();
         worker.on('message', message => {
             for (let z = 0; z < workers.length; z++) {
@@ -41,10 +37,13 @@ if (cluster.isMaster) {
         });
         workers.push(worker);
     }
+    ;
+
+let workers = [];
+if (cluster.isMaster) {
     for (let i = 0; i < (1 || os.cpus().length); i++) {
         createWorker();
     }
-
 } else {
     //Express Settings
     app.disable('x-powered-by');

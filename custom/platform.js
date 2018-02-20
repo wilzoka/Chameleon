@@ -380,6 +380,19 @@ let platform = {
             }
         }
     }
+    , route: {
+        onsave: async function (obj, next) {
+            let register = await db.getModel('route').find({ where: { id: { $ne: obj.id }, description: obj.register.description } })
+            if (register) {
+                return application.error(obj.res, { msg: 'Já existe uma rota com esta descrição' });
+            }
+            await next(obj);
+            platform.route.f_afterSave();
+        }
+        , f_afterSave: function () {
+            db.sequelize.query("update route set url = translate(lower(description), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
+        }
+    }
     , schedule: {
         onsave: async function (obj, next) {
             try {
@@ -452,7 +465,10 @@ let platform = {
                 let data = {
                     notifications: []
                 }
-                data.notifications = await db.getModel('notification').findAll({ where: { iduser: obj.req.user.id, read: false } });
+                data.notifications = await db.getModel('notification').findAll({ raw: true, where: { iduser: obj.req.user.id, read: false }, order: [['datetime', 'desc']] });
+                for (let i = 0; i < data.notifications.length; i++) {
+                    data.notifications[i].duration = application.functions.duration(moment().diff(moment(data.notifications[i].datetime), 'minutes'))
+                }
                 return application.success(obj.res, { data: data });
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -468,7 +484,7 @@ let platform = {
             }
 
             await next(obj);
-            platform.view.f_concatAll();
+            platform.view.f_afterSave();
         }
         , e_export: async function (obj) {
             try {
@@ -730,7 +746,7 @@ let platform = {
                 return application.fatal(obj.res, err);
             }
         }
-        , f_concatAll: function () {
+        , f_afterSave: function () {
             db.getModel('view').findAll().then(views => {
                 views.map(view => {
                     db.getModel('module').find({ where: { id: view.idmodule } }).then(modulee => {
@@ -743,6 +759,7 @@ let platform = {
                     });
                 });
             });
+            db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
         }
         , f_getFilteredRegisters: function (obj) {
             let getFilter = function (cookie, viewfields) {

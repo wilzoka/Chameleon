@@ -211,12 +211,7 @@ var application = {
         }
         //Notifications
         {
-            application.jsfunction('platform.users.js_getNotifications', {}, function (response) {
-                if (response.success) {
-                    notifications = response.data.notifications;
-                    application.notification.render();
-                }
-            });
+            application.notification.call();
         }
     }
     , components: {
@@ -508,7 +503,7 @@ var application = {
                 var $this = $(this);
                 if ($this.attr('data-view')) {
                     $.ajax({
-                        url: '/view/' + $this.attr('data-view') + '/config'
+                        url: '/v/' + $this.attr('data-view') + '/config'
                         , type: 'POST'
                         , dataType: 'json'
                         , data: {
@@ -550,17 +545,17 @@ var application = {
 
                 $('button#' + sTableId + '_insert').click(function () {
                     var tableid = $(this).attr('data-table');
-                    var idview = $('#' + tableid).attr('data-view');
+                    var view = $('#' + tableid).attr('data-view');
                     var subview = $('#' + tableid).attr('data-subview');
                     var add = '';
                     if (subview) {
                         add = '?parent=' + application.functions.getId()
                     }
-                    window.location.href = '/view/' + idview + '/0' + add;
+                    window.location.href = '/v/' + view + '/0' + add;
                 });
                 $('button#' + sTableId + '_edit').click(function (e) {
                     var tableid = $(this).attr('data-table');
-                    var idview = $('#' + tableid).attr('data-view');
+                    var view = $('#' + tableid).attr('data-view');
                     var subview = $('#' + tableid).attr('data-subview');
                     var add = '';
                     if (subview) {
@@ -569,7 +564,7 @@ var application = {
                     var selected = $('#' + tableid).attr('data-selected');
                     if (selected) {
                         selected = selected.split(',');
-                        var href = '/view/' + idview + '/' + selected[selected.length - 1] + add;
+                        var href = '/v/' + view + '/' + selected[selected.length - 1] + add;
                         window.location.href = href;
                     } else {
                         application.notify.info('Selecione um registro para Editar');
@@ -579,7 +574,7 @@ var application = {
 
                     var tableid = $(this).attr('data-table');
                     var selected = $('#' + tableid).attr('data-selected');
-                    var idview = $('#' + tableid).attr('data-view');
+                    var view = $('#' + tableid).attr('data-view');
 
                     if (selected) {
 
@@ -595,7 +590,7 @@ var application = {
                         application.functions.confirmMessage(msg, function () {
 
                             $.ajax({
-                                url: '/view/' + idview + '/delete'
+                                url: '/v/' + view + '/delete'
                                 , type: 'POST'
                                 , dataType: 'json'
                                 , data: { ids: selected }
@@ -704,7 +699,7 @@ var application = {
                         , type: 'POST'
                         , data: $.extend({}, data, {
                             id: application.functions.getId()
-                            , idview: $(settings.nTable).attr('data-view')
+                            , view: $(settings.nTable).attr('data-view')
                             , issubview: $(settings.nTable).attr('data-subview') || false
                         })
                         , success: function (response) {
@@ -763,13 +758,13 @@ var application = {
                 } else {
                     var $table = $(e.delegateTarget);
                     var tableid = $table[0].id;
-                    var idview = $('#' + tableid).attr('data-view');
+                    var view = $('#' + tableid).attr('data-view');
                     var subview = $('#' + tableid).attr('data-subview');
                     var add = '';
                     if (subview) {
                         add = '?parent=' + application.functions.getId()
                     }
-                    var href = '/view/' + idview + '/' + tables[tableid].row(this).data().id + add
+                    var href = '/v/' + view + '/' + tables[tableid].row(this).data().id + add
                     if (e.ctrlKey) {
                         window.open(href);
                     } else {
@@ -801,7 +796,7 @@ var application = {
                     , dataType: 'json'
                     , data: {
                         id: application.functions.getId()
-                        , idview: $this.attr('data-view')
+                        , view: $this.attr('data-view')
                         , idmodelattribute: $this.attr('data-attribute')
                         , issubview: $('#' + idtable).attr('data-subview') || false
                     }
@@ -1156,29 +1151,40 @@ var application = {
         }
     }
     , notification: {
-        render: function () {
-            var $notificationMenu = $('li.messages-menu');
-            var $notificationLabel = $notificationMenu.find('.notifications-label');
-            var $notificationItemNone = $notificationMenu.find('.notifications-item-none');
-            var $notificationMenuUl = $notificationMenu.find('ul.menu');
-            $notificationMenuUl.find('li').remove();
+        call: function () {
+            application.jsfunction('platform.users.js_getNotifications', {}, function (response) {
+                if (response.success) {
+                    notifications = response.data.notifications;
+                    application.notification.render();
+                }
+            });
+        }
+        , render: function () {
+            var $notificationMenu = $('#nav-notification');
+            var $notificationLabel = $('#nav-notification-label');
+            var $notificationItemNone = $('#nav-notification-item-none');
+            var $notificationMenuUl = $('#nav-notification-menu');
+            $notificationMenuUl.find('li').each(function () {
+                if ($(this)[0].id != 'nav-notification-item-none') {
+                    $(this).remove();
+                }
+            });
             //Reset
             $notificationLabel.text('');
             $notificationItemNone.removeClass('hidden');
             if (notifications.length > 0) {
+                $notificationItemNone.addClass('hidden');
                 $notificationLabel.text(notifications.length);
                 for (var i = 0; i < notifications.length; i++) {
-                    $notificationMenuUl.append(`
-                    <li>
-                        <a href="` + (notifications[i].link || 'javascript:void(0)') + `">
-                            <h4 style="margin: 0;">
-                                ` + notifications[i].title + `
-                                <small><i class="fa fa-clock-o"></i> 5 mins</small>
-                            </h4>
-                            <p style="margin: 0;">` + notifications[i].description + `</p>
-                        </a>
-                    </li>
-                    `);
+                    $notificationMenuUl.append(
+                        '<li><a href="' + (notifications[i].link || 'javascript:void(0)') + '">'
+                        + '<h4 style="margin: 0;">' + notifications[i].title
+                        + '<small><i class="fa fa-clock-o"></i> ' + notifications[i].duration + '</small>'
+                        + '</h4>'
+                        + '<p style="margin: 0;">' + notifications[i].description + '</p>'
+                        + '</a>'
+                        + '</li>'
+                    );
                 }
             }
         }

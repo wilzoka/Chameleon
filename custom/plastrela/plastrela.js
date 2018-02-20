@@ -1389,7 +1389,7 @@ let main = {
                                 let results = await db.sequelize.query(`
                                     select
                                         *
-                                        , round(qtd / (largura::decimal / 10) / (espessura::decimal / 10) / (densidade / 10), 2) as metragem
+                                        , round(qtd / (largura::decimal / 10) / ((case when tipoitem = 13 then espessura::decimal * 10 else espessura::decimal end) / 10) / (densidade / 10), 2) as metragem
                                     from
                                         (select
                                             ev.id
@@ -1397,10 +1397,12 @@ let main = {
                                             , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22)) as espessura
                                             , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20)) as largura
                                             , c.densidade
+                                            , tpi.codigo as tipoitem
                                         from
                                             est_volume ev
                                         left join pcp_versao v on (ev.idversao = v.id)
                                         left join cad_item i on (v.iditem = i.id)
+                                        left join est_tpitem tpi on (i.idtpitem = tpi.id)
                                         left join est_classe c on (i.idclasse = c.id)
                                         left join cad_unidade u on (i.idunidade = u.id)
                                         where

@@ -4,7 +4,6 @@ const lodash = require('lodash')
 	;
 
 let Handlebars = require('handlebars');
-
 Handlebars.registerPartial('parts/head', fs.readFileSync(__dirname + '/../views/parts/head.html', 'utf8'))
 Handlebars.registerPartial('parts/js', fs.readFileSync(__dirname + '/../views/parts/js.html', 'utf8'))
 Handlebars.registerPartial('parts/nav', fs.readFileSync(__dirname + '/../views/parts/nav.html', 'utf8'))
@@ -107,7 +106,7 @@ let application = {
 		}
 		, createItem: function (menu) {
 			let description = menu.description;
-			let url = menu.url || '/view/' + menu['view.id'];
+			let url = menu.url || '/v/' + menu['view.url'];
 			return '<li><a href="' + url + '"><i class="' + (menu.icon || 'fa fa-angle-right') + '"></i> <span>' + description + '</span> </a></li>';
 		}
 		, closeGroup: function () {
@@ -248,6 +247,21 @@ let application = {
 		}
 		, isWindows: function () {
 			return /^win/.test(process.platform);
+		}
+		, duration: function (minutes) {
+			if (minutes <= 1) {
+				return 'Agora';
+			} else if (minutes < 60) {
+				return minutes + ' minutos';
+			} else if (minutes < 120) {
+				return '1 hora'
+			} else if (minutes < 1440) {
+				return Math.trunc(minutes / 60) + ' horas';
+			} else if (minutes < 2880) {
+				return '1 dia';
+			} else {
+				return Math.trunc(minutes / 60) + ' dias';
+			}
 		}
 	}
 	, modelattribute: {

@@ -6,7 +6,7 @@ let users = {}
     , sockets = {};
 
 module.exports = function (app) {
-    process.on('message', message => {
+    process.on('message', function (message) {
         switch (message.type) {
             case 'socket:disconnect':
                 if (!users[sockets[message.data.socket]]) {

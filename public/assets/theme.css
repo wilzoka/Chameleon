@@ -35,6 +35,11 @@
 div.wrapper {
     overflow: hidden;
 }
+.main-header .navbar .nav > li > a > .label {
+    font-size: 12px;
+    right: 5px;
+    border-radius: 7px;
+}
 .nav-tabs-custom{
     border: 1px solid #d4d4d4;
 }

@@ -6,6 +6,8 @@ const application = require('./application')
     , escape = require('escape-html')
     ;
 
+let views = {};
+
 let Handlebars = require('handlebars');
 Handlebars.compiledTemplates = {};
 
@@ -300,15 +302,15 @@ const renderGeoreference = function (viewfield, register) {
     });
 }
 
-const renderSubView = function (viewsubview) {
+const renderSubView = function (viewsubview) {    
     return '<div class="col-md-12">'
         + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
         + '<table '
-        + 'id="tableview' + viewsubview.idsubview + '" '
+        + 'id="tableview' + viewsubview.subview.url + '" '
         + 'class="table table-bordered table-hover dataTable" '
         + 'width="100%" '
         + 'data-subview="true" '
-        + 'data-view="' + viewsubview.idsubview + '">'
+        + 'data-view="' + viewsubview.subview.url + '">'
         + '</table>'
         + '</div>';
 }
@@ -604,7 +606,7 @@ const validateAndSave = function (obj) {
                         return application.success(obj.res, {
                             msg: application.message.success
                             , data: saved.register
-                            , redirect: '/view/' + obj.view.id + '/' + saved.register.id
+                            , redirect: '/v/' + obj.view.url + '/' + saved.register.id
                             , historyBack: obj.hasSubview ? false : true
                         });
                     } else {
@@ -710,9 +712,13 @@ const getTemplate = function (template) {
     return Handlebars.compiledTemplates[templatename];
 }
 
+const findView = function (url) {
+    return db.getModel('view').find({ include: [{ all: true }], where: { url: url } });
+}
+
 module.exports = function (app) {
 
-    app.post('/view/:idview/config', application.IsAuthenticated, async (req, res) => {
+    app.post('/v/:view/config', application.IsAuthenticated, async (req, res) => {
         try {
             const decodeClass = function (type) {
                 switch (type) {
@@ -726,9 +732,12 @@ module.exports = function (app) {
                         return 'text-left';
                 }
             }
-            const permission = await hasPermission(req.user.id, req.params.idview);
+            const view = await findView(req.params.view);
+            if (!view) {
+                return application.error(res, {});
+            }
+            const permission = await hasPermission(req.user.id, view.id);
             if (permission.visible) {
-                const view = await db.getModel('view').find({ where: { id: req.params.idview } });
                 const viewtables = await db.getModel('viewtable').findAll({
                     where: { idview: view.id }
                     , order: [['ordertable', 'ASC']]
@@ -796,7 +805,7 @@ module.exports = function (app) {
                         footer += '<td style="text-align: center;"><b>Total</b></td>';
                     }
                     for (let i = 0; i < viewtables.length; i++) {
-                        let data = 'data-view="' + view.id + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
+                        let data = 'data-view="' + view.url + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
                         if (viewtables[i].totalize) {
                             footer += '<td> <span class="totalize" ' + data + '></span> </td>';
                         } else {
@@ -816,8 +825,8 @@ module.exports = function (app) {
                 let cookiefilter = {};
                 let cookiefiltercount = 0;
                 const separator = '+';
-                if ('tableview' + view.id + 'filter' in req.cookies) {
-                    let cookiefilteraux = JSON.parse(req.cookies['tableview' + view.id + 'filter']);
+                if ('tableview' + view.url + 'filter' in req.cookies) {
+                    let cookiefilteraux = JSON.parse(req.cookies['tableview' + view.url + 'filter']);
                     cookiefiltercount = cookiefilteraux.length;
                     for (let i = 0; i < cookiefilteraux.length; i++) {
                         for (let k in cookiefilteraux[i]) {
@@ -1075,7 +1084,7 @@ module.exports = function (app) {
                     }
                 }
                 return application.success(res, {
-                    name: view.id
+                    name: view.url
                     , columns: columns
                     , footer: footer
                     , events: events
@@ -1093,29 +1102,35 @@ module.exports = function (app) {
         }
     });
 
-    app.get('/view/:idview', application.IsAuthenticated, async (req, res) => {
+    app.get('/v/:view', application.IsAuthenticated, async (req, res) => {
         try {
-            const permission = await hasPermission(req.user.id, req.params.idview);
+            const view = await findView(req.params.view);
+            if (!view) {
+                return application.notFound(res);
+            }
+            const permission = await hasPermission(req.user.id, view.id);
             if (permission.visible) {
-                const view = await db.getModel('view').find({ where: { id: req.params.idview } });
                 return application.render(res, __dirname + '/../views/templates/viewtable.html', {
                     title: view.name
-                    , viewid: view.id
+                    , view: view.url
                 });
             } else {
                 return application.forbidden(res);
             }
         } catch (err) {
-            return application.forbidden(res);
+            return application.fatal(res, err);
         }
     });
 
-    app.get('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {
+    app.get('/v/:view/:id', application.IsAuthenticated, async (req, res) => {
         try {
-            let permission = await hasPermission(req.user.id, req.params.idview);
+            const view = await findView(req.params.view);
+            if (!view) {
+                return application.notFound(res);
+            }
+            const permission = await hasPermission(req.user.id, view.id);
             if (permission.visible) {
-                let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] });
-                let viewfields = await db.getModel('viewfield').findAll({
+                const viewfields = await db.getModel('viewfield').findAll({
                     where: { idview: view.id }
                     , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]
                     , include: [{ all: true }]
@@ -1178,13 +1193,16 @@ module.exports = function (app) {
         }
     });
 
-    app.post('/view/:idview/delete', application.IsAuthenticated, async (req, res) => {
+    app.post('/v/:view/delete', application.IsAuthenticated, async (req, res) => {
         try {
-            const permission = await hasPermission(req.user.id, req.params.idview);
+            const view = await findView(req.params.view);
+            if (!view) {
+                return application.error(res, {});
+            }
+            const permission = await hasPermission(req.user.id, view.id);
             if (permission.deletable) {
                 let ids = req.body.ids.split(',');
                 if (ids) {
-                    let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] })
                     let obj = {
                         ids: ids
                         , view: view
@@ -1209,17 +1227,20 @@ module.exports = function (app) {
         }
     });
 
-    app.post('/view/:idview/:id', application.IsAuthenticated, async (req, res) => {
+    app.post('/v/:view/:id', application.IsAuthenticated, async (req, res) => {
         try {
-            const permission = await hasPermission(req.user.id, req.params.idview);
+            const view = await findView(req.params.view);
+            if (!view) {
+                return application.error(res, {});
+            }
+            const permission = await hasPermission(req.user.id, view.id);
             if ((req.params.id == 0 && permission.insertable) || (req.params.id > 0 && permission.editable)) {
-                let view = await db.getModel('view').find({ where: { id: req.params.idview }, include: [{ all: true }] });
-                let viewfields = await db.getModel('viewfield').findAll({
+                const viewfields = await db.getModel('viewfield').findAll({
                     where: { idview: view.id, disabled: { $eq: false } }
                     , include: [{ all: true }]
                 });
-                let subview = await db.getModel('viewsubview').find({ where: { idview: view.id } });
-                let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
+                const subview = await db.getModel('viewsubview').find({ where: { idview: view.id } });
+                const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
                 let register = await db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true }] });
                 if (!register) {
                     register = db.getModel(view.model.name).build({ id: 0 });

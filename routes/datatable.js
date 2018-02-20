@@ -195,7 +195,7 @@ module.exports = function (app) {
 
     app.post('/datatables', application.IsAuthenticated, async (req, res) => {
         try {
-            let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: [{ all: true }] });
+            const view = await db.getModel('view').find({ where: { url: req.body.view }, include: [{ all: true }] });
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let where = {};
             if (view.wherefixed) {
@@ -203,8 +203,8 @@ module.exports = function (app) {
                 view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
                 where['$col'] = db.Sequelize.literal(view.wherefixed);
             }
-            if ('tableview' + view.id + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter'], modelattributes);
+            if ('tableview' + view.url + 'filter' in req.cookies) {
+                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes);
             }
             let ordercolumn = view.orderfixed ? view.orderfixed.split(',')[0] : req.body.columns[req.body.order[0].column].data;
             let orderdir = view.orderfixed ? view.orderfixed.split(',')[1] : req.body.order[0].dir;
@@ -265,8 +265,7 @@ module.exports = function (app) {
 
     app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
         try {
-
-            let view = await db.getModel('view').find({ where: { id: req.body.idview }, include: [{ all: true }] });
+            const view = await db.getModel('view').find({ where: { url: req.body.view }, include: [{ all: true }] });
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let modelattribute = await db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 
@@ -277,8 +276,8 @@ module.exports = function (app) {
                 view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
                 where['$col'] = db.Sequelize.literal(view.wherefixed);
             }
-            if ('tableview' + view.id + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.id + 'filter'], modelattributes);
+            if ('tableview' + view.url + 'filter' in req.cookies) {
+                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes);
             }
 
             if (req.body.issubview == 'true') {
