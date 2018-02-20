@@ -1,0 +1,52 @@
+[
+    {
+        "name": "notification",
+        "description": "Notificação",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "title",
+                "label": "Título",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "read",
+                "label": "Lida?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "link",
+                "label": "Link",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "datetime",
+                "label": "Data/Hora",
+                "type": "datetime",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    }
+]
