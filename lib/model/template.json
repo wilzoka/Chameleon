@@ -1,0 +1,46 @@
+[
+    {
+        "name": "template",
+        "description": "Template",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "comment",
+                "label": "Comentário",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "templatezone",
+        "description": "Zona do Template",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idtemplate",
+                "label": "ID Template",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"template\", \"cascade\": true}"
+            }
+        ]
+    }
+]

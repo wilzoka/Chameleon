@@ -1,0 +1,52 @@
+[
+    {
+        "name": "audit",
+        "description": "Auditoria",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "datetime",
+                "label": "Data/Hora",
+                "type": "datetime",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "idmodel",
+                "label": "Modelo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"model\", \"attribute\": \"description\"}"
+            },
+            {
+                "name": "modelid",
+                "label": "ID",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "changes",
+                "label": "Alterações",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    }
+]

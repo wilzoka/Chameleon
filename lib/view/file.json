@@ -1,0 +1,123 @@
+[
+    {
+        "name": "Arquivo",
+        "namecomplete": "Plataforma - Arquivo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "datetime,desc",
+        "supressid": false,
+        "template": "box-12",
+        "model": "file",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "bounded",
+                "width": 4,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "datetime",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "mimetype",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 2,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "filename",
+                "width": 4,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 8,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "size",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 5,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "modelid",
+                "width": 3,
+                "order": 10,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "bounded",
+                "ordertable": 4,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "datetime",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "filename",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "size",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    }
+]

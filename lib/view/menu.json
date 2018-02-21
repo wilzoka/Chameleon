@@ -1,0 +1,99 @@
+[
+    {
+        "name": "Menu",
+        "namecomplete": "Plataforma - Menu",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "tree,asc",
+        "supressid": false,
+        "template": "box-6",
+        "model": "menu",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idview",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "icon",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "url",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmenuparent",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idview",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "icon",
+                "ordertable": 2,
+                "orderable": false,
+                "render": "icon",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "url",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idmenuparent",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "tree",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    }
+]

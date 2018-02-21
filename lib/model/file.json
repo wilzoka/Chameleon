@@ -1,0 +1,73 @@
+[
+    {
+        "name": "file",
+        "description": "Arquivo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "bounded",
+                "label": "Vinculado?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "datetime",
+                "label": "Data/Hora",
+                "type": "datetime",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "mimetype",
+                "label": "Mime Type",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "filename",
+                "label": "Nome do Arquivo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "size",
+                "label": "Tamanho",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "Modelo",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"model\", \"attribute\": \"description\", \"cascade\": true}"
+            },
+            {
+                "name": "modelid",
+                "label": "ID",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    }
+]

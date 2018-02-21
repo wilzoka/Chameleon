@@ -1,0 +1,17 @@
+[
+    {
+        "name": "module",
+        "description": "Módulo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    }
+]

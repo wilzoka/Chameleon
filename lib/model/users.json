@@ -1,0 +1,52 @@
+[
+    {
+        "name": "users",
+        "description": "Usuário",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "email",
+                "label": "Email",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "password",
+                "label": "Senha",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "fullname",
+                "label": "Nome Completo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "active",
+                "label": "Ativo?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "username",
+                "label": "Username",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idmenu",
+                "label": "Página Inicial",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\"}"
+            }
+        ]
+    }
+]

@@ -1,0 +1,94 @@
+[
+    {
+        "name": "Agendamento",
+        "namecomplete": "Plataforma - Agendamento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "schedule",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "settings",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "settings",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "active",
+                "ordertable": 1,
+                "orderable": true,
+                "render": "booleancircle",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Ativar",
+                "icon": "fa fa-check",
+                "function": "plataform.schedule._active",
+                "parameters": null
+            },
+            {
+                "description": "Desativar",
+                "icon": "fa fa-times",
+                "function": "plataform.schedule._desactive",
+                "parameters": null
+            },
+            {
+                "description": "Executar",
+                "icon": "fa fa-cog",
+                "function": "plataform.schedule._execute",
+                "parameters": null
+            }
+        ]
+    }
+]

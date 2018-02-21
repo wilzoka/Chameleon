@@ -1,0 +1,529 @@
+[
+    {
+        "name": "View",
+        "namecomplete": "Plataforma - View",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "namecomplete,asc",
+        "supressid": false,
+        "template": "tpl_view",
+        "model": "view",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "view",
+                "modelattribute": "js",
+                "width": 12,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idtemplate",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idmodule",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "wherefixed",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idmodel",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "orderfixed",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "supressid",
+                "width": 6,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "js",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "namecomplete",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "View - Evento",
+                "templatezone": "viewevent",
+                "description": "Eventos"
+            },
+            {
+                "subview": "View - Subview",
+                "templatezone": "viewsubview",
+                "description": "Subviews"
+            },
+            {
+                "subview": "View - Atributo",
+                "templatezone": "viewfield",
+                "description": "Atributos"
+            },
+            {
+                "subview": "View - Tabela",
+                "templatezone": "viewtable",
+                "description": "Campos da Tabela"
+            }
+        ],
+        "_event": [
+            {
+                "description": "Exportar",
+                "icon": "fa fa-cloud-upload",
+                "function": "platform.view.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-cloud-download",
+                "function": "platform.view.e_import",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "View - Atributo",
+        "namecomplete": "Plataforma - View - Atributo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "order,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "viewfield",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtemplatezone",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "width",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "order",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "disabled",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "disablefilter",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodelattribute",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idtemplatezone",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "width",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "order",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "disabled",
+                "ordertable": 5,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "disablefilter",
+                "ordertable": 6,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idmodelattribute",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Alterar Zona",
+                "icon": "fa fa-exchange",
+                "function": "platform.viewfield.e_changezone",
+                "parameters": null
+            },
+            {
+                "description": "Decrementar Ordem",
+                "icon": "fa fa-minus",
+                "function": "platform.viewfield.e_decrementorder",
+                "parameters": null
+            },
+            {
+                "description": "Incrementar Ordem",
+                "icon": "fa fa-plus",
+                "function": "platform.viewfield.e_incrementorder",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "View - Evento",
+        "namecomplete": "Plataforma - View - Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "viewevent",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "icon",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "parameters",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "icon",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "parameters",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "View - Subview",
+        "namecomplete": "Plataforma - View - Subview",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "viewsubview",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtemplatezone",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idsubview",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idtemplatezone",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idsubview",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "View - Tabela",
+        "namecomplete": "Plataforma - View - Tabela",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "ordertable,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "viewtable",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "ordertable",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "orderable",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "render",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "totalize",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "class",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodelattribute",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "ordertable",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "orderable",
+                "ordertable": 3,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "render",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "totalize",
+                "ordertable": 5,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idmodelattribute",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Decrementar Ordem",
+                "icon": "fa fa-minus",
+                "function": "platform.viewtable.e_decrementorder",
+                "parameters": null
+            },
+            {
+                "description": "Incrementar Ordem",
+                "icon": "fa fa-plus",
+                "function": "platform.viewtable.e_incrementorder",
+                "parameters": null
+            }
+        ]
+    }
+]

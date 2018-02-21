@@ -1,0 +1,88 @@
+[
+    {
+        "name": "model",
+        "description": "Modelo",
+        "onsave": "platform.model.onsave",
+        "ondelete": "platform.model.ondelete",
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "ondelete",
+                "label": "Ao Deletar",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "onsave",
+                "label": "Ao Salvar",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "modelattribute",
+        "description": "Atributo do Modelo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "label",
+                "label": "Label",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "notnull",
+                "label": "NotNull?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "Model",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"model\", \"cascade\": true}"
+            },
+            {
+                "name": "typeadd",
+                "label": "Adicional",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    }
+]

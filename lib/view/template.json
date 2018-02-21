@@ -1,0 +1,90 @@
+[
+    {
+        "name": "Template",
+        "namecomplete": "Plataforma - Template",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6",
+        "model": "template",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "comment",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "comment",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Template - Zona",
+                "templatezone": "z2",
+                "description": "Zonas"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Template - Zona",
+        "namecomplete": "Plataforma - Template - Zona",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "templatezone",
+        "module": "Plataforma",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    }
+]
