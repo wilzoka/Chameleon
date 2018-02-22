@@ -55,7 +55,7 @@
                 "typeadd": null
             },
             {
-                "name": "imagemrelatorio",
+                "name": "reportimage",
                 "label": "Imagem para Relatórios",
                 "type": "file",
                 "notnull": false,

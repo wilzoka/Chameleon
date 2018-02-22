@@ -361,6 +361,83 @@ let platform = {
             }
         }
     }
+    , notification: {
+        create: function (users, obj) {
+            for (let i = 0; i < users.length; i++) {
+                db.getModel('notification').create({
+                    datetime: moment()
+                    , iduser: users[i]
+                    , title: obj.title
+                    , description: obj.description
+                    , link: obj.link || null
+                    , read: false
+                }).then(notification => {
+                    notification = notification.dataValues;
+                    notification.duration = application.functions.duration(moment().diff(moment(notification.datetime), 'minutes'))
+                    process.send({
+                        pid: process.pid
+                        , type: 'socket:notification'
+                        , data: notification
+                    });
+                });
+            }
+        }
+        , js_read: async function (obj) {
+            try {
+                let notification = await db.getModel('notification').find({ where: { id: obj.data.id } });
+                if (notification.iduser != obj.req.user.id) {
+                    return application.error(obj.res, {});
+                }
+                notification.read = true;
+                notification.save();
+                process.send({
+                    pid: process.pid
+                    , type: 'socket:notification:read'
+                    , data: {
+                        iduser: obj.req.user.id
+                    }
+                });
+                return application.success(obj.res, {});
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , js_readAll: async function (obj) {
+            try {
+                await db.getModel('notification').update({ read: true }, { where: { iduser: obj.req.user.id } });
+                process.send({
+                    pid: process.pid
+                    , type: 'socket:notification:read'
+                    , data: {
+                        iduser: obj.req.user.id
+                    }
+                });
+                return application.success(obj.res, {});
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , r_handler: async function (obj) {
+            try {
+                const f = {
+                    getAll: async function (obj) {
+                        let notifications = await db.getModel('notification').findAll({ raw: true, where: { iduser: obj.req.user.id }, order: [['datetime', 'desc'], ['id', 'desc']] });
+                        for (let i = 0; i < notifications.length; i++) {
+                            notifications[i].datetime = application.formatters.fe.datetime(notifications[i].datetime);
+                        }
+                        return application.success(obj.res, { data: notifications });
+                    }
+                }
+                if (obj.req.body.function in f) {
+                    f[obj.req.body.function](obj);
+                } else {
+                    return application.error(obj.res, { msg: 'Função não encontrada' });
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+    }
     , permission: {
         onsave: async function (obj, next) {
             try {
@@ -491,7 +568,7 @@ let platform = {
                 if (obj.ids.length <= 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } } });
+                let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
                 let j = [];
                 for (let i = 0; i < views.length; i++) {
                     j.push({
@@ -505,7 +582,7 @@ let platform = {
                         , model: views[i].model.name
                         , module: views[i].module.description
                     });
-                    let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id } });
+                    let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['order', 'asc']] });
                     j[j.length - 1]._field = [];
                     for (let z = 0; z < viewfields.length; z++) {
                         j[j.length - 1]._field.push({
@@ -517,7 +594,7 @@ let platform = {
                             , disablefilter: viewfields[z].disablefilter
                         });
                     }
-                    let viewtables = await db.getModel('viewtable').findAll({ include: [{ all: true }], where: { idview: views[i].id } });
+                    let viewtables = await db.getModel('viewtable').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['ordertable', 'asc']] });
                     j[j.length - 1]._table = [];
                     for (let z = 0; z < viewtables.length; z++) {
                         j[j.length - 1]._table.push({

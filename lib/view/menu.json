@@ -5,7 +5,7 @@
         "js": null,
         "wherefixed": null,
         "orderfixed": "tree,asc",
-        "supressid": false,
+        "supressid": true,
         "template": "box-6",
         "model": "menu",
         "module": "Plataforma",
@@ -54,7 +54,7 @@
         "_table": [
             {
                 "modelattribute": "idview",
-                "ordertable": 4,
+                "ordertable": 3,
                 "orderable": false,
                 "render": null,
                 "totalize": false,
@@ -70,15 +70,7 @@
             },
             {
                 "modelattribute": "url",
-                "ordertable": 5,
-                "orderable": false,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "idmenuparent",
-                "ordertable": 3,
+                "ordertable": 4,
                 "orderable": false,
                 "render": null,
                 "totalize": false,

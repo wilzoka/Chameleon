@@ -263,3 +263,9 @@ a.btnevent i.fa {
 .nowrap {
     white-space: nowrap;
 }
+.font-bold {
+    font-weight: bold;
+}
+.dt-width-datetime {
+    width: 105px;
+}

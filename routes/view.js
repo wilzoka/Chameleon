@@ -302,7 +302,7 @@ const renderGeoreference = function (viewfield, register) {
     });
 }
 
-const renderSubView = function (viewsubview) {    
+const renderSubView = function (viewsubview) {
     return '<div class="col-md-12">'
         + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
         + '<table '
@@ -665,7 +665,7 @@ const deleteModel = function (obj) {
 }
 
 const hasPermission = function (iduser, idview) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         let permissionquery = 'select p.*, v.id as idview from permission p left join menu m on (p.idmenu = m.id) left join view v on (m.idview = v.id) where p.iduser = :iduser';
         let getChilds = function (idview, subviews) {
             let returnsubviews = [];
@@ -698,7 +698,7 @@ const hasPermission = function (iduser, idview) {
                         }
                     }
                 }
-                return reject();
+                return resolve(false);
             });
         });
     });

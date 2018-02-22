@@ -39,7 +39,7 @@ var application = {
             $('ul.sidebar-menu').append(localStorage.getItem('menu'));
             $('span.logo-lg').html(localStorage.getItem('descriptionmenu'));
             $('span.logo-mini').html(localStorage.getItem('descriptionmenumini'));
-            if ($('a[href="' + window.location.pathname + '"]')[0]) {
+            if ($('.sidebar-menu').find('a[href="' + window.location.pathname + '"]')[0]) {
                 $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
             }
             document.title = $('section.content-header').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
@@ -166,6 +166,20 @@ var application = {
                 var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
                 pagecookie.currentTab = this.hash;
                 Cookies.set(window.location.href, JSON.stringify(pagecookie));
+            });
+            $('.nav-tabs a').click(function (e) {
+                var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
+                pagecookie.currentTab = this.hash;
+                Cookies.set(window.location.href, JSON.stringify(pagecookie));
+            });
+            $('#nav-notification-readall').click(function () {
+                application.jsfunction('platform.notification.js_readAll', {}, function () {
+                    application.notification.call();
+                });
+            });
+            $(document).on('click', 'a.nav-notification-item', function (e) {
+                application.jsfunction('platform.notification.js_read', { id: $(this).attr('data-notification-id') });
+                e.stopPropagation();
             });
         }
         //Filter
@@ -1177,7 +1191,7 @@ var application = {
                 $notificationLabel.text(notifications.length);
                 for (var i = 0; i < notifications.length; i++) {
                     $notificationMenuUl.append(
-                        '<li><a href="' + (notifications[i].link || 'javascript:void(0)') + '">'
+                        '<li><a href="' + (notifications[i].link || 'javascript:void(0)') + '" class="nav-notification-item" data-notification-id="' + notifications[i].id + '" style="white-space: unset;">'
                         + '<h4 style="margin: 0;">' + notifications[i].title
                         + '<small><i class="fa fa-clock-o"></i> ' + notifications[i].duration + '</small>'
                         + '</h4>'
@@ -1255,7 +1269,9 @@ var application = {
                 , data: obj
             }
             , success: function (response) {
-                func(response);
+                if (func) {
+                    func(response);
+                }
             }
             , error: function (response) {
                 application.handlers.responseError(response);
@@ -1265,4 +1281,11 @@ var application = {
 }
 var socket = io({
     transports: ['websocket']
+});
+socket.on('notification', function (data) {
+    notifications.unshift(data)
+    application.notification.render();
+});
+socket.on('notification:read', function (data) {
+    application.notification.call();
 });

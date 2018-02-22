@@ -1,0 +1,73 @@
+<style>
+    div.dataTables_wrapper div.dataTables_paginate {
+        margin-right: 5px;
+    }
+    thead {
+        display: none;
+    }
+</style>
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-body" style="padding: 0 0 5px 0;">
+            <table id="table" class="table table-hover dataTable" style="width: 100%; margin-top: 0 !important;">
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function ($) {
+
+        var table = $('#table').DataTable({
+            dom: 'trp'
+            , columns: [
+                { title: "ID", data: "id", name: "id", visible: false }
+                , { title: "Data/Hora", data: "datetime", name: "datetime", class: "text-center dt-width-datetime" }
+                , {
+                    title: "Título", data: "title", name: "title", render: function (data, type, row) {
+                        var ret = '';
+                        if (!row.read) {
+                            ret += '<i class="fa fa-star text-yellow"></i> ';
+                        }
+                        if (row.link) {
+                            ret += '<a href="' + row.link + '">' + data + '</a>';
+                        } else {
+                            ret += data;
+                        }
+                        return ret;
+                    }
+                }
+                , { title: "Descrição", data: "description", name: "description" }
+            ]
+            , ordering: false
+            , ajax: function (data, callback, settings) {
+                application.route.handler({ function: 'getAll' }, function (response) {
+                    callback(response);
+                });
+            }
+            , rowCallback: function (row, data) {
+                if (!data.read) {
+                    $(row).addClass('font-bold');
+                }
+            }
+        }).on('click', 'tbody tr', function (e) {
+            var data = table.row(this).data();
+            if (!data.read) {
+                application.jsfunction('platform.notification.js_read', { id: data.id });
+            }
+        });
+
+        socket.on('notification', function (data) {
+            table.ajax.reload(null, false);
+        });
+        socket.on('notification:read', function (data) {
+            table.ajax.reload(null, false);
+        });
+        $('#nav-notification-readall').click(function () {
+            table.ajax.reload(null, false);
+        });
+
+    });
+
+</script>

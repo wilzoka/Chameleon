@@ -57,7 +57,7 @@ if (cluster.isMaster) {
     app.use(passport.initialize());
     app.use(passport.session());
     //Socket
-    app.io = require('socket.io')(http).use(function (socket, next) {
+    io = require('socket.io')(http).use(function (socket, next) {
         appSession(socket.request, {}, next);
     });
     //Static Content

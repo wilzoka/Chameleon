@@ -68,7 +68,7 @@
             },
             {
                 "templatezone": "company",
-                "modelattribute": "imagemrelatorio",
+                "modelattribute": "reportimage",
                 "width": 6,
                 "order": 4,
                 "disabled": false,
