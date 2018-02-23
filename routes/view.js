@@ -1128,6 +1128,9 @@ module.exports = function (app) {
             if (!view) {
                 return application.notFound(res);
             }
+            if (isNaN(parseInt(req.params.id))) {
+                return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
+            }
             const permission = await hasPermission(req.user.id, view.id);
             if (permission.visible) {
                 const viewfields = await db.getModel('viewfield').findAll({

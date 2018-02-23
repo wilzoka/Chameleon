@@ -1,23 +1,5 @@
-const express = require('express')
-    , passport = require('passport')
-    , bodyParser = require('body-parser')
-    , cookieParser = require('cookie-parser')
-    , session = require('express-session')
-    , app = express()
-    , http = require('http').Server(app)
-    , db = require('./models')
-    , SequelizeStore = require('connect-session-sequelize')(session.Store)
-    , sequelizeStore = new SequelizeStore({
-        db: db.sequelize
-        , table: 'session'
-    })
-    , appSession = session({
-        store: sequelizeStore
-        , resave: false
-        , saveUninitialized: false
-        , secret: 'makebettersecurity'
-    })
-    , cluster = require('cluster')
+const
+    cluster = require('cluster')
     , os = require('os')
     , createWorker = function () {
         worker = cluster.fork();
@@ -38,13 +20,32 @@ const express = require('express')
         workers.push(worker);
     }
     ;
-
 let workers = [];
 if (cluster.isMaster) {
     for (let i = 0; i < (1 || os.cpus().length); i++) {
         createWorker();
     }
 } else {
+    const express = require('express')
+        , passport = require('passport')
+        , bodyParser = require('body-parser')
+        , cookieParser = require('cookie-parser')
+        , session = require('express-session')
+        , app = express()
+        , http = require('http').Server(app)
+        , db = require('./models')
+        , SequelizeStore = require('connect-session-sequelize')(session.Store)
+        , sequelizeStore = new SequelizeStore({
+            db: db.sequelize
+            , table: 'session'
+        })
+        , appSession = session({
+            store: sequelizeStore
+            , resave: false
+            , saveUninitialized: false
+            , secret: 'makebettersecurity'
+            , name: 'connect.sid'
+        })
     //Express Settings
     app.disable('x-powered-by');
     //Session

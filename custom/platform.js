@@ -469,6 +469,101 @@ let platform = {
         , f_afterSave: function () {
             db.sequelize.query("update route set url = translate(lower(description), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
         }
+        , e_export: async function (obj) {
+            try {
+                if (obj.ids.length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                let routes = await db.getModel('route').findAll({ where: { id: { $in: obj.ids } }, order: [['description', 'asc']] });
+                let j = [];
+                for (let i = 0; i < routes.length; i++) {
+                    j.push({
+                        description: routes[i].description
+                        , file: routes[i].file
+                        , function: routes[i].function
+                        , needauth: routes[i].needauth
+                        , needperm: routes[i].needperm
+                        , url: routes[i].url
+                    });
+                }
+                let filename = process.hrtime()[1] + '.json';
+                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                    if (err) {
+                        return application.error(obj.res, { msg: err });
+                    }
+                    return application.success(obj.res, { openurl: '/download/' + filename });
+                });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , e_import: async function (obj) {
+            try {
+                if (obj.req.method == 'GET') {
+                    let body = '';
+                    body += '<div class="row no-margin">';
+                    body += application.components.html.file({
+                        width: '12'
+                        , name: 'file'
+                        , label: 'Arquivo'
+                        , maxfiles: '1'
+                    });
+                    body += '</div>';
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , id: 'modalevt'
+                            , action: '/event/' + obj.event.id
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Importar</button>'
+                        }
+                    });
+                } else {
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['file']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    let file = JSON.parse(obj.req.body.file)[0];
+                    let routes = JSON.parse(fs.readFileSync('files/' + file.id + '.' + file.type, 'utf8'));
+                    console.log('----------SYNC ROUTES---------');
+                    for (let i = 0; i < routes.length; i++) {
+                        console.log('ROUTE ' + routes[i].description);
+                        let route = await db.getModel('route').find({ where: { description: routes[i].description } });
+                        if (route) {
+                            route.file = routes[i].file;
+                            route.function = routes[i].function;
+                            route.needauth = routes[i].needauth;
+                            route.needperm = routes[i].needperm;
+                            route.url = routes[i].url;
+                            if (route.changed()) {
+                                await route.save();
+                                console.log('UPDATED');
+                            } else {
+                                console.log('OK');
+                            }
+                        } else {
+                            route = await db.getModel('route').create({
+                                description: routes[i].description
+                                , file: routes[i].file
+                                , function: routes[i].function
+                                , needauth: routes[i].needauth
+                                , needperm: routes[i].needperm
+                                , url: routes[i].url
+                            });
+                            console.log('CREATED');
+                        }
+                        if (i != routes.length - 1) {
+                            console.log('------------------------------');
+                        }
+                    }
+                    console.log('-----------FINISHED-----------');
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
     }
     , schedule: {
         onsave: async function (obj, next) {

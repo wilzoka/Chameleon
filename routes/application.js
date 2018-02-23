@@ -3,13 +3,6 @@ const lodash = require('lodash')
 	, fs = require('fs')
 	;
 
-let Handlebars = require('handlebars');
-Handlebars.registerPartial('parts/head', fs.readFileSync(__dirname + '/../views/parts/head.html', 'utf8'))
-Handlebars.registerPartial('parts/js', fs.readFileSync(__dirname + '/../views/parts/js.html', 'utf8'))
-Handlebars.registerPartial('parts/nav', fs.readFileSync(__dirname + '/../views/parts/nav.html', 'utf8'))
-Handlebars.registerPartial('parts/sidebar', fs.readFileSync(__dirname + '/../views/parts/sidebar.html', 'utf8'))
-Handlebars.compiledTemplates = {};
-
 let application = {
 	IsAuthenticated: function (req, res, next) {
 		if (req.isAuthenticated()) {
@@ -39,10 +32,10 @@ let application = {
 		}
 	}
 	, render: function (res, template, json) {
-		if (!(template in Handlebars.compiledTemplates)) {
-			Handlebars.compiledTemplates[template] = Handlebars.compile(fs.readFileSync(template, 'utf8'));
+		if (!(template in application.Handlebars.compiledTemplates)) {
+			application.Handlebars.compiledTemplates[template] = application.Handlebars.compile(fs.readFileSync(template, 'utf8'));
 		}
-		res.send(Handlebars.compiledTemplates[template](json)).end();
+		res.send(application.Handlebars.compiledTemplates[template](json)).end();
 	}
 	, forbidden: function (res) {
 		res.status(403);
@@ -487,6 +480,13 @@ let application = {
 			}
 		}
 	}
+	, Handlebars: require('handlebars')
 }
+
+application.Handlebars.registerPartial('parts/head', fs.readFileSync(__dirname + '/../views/parts/head.html', 'utf8'))
+application.Handlebars.registerPartial('parts/js', fs.readFileSync(__dirname + '/../views/parts/js.html', 'utf8'))
+application.Handlebars.registerPartial('parts/nav', fs.readFileSync(__dirname + '/../views/parts/nav.html', 'utf8'))
+application.Handlebars.registerPartial('parts/sidebar', fs.readFileSync(__dirname + '/../views/parts/sidebar.html', 'utf8'))
+application.Handlebars.compiledTemplates = {};
 
 module.exports = application;

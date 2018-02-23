@@ -4,8 +4,6 @@ const passport = require('passport')
     , application = require('./application')
     ;
 
-let users = {};
-
 // Serialize Sessions
 passport.serializeUser(function (user, done) {
     done(null, user);

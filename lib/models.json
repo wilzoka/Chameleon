@@ -449,6 +449,13 @@
                 "typeadd": null
             },
             {
+                "name": "needperm",
+                "label": "Requer Permissão?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
                 "name": "function",
                 "label": "Função",
                 "type": "text",

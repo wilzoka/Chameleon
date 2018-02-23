@@ -132,6 +132,15 @@ sequelize.query(`
     }
   });
 
+sequelize.query('select * from config', { type: Sequelize.QueryTypes.SELECT }).then(config => {
+  if (config && config[0].favicon) {
+    const favicon = JSON.parse(config[0].favicon)[0];
+    application.Handlebars.registerPartial('parts/favicon', '/files/' + favicon.id + '.' + favicon.type);
+  } else {
+    application.Handlebars.registerPartial('parts/favicon', '/public/images/favicon.ico');
+  }
+});
+
 module.exports = {
   sequelize: sequelize
   , Sequelize: Sequelize

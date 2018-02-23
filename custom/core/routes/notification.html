@@ -64,9 +64,6 @@
         socket.on('notification:read', function (data) {
             table.ajax.reload(null, false);
         });
-        $('#nav-notification-readall').click(function () {
-            table.ajax.reload(null, false);
-        });
 
     });
 

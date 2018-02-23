@@ -23,7 +23,7 @@ module.exports = function (app) {
 
 	//catch 404
 	app.use(function (req, res) {
-		return application.render(res, __dirname + '/../views/404.html', {});
+		return application.notFound(res);
 	});
 
 }

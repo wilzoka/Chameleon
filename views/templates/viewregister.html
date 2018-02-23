@@ -51,7 +51,7 @@
   {{> parts/js }}
 
   <script type="text/javascript">
-    application.index();
+    application.index(true);
     $(document).ready(function () {
       application.components.renderAll();
       if (application.functions.getId() == 0 && !application.functions.isMobile()) {

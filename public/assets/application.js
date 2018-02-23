@@ -1,4 +1,3 @@
-// Defaults
 // Datatable
 $.extend(true, $.fn.dataTable.defaults, {
     language: {
@@ -19,7 +18,6 @@ $.extend(true, $.fn.dataTable.defaults, {
 });
 // Dropzone
 Dropzone.autoDiscover = false;
-Dropzone.prototype.defaultOptions.dictDefaultMessage = "Clique aqui para adicionar arquivos";
 Dropzone.prototype.defaultOptions.dictFallbackMessage = "Your browser does not support drag'n'drop file uploads.";
 Dropzone.prototype.defaultOptions.dictFallbackText = "Please use the fallback form below to upload your files like in the olden days.";
 Dropzone.prototype.defaultOptions.dictFileTooBig = "Arquivo é grande demais ({{filesize}}MiB). Tamanho máximo: {{maxFilesize}}MiB.";
@@ -29,37 +27,42 @@ Dropzone.prototype.defaultOptions.dictCancelUpload = "Cancelar Upload";
 Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "Você tem certeza que quer cancelar este envio?";
 Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
 Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este arquivo não será salvo.";
-var tables = [];
+// Global Vars
 var maps = [];
 var notifications = [];
+var tables = [];
+var socket;
+// Application
 var application = {
-    index: function () {
+    index: function (isAuth) {
         // Menu, Title, Username, Tab
         {
-            $('ul.sidebar-menu').append(localStorage.getItem('menu'));
-            $('span.logo-lg').html(localStorage.getItem('descriptionmenu'));
-            $('span.logo-mini').html(localStorage.getItem('descriptionmenumini'));
-            if ($('.sidebar-menu').find('a[href="' + window.location.pathname + '"]')[0]) {
-                $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
-            }
-            document.title = $('section.content-header').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
-            var pathname = window.location.pathname;
-            pathname = pathname.split('/');
-            path = pathname[0] + '/' + pathname[1] + '/' + pathname[2];
-            var $menuitem = $('a[href="' + path + '"]');
-            if ($menuitem[0]) {
-                $menuitem.parent().addClass('active');
-                $menuitem.parents('li.treeview').addClass('menu-open');
-                $menuitem.parents('ul.treeview-menu').css('display', 'block');
-            } else {
-                if (pathname.length == 4) {
-                    $menuitem = $('a[href="' + path + '/' + pathname[3] + '"]');
+            if (isAuth) {
+                $('ul.sidebar-menu').append(localStorage.getItem('menu'));
+                $('span.logo-lg').html(localStorage.getItem('descriptionmenu'));
+                $('span.logo-mini').html(localStorage.getItem('descriptionmenumini'));
+                if ($('.sidebar-menu').find('a[href="' + window.location.pathname + '"]')[0]) {
+                    $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
+                }
+                var pathname = window.location.pathname;
+                pathname = pathname.split('/');
+                path = pathname[0] + '/' + pathname[1] + '/' + pathname[2];
+                var $menuitem = $('a[href="' + path + '"]');
+                if ($menuitem[0]) {
                     $menuitem.parent().addClass('active');
                     $menuitem.parents('li.treeview').addClass('menu-open');
                     $menuitem.parents('ul.treeview-menu').css('display', 'block');
+                } else {
+                    if (pathname.length == 4) {
+                        $menuitem = $('a[href="' + path + '/' + pathname[3] + '"]');
+                        $menuitem.parent().addClass('active');
+                        $menuitem.parents('li.treeview').addClass('menu-open');
+                        $menuitem.parents('ul.treeview-menu').css('display', 'block');
+                    }
                 }
+                $('#appusername').text(localStorage.getItem('username'));
             }
-            $('#appusername').text(localStorage.getItem('username'));
+            document.title = $('section.content-header').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
             var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
             if ('currentTab' in pagecookie) {
                 $('ul.nav a[href="' + pagecookie.currentTab + '"]').tab('show');
@@ -122,7 +125,6 @@ var application = {
                 var table = $(this).attr('data-table');
                 var idevent = $(this).attr('data-event');
                 var ids = $('#' + table).attr('data-selected');
-
                 $.ajax({
                     url: '/event/' + idevent
                     , type: 'GET'
@@ -139,7 +141,6 @@ var application = {
                         application.handlers.responseError(response);
                     }
                 });
-
             });
             $('button.btnreturn').click(function () {
                 window.history.back();
@@ -173,9 +174,7 @@ var application = {
                 Cookies.set(window.location.href, JSON.stringify(pagecookie));
             });
             $('#nav-notification-readall').click(function () {
-                application.jsfunction('platform.notification.js_readAll', {}, function () {
-                    application.notification.call();
-                });
+                application.jsfunction('platform.notification.js_readAll');
             });
             $(document).on('click', 'a.nav-notification-item', function (e) {
                 application.jsfunction('platform.notification.js_read', { id: $(this).attr('data-notification-id') });
@@ -225,7 +224,24 @@ var application = {
         }
         //Notifications
         {
-            application.notification.call();
+            if (isAuth) {
+                application.notification.call();
+            }
+        }
+        //Socket
+        {
+            if (isAuth) {
+                socket = io({
+                    transports: ['websocket']
+                });
+                socket.on('notification', function (data) {
+                    notifications.unshift(data)
+                    application.notification.render();
+                });
+                socket.on('notification:read', function (data) {
+                    application.notification.call();
+                });
+            }
         }
     }
     , components: {
@@ -337,6 +353,7 @@ var application = {
             $obj.each(function () {
                 var dz = new Dropzone(this, {
                     url: "/file"
+                    , dictDefaultMessage: $(this).attr('data-message') || 'Clique aqui para adicionar arquivos'
                     , previewTemplate: previewTemplate
                     , maxFiles: $(this).attr('data-maxfiles') || null
                     , acceptedFiles: $(this).attr('data-acceptedfiles') || null
@@ -1266,7 +1283,7 @@ var application = {
             , dataType: 'json'
             , data: {
                 name: name
-                , data: obj
+                , data: obj || {}
             }
             , success: function (response) {
                 if (func) {
@@ -1279,13 +1296,3 @@ var application = {
         });
     }
 }
-var socket = io({
-    transports: ['websocket']
-});
-socket.on('notification', function (data) {
-    notifications.unshift(data)
-    application.notification.render();
-});
-socket.on('notification:read', function (data) {
-    application.notification.call();
-});
