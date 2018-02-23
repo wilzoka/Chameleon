@@ -244,7 +244,7 @@ let platform = {
                 if (obj.ids.length <= 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                let models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } } });
+                let models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
                 let j = [];
                 for (let i = 0; i < models.length; i++) {
                     j.push({
