@@ -180,7 +180,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let menus = JSON.parse(fs.readFileSync(__dirname + '/files/' + file.id + '.' + file.type, 'utf8'));
+                    let menus = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
                     console.log('----------SYNC MENUS----------');
                     for (let i = 0; i < menus.length; i++) {
                         console.log('MENU ' + menus[i].tree);
@@ -412,7 +412,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let models = JSON.parse(fs.readFileSync(__dirname + '/files/' + file.id + '.' + file.type, 'utf8'));
+                    let models = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
                     console.log('----------SYNC MODELS---------');
                     for (let i = 0; i < models.length; i++) {
                         console.log('MODEL ' + models[i].name);
@@ -633,7 +633,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let routes = JSON.parse(fs.readFileSync(__dirname + '/files/' + file.id + '.' + file.type, 'utf8'));
+                    let routes = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
                     console.log('----------SYNC ROUTES---------');
                     for (let i = 0; i < routes.length; i++) {
                         console.log('ROUTE ' + routes[i].description);
@@ -868,7 +868,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let views = JSON.parse(fs.readFileSync(__dirname + '/files/' + file.id + '.' + file.type, 'utf8'));
+                    let views = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
                     console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
                         console.log('VIEW ' + views[i].name);
