@@ -105,15 +105,23 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "datetime",
-                "width": 4,
+                "width": 6,
                 "order": 1,
                 "disabled": false,
                 "disablefilter": false
             },
             {
                 "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
                 "modelattribute": "filename",
-                "width": 4,
+                "width": 6,
                 "order": 3,
                 "disabled": false,
                 "disablefilter": false
@@ -121,7 +129,7 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "size",
-                "width": 3,
+                "width": 2,
                 "order": 4,
                 "disabled": false,
                 "disablefilter": false
@@ -137,7 +145,7 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "mimetype",
-                "width": 3,
+                "width": 2,
                 "order": 6,
                 "disabled": false,
                 "disablefilter": false
@@ -145,8 +153,24 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "bounded",
-                "width": 4,
+                "width": 3,
                 "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "modelid",
+                "width": 3,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 6,
+                "order": 9,
                 "disabled": false,
                 "disablefilter": false
             }
