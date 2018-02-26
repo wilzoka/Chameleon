@@ -142,7 +142,7 @@ let platform = {
                     });
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -374,7 +374,7 @@ let platform = {
                     }
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -595,7 +595,7 @@ let platform = {
                     });
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -830,7 +830,7 @@ let platform = {
                     }
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -1597,7 +1597,7 @@ let platform = {
 
                     let filename = process.hrtime()[1] + '.xls';
                     wb.Sheets['Sheet1'] = ws;
-                    XLSX.writeFile(wb, 'tmp/' + filename);
+                    XLSX.writeFile(wb, __dirname + '/../tmp/' + filename);
 
                     return application.success(obj.res, { openurl: '/download/' + filename });
                 } catch (err) {
