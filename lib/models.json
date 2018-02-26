@@ -51,7 +51,7 @@
     },
     {
         "name": "config",
-        "description": null,
+        "description": "Configuração da Plataforma",
         "onsave": null,
         "ondelete": null,
         "_attribute": [
@@ -723,7 +723,7 @@
     },
     {
         "name": "viewevent",
-        "description": null,
+        "description": "View Event",
         "onsave": null,
         "ondelete": null,
         "_attribute": [
@@ -775,7 +775,7 @@
                 "label": "Atributo",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\r\n\"model\": \"modelattribute\"\r\n, \"attribute\": \"label\"\r\n, \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\"\r\n}"
+                "typeadd": "{\r\n\"model\": \"modelattribute\"\r\n, \"attribute\": \"label\"\r\n, \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\"\r\n, \"cascade\": true\r\n}"
             },
             {
                 "name": "idtemplatezone",
