@@ -124,6 +124,114 @@ let platform = {
                 });
             });
         }
+        , e_export: async function (obj) {
+            try {
+                if (obj.ids.length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                let menus = await db.getModel('menu').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['tree', 'asc']] });
+                let j = [];
+                for (let i = 0; i < menus.length; i++) {
+                    j.push({
+                        description: menus[i].description
+                        , icon: menus[i].icon
+                        , menuparent: menus[i].idmenuparent ? menus[i].parentmenu.tree : null
+                        , view: menus[i].idview ? menus[i].view.name : null
+                        , url: menus[i].url
+                        , tree: menus[i].tree
+                    });
+                }
+                let filename = process.hrtime()[1] + '.json';
+                fs.writeFile('tmp/' + filename, JSON.stringify(j), function (err) {
+                    if (err) {
+                        return application.error(obj.res, { msg: err });
+                    }
+                    return application.success(obj.res, { openurl: '/download/' + filename });
+                });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , e_import: async function (obj) {
+            try {
+                if (obj.req.method == 'GET') {
+                    let body = '';
+                    body += '<div class="row no-margin">';
+                    body += application.components.html.file({
+                        width: '12'
+                        , name: 'file'
+                        , label: 'Arquivo'
+                        , maxfiles: '1'
+                    });
+                    body += '</div>';
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , id: 'modalevt'
+                            , action: '/event/' + obj.event.id
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Importar</button>'
+                        }
+                    });
+                } else {
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['file']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    let file = JSON.parse(obj.req.body.file)[0];
+                    let menus = JSON.parse(fs.readFileSync('files/' + file.id + '.' + file.type, 'utf8'));
+                    console.log('----------SYNC MENUS----------');
+                    for (let i = 0; i < menus.length; i++) {
+                        console.log('MENU ' + menus[i].tree);
+                        let menu = await db.getModel('menu').find({ where: { tree: menus[i].tree } });
+                        let mp = null;
+                        let v = null;
+                        if (menus[i].menuparent) {
+                            mp = await db.getModel('menu').find({ where: { tree: menus[i].menuparent } });
+                        }
+                        if (menus[i].view) {
+                            v = await db.getModel('view').find({ where: { name: menus[i].view } });
+                        }
+                        if (menu) {
+                            menu.description = menus[i].description;
+                            menu.icon = menus[i].icon;
+                            menu.url = menus[i].url;
+                            menu.tree = menus[i].tree;
+                            if (menus[i].menuparent) {
+                                menu.idmenuparent = mp.id;
+                            }
+                            if (menus[i].view) {
+                                menu.idview = v.id;
+                            }
+                            if (menu.changed()) {
+                                await menu.save();
+                                console.log('UPDATED');
+                            } else {
+                                console.log('OK');
+                            }
+                        } else {
+                            menu = await db.getModel('menu').create({
+                                description: menus[i].description
+                                , icon: menus[i].icon
+                                , idmenuparent: menus[i].menuparent && mp ? mp.id : null
+                                , idview: menus[i].view && v ? v.id : null
+                                , url: menus[i].url
+                                , tree: menus[i].tree
+                            });
+                            console.log('CREATED');
+                        }
+                        if (i != menus.length - 1) {
+                            console.log('------------------------------');
+                        }
+                    }
+                    console.log('-----------FINISHED-----------');
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
     }
     , model: {
         onsave: async function (obj, next) {

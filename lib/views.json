@@ -460,7 +460,20 @@
             }
         ],
         "_subview": [],
-        "_event": []
+        "_event": [
+            {
+                "description": "Exportar",
+                "icon": "fa fa-cloud-upload",
+                "function": "platform.menu.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-cloud-download",
+                "function": "platform.menu.e_import",
+                "parameters": null
+            }
+        ]
     },
     {
         "name": "Modelo",
