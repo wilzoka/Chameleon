@@ -122,7 +122,7 @@
     },
     {
         "name": "file",
-        "description": null,
+        "description": "Arquivo",
         "onsave": null,
         "ondelete": null,
         "_attribute": [
@@ -166,6 +166,27 @@
                 "label": "Nome do Arquivo",
                 "type": "text",
                 "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "Modelo",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"model\", \"attribute\": \"description\", \"cascade\": true}"
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "modelid",
+                "label": "ID",
+                "type": "integer",
+                "notnull": false,
                 "typeadd": null
             }
         ]

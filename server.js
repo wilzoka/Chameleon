@@ -1,5 +1,4 @@
-const
-    cluster = require('cluster')
+const cluster = require('cluster')
     , os = require('os')
     , createWorker = function () {
         worker = cluster.fork();

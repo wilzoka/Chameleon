@@ -253,7 +253,7 @@ let application = {
 			} else if (minutes < 2880) {
 				return '1 dia';
 			} else {
-				return Math.trunc(minutes / 60) + ' dias';
+				return Math.trunc(minutes / 60 / 24) + ' dias';
 			}
 		}
 	}

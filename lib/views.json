@@ -313,38 +313,6 @@
                 "disablefilter": false
             },
             {
-                "templatezone": "company",
-                "modelattribute": "razaosocial",
-                "width": 4,
-                "order": 1,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "customization",
-                "modelattribute": "descriptionmenu",
-                "width": 6,
-                "order": 1,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "company",
-                "modelattribute": "fantasia",
-                "width": 4,
-                "order": 2,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "customization",
-                "modelattribute": "descriptionmenumini",
-                "width": 6,
-                "order": 2,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
                 "templatezone": "system",
                 "modelattribute": "googlemapskey",
                 "width": 4,
@@ -354,17 +322,57 @@
             },
             {
                 "templatezone": "company",
+                "modelattribute": "razaosocial",
+                "width": 4,
+                "order": 101,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "fantasia",
+                "width": 4,
+                "order": 102,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
                 "modelattribute": "cnpj",
                 "width": 4,
-                "order": 3,
+                "order": 103,
                 "disabled": false,
                 "disablefilter": false
             },
             {
                 "templatezone": "company",
                 "modelattribute": "reportimage",
+                "width": 4,
+                "order": 104,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "descriptionmenu",
                 "width": 6,
-                "order": 4,
+                "order": 201,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "descriptionmenumini",
+                "width": 6,
+                "order": 202,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "favicon",
+                "width": 6,
+                "order": 203,
                 "disabled": false,
                 "disablefilter": false
             }
