@@ -802,7 +802,7 @@ let main = {
                                         id: 'modalevt2'
                                         , fullscreen: true
                                         , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                        , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
+                                        , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 442px;"></iframe>'
                                         , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                                     }
                                 });
