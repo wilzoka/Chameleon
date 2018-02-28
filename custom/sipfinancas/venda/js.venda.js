@@ -6,7 +6,7 @@ $(function () {
         $('button.btnfilter[data-table="' + table + '"]').remove();
 
         switch (table) {
-            case 'tableview81':// Pagamentos
+            case 'tableviewvenda_-_parcela':// Pagamentos
 
                 $('button#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('sipfinancas.financeiro.movparc.__venda_adicionarModal', { id: application.functions.getId() }, function (response) {

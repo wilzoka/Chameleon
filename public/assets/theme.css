@@ -84,11 +84,17 @@ div.btn-group-events .dropdown-menu > li > a {
 .checkbox {
     padding: 0 3px;
 }
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+    padding: 4px;
+}
+.label {
+    font-size: 85%;
+}
 
 /* Datatables */
 @media (min-width: 768px) {
     table.dataTable {
-        font-size: 10pt;
+        font-size: 12px;
     }
 }
 @media (max-width: 767px) {
@@ -114,6 +120,9 @@ table.dataTable.compact thead th, table.dataTable.compact tbody td {
 table.dataTable thead tr th, table.dataTable tfoot tr td {
     background-color: #f4f4f4;
     font-weight: bold;
+}
+table.dataTable thead .sorting:after, table.dataTable thead .sorting_asc:after, table.dataTable thead .sorting_desc:after, table.dataTable thead .sorting_asc_disabled:after, table.dataTable thead .sorting_desc_disabled:after {
+    bottom: 3px;
 }
 
 /* Select2 */
