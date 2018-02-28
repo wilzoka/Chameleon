@@ -662,10 +662,10 @@ let main = {
                             let pdfMakePrinter = require('pdfmake');
                             let fontDescriptors = {
                                 Roboto: {
-                                    normal: 'fonts/cour.ttf',
-                                    bold: 'fonts/courbd.ttf',
-                                    italics: 'fonts/couri.ttf',
-                                    bolditalics: 'fonts/courbi.ttf'
+                                    normal: __dirname + '/../../fonts/cour.ttf',
+                                    bold: __dirname + '/../../fonts/courbd.ttf',
+                                    italics: __dirname + '/../../fonts/couri.ttf',
+                                    bolditalics: __dirname + '/../../fonts/courbi.ttf'
                                 }
                             };
                             let printer = new pdfMakePrinter(fontDescriptors);
@@ -794,7 +794,7 @@ let main = {
 
                             let doc = printer.createPdfKitDocument(dd);
                             let filename = process.hrtime()[1] + '.pdf';
-                            let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                            let stream = doc.pipe(fs.createWriteStream(__dirname + '/../../tmp/' + filename));
                             doc.end();
                             stream.on('finish', function () {
                                 return application.success(obj.res, {
