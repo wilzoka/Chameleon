@@ -910,7 +910,7 @@
                 "label": "Atributo",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\"model\": \"modelattribute\", \"attribute\": \"label\", \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\"}"
+                "typeadd": "{\"model\": \"modelattribute\", \"attribute\": \"label\", \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\", \"cascade\": true}"
             },
             {
                 "name": "class",

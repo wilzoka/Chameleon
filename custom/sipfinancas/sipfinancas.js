@@ -1,6 +1,7 @@
 const application = require('../../routes/application')
     , db = require('../../models')
     , moment = require('moment')
+    , fs = require('fs')
     ;
 
 let main = {
@@ -157,7 +158,7 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, data: { $gt: obj.register.data } } });
+                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, idconta: obj.register.idconta, data: { $gt: obj.register.data } } });
                         if (count > 0) {
                             return application.error(obj.res, { msg: 'Existe um fechamento de caixa maior que desta data' });
                         }
@@ -618,6 +619,195 @@ let main = {
                         await db.getModel('fin_mov').bulkCreate(bulkmov);
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_apuracaoResultado: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+                            body += application.components.html.integer({
+                                width: '6'
+                                , label: 'Mês*'
+                                , name: 'mes'
+                            });
+                            body += application.components.html.integer({
+                                width: '6'
+                                , label: 'Ano*'
+                                , name: 'ano'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , id: 'modalevt'
+                                    , action: '/event/' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
+                                }
+                            });
+
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['mes', 'ano']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let pdfMakePrinter = require('pdfmake');
+                            let fontDescriptors = {
+                                Roboto: {
+                                    normal: 'fonts/cour.ttf',
+                                    bold: 'fonts/courbd.ttf',
+                                    italics: 'fonts/couri.ttf',
+                                    bolditalics: 'fonts/courbi.ttf'
+                                }
+                            };
+                            let printer = new pdfMakePrinter(fontDescriptors);
+                            let body = [];
+                            let dataini = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format);
+                            let datafim = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format).endOf('month');
+                            let contas = await db.getModel('fin_conta').findAll({ raw: true, order: [['descricao', 'asc']] });
+                            for (let i = 0; i < contas.length; i++) {
+                                contas[i]._cs = await db.getModel('fin_contasaldo').find({ raw: true, where: { idconta: contas[i].id, data: { $lt: dataini } }, order: [['data', 'desc']] });
+                                contas[i]._saldo = contas[i]._cs ? parseFloat(contas[i]._cs.valor) : parseFloat(contas[i].saldoinicial);
+                            }
+                            let categorias = await db.getModel('fin_categoria').findAll({ raw: true, order: [['descricaocompleta', 'asc']] });
+
+                            //Header
+                            body.push(['']);
+                            body.push(['Saldo Inicial']);
+                            let totalsaldoinicial = 0.0;
+                            for (let i = 0; i < contas.length; i++) {
+                                body[body.length - 1].push({ text: application.formatters.fe.decimal(contas[i]._saldo, 2), alignment: 'right' });
+                                body[body.length - 2].push({ text: contas[i].descricao, alignment: 'center' });
+                                totalsaldoinicial += contas[i]._saldo;
+                            }
+                            body[body.length - 1].push({ text: application.formatters.fe.decimal(totalsaldoinicial, 2), alignment: 'right' });
+                            body[body.length - 2].push({ text: 'Total', alignment: 'right' });
+                            body.push([{ text: '', colSpan: contas.length + 2, border: [0, 0, 0, 0] }]);
+
+                            for (let i = 0; i < categorias.length; i++) {
+                                body.push([]);
+                                if (categorias[i].descricaocompleta.indexOf('-') < 0 && (categorias[i].descricaocompleta.indexOf('RS ') >= 0 || categorias[i].descricaocompleta.indexOf('MS ') >= 0)) {
+                                    body[body.length - 1].push({ text: categorias[i].descricaocompleta, colSpan: contas.length + 2, alignment: 'center', border: [0, 0, 0, 0] });
+                                } else {
+                                    let totalcategoria = 0.0;
+                                    body[body.length - 1].push({ text: categorias[i].descricao });
+                                    for (let z = 0; z < contas.length; z++) {
+                                        let sql = await db.sequelize.query(`
+                                        select
+                                            sum(case when dc = 1 then valortotal * -1 else valortotal end) as vt
+                                        from
+                                            (select
+                                                *
+                                                , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) as valortotal
+                                            from
+                                                fin_movparc mp
+                                            left join fin_mov m on (mp.idmov = m.id)
+                                            left join fin_categoria c on (m.idcategoria = c.id)
+                                            where
+                                                mp.data >= :dataini and mp.data <= :datafim
+                                                and mp.idconta = :idconta
+                                                and c.id = :idcategoria) as x
+                                        `
+                                            , {
+                                                type: db.sequelize.QueryTypes.SELECT
+                                                , replacements: {
+                                                    dataini: dataini.format(application.formatters.be.date_format)
+                                                    , datafim: datafim.format(application.formatters.be.date_format)
+                                                    , idconta: contas[z].id
+                                                    , idcategoria: categorias[i].id
+                                                }
+                                            }
+                                        );
+                                        if (sql[0].vt) {
+                                            totalcategoria += parseFloat(sql[0].vt);
+                                            contas[z]._saldo += parseFloat(sql[0].vt);
+                                        }
+                                        body[body.length - 1].push({
+                                            text: sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00'
+                                            , alignment: 'right'
+                                        });
+                                    }
+                                    body[body.length - 1].push({ text: application.formatters.fe.decimal(totalcategoria, 2), alignment: 'right' });
+                                }
+                            }
+
+                            //Footer
+                            body.push([{ text: '', colSpan: contas.length + 2, border: [0, 0, 0, 0] }]);
+                            body.push(['Saldo Final']);
+                            let totalsaldofinal = 0.0;
+                            for (let i = 0; i < contas.length; i++) {
+                                totalsaldofinal += contas[i]._saldo;
+                                body[body.length - 1].push(application.formatters.fe.decimal(contas[i]._saldo, 2));
+                            }
+                            body[body.length - 1].push({ text: application.formatters.fe.decimal(totalsaldofinal, 2), alignment: 'right' });
+
+                            let body2 = [];
+
+                            body2.push([]);
+                            body2[body2.length - 1].push('Vendas Livro - Digitado');
+                            body2[body2.length - 1].push('');
+                            body2.push([]);
+                            body2[body2.length - 1].push('Juros');
+                            body2[body2.length - 1].push(application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('juro', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2));
+                            body2.push([]);
+                            body2[body2.length - 1].push('Descontos');
+                            body2[body2.length - 1].push(application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2));
+
+                            dd = {
+                                content: [
+                                    { text: obj.req.body.mes + '/' + obj.req.body.ano, style: 'header' }
+                                    , {
+                                        style: 'tb'
+                                        , table: {
+                                            body: body
+                                        }
+                                    }
+                                    , {
+                                        style: 'tb'
+                                        , table: {
+                                            body: body2
+                                        }
+                                    }
+                                ]
+                                , styles: {
+                                    header: {
+                                        fontSize: 18,
+                                        bold: true,
+                                        margin: [0, 0, 0, 10],
+                                        alignment: 'center'
+                                    }
+                                    , tb: {
+                                        fontSize: 6
+                                        , bold: true
+                                        , margin: [0, 0, 0, 10]
+                                    }
+                                }
+                            }
+
+                            let doc = printer.createPdfKitDocument(dd);
+                            let filename = process.hrtime()[1] + '.pdf';
+                            let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                            doc.end();
+                            stream.on('finish', function () {
+                                return application.success(obj.res, {
+                                    modal: {
+                                        id: 'modalevt2'
+                                        , fullscreen: true
+                                        , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                        , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
+                                        , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                    }
+                                });
+                            });
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);

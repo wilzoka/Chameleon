@@ -1,0 +1,204 @@
+[
+    {
+        "name": "bi_analysis",
+        "description": "Análise",
+        "onsave": "platform.core_bi.analysis.onsave",
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "idcube",
+                "label": "Cubo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"bi_cube\", \"attribute\": \"description\"}"
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "config",
+                "label": "Configuração",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "filter",
+                "label": "Filtro",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "bi_cube",
+        "description": "Cubo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "sql",
+                "label": "SQL",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "bi_cubedimension",
+        "description": "Dimensão do Cubo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "sqlfield",
+                "label": "Campo do SQL",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "add",
+                "label": "Adicional",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idcube",
+                "label": "ID Cubo",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"bi_cube\", \"cascade\": true}"
+            }
+        ]
+    },
+    {
+        "name": "bi_cubemeasure",
+        "description": "Medida do Cubo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "sqlfield",
+                "label": "Campo do SQL",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "aggregator",
+                "label": "Agregador",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "add",
+                "label": "Adicional",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idcube",
+                "label": "ID Cubo",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"bi_cube\", \"cascade\": true}"
+            }
+        ]
+    },
+    {
+        "name": "bi_dashboard",
+        "description": "Dashboard",
+        "onsave": "platform.core_bi.dashboard.onsave",
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+            },
+            {
+                "name": "order",
+                "label": "Ordem",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "bi_dashboardanalysis",
+        "description": "Análise do Dashboard",
+        "onsave": "platform.core_bi.dashboardanalysis.onsave",
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "iddashboard",
+                "label": "ID Dashboard",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"bi_dashboard\", \"cascade\": true}"
+            },
+            {
+                "name": "order",
+                "label": "Ordem",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "width",
+                "label": "Largura(1 até 12)",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "idanalysis",
+                "label": "Análise",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"model\": \"bi_analysis\", \"attribute\": \"description\", \"cascade\": true}"
+            },
+            {
+                "name": "height",
+                "label": "Altura(px)",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    }
+]

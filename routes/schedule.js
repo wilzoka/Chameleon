@@ -26,7 +26,7 @@ const removeSchedule = function (sch) {
 const executeSchedule = async function (sch) {
     try {
         let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
-        let custom = reload('../custom/' + config.customfile);
+        let custom = require('../custom/' + config.customfile);
         application.functions.getRealReference(custom, sch.function)();
     } catch (err) {
         console.error(err);
