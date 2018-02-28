@@ -82,8 +82,17 @@ module.exports = function (app) {
                     menuhtml += application.menu.renderMenu(menu[i]);
                 }
 
+                let redirect = '/home';
+                if (req.user.idmenu) {
+                    if (req.user.menu.url) {
+                        redirect = req.user.menu.url;
+                    } else if (req.user.menu.idview) {
+                        redirect = '/v/' + (await db.getModel('view').find({ where: { id: req.user.menu.idview } })).url
+                    }
+                }
+
                 return application.success(res, {
-                    redirect: req.user.idmenu ? req.user.menu.url || '/view/' + req.user.menu.idview : '/home'
+                    redirect: redirect
                     , localstorage: [
                         { key: 'username', value: req.user.fullname }
                         , { key: 'menu', value: menuhtml }
