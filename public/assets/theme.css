@@ -94,7 +94,7 @@ div.btn-group-events .dropdown-menu > li > a {
 /* Datatables */
 @media (min-width: 768px) {
     table.dataTable {
-        font-size: 12px;
+        font-size: 13px;
     }
 }
 @media (max-width: 767px) {

@@ -20,13 +20,13 @@
         top: 0;
         left: 0;
         height: 3px;
-        background: #f35b3f;
+        background: #3c8dbc;
     }
 
     .wizard-step {
         position: relative;
         float: left;
-        width: 33.333333%;
+        width: 25%;
         padding: 0 5px;
     }
 
@@ -46,8 +46,8 @@
 
     .wizard-step.activated .wizard-step-icon {
         background: #fff;
-        border: 1px solid #f35b3f;
-        color: #f35b3f;
+        border: 1px solid #3c8dbc;
+        color: #3f8ff3;
         line-height: 38px;
     }
 
@@ -55,7 +55,7 @@
         width: 48px;
         height: 48px;
         margin-top: 0;
-        background: #f35b3f;
+        background: #3c8dbc;
         font-size: 22px;
         line-height: 48px;
     }
@@ -65,7 +65,7 @@
     }
 
     .wizard-step.activated p {
-        color: #f35b3f;
+        color: #000000;
     }
 
     .wizard-step.active p {
@@ -78,53 +78,220 @@
         text-align: left;
     }
 
+    .wizard fieldset.wizard-showing {
+        display: block;
+    }
+
     .wizard-buttons {
         text-align: right;
+    }
+</style>
+<style>
+    .selecao {
+        text-align: center;
+        font-size: 20px;
+        line-height: 19px;
     }
 </style>
 <div class="col-md-12">
     <div class="box box-primary">
         <div class="box-body">
-            <div id="wizard" class="wizard-steps">
-                <div class="wizard-progress">
-                    <div class="wizard-progress-line" style="width: 16.66%;"></div>
-                </div>
-                <div class="wizard-step active">
-                    <div class="wizard-step-icon"><i class="fa fa-user"></i></div>
-                    <p>Cliente</p>
-                </div>
-                <div class="wizard-step">
-                    <div class="wizard-step-icon"><i class="fa fa-key"></i></div>
-                    <p>account</p>
-                </div>
-                <div class="wizard-step">
-                    <div class="wizard-step-icon"><i class="fa fa-twitter"></i></div>
-                    <p>social</p>
-                </div>
-            </div>
+            <div class="wizard">
+                <div class="wizard-steps">
+                    <div class="wizard-progress">
+                        <div class="wizard-progress-line" data-width="12.5" style="width: 12.5%;"></div>
+                    </div>
+                    <div class="wizard-step active">
+                        <div class="wizard-step-icon"><i class="fa fa-user"></i></div>
+                        <p>Cliente</p>
+                    </div>
+                    <div class="wizard-step">
+                        <div class="wizard-step-icon"><i class="fa fa-shopping-basket"></i></div>
+                        <p>Produto</p>
+                    </div>
+                    <div class="wizard-step">
+                        <div class="wizard-step-icon"><i class="fa fa-truck"></i></div>
+                        <p>Entrega</p>
+                    </div>
+                    <div class="wizard-step">
+                        <div class="wizard-step-icon"><i class="fa fa-money"></i></div>
+                        <p>Pagamento</p>
+                    </div>
 
-            <fieldset style="display: block;">
-                <h4>Tell us who you are:</h4>
-                <div class="form-group">
-                    <label class="sr-only" for="f1-first-name">First name</label>
-                    <input type="text" name="f1-first-name" placeholder="First name..." class="f1-first-name form-control input-error" id="f1-first-name">
                 </div>
-                <div class="form-group">
-                    <label class="sr-only" for="f1-last-name">Last name</label>
-                    <input type="text" name="f1-last-name" placeholder="Last name..." class="f1-last-name form-control input-error" id="f1-last-name">
-                </div>
-                <div class="form-group">
-                    <label class="sr-only" for="f1-about-yourself">About yourself</label>
-                    <textarea name="f1-about-yourself" placeholder="About yourself..." class="f1-about-yourself form-control input-error" id="f1-about-yourself"></textarea>
-                </div>
-                <div class="wizard-buttons">
-                    <button type="button" class="btn btn-primary btn-next">Next</button>
-                </div>
-            </fieldset>
+
+                <fieldset class="wizard-showing">
+
+                    <div class="selecao">
+                        <div class="row">
+                            {{{clienteselecao}}}
+                        </div>
+                    </div>
+
+                    <div class="clientenovo hidden">
+
+                        <div class="row">
+                            {{{clientenovo}}}
+                        </div>
+
+                        <div class="wizard-buttons">
+                            <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="clienteexistente hidden">
+                        <div class="row">
+                            {{{clienteexistente}}}
+                        </div>
+                        <div class="wizard-buttons">
+                            <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                </fieldset>
+
+                <fieldset>
+                    <div class="selecao">
+                        <div class="row">
+                            {{{produtoselecao}}}
+                        </div>
+                    </div>
+
+                    <div class="produtogeral hidden">
+                        <div class="row">
+                            {{{produtogeral}}}
+                        </div>
+                    </div>
+
+                    <div class="produtosaco hidden">
+                        <div class="row">
+                            {{{produtosaco}}}
+                        </div>
+                    </div>
+
+                    <div class="produtopelicula hidden">
+                        <div class="row">
+                            {{{produtopelicula}}}
+                        </div>
+                    </div>
+
+                    <div class="wizard-buttons">
+                        <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <h4>Tell us who you are3:</h4>
+                    <div class="form-group">
+                        <label class="sr-only" for="f1-first-name">First name</label>
+                        <input type="text" name="f1-first-name" placeholder="First name..." class="f1-first-name form-control input-error" id="f1-first-name">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only" for="f1-last-name">Last name</label>
+                        <input type="text" name="f1-last-name" placeholder="Last name..." class="f1-last-name form-control input-error" id="f1-last-name">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only" for="f1-about-yourself">About yourself</label>
+                        <textarea name="f1-about-yourself" placeholder="About yourself..." class="f1-about-yourself form-control input-error" id="f1-about-yourself"></textarea>
+                    </div>
+                    <div class="wizard-buttons">
+                        <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <h4>Tell us who you are4:</h4>
+                    <div class="form-group">
+                        <label class="sr-only" for="f1-first-name">First name</label>
+                        <input type="text" name="f1-first-name" placeholder="First name..." class="f1-first-name form-control input-error" id="f1-first-name">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only" for="f1-last-name">Last name</label>
+                        <input type="text" name="f1-last-name" placeholder="Last name..." class="f1-last-name form-control input-error" id="f1-last-name">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only" for="f1-about-yourself">About yourself</label>
+                        <textarea name="f1-about-yourself" placeholder="About yourself..." class="f1-about-yourself form-control input-error" id="f1-about-yourself"></textarea>
+                    </div>
+                    <div class="wizard-buttons">
+                        <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
+                    </div>
+                </fieldset>
+            </div>
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
+    $(function ($) {
+        var $wizard = $('.wizard');
+        var wizardsteps = $wizard.find('.wizard-step');
+        var $wizardprogressline = $('.wizard-progress-line');
+        var fieldsets = $wizard.find('fieldset');
+        var stepwidth = 100 / wizardsteps.length;
+        function nextStep() {
+            var index = -1;
+            for (var i = 0; i < fieldsets.length; i++) {
+                if ($(fieldsets[i]).hasClass('wizard-showing')) {
+                    index = i;
+                    $(fieldsets[i]).removeClass('wizard-showing');
+                    $(fieldsets[i + 1]).addClass('wizard-showing');
+                    break;
+                }
+            }
+            $(wizardsteps[index]).removeClass('active').addClass('activated');
+            $(wizardsteps[index + 1]).addClass('active');
+            var newwidth = parseFloat($wizardprogressline.attr('data-width')) + stepwidth;
+            $wizardprogressline.attr('data-width', newwidth);
+            $wizardprogressline.css('width', newwidth + '%');
+        }
+        function previousStep() {
+            var index = -1;
+            for (var i = 0; i < fieldsets.length; i++) {
+                if ($(fieldsets[i]).hasClass('wizard-showing')) {
+                    index = i;
+                    $(fieldsets[i]).removeClass('wizard-showing');
+                    $(fieldsets[i - 1]).addClass('wizard-showing');
+                    break;
+                }
+            }
+            $(wizardsteps[index]).removeClass('active');
+            $(wizardsteps[index - 1]).addClass('active').removeClass('activated');
+            var newwidth = parseFloat($wizardprogressline.attr('data-width')) - stepwidth;
+            $wizardprogressline.attr('data-width', newwidth);
+            $wizardprogressline.css('width', newwidth + '%');
+        }
+        $('.wizard-previous').click(previousStep);
+        $('.wizard-next').click(nextStep);
+    });
+
+</script>
+<script type="text/javascript">
+    $(function ($) {
+
+        $('input[name="cliente_selecao"]').change(function () {
+            if ($(this).val() == 'Novo') {
+                $('.clientenovo').removeClass('hidden');
+                $('.clienteexistente').addClass('hidden');
+            } else {
+                $('.clientenovo').addClass('hidden');
+                $('.clienteexistente').removeClass('hidden');
+            }
+        });
+
+        $('input[name="produto_tipo"]').change(function () {
+            if ($(this).val() == 'Saco') {
+                $('.produtosaco').removeClass('hidden');
+                $('.produtopelicula').addClass('hidden');
+            } else {
+                $('.produtosaco').addClass('hidden');
+                $('.produtopelicula').removeClass('hidden');
+            }
+            $('.produtogeral').removeClass('hidden');
+        });
+
+    });
 
 </script>

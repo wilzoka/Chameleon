@@ -302,6 +302,31 @@ const renderGeoreference = function (viewfield, register) {
     });
 }
 
+const renderRadio = function (viewfield, register) {
+
+    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+
+    let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
+
+    let label = viewfield.modelattribute.label;
+    if (viewfield.modelattribute.notnull) {
+        label += '*';
+    }
+    let disabled = '';
+    if (viewfield.disabled) {
+        disabled = 'disabled="disabled"';
+    }
+
+    return application.components.html.radio({
+        width: viewfield.width
+        , label: label
+        , name: viewfield.modelattribute.name
+        , value: value
+        , disabled: disabled
+        , options: json.options
+    });
+}
+
 const renderSubView = function (viewsubview) {
     return '<div class="col-md-12">'
         + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
@@ -347,6 +372,9 @@ const render = function (viewfield, register) {
                 , value: register && register.dataValues[viewfield.modelattribute.name] || ''
                 , disabled: 'disabled="disabled"'
             });
+            break;
+        case 'radio':
+            return renderRadio(viewfield, register);
             break;
     }
 }
@@ -429,6 +457,13 @@ const modelate = function (obj) {
             case 'decimal':
                 if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
                     obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name], application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'radio':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
                 } else {
                     obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }

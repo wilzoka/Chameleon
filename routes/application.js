@@ -79,6 +79,8 @@ let application = {
 					return Sequelize.TEXT;
 				case 'georeference':
 					return Sequelize.TEXT;
+				case 'radio':
+					return Sequelize.TEXT;
 			}
 		}
 	}
@@ -476,7 +478,31 @@ let application = {
 					+ '</div>';
 			}
 			, radio: function (obj) {// width label name value
-
+				obj = lodash.extend({
+					width: ''
+					, label: ''
+					, name: ''
+					, value: ''
+					, disabled: ''
+					, options: []
+				}, obj);
+				let options = '';
+				for (let i = 0; i < obj.options.length; i++) {
+					options += `
+					<div class="radio">
+						<label>
+							<input type="radio" name="`+ obj.name + `" value="` + obj.options[i] + `" ` + (obj.options[i] == obj.value ? 'checked="checked"' : '') + ` ` + obj.disabled + ` />
+							`+ obj.options[i] + `
+						</label>
+					</div>
+					`;
+				}
+				return '<div class="col-md-' + obj.width + '">'
+					+ '<div class="form-group">'
+					+ '<label>' + obj.label + '</label>'
+					+ options
+					+ '</div>'
+					+ '</div>';
 			}
 		}
 	}
