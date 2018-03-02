@@ -31,6 +31,7 @@ Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este 
 var maps = [];
 var notifications = [];
 var tables = [];
+var app = false;
 var socket;
 // Application
 var application = {
@@ -237,6 +238,9 @@ var application = {
                 socket.on('notification', function (data) {
                     notifications.unshift(data)
                     application.notification.render();
+                    if (app) {
+                        appPostMessage({ type: 'notification' });
+                    }
                 });
                 socket.on('notification:read', function (data) {
                     application.notification.call();
@@ -1296,3 +1300,13 @@ var application = {
         });
     }
 }
+
+function appReceiveMessage(event) {
+    app = event;
+}
+function appPostMessage(msg) {
+    if (app) {
+        app.source.postMessage(msg, app.origin);
+    }
+}
+window.addEventListener("message", appReceiveMessage, false);

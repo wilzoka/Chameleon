@@ -1,4 +1,5 @@
 const application = require('../../routes/application')
+    , moment = require('moment')
     ;
 
 let main = {

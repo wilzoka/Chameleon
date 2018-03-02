@@ -8,9 +8,6 @@ const application = require('./application')
 
 let views = {};
 
-let Handlebars = require('handlebars');
-Handlebars.compiledTemplates = {};
-
 const renderText = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
@@ -741,10 +738,10 @@ const hasPermission = function (iduser, idview) {
 
 const getTemplate = function (template) {
     let templatename = __dirname + (template.indexOf('/') < 0 ? '/../views/templates/' : '/../custom/') + template + '.html';
-    if (!(templatename in Handlebars.compiledTemplates)) {
-        Handlebars.compiledTemplates[templatename] = Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
+    if (!(templatename in application.Handlebars.compiledTemplates)) {
+        application.Handlebars.compiledTemplates[templatename] = application.Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
     }
-    return Handlebars.compiledTemplates[templatename];
+    return application.Handlebars.compiledTemplates[templatename];
 }
 
 const findView = function (url) {
@@ -828,7 +825,7 @@ module.exports = function (app) {
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
                             : decodeClass(viewtables[i].modelattribute.type))
-                        + (viewtables[i].class ? ' ' + viewtables[i].class : '')
+                            + (viewtables[i].class ? ' ' + viewtables[i].class : '')
                     });
                     if (viewtables[i].totalize) {
                         needfooter = true;
