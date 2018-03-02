@@ -1,4 +1,5 @@
 const application = require('../../routes/application')
+    , db = require('../../models')
     , moment = require('moment')
     ;
 
