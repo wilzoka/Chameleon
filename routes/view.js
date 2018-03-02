@@ -825,7 +825,7 @@ module.exports = function (app) {
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
                             : decodeClass(viewtables[i].modelattribute.type))
-                            + (viewtables[i].class ? ' ' + viewtables[i].class : '')
+                        + (viewtables[i].class ? ' ' + viewtables[i].class : '')
                     });
                     if (viewtables[i].totalize) {
                         needfooter = true;
@@ -1013,6 +1013,18 @@ module.exports = function (app) {
                                 , attribute: json.attribute
                                 , where: req.body.issubview == 'true' && json.where ? json.where : ''
                                 , multiple: 'multiple="multiple"'
+                                , option: getFilterValue(filtername, cookiefilter).options || ''
+                            });
+                            break;
+                        case 'radio':
+                            filtername += separator + 'i';
+                            filter += application.components.html.autocomplete({
+                                width: 12
+                                , label: viewfields[i].modelattribute.label
+                                , name: filtername
+                                , disabled: ''
+                                , multiple: 'multiple="multiple"'
+                                , options: json.options
                                 , option: getFilterValue(filtername, cookiefilter).options || ''
                             });
                             break;

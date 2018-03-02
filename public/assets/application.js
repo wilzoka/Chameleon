@@ -502,35 +502,55 @@ var application = {
                     }
                 }
                 $(this).attr('data-where', where);
-            });
-            $obj.select2({
-                ajax: {
-                    url: '/autocomplete',
-                    dataType: 'json',
-                    delay: 300,
-                    data: function (params) {
-                        var model = $(this).attr('data-model');
-                        var attribute = $(this).attr('data-attribute');
-                        var where = $(this).attr('data-where');
-                        return {
-                            q: params.term
-                            , page: params.page
-                            , model: model
-                            , attribute: attribute
-                            , where: where
-                        };
+                var options = $(this).attr('data-options');
+                if (options) {
+                    options = options.split(',');
+                    var data = [];
+                    for (var i = 0; i < options.length; i++) {
+                        data.push({
+                            id: options[i]
+                            , text: options[i]
+                        });
                     }
-                    , processResults: function (response) {
-                        return {
-                            results: response.data
-                        };
-                    }
+                    $(this).select2({
+                        data: data
+                        , placeholder: "Selecione"
+                        , allowClear: true
+                        , language: "pt-BR"
+                    }).on('select2:close', function (evt) {
+                        $(this).focus();
+                    });
+                } else {
+                    $(this).select2({
+                        ajax: {
+                            url: '/autocomplete',
+                            dataType: 'json',
+                            delay: 300,
+                            data: function (params) {
+                                var model = $(this).attr('data-model');
+                                var attribute = $(this).attr('data-attribute');
+                                var where = $(this).attr('data-where');
+                                return {
+                                    q: params.term
+                                    , page: params.page
+                                    , model: model
+                                    , attribute: attribute
+                                    , where: where
+                                };
+                            }
+                            , processResults: function (response) {
+                                return {
+                                    results: response.data
+                                };
+                            }
+                        }
+                        , placeholder: "Selecione"
+                        , allowClear: true
+                        , language: "pt-BR"
+                    }).on('select2:close', function (evt) {
+                        $(this).focus();
+                    });
                 }
-                , placeholder: "Selecione"
-                , allowClear: true
-                , language: "pt-BR"
-            }).on('select2:close', function (evt) {
-                $(this).focus();
             });
         }
         , table: function ($obj) {

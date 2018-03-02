@@ -357,6 +357,7 @@ let application = {
 					, where: ''
 					, multiple: ''
 					, option: ''
+					, options: ''
 				}, obj);
 				return '<div class="col-md-' + obj.width + '">'
 					+ '<div class="form-group">'
@@ -367,6 +368,7 @@ let application = {
 					+ 'data-model="' + obj.model + '" '
 					+ 'data-attribute="' + obj.attribute + '" '
 					+ 'data-where="' + obj.where + '" '
+					+ 'data-options="' + obj.options + '" '
 					+ obj.multiple + '>'
 					+ obj.option
 					+ '</select></div>'
@@ -477,7 +479,7 @@ let application = {
 					+ '</div>'
 					+ '</div>';
 			}
-			, radio: function (obj) {// width label name value
+			, radio: function (obj) {
 				obj = lodash.extend({
 					width: ''
 					, label: ''

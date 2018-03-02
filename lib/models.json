@@ -117,6 +117,13 @@
                 "type": "file",
                 "notnull": false,
                 "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
+            },
+            {
+                "name": "favicon",
+                "label": "Favicon",
+                "type": "file",
+                "notnull": false,
+                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
             }
         ]
     },
@@ -329,7 +336,7 @@
     },
     {
         "name": "module",
-        "description": null,
+        "description": "Módulo",
         "onsave": null,
         "ondelete": null,
         "_attribute": [
@@ -394,7 +401,7 @@
     },
     {
         "name": "permission",
-        "description": null,
+        "description": "Permissão",
         "onsave": "platform.permission.onsave",
         "ondelete": null,
         "_attribute": [
@@ -494,7 +501,7 @@
     },
     {
         "name": "schedule",
-        "description": null,
+        "description": "Cronograma",
         "onsave": "platform.schedule.onsave",
         "ondelete": null,
         "_attribute": [

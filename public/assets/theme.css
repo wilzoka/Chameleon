@@ -90,6 +90,9 @@ div.btn-group-events .dropdown-menu > li > a {
 .label {
     font-size: 85%;
 }
+.radio {
+    margin-top: 0;
+}
 
 /* Datatables */
 @media (min-width: 768px) {
