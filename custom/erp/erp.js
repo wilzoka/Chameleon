@@ -1,5 +1,3 @@
-import { platform } from 'os';
-
 const application = require('../../routes/application')
     , db = require('../../models')
     , moment = require('moment')
