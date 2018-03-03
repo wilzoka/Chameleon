@@ -39,6 +39,7 @@ let main = {
                             main.platform.notification.create([saved.register.identregador], {
                                 title: 'Nova Venda'
                                 , description: cliente.cidade
+                                , link: '/v/venda/' + saved.register.id
                             });
                         }
 
