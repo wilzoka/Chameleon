@@ -1,3 +1,5 @@
+import { platform } from 'os';
+
 const application = require('../../routes/application')
     , db = require('../../models')
     , moment = require('moment')
@@ -32,7 +34,15 @@ let main = {
                             obj.register.datahora = moment();
                         }
 
-                        next(obj);
+                        let saved = await next(obj);
+
+                        if (saved.success && saved.register.identregador) {
+                            let cliente = await db.getModel('cad_pessoa').find({ where: { id: saved.register.idcliente } })
+                            main.platform.notification.create([saved.register.identregador], {
+                                title: 'Nova Venda'
+                                , description: cliente.cidade
+                            });
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
