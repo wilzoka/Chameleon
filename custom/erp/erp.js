@@ -32,6 +32,10 @@ let main = {
                             obj.register.datahora = moment();
                         }
 
+                        var fullUrl = obj.req.protocol + '://' + obj.req.get('host') + obj.req.originalUrl;
+                        console.log(fullUrl);
+                        //Setar o cookie com o wizard step
+
                         let saved = await next(obj);
 
                         if (saved.success && saved.register.identregador) {

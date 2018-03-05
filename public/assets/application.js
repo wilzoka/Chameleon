@@ -165,14 +165,9 @@ var application = {
                 $('.pace').removeClass('pace-active').addClass('pace-inactive');
             });
             $('.nav-tabs a').click(function (e) {
-                var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
-                pagecookie.currentTab = this.hash;
-                Cookies.set(window.location.href, JSON.stringify(pagecookie));
-            });
-            $('.nav-tabs a').click(function (e) {
-                var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
-                pagecookie.currentTab = this.hash;
-                Cookies.set(window.location.href, JSON.stringify(pagecookie));
+                application.functions.setPageCookie({
+                    currentTab: this.hash
+                });
             });
             $('#nav-notification-readall').click(function () {
                 application.jsfunction('platform.notification.js_readAll');
@@ -1071,6 +1066,14 @@ var application = {
                 $(document).trigger('app-loadjs');
                 $.ajaxSetup({ cache: false });
             }
+        }
+        , getPageCookie: function () {
+            return Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
+        }
+        , setPageCookie: function (conf) {
+            var pagecookie = application.functions.getPageCookie();
+            pagecookie = $.extend(pagecookie, conf);
+            Cookies.set(window.location.href, JSON.stringify(pagecookie));
         }
     }
     , handlers: {
