@@ -635,12 +635,20 @@ const validateAndSave = function (obj) {
                 save(obj).then(saved => {
                     if (saved.success) {
                         resolve({ success: true, register: saved.register });
-                        return application.success(obj.res, {
-                            msg: application.message.success
-                            , data: saved.register
+                        let ret = {};
+                        if (!obj._preventMsg) {
+                            lodash.extend(ret, { msg: application.message.success });
+                        }
+                        if (!obj._preventBack) {
+                            lodash.extend(ret, { historyBack: obj.hasSubview ? false : true });
+                        }
+                        if (obj._cookies) {
+                            lodash.extend(ret, { cookies: obj._cookies });
+                        }
+                        return application.success(obj.res, lodash.extend(ret, {
+                            data: saved.register
                             , redirect: '/v/' + obj.view.url + '/' + saved.register.id
-                            , historyBack: obj.hasSubview ? false : true
-                        });
+                        }));
                     } else {
                         resolve({ success: false });
                         return application.error(obj.res, { msg: 'Nâo foi possível salvar este registro' });

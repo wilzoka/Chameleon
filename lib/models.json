@@ -842,13 +842,6 @@
                 "typeadd": "{\"model\": \"templatezone\", \"attribute\": \"name\", \"where\": \"id in (select id from templatezone where idtemplate = (select idtemplate from view where id = $parent))\"}"
             },
             {
-                "name": "width",
-                "label": "Largura",
-                "type": "integer",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "idview",
                 "label": "View",
                 "type": "parent",

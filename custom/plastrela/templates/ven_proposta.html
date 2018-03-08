@@ -97,11 +97,12 @@
     <div class="box box-primary">
         <div class="box-body">
             <div class="wizard">
+                <input name="wizard-step" type="hidden" />
                 <div class="wizard-steps">
                     <div class="wizard-progress">
-                        <div class="wizard-progress-line" data-width="12.5" style="width: 12.5%;"></div>
+                        <div class="wizard-progress-line"></div>
                     </div>
-                    <div class="wizard-step active">
+                    <div class="wizard-step">
                         <div class="wizard-step-icon"><i class="fa fa-user"></i></div>
                         <p>Cliente</p>
                     </div>
@@ -120,7 +121,7 @@
 
                 </div>
 
-                <fieldset class="wizard-showing">
+                <fieldset>
 
                     <div class="selecao">
                         <div class="row">
@@ -134,18 +135,17 @@
                             {{{clientenovo}}}
                         </div>
 
-                        <div class="wizard-buttons">
-                            <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
-                        </div>
+
                     </div>
 
                     <div class="clienteexistente hidden">
                         <div class="row">
                             {{{clienteexistente}}}
                         </div>
-                        <div class="wizard-buttons">
-                            <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
-                        </div>
+                    </div>
+
+                    <div class="wizard-buttons">
+                        <button type="button" class="btn btn-primary wizard-save">Próximo <i class="fa fa-arrow-right"></i></button>
                     </div>
 
                 </fieldset>
@@ -165,7 +165,17 @@
 
                     <div class="produtosaco hidden">
                         <div class="row">
-                            {{{produtosaco}}}
+                            <hr>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    {{{produtosaco_e}}}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    {{{produtosaco_d}}}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -177,44 +187,23 @@
 
                     <div class="wizard-buttons">
                         <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
-                        <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-primary wizard-save">Próximo <i class="fa fa-arrow-right"></i></button>
                     </div>
                 </fieldset>
 
                 <fieldset>
-                    <h4>Tell us who you are3:</h4>
-                    <div class="form-group">
-                        <label class="sr-only" for="f1-first-name">First name</label>
-                        <input type="text" name="f1-first-name" placeholder="First name..." class="f1-first-name form-control input-error" id="f1-first-name">
+                    <div class="row">
+                        {{{entrega}}}
                     </div>
-                    <div class="form-group">
-                        <label class="sr-only" for="f1-last-name">Last name</label>
-                        <input type="text" name="f1-last-name" placeholder="Last name..." class="f1-last-name form-control input-error" id="f1-last-name">
-                    </div>
-                    <div class="form-group">
-                        <label class="sr-only" for="f1-about-yourself">About yourself</label>
-                        <textarea name="f1-about-yourself" placeholder="About yourself..." class="f1-about-yourself form-control input-error" id="f1-about-yourself"></textarea>
-                    </div>
+
                     <div class="wizard-buttons">
                         <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
-                        <button type="button" class="btn btn-primary wizard-next">Próximo <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-primary wizard-save">Próximo <i class="fa fa-arrow-right"></i></button>
                     </div>
                 </fieldset>
 
                 <fieldset>
                     <h4>Tell us who you are4:</h4>
-                    <div class="form-group">
-                        <label class="sr-only" for="f1-first-name">First name</label>
-                        <input type="text" name="f1-first-name" placeholder="First name..." class="f1-first-name form-control input-error" id="f1-first-name">
-                    </div>
-                    <div class="form-group">
-                        <label class="sr-only" for="f1-last-name">Last name</label>
-                        <input type="text" name="f1-last-name" placeholder="Last name..." class="f1-last-name form-control input-error" id="f1-last-name">
-                    </div>
-                    <div class="form-group">
-                        <label class="sr-only" for="f1-about-yourself">About yourself</label>
-                        <textarea name="f1-about-yourself" placeholder="About yourself..." class="f1-about-yourself form-control input-error" id="f1-about-yourself"></textarea>
-                    </div>
                     <div class="wizard-buttons">
                         <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
                     </div>
@@ -227,71 +216,90 @@
 <script type="text/javascript">
     $(function ($) {
         var $wizard = $('.wizard');
-        var wizardsteps = $wizard.find('.wizard-step');
-        var $wizardprogressline = $('.wizard-progress-line');
+        var wizardsteps = $wizard.find('div.wizard-step');
+        var $wizardprogressline = $wizard.find('div.wizard-progress-line');
         var fieldsets = $wizard.find('fieldset');
         var stepwidth = 100 / wizardsteps.length;
-        function nextStep() {
-            var index = -1;
-            for (var i = 0; i < fieldsets.length; i++) {
-                if ($(fieldsets[i]).hasClass('wizard-showing')) {
-                    index = i;
-                    $(fieldsets[i]).removeClass('wizard-showing');
-                    $(fieldsets[i + 1]).addClass('wizard-showing');
-                    break;
+        var initialWidth = 100 / (fieldsets.length * 2);
+        var currentStep = 0;
+        var $wizardstep = $wizard.find('input[name="wizard-step"]');
+        function goStep(step) {
+            if (step < 0 || step >= wizardsteps.length) {
+                return;
+            }
+            currentStep = parseInt(step);
+            $wizardstep.val(currentStep);
+            for (var i = 0; i < wizardsteps.length; i++) {
+                $(fieldsets[i]).removeClass('wizard-showing');
+                $(wizardsteps[i]).removeClass('active activated');
+            }
+            var wpb = 0;
+            for (var i = 0; i <= step; i++) {
+                if (i == 0) {
+                    wpb = initialWidth;
+                } else {
+                    wpb += stepwidth;
+                }
+                if (i == step) {
+                    $(fieldsets[i]).addClass('wizard-showing');
+                    $(wizardsteps[i]).addClass('active');
+                } else {
+                    $(wizardsteps[i]).addClass('activated');
+                }
+                $wizardprogressline.css('width', wpb + '%');
+            }
+        }
+        $('.wizard-previous').click(function () {
+            goStep(currentStep - 1);
+        });
+        $('.wizard-next').click(function () {
+            goStep(currentStep + 1);
+        });
+        $('.wizard-save').click(function () {
+            $(document).find('button[type="submit"]').trigger('click');
+        });
+        if (application.functions.getId() > 0) {
+            goStep(Cookies.get('wizard-step') || 0);
+        } else {
+            goStep(0);
+        }
+        Cookies.remove('wizard-step');
+
+        {
+            var cliente_selecao = function () {
+                switch ($('input[name="cliente_selecao"]:checked').val()) {
+                    case 'Novo':
+                        $('.clientenovo').removeClass('hidden');
+                        $('.clienteexistente').addClass('hidden');
+                        break;
+                    case 'Existe':
+                        $('.clientenovo').addClass('hidden');
+                        $('.clienteexistente').removeClass('hidden');
+                        break;
                 }
             }
-            $(wizardsteps[index]).removeClass('active').addClass('activated');
-            $(wizardsteps[index + 1]).addClass('active');
-            var newwidth = parseFloat($wizardprogressline.attr('data-width')) + stepwidth;
-            $wizardprogressline.attr('data-width', newwidth);
-            $wizardprogressline.css('width', newwidth + '%');
-        }
-        function previousStep() {
-            var index = -1;
-            for (var i = 0; i < fieldsets.length; i++) {
-                if ($(fieldsets[i]).hasClass('wizard-showing')) {
-                    index = i;
-                    $(fieldsets[i]).removeClass('wizard-showing');
-                    $(fieldsets[i - 1]).addClass('wizard-showing');
-                    break;
+            var produto_selecao = function () {
+                switch ($('input[name="produto_tipo"]:checked').val()) {
+                    case 'Saco':
+                        $('.produtosaco').removeClass('hidden');
+                        $('.produtopelicula').addClass('hidden');
+                        $('.produtogeral').removeClass('hidden');
+                        break;
+                    case 'Película':
+                        $('.produtosaco').addClass('hidden');
+                        $('.produtopelicula').removeClass('hidden');
+                        $('.produtogeral').removeClass('hidden');
+                        break;
                 }
             }
-            $(wizardsteps[index]).removeClass('active');
-            $(wizardsteps[index - 1]).addClass('active').removeClass('activated');
-            var newwidth = parseFloat($wizardprogressline.attr('data-width')) - stepwidth;
-            $wizardprogressline.attr('data-width', newwidth);
-            $wizardprogressline.css('width', newwidth + '%');
+            $('input[name="cliente_selecao"]').change(cliente_selecao);
+            $('input[name="produto_tipo"]').change(produto_selecao);
+            if (application.functions.getId() > 0) {
+                cliente_selecao();
+                produto_selecao();
+            }
+
         }
-        $('.wizard-previous').click(previousStep);
-        $('.wizard-next').click(nextStep);
-    });
-
-</script>
-<script type="text/javascript">
-    $(function ($) {
-
-        $('input[name="cliente_selecao"]').change(function () {
-            if ($(this).val() == 'Novo') {
-                $('.clientenovo').removeClass('hidden');
-                $('.clienteexistente').addClass('hidden');
-            } else {
-                $('.clientenovo').addClass('hidden');
-                $('.clienteexistente').removeClass('hidden');
-            }
-        });
-
-        $('input[name="produto_tipo"]').change(function () {
-            if ($(this).val() == 'Saco') {
-                $('.produtosaco').removeClass('hidden');
-                $('.produtopelicula').addClass('hidden');
-            } else {
-                $('.produtosaco').addClass('hidden');
-                $('.produtopelicula').removeClass('hidden');
-            }
-            $('.produtogeral').removeClass('hidden');
-        });
-
     });
 
 </script>

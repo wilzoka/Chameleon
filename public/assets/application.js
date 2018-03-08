@@ -522,15 +522,12 @@ var application = {
                             dataType: 'json',
                             delay: 300,
                             data: function (params) {
-                                var model = $(this).attr('data-model');
-                                var attribute = $(this).attr('data-attribute');
-                                var where = $(this).attr('data-where');
                                 return {
                                     q: params.term
                                     , page: params.page
-                                    , model: model
-                                    , attribute: attribute
-                                    , where: where
+                                    , model: $(this).attr('data-model')
+                                    , attribute: $(this).attr('data-attribute')
+                                    , where: $(this).attr('data-where')
                                 };
                             }
                             , processResults: function (response) {
@@ -1084,6 +1081,12 @@ var application = {
                     var ls = response.localstorage;
                     for (var i = 0; i < ls.length; i++) {
                         localStorage.setItem(ls[i].key, ls[i].value);
+                    }
+                }
+
+                if ('cookies' in response) {
+                    for (var i = 0; i < response.cookies.length; i++) {
+                        Cookies.set(response.cookies[i].key, response.cookies[i].value);
                     }
                 }
 

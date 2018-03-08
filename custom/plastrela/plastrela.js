@@ -3725,6 +3725,114 @@ let main = {
                 }
             }
         }
+        , venda: {
+            proposta: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        obj._preventBack = true;
+                        obj._preventMsg = true;
+
+                        if (obj.register.id == 0) {
+                            obj.register.datahora = moment();
+                            obj.register.idusuario = obj.req.user.id;
+                        }
+                        let invalidfields = [];
+                        switch (obj.req.body['wizard-step']) {
+                            case '0'://Cliente
+                                if (obj.register.cliente_selecao == 'Novo') {
+                                    invalidfields = application.functions.getEmptyFields(obj.register, [
+                                        'cliente_nome'
+                                        , 'cliente_endereco'
+                                        , 'cliente_bairro'
+                                        , 'cliente_uf'
+                                        , 'cliente_cidade'
+                                        , 'cliente_cep'
+                                        , 'cliente_cnpj'
+                                        , 'cliente_inscr_estadual'
+                                        , 'cliente_comprador_nome'
+                                        , 'cliente_fone'
+                                        , 'cliente_email_comprador'
+                                        , 'cliente_email_qualidade'
+                                        , 'cliente_email_xml'
+                                    ]);
+                                } else if (obj.register.cliente_selecao == 'Existe') {
+                                    invalidfields = application.functions.getEmptyFields(obj.register, [
+                                        'idcorrentista'
+                                    ]);
+                                } else {
+                                    invalidfields = ['cliente_selecao'];
+                                }
+                                if (invalidfields.length > 0) {
+                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                                }
+                                break;
+                            case '1'://Produto
+                                let validar_produto_geral = [
+                                    'produto_tipo_pedido'
+                                    , 'produto_pigmentado'
+                                    , 'produto_laminado'
+                                    , 'produto_liso_imp'
+                                    , 'produto_estrutura'
+                                    , 'produto_embalar'
+                                    , 'produto_peso_envasar'
+                                    , 'produto_aplicar_logo'
+                                    , 'produto_qtd_pasta_padrao'
+                                    , 'produto_aprovacao_arte'
+                                    , 'produto_clicheria_cliente'
+                                ];
+                                if (obj.register.produto_tipo == 'Saco') {
+                                    invalidfields = application.functions.getEmptyFields(obj.register, [
+                                        's_largura_final'
+                                        , 's_altura_final'
+                                        , 's_espessura_final'
+                                        , 's_tipo_solda'
+                                        , 's_tipo_furo'
+                                        , 's_qtd_furo'
+                                        , 's_localizacao_furos'
+                                        , 's_pingo_solda'
+                                        , 's_qtd_pingo_solda'
+                                        , 's_localizacao_pingo_solda'
+                                        , 's_facilitador'
+                                        , 's_aplicar_valvula'
+                                        , 's_aplicar_ziper'
+                                        , 's_aplicar_ziper_facil'
+                                        , 's_picote'
+                                    ].concat(validar_produto_geral));
+                                } else if (obj.register.cliente_selecao == 'Película') {
+                                    invalidfields = application.functions.getEmptyFields(obj.register, [
+                                        'idcorrentista'
+                                    ]);
+                                } else {
+                                    invalidfields = ['cliente_selecao'];
+                                }
+                                if (invalidfields.length > 0) {
+                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                                }
+                                break;
+                            case '2'://Entrega
+                                let count = await db.getModel('ven_propostaentrega').count({ where: { idproposta: obj.register.id } });
+                                if (count <= 0) {
+                                    return application.error(obj.res, { msg: 'Adicione no mínimo 1 entrega' });
+                                }
+                                break;
+                            case '3':
+                                break;
+                            default:
+                                return application.error(obj.res, { msg: 'step not f ' });
+                                break;
+                        }
+                        obj._cookies = [{ key: 'wizard-step', value: parseInt(obj.req.body['wizard-step']) + 1 }];
+                        obj.res.clearCookie('wizard-step');
+
+                        next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+        }
     }
 }
 

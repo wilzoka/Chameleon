@@ -252,14 +252,13 @@
         }
 
         {
-            if (application.functions)
-                $('#wizard-first').click(function () {
-                    if (application.functions.getId() > 0) {
-                        nextStep()
-                    } else {
-                        $(document).find('button[type="submit"]').trigger('click');
-                    }
-                });
+            $('#wizard-first').click(function () {
+                if (application.functions.getId() > 0) {
+                    nextStep()
+                } else {
+                    $(document).find('button[type="submit"]').trigger('click');
+                }
+            });
         }
     });
 

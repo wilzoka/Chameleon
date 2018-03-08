@@ -1529,14 +1529,6 @@
                 "order": 3,
                 "disabled": false,
                 "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "width",
-                "width": 12,
-                "order": 4,
-                "disabled": false,
-                "disablefilter": false
             }
         ],
         "_table": [
