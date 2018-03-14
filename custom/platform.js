@@ -757,14 +757,13 @@ let platform = {
     }
     , view: {
         onsave: async function (obj, next) {
-
             let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
             if (register) {
                 return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
             }
-
+            obj.register.namecomplete = obj.register.module.description + ' - ' + obj.register.name;
             await next(obj);
-            platform.view.f_afterSave();
+            db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
         }
         , e_export: async function (obj) {
             try {
@@ -1025,21 +1024,6 @@ let platform = {
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
-        }
-        , f_afterSave: function () {
-            db.getModel('view').findAll().then(views => {
-                views.map(view => {
-                    db.getModel('module').find({ where: { id: view.idmodule } }).then(modulee => {
-                        if (modulee) {
-                            view.namecomplete = modulee.description + ' - ' + view.name;
-                        } else {
-                            view.namecomplete = view.name;
-                        }
-                        view.save();
-                    });
-                });
-            });
-            db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
         }
         , f_getFilteredRegisters: function (obj) {
             let getFilter = function (cookie, viewfields) {

@@ -1,7 +1,7 @@
 $(function () {
 
     if (application.functions.getUrlParameter('parent')) {
-        Cookies.set('wizard-step', 2);
+        Cookies.set('wizard-step', 3);
     }
 
 });

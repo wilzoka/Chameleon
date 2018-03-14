@@ -217,7 +217,7 @@
         "namecomplete": "Plataforma - Auditoria",
         "js": null,
         "wherefixed": null,
-        "orderfixed": null,
+        "orderfixed": "datetime,desc",
         "supressid": true,
         "template": "box-12",
         "model": "audit",
@@ -268,7 +268,7 @@
             {
                 "modelattribute": "datetime",
                 "ordertable": 1,
-                "orderable": true,
+                "orderable": false,
                 "render": null,
                 "totalize": false,
                 "class": null
@@ -276,7 +276,7 @@
             {
                 "modelattribute": "iduser",
                 "ordertable": 2,
-                "orderable": true,
+                "orderable": false,
                 "render": null,
                 "totalize": false,
                 "class": null
@@ -292,7 +292,7 @@
             {
                 "modelattribute": "idmodel",
                 "ordertable": 4,
-                "orderable": true,
+                "orderable": false,
                 "render": null,
                 "totalize": false,
                 "class": null

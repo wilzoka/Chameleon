@@ -6,8 +6,6 @@ const application = require('./application')
     , escape = require('escape-html')
     ;
 
-let views = {};
-
 const renderText = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
@@ -536,16 +534,15 @@ const boundFiles = function (obj) {
             for (let z = 0; z < j.length; z++) {
                 idsToBound.push(j[z].id);
             }
-            if (idsToBound.length > 0) {
-                db.getModel('file').update({ bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id }, { where: { id: { $in: idsToBound } } });
-            }
         }
+    }
+    if (idsToBound.length > 0) {
+        db.getModel('file').update({ bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id }, { where: { id: { $in: idsToBound } } });
     }
 }
 
 const save = function (obj) {
-    return new Promise((resolve, reject) => {
-        let changes = obj.register._changed;
+    return new Promise((resolve) => {
         if (obj.register.changed()) {
             // File
             for (let i = 0; i < obj.modelattributes.length; i++) {
@@ -564,8 +561,9 @@ const save = function (obj) {
                         currentIds.push(j[z].id);
                     }
                     for (let z = 0; z < previousIds.length; z++) {
-                        if (currentIds.indexOf(previousIds[z]) > 0) {
+                        if (currentIds.indexOf(previousIds[z]) >= 0) {
                             previousIds.splice(z, 1);
+                            z--;
                         }
                     }
                     if (previousIds.length > 0) {
@@ -575,80 +573,34 @@ const save = function (obj) {
             }
         }
         let id = obj.register.id;
-        obj.register._user = obj.req.user;
+        obj.register._iduser = obj.req.user.id;
         obj.register.save().then(register => {
             boundFiles(lodash.extend(obj, { register: register }));
             resolve({ success: true, register: register });
-            // Audit
-            if (Object.keys(changes).length > 0) {
-                db.getModel(register.constructor.tableName).find({ where: { id: register.id }, include: [{ all: true }] }).then(registerr => {
-                    let audit = db.getModel('audit').build();
-                    audit.datetime = moment();
-                    audit.idmodel = obj.view.model.id;
-                    audit.iduser = obj.req.user.id;
-                    audit.type = id > 0 ? 2 : 1;
-                    audit.changes = [];
-                    for (let k in changes) {
-                        for (let i = 0; i < obj.modelattributes.length; i++) {
-                            if (k == obj.modelattributes[i].name) {
-                                let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
-                                switch (obj.modelattributes[i].type) {
-                                    case 'autocomplete':
-                                        let vas = j.as || j.model;
-                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? registerr[vas][j.attribute] : null));
-                                        break;
-                                    case 'boolean':
-                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? 'Sim' : 'Não'));
-                                        break;
-                                    case 'decimal':
-                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.decimal(registerr[k], j.precision) : null));
-                                        break;
-                                    case 'time':
-                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.time(registerr[k]) : null));
-                                        break;
-                                    case 'date':
-                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.date(registerr[k]) : null));
-                                        break;
-                                    case 'datetime':
-                                        audit.changes.push(obj.modelattributes[i].label + ': ' + (registerr[k] ? application.formatters.fe.datetime(registerr[k]) : null));
-                                        break;
-                                    default:
-                                        audit.changes.push(obj.modelattributes[i].label + ': ' + registerr[k]);
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                    audit.changes = audit.changes.join(', ');
-                    audit.modelid = registerr.id;
-                    audit.save();
-                });
-            }
         });
     });
 }
 
 const validateAndSave = function (obj) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         validate(obj).then(validation => {
             if (validation.success) {
                 save(obj).then(saved => {
                     if (saved.success) {
                         resolve({ success: true, register: saved.register });
-                        let ret = {};
-                        if (!obj._preventMsg) {
-                            lodash.extend(ret, { msg: application.message.success });
-                        }
-                        if (!obj._preventBack) {
-                            lodash.extend(ret, { historyBack: obj.hasSubview ? false : true });
-                        }
+                        let ret = {
+                            data: saved.register
+                            , redirect: '/v/' + obj.view.url + '/' + saved.register.id
+                            , msg: application.message.success
+                            , historyBack: obj.hasSubview ? false : true
+                        };
                         if (obj._cookies) {
                             lodash.extend(ret, { cookies: obj._cookies });
                         }
-                        return application.success(obj.res, lodash.extend(ret, {
-                            data: saved.register
-                            , redirect: '/v/' + obj.view.url + '/' + saved.register.id
-                        }));
+                        if (obj._responseModifier && typeof obj._responseModifier == 'function') {
+                            ret = obj._responseModifier(ret);
+                        }
+                        return application.success(obj.res, ret);
                     } else {
                         resolve({ success: false });
                         return application.error(obj.res, { msg: 'Nâo foi possível salvar este registro' });
@@ -663,21 +615,11 @@ const validateAndSave = function (obj) {
 }
 
 const deleteModel = function (obj) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         db.getModel(obj.view.model.name).findAll({ where: { id: { $in: obj.ids } }, raw: true }).then(registers => {
-            db.getModel(obj.view.model.name).destroy({ where: { id: { $in: obj.ids } } }).then(() => {
-
+            db.getModel(obj.view.model.name).destroy({ iduser: obj.req.user.id, where: { id: { $in: obj.ids } } }).then(() => {
                 resolve({ success: true });
                 application.success(obj.res, { msg: application.message.success });
-
-                let audit = db.getModel('audit').build();
-                audit.datetime = moment();
-                audit.idmodel = obj.view.model.id;
-                audit.iduser = obj.req.user.id;
-                audit.type = 3;
-                audit.changes = JSON.stringify(registers);
-                audit.save();
-
             }).catch(err => {
                 if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {
                     let errsplited = err.original.detail.split('"');

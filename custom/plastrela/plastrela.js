@@ -155,7 +155,7 @@ let main = {
                                 return application.error(obj.res, { msg: 'Não é possível alterar o estado de solicitações finalizadas' });
                             }
 
-                            await db.getModel('cmp_solicitacaoitem').update({ idestado: obj.req.body.idestado }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+                            await db.getModel('cmp_solicitacaoitem').update({ idestado: obj.req.body.idestado }, { iduser: obj.req.user.id, where: { id: { $in: obj.req.body.ids.split(',') } } });
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
@@ -1988,6 +1988,7 @@ let main = {
                             where: {
                                 id: { $ne: obj.register.id }
                                 , idvolume: volume.id
+                                , apontado: false
                             }
                         })) || 0;
 
@@ -3730,14 +3731,24 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        obj._preventBack = true;
-                        obj._preventMsg = true;
-
                         if (obj.register.id == 0) {
                             obj.register.datahora = moment();
                             obj.register.idusuario = obj.req.user.id;
+                        } else {
+                            if (obj.register.digitado) {
+                                return application.error(obj.res, { msg: 'Não é possível editar uma proposta completamente digitada' });
+                            }
                         }
                         let invalidfields = [];
+
+                        function nextStep() {
+                            obj._responseModifier = function (ret) {
+                                delete ret['msg'];
+                                delete ret['historyBack'];
+                                return ret;
+                            }
+                            obj._cookies = [{ key: 'wizard-step', value: parseInt(obj.req.body['wizard-step']) + 1 }];
+                        }
                         switch (obj.req.body['wizard-step']) {
                             case '0'://Cliente
                                 if (obj.register.cliente_selecao == 'Novo') {
@@ -3755,6 +3766,9 @@ let main = {
                                         , 'cliente_email_comprador'
                                         , 'cliente_email_qualidade'
                                         , 'cliente_email_xml'
+                                        , 'cliente_endereco_cobranca'
+                                        , 'cliente_endereco_entrega'
+                                        , 'cliente_hora_recebimento'
                                     ]);
                                 } else if (obj.register.cliente_selecao == 'Existe') {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
@@ -3766,6 +3780,7 @@ let main = {
                                 if (invalidfields.length > 0) {
                                     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                                 }
+                                nextStep();
                                 break;
                             case '1'://Produto
                                 let validar_produto_geral = [
@@ -3799,34 +3814,84 @@ let main = {
                                         , 's_aplicar_ziper_facil'
                                         , 's_picote'
                                     ].concat(validar_produto_geral));
-                                } else if (obj.register.cliente_selecao == 'Película') {
+                                } else if (obj.register.produto_tipo == 'Película') {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
-                                        'idcorrentista'
-                                    ]);
+                                        'p_largura_final'
+                                        , 'p_passo_fotocelula'
+                                        , 'p_espessura_final'
+                                        , 'p_sanfona_esquerda'
+                                        , 'p_sanfona_direita'
+                                        , 'p_peso_maximo_bob'
+                                        , 'p_diametro_maximo_bob'
+                                        , 'p_tipo_tubete'
+                                        , 'p_diametro_tubete'
+                                        , 'p_tipo_emenda'
+                                        , 'p_aplicar_microfuros'
+                                        , 'p_quantidade_microfuros'
+                                        , 'p_aplicar_ziper_facil'
+                                        , 'p_sentido_embobinamento'
+                                    ].concat(validar_produto_geral));
                                 } else {
-                                    invalidfields = ['cliente_selecao'];
+                                    invalidfields = ['produto_tipo'];
                                 }
                                 if (invalidfields.length > 0) {
                                     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                                 }
+                                nextStep();
                                 break;
-                            case '2'://Entrega
+                            case '2'://Quantidades
+                                invalidfields = application.functions.getEmptyFields(obj.register, [
+                                    'entrega_quantidade'
+                                    , 'entrega_unidade'
+                                    , 'entrega_preco'
+                                    , 'entrega_ipi'
+                                    , 'entrega_icms'
+                                    , 'entrega_tipo_reembalagem'
+                                ]);
+                                if (invalidfields.length > 0) {
+                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                                }
+                                nextStep();
+                                break;
+                            case '3'://Entregas
                                 let count = await db.getModel('ven_propostaentrega').count({ where: { idproposta: obj.register.id } });
                                 if (count <= 0) {
                                     return application.error(obj.res, { msg: 'Adicione no mínimo 1 entrega' });
                                 }
+                                nextStep();
                                 break;
-                            case '3':
+                            case '4'://Pagamento
+                                invalidfields = application.functions.getEmptyFields(obj.register, [
+                                    'condicao_pgto'
+                                ]);
+                                if (invalidfields.length > 0) {
+                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                                }
+                                obj.register.digitado = true;
+                                obj._redirect = '/v/proposta';
                                 break;
                             default:
-                                return application.error(obj.res, { msg: 'step not f ' });
+                                return application.error(obj.res, {});
                                 break;
                         }
-                        obj._cookies = [{ key: 'wizard-step', value: parseInt(obj.req.body['wizard-step']) + 1 }];
-                        obj.res.clearCookie('wizard-step');
 
                         next(obj);
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+
+                        let propostas = await db.getModel('ven_proposta').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < propostas.length; i++) {
+                            if (propostas[i].digitado) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar uma proposta completamente digitada' });
+                            }
+                        }
+
+                        next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

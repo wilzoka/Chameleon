@@ -1,4 +1,5 @@
 const application = require('../routes/application')
+  , moment = require('moment')
   , Sequelize = require('sequelize')
   , sequelize = new Sequelize('db', 'postgres', 'postgres', {
     host: '127.0.0.1'
@@ -47,6 +48,53 @@ const application = require('../routes/application')
       $all: Sequelize.Op.all,
       $values: Sequelize.Op.values,
       $col: Sequelize.Op.col
+    }
+    , define: {
+      hooks: {
+        beforeBulkUpdate: (options) => {
+          options.individualHooks = true;
+        }
+        , beforeSave: (register, options) => {
+          register._isInsert = register.isNewRecord;
+        }
+        , afterSave: (register, options) => {
+          if (['audit', 'session'].indexOf(register.constructor.name) < 0 && Object.keys(register._changed).length > 0) {
+            getModel('model').find({ where: { name: register.constructor.name } }).then(model => {
+              let audit = getModel('audit').build();
+              let iduser = options.iduser || register._iduser;
+              audit.datetime = moment();
+              audit.idmodel = model.id;
+              audit.iduser = iduser || null;
+              audit.type = register._isInsert ? 1 : 2;
+              let changes = {};
+              for (let k in register._changed) {
+                changes[k] = register[k];
+              }
+              audit.changes = JSON.stringify(changes);
+              audit.modelid = register.id;
+              audit.save();
+            });
+          }
+        }
+        , beforeBulkDestroy: (options) => {
+          options.individualHooks = true;
+        }
+        , afterDestroy: (register, options) => {
+          if (['audit', 'session'].indexOf(register.constructor.name) < 0) {
+            getModel('model').find({ where: { name: register.constructor.name } }).then(model => {
+              let audit = getModel('audit').build();
+              let iduser = options.iduser || register._iduser;
+              audit.datetime = moment();
+              audit.idmodel = model.id;
+              audit.iduser = iduser || null;
+              audit.type = 3;
+              audit.changes = JSON.stringify(register.dataValues);
+              audit.modelid = register.id;
+              audit.save();
+            });
+          }
+        }
+      }
     }
   })
   , defineModel = function (name, attr) {

@@ -89,6 +89,9 @@ const getFilter = function (cookie, modelattributes) {
                 case 'text':
                     cookie[i][k] = '%' + cookie[i][k] + '%';
                     break;
+                case 'textarea':
+                    cookie[i][k] = '%' + cookie[i][k] + '%';
+                    break;
                 case 'decimal':
                     v = cookie[i][k];
                     v = v.replace(/\./g, "");

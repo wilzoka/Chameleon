@@ -143,7 +143,7 @@ var application = {
                     }
                 });
             });
-            $('button.btnreturn').click(function () {
+            $('#view-return').click(function () {
                 window.history.back();
             });
             $(document).on('click', 'a.btndeselectall', function () {
@@ -1181,7 +1181,7 @@ var application = {
             }
 
             var html = '<div class="modal fade" id="' + obj.id + '" ' + attr + '>';
-            if ('fullscreen' in obj && obj.fullscreen) {
+            if (obj.fullscreen) {
                 html += '<div class="modal-dialog modal-fullscreen">';
             } else {
                 html += '<div class="modal-dialog">';
@@ -1196,7 +1196,7 @@ var application = {
             html += '</div >';
 
             html += '<div class="modal-body">';
-            html += '<div class="row">';
+            html += '<div class="row" style="overflow: auto;' + (obj.fullscreen ? 'height: ' + ($(window).height() * 0.70) + 'px;' : '') + '">';
             html += obj.body;
             html += '</div>';
             html += '</div>';
