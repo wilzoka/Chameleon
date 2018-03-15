@@ -1127,6 +1127,13 @@ module.exports = function (app) {
             }
             const permission = await hasPermission(req.user.id, view.id);
             if (permission.visible) {
+                if (view.wherefixed) {
+                    let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
+                    let exists = await db.getModel(view.model.name).find({ raw: true, where: { $col: db.Sequelize.literal(wherefixed) } });
+                    if (!exists) {
+                        return application.forbidden(res);
+                    }
+                }
                 const viewfields = await db.getModel('viewfield').findAll({
                     where: { idview: view.id }
                     , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]

@@ -1501,7 +1501,7 @@
         "js": null,
         "wherefixed": null,
         "orderfixed": null,
-        "supressid": false,
+        "supressid": true,
         "template": "box-6",
         "model": "viewsubview",
         "module": "Plataforma",

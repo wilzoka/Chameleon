@@ -328,6 +328,7 @@
         Cookies.remove('wizard-step');
 
         {
+            $('input[name="entrega_unidade"]').attr('readonly', 'readonly');
             var cliente_selecao = function () {
                 switch ($('input[name="cliente_selecao"]:checked').val()) {
                     case 'Novo':
@@ -343,11 +344,13 @@
             var produto_selecao = function () {
                 switch ($('input[name="produto_tipo"]:checked').val()) {
                     case 'Saco':
+                        $('input[name="entrega_unidade"]').val('MIL');
                         $('.produtosaco').removeClass('hidden');
                         $('.produtopelicula').addClass('hidden');
                         $('.produtogeral').removeClass('hidden');
                         break;
                     case 'Película':
+                        $('input[name="entrega_unidade"]').val('KG');
                         $('.produtosaco').addClass('hidden');
                         $('.produtopelicula').removeClass('hidden');
                         $('.produtogeral').removeClass('hidden');

@@ -3875,7 +3875,24 @@ let main = {
                                 break;
                         }
 
-                        next(obj);
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            if (saved.register.digitado) {
+                                let setor = await db.getModel('cad_setor').find({ where: { descricao: 'Comercial' } });
+                                if (setor) {
+                                    let usuarios = await db.getModel('cad_setorusuario').findAll({ where: { idsetor: setor.id } });
+                                    let arr = [];
+                                    for (let i = 0; i < usuarios.length; i++) {
+                                        arr.push(usuarios[i].idusuario);
+                                    }
+                                    main.platform.notification.create(arr, {
+                                        title: 'Nova Proposta'
+                                        , description: 'ID ' + saved.register.id + ' / ' + saved.register.users.fullname
+                                        , link: '/v/proposta/' + saved.register.id
+                                    });
+                                }
+                            }
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);

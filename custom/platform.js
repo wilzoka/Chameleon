@@ -572,9 +572,6 @@ let platform = {
                 return application.error(obj.res, { msg: 'Já existe uma rota com esta descrição' });
             }
             await next(obj);
-            platform.route.f_afterSave();
-        }
-        , f_afterSave: function () {
             db.sequelize.query("update route set url = translate(lower(description), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
         }
         , e_export: async function (obj) {
@@ -757,13 +754,18 @@ let platform = {
     }
     , view: {
         onsave: async function (obj, next) {
-            let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
-            if (register) {
-                return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
+            try {
+                let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
+                if (register) {
+                    return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
+                }
+                let modulee = await db.getModel('module').find({ where: { id: obj.register.idmodule || 0 } });
+                obj.register.namecomplete = modulee ? modulee.description + ' - ' + obj.register.name : obj.register.name;
+                await next(obj);
+                db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
+            } catch (err) {
+                return application.fatal(obj.res, err);
             }
-            obj.register.namecomplete = obj.register.module.description + ' - ' + obj.register.name;
-            await next(obj);
-            db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
         }
         , e_export: async function (obj) {
             try {
@@ -783,6 +785,7 @@ let platform = {
                         , template: views[i].template.name
                         , model: views[i].model.name
                         , module: views[i].module.description
+                        , url: views[i].url
                     });
                     let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['order', 'asc']] });
                     j[j.length - 1]._field = [];
@@ -886,6 +889,7 @@ let platform = {
                                 view.js = views[i].js;
                                 view.namecomplete = views[i].namecomplete;
                                 view.orderfixed = views[i].orderfixed;
+                                view.url = views[i].url;
                                 if (view.changed()) {
                                     await view.save();
                                     console.log('UPDATED');
@@ -895,9 +899,9 @@ let platform = {
                             } else {
                                 view = await db.getModel('view').create({
                                     name: views[i].name
-                                    , idtemplate: template.id
+                                    , idtemplate: template[0].id
                                     , idmodel: model.id
-                                    , idmodule: modulee.id
+                                    , idmodule: modulee[0].id
                                     , wherefixed: views[i].wherefixed
                                     , supressid: views[i].supressid
                                     , js: views[i].js
@@ -917,9 +921,7 @@ let platform = {
                                         viewfield.order = views[i]._field[z].order;
                                         viewfield.disabled = views[i]._field[z].disabled;
                                         viewfield.disablefilter = views[i]._field[z].disablefilter;
-                                        if (viewfield.changed()) {
-                                            await viewfield.save();
-                                        }
+                                        await viewfield.save();
                                     } else {
                                         viewfield = await db.getModel('viewfield').create({
                                             idview: view.id
@@ -945,9 +947,7 @@ let platform = {
                                         viewtable.render = views[i]._table[z].render;
                                         viewtable.totalize = views[i]._table[z].totalize;
                                         viewtable.class = views[i]._table[z].class;
-                                        if (viewtable.changed()) {
-                                            await viewtable.save();
-                                        }
+                                        await viewtable.save();
                                     } else {
                                         viewtable = await db.getModel('viewtable').create({
                                             idview: view.id
@@ -969,9 +969,7 @@ let platform = {
                                     viewevent.icon = views[i]._event[z].icon;
                                     viewevent.function = views[i]._event[z].function;
                                     viewevent.parameters = views[i]._event[z].parameters;
-                                    if (viewevent.changed()) {
-                                        await viewevent.save();
-                                    }
+                                    await viewevent.save();
                                 } else {
                                     viewevent = await db.getModel('viewevent').create({
                                         idview: view.id
@@ -993,6 +991,7 @@ let platform = {
                     for (let i = 0; i < views.length; i++) {
                         if (!views[i]._skipped) {
                             let view = await db.getModel('view').find({ include: [{ all: true }], where: { name: views[i].name } });
+                            console.log(view);
                             for (let z = 0; z < views[i]._subview.length; z++) {
                                 let viewsubview = await db.getModel('view').find({ where: { name: views[i]._subview[z].subview } });
                                 if (viewsubview) {
@@ -1001,9 +1000,7 @@ let platform = {
                                     if (subview) {
                                         subview.description = views[i]._subview[z].description;
                                         subview.idtemplatezone = templatezone[0].id;
-                                        if (subview.changed()) {
-                                            await subview.save();
-                                        }
+                                        await subview.save();
                                     } else {
                                         subview = await db.getModel('viewsubview').create({
                                             idview: view.id
