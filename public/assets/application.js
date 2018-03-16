@@ -1196,7 +1196,7 @@ var application = {
             html += '</div >';
 
             html += '<div class="modal-body">';
-            html += '<div class="row" style="overflow: auto;' + (obj.fullscreen ? 'height: ' + ($(window).height() * 0.70) + 'px;' : '') + '">';
+            html += '<div class="row">';
             html += obj.body;
             html += '</div>';
             html += '</div>';

@@ -13,6 +13,7 @@
     "express": "4.16.3",
     "express-session": "1.15.6",
     "handlebars": "4.0.11",
+    "html-pdf": "^2.2.0",
     "lodash": "4.17.5",
     "mail-listener2": "0.3.1",
     "moment": "2.21.0",

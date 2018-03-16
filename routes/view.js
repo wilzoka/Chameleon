@@ -1119,17 +1119,18 @@ module.exports = function (app) {
     app.get('/v/:view/:id', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);
+            const id = parseInt(req.params.id)
             if (!view) {
                 return application.notFound(res);
             }
-            if (isNaN(parseInt(req.params.id))) {
+            if (isNaN(id)) {
                 return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
             }
             const permission = await hasPermission(req.user.id, view.id);
             if (permission.visible) {
-                if (view.wherefixed) {
+                if (id > 0 && view.wherefixed) {
                     let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
-                    let exists = await db.getModel(view.model.name).find({ raw: true, where: { $col: db.Sequelize.literal(wherefixed) } });
+                    let exists = await db.getModel(view.model.name).find({ raw: true, where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
                     if (!exists) {
                         return application.forbidden(res);
                     }
@@ -1152,10 +1153,10 @@ module.exports = function (app) {
                 }
                 let register = await db.getModel(view.model.name).find({
                     attributes: attributes
-                    , where: { id: req.params.id }
+                    , where: { id: id }
                     , include: [{ all: true }]
                 });
-                if (!register && req.params.id != 0) {
+                if (!register && id != 0) {
                     return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
                 }
                 let templatezones = await db.getModel('templatezone').findAll({
