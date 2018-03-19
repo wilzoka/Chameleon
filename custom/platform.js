@@ -468,6 +468,101 @@ let platform = {
                 return application.fatal(obj.res, err);
             }
         }
+        , find: function (modelname, options) {
+            return new Promise((resolve, reject) => {
+                const fixResults = function (registers, modelattributes) {
+                    for (let i = 0; i < registers.rows.length; i++) {
+                        registers.rows[i]['DT_RowId'] = registers.rows[i].id;
+                    }
+                    let j = {};
+                    for (let i = 0; i < modelattributes.length; i++) {
+                        if (modelattributes[i].typeadd) {
+                            j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
+                        }
+                        switch (modelattributes[i].type) {
+                            case 'autocomplete':
+                                let vas = j.as || j.model;
+                                for (let x = 0; x < registers.rows.length; x++) {
+                                    if (registers.rows[x][modelattributes[i].name]) {
+                                        registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + j.attribute];
+                                    }
+                                }
+                                break;
+                            case 'date':
+                                for (let x = 0; x < registers.rows.length; x++) {
+                                    if (registers.rows[x][modelattributes[i].name]) {
+                                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.date(registers.rows[x][modelattributes[i].name]);
+                                    }
+                                }
+                                break;
+                            case 'datetime':
+                                for (let x = 0; x < registers.rows.length; x++) {
+                                    if (registers.rows[x][modelattributes[i].name]) {
+                                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.datetime(registers.rows[x][modelattributes[i].name]);
+                                    }
+                                }
+                                break;
+                            case 'decimal':
+                                for (let x = 0; x < registers.rows.length; x++) {
+                                    if (registers.rows[x][modelattributes[i].name]) {
+                                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], j.precision);
+                                    }
+                                }
+                                break;
+                            case 'time':
+                                for (let x = 0; x < registers.rows.length; x++) {
+                                    if (registers.rows[x][modelattributes[i].name]) {
+                                        registers.rows[x][modelattributes[i].name] = application.formatters.fe.time(registers.rows[x][modelattributes[i].name]);
+                                    }
+                                }
+                                break;
+                            case 'virtual':
+                                switch (j.type) {
+                                    case 'decimal':
+                                        for (let x = 0; x < registers.rows.length; x++) {
+                                            if (registers.rows[x][modelattributes[i].name]) {
+                                                registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], j.precision);
+                                            }
+                                        }
+                                        break;
+                                }
+                                break;
+                        }
+                    }
+                    return registers;
+                }
+
+                db.getModel('model').find({ where: { name: modelname } }).then(model => {
+                    if (!model) {
+                        return reject('model not found');
+                    }
+                    db.getModel('modelattribute').findAll({ where: { idmodel: model.id } }).then(modelattributes => {
+                        let attributes = ['id'];
+                        for (let i = 0; i < modelattributes.length; i++) {
+                            switch (modelattributes[i].type) {
+                                case 'parent':
+                                    attributes.push(modelattributes[i].name);
+                                    break;
+                                case 'virtual':
+                                    attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[i].typeadd).subquery), modelattributes[i].name]);
+                                    break;
+                                default:
+                                    attributes.push(modelattributes[i].name);
+                                    break;
+                            }
+                        }
+                        db.getModel(model.name).findAndCountAll(lodash.extend({
+                            attributes: attributes
+                            , raw: true
+                            , include: [{ all: true }]
+                        }, options)).then(registers => {
+                            registers = fixResults(registers, modelattributes);
+                            return resolve(registers);
+                        });
+                    });
+                });
+            });
+        }
     }
     , notification: {
         create: function (users, obj) {
