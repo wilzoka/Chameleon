@@ -1555,14 +1555,6 @@
                 "render": null,
                 "totalize": false,
                 "class": null
-            },
-            {
-                "modelattribute": "width",
-                "ordertable": 4,
-                "orderable": true,
-                "render": null,
-                "totalize": false,
-                "class": null
             }
         ],
         "_subview": [],
