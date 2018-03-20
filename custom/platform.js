@@ -1086,7 +1086,6 @@ let platform = {
                     for (let i = 0; i < views.length; i++) {
                         if (!views[i]._skipped) {
                             let view = await db.getModel('view').find({ include: [{ all: true }], where: { name: views[i].name } });
-                            console.log(view);
                             for (let z = 0; z < views[i]._subview.length; z++) {
                                 let viewsubview = await db.getModel('view').find({ where: { name: views[i]._subview[z].subview } });
                                 if (viewsubview) {
