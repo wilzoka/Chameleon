@@ -19,11 +19,11 @@ $(function () {
         $('button.btnfilter[data-table="' + table + '"]').remove();
 
         switch (table) {
-            case 'tableview73':// Insumo
+            case 'tableviewapontamento_de_producao_-_insumo':// Insumo
                 customTable(table);
                 setTimeout(function () {
-                    tables['tableview73'].column(0).order('desc');
-                    tables['tableview73'].draw()
+                    tables[table].column(0).order('desc');
+                    tables[table].draw()
                 }, 100);
 
                 $('button#' + table + '_insert').unbind().click(function (e) {
@@ -33,11 +33,11 @@ $(function () {
                 });
 
                 break;
-            case 'tableview74':// Produção
+            case 'tableviewapontamento_de_producao_-_producao':// Produção
                 customTable(table);
                 setTimeout(function () {
-                    tables['tableview74'].column(0).order('desc');
-                    tables['tableview74'].draw()
+                    tables[table].column(0).order('desc');
+                    tables[table].draw()
                 }, 100);
 
                 $('#' + table + '_insert').unbind().click(function (e) {
@@ -46,19 +46,19 @@ $(function () {
                     });
                 });
                 break;
-            case 'tableview51':// Perda
+            case 'tableviewapontamento_de_producao_-_perda':// Perda
                 customTable(table);
 
                 break;
-            case 'tableview52':// Parada
+            case 'tableviewapontamento_de_producao_-_parada':// Parada
                 customTable(table);
                 setTimeout(function () {
-                    tables['tableview52'].column(0).order('desc');
-                    tables['tableview52'].draw()
+                    tables[table].column(0).order('desc');
+                    tables[table].draw()
                 }, 100);
 
                 break;
-            case 'tableview77':// Sobra
+            case 'tableviewapontamento_de_producao_-_sobra':// Sobra
 
                 break;
             default:
