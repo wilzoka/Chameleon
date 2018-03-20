@@ -76,12 +76,12 @@ const getFilter = function (cookie, modelattributes) {
             let field = k.split('+');
             switch (field[1]) {
                 case 'date':
-                    m = moment(cookie[i][k], 'DD/MM/YYYY');
-                    cookie[i][k] = m.format('YYYY-MM-DD');
+                    m = moment(cookie[i][k], application.formatters.fe.date_format);
+                    cookie[i][k] = m.format(application.formatters.be.date_format);
                     break;
                 case 'datetime':
-                    m = moment(cookie[i][k], 'DD/MM/YYYY HH:mm');
-                    cookie[i][k] = m.format('YYYY-MM-DD HH:mm');
+                    m = moment(cookie[i][k], application.formatters.fe.datetime_format);
+                    cookie[i][k] = m.format(application.formatters.be.datetime_format + ':59');
                     break;
                 case 'time':
                     cookie[i][k] = application.formatters.be.time(cookie[i][k]);
@@ -202,8 +202,7 @@ module.exports = function (app) {
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let where = {};
             if (view.wherefixed) {
-                view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
-                view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
+                view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id);
                 where['$col'] = db.Sequelize.literal(view.wherefixed);
             }
             if ('tableview' + view.url + 'filter' in req.cookies) {
@@ -253,7 +252,7 @@ module.exports = function (app) {
                 , raw: true
                 , include: [{ all: true }]
                 , where: where
-                , order: [[ordercolumn, orderdir]]
+                , order: [[ordercolumn, orderdir], ['id', orderdir]]
             }));
             registers = fixResults(registers, modelattributes);
             return application.success(res, {
