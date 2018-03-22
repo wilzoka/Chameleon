@@ -390,7 +390,7 @@ let main = {
                                         let movcom = await db.getModel('fin_mov').create({
                                             data: moment()
                                             , parcela: '1/1'
-                                            , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
+                                            , datavcto: application.formatters.be.date('01/' + moment(movparc.data).add(1, 'M').format('MM/YYYY'))
                                             , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
                                             , valor: (((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) * comissao) / total).toFixed(2)
                                             , idcorr: mov.ven_pedido.idvendedor
@@ -807,6 +807,140 @@ let main = {
                                     }
                                 });
                             });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_transferencia: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let categoriad = await db.getModel('fin_categoria').find({ where: { descricaocompleta: 'Transferencia - Debito' } });
+                            let categoriac = await db.getModel('fin_categoria').find({ where: { descricaocompleta: 'Transferencia - Credito' } });
+
+                            let body = '';
+                            body += application.components.html.autocomplete({
+                                width: '5'
+                                , label: 'Categoria de Débito'
+                                , name: 'idcategoriad'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 1'
+                                , option: categoriad ? '<option value="' + categoriad.id + '" selected>' + categoriad.descricaocompleta + '</option>' : ''
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '4'
+                                , label: 'Conta de Débito'
+                                , name: 'idcontad'
+                                , model: 'fin_conta'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '3'
+                                , label: 'Forma Pgto'
+                                , name: 'idformapgtod'
+                                , model: 'fin_formapgto'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '5'
+                                , label: 'Categoria de Crédito'
+                                , name: 'idcategoriac'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 2'
+                                , option: categoriac ? '<option value="' + categoriac.id + '" selected>' + categoriac.descricaocompleta + '</option>' : ''
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '4'
+                                , label: 'Conta de Crédito'
+                                , name: 'idcontac'
+                                , model: 'fin_conta'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '3'
+                                , label: 'Forma de Pgto'
+                                , name: 'idformapgtoc'
+                                , model: 'fin_formapgto'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.date({
+                                width: '5'
+                                , label: 'Data'
+                                , name: 'data'
+                                , value: moment().format(application.formatters.fe.date_format)
+                            });
+                            body += application.components.html.decimal({
+                                width: '7'
+                                , label: 'Valor'
+                                , name: 'valor'
+                                , precision: '2'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , id: 'modalevt'
+                                    , action: '/event/' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Transferir</button>'
+                                }
+                            });
+
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['idcategoriad', 'idcontad', 'idformapgtod', 'idcategoriac', 'idcontac', 'idformapgtoc', 'data', 'valor']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let valor = application.formatters.be.decimal(obj.req.body.valor, 2);
+                            let data = application.formatters.be.date(obj.req.body.data);
+                            if (await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idcontad, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
+                                return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência', invalidfields: ['idcontad', 'data'] });
+                            }
+                            if (await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idcontac, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
+                                return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência', invalidfields: ['idcontac', 'data'] });
+                            }
+                            if (parseFloat(valor) <= 0) {
+                                return application.error(obj.res, { msg: 'O valor deve ser maior que 0', invalidfields: ['valor'] });
+                            }
+
+                            let movd = await db.getModel('fin_mov').create({
+                                datavcto: data
+                                , idcategoria: obj.req.body.idcategoriad
+                                , valor: valor
+                                , quitado: true
+                                , data: data
+                            });
+                            let movparcd = await db.getModel('fin_movparc').create({
+                                valor: valor
+                                , idmov: movd.id
+                                , idformapgto: obj.req.body.idformapgtod
+                                , idconta: obj.req.body.idcontad
+                                , data: data
+                            });
+
+                            let movc = await db.getModel('fin_mov').create({
+                                datavcto: data
+                                , idcategoria: obj.req.body.idcategoriac
+                                , valor: valor
+                                , quitado: true
+                                , data: data
+                            });
+                            let movparcc = await db.getModel('fin_movparc').create({
+                                valor: valor
+                                , idmov: movc.id
+                                , idformapgto: obj.req.body.idformapgtoc
+                                , idconta: obj.req.body.idcontac
+                                , data: data
+                            });
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
                     } catch (err) {

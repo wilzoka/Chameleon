@@ -58,7 +58,7 @@ const application = require('../routes/application')
           register._isInsert = register.isNewRecord;
         }
         , afterSave: (register, options) => {
-          if (['audit', 'session'].indexOf(register.constructor.name) < 0 && Object.keys(register._changed).length > 0) {
+          if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0 && Object.keys(register._changed).length > 0) {
             getModel('model').find({ where: { name: register.constructor.name } }).then(model => {
               let audit = getModel('audit').build();
               let iduser = options.iduser || register._iduser;
@@ -80,7 +80,7 @@ const application = require('../routes/application')
           options.individualHooks = true;
         }
         , afterDestroy: (register, options) => {
-          if (['audit', 'session'].indexOf(register.constructor.name) < 0) {
+          if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0) {
             getModel('model').find({ where: { name: register.constructor.name } }).then(model => {
               let audit = getModel('audit').build();
               let iduser = options.iduser || register._iduser;

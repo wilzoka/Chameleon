@@ -4,6 +4,7 @@ const db = require('../models')
     , schedule = require('../routes/schedule')
     , lodash = require('lodash')
     , application = require('../routes/application')
+    , pdf = require('html-pdf')
     ;
 
 let platform = {
@@ -658,6 +659,82 @@ let platform = {
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
+        }
+    }
+    , report: {
+        e_preview: async function (obj) {
+            try {
+                if (obj.ids.length != 1) {
+                    return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                }
+                let file = await platform.report.f_generate(obj.ids[0], {});
+                if (file) {
+                    return application.success(obj.res, {
+                        modal: {
+                            id: 'modalevt'
+                            , fullscreen: true
+                            , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                            , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                            , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                        }
+                    });
+                } else {
+                    return application.error(obj.res, { msg: 'ops' });
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , f_generate: function (report, replaces) {
+            return new Promise((resolve) => {
+                try {
+                    db.getModel('report').find({ where: { $or: [{ id: report }, { name: report }] } }).then(report => {
+                        if (!report) {
+                            return resolve(false);
+                        }
+                        let html = `
+                        <html>
+                            <head>
+                            <meta charset="utf8">
+                            <style>
+                                td, th {
+                                    border: 1px solid black;
+                                }
+                                table {
+                                    border-collapse: collapse;
+                                }
+                                html, body, table {
+                                    font-size: ${report.fontsize || 12}
+                                }
+                            </style>
+                            </head>
+                            <body>          
+                                ${report.html}
+                            </body>
+                        </html>
+                        `;
+                        for (let k in replaces) {
+                            html = html.replace('{{' + k + '}}', replaces[k] || '');
+                        }
+                        let options = {
+                            border: {
+                                top: "1cm",            // default is 0, units: mm, cm, in, px
+                                right: "1cm",
+                                bottom: "1cm",
+                                left: "1cm"
+                            }
+                            , orientation: report.landscape ? 'landscape' : 'portait'
+                        }
+                        let filename = process.hrtime()[1] + '.pdf';
+                        pdf.create(html, options).toFile(__dirname + '/../tmp/' + filename, function (err, res) {
+                            return resolve(filename);
+                        });
+                    });
+                } catch (err) {
+                    console.error(err);
+                    return resolve(false);
+                }
+            });
         }
     }
     , route: {
