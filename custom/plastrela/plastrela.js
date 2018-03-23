@@ -2558,6 +2558,12 @@ let main = {
                         if (!user.c_codigosenior) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
+                        if (obj.register.qtd <= 0) {
+                            return application.error(obj.res, { msg: 'A quantidade deve ser maior que 0', invalidfields: ['qtd'] });
+                        }
+                        if (obj.register.pesobruto <= 0) {
+                            return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
+                        }
 
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
@@ -3202,6 +3208,11 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
+                        if (obj.register.id > 0) {
+                            return application.error(obj.res, { msg: 'Não é possível editar uma sobra, apague o registro e aponte novamente' });
+                        }
+                        obj.register.datahora = moment();
+
                         let config = await db.getModel('pcp_config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
@@ -3210,13 +3221,6 @@ let main = {
 
                         let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: obj.register.idapinsumo } });
                         let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
-
-                        if (obj.id == 0) {
-                            obj.register.datahora = moment();
-                        } else {
-                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(obj.register._previousDataValues.qtd)).toFixed(4);
-                            volume.qtdreal = (parseFloat(volume.qtdreal) - parseFloat(obj.register._previousDataValues.qtd)).toFixed(4);
-                        }
 
                         if (volume.metragem) {
                             volume.metragem = (((parseFloat(volume.qtdreal) + parseFloat(obj.register.qtd)) * parseFloat(volume.metragem)) / parseFloat(apinsumo.qtd)).toFixed(2);
@@ -3231,13 +3235,12 @@ let main = {
                         }
 
                         // Valida Pesos
-                        let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where id != ' + obj.register.idapinsumo + ' and idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                        let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                        let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                        if (((qtdapinsumo + parseFloat(apinsumo.qtd) - parseFloat(obj.register.qtd)) * 1.15) - (qtdapperda + qtdapproducaovolume) < 0) {
-                            // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
-                        }
-                        //
+                        // let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where id != ' + obj.register.idapinsumo + ' and idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        // let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        // let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        // if (((qtdapinsumo + parseFloat(apinsumo.qtd) - parseFloat(obj.register.qtd)) * 1.15) - (qtdapperda + qtdapproducaovolume) < 0) {
+                        //     return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                        // }
 
                         await next(obj);
 

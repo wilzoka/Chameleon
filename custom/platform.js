@@ -692,42 +692,43 @@ let platform = {
                         if (!report) {
                             return resolve(false);
                         }
-                        let html = `
-                        <html>
-                            <head>
-                            <meta charset="utf8">
-                            <style>
-                                td, th {
-                                    border: 1px solid black;
-                                }
-                                table {
-                                    border-collapse: collapse;
-                                }
-                                html, body, table {
-                                    font-size: ${report.fontsize || 12}
-                                }
-                            </style>
-                            </head>
-                            <body>          
-                                ${report.html}
-                            </body>
-                        </html>
-                        `;
-                        for (let k in replaces) {
-                            html = html.replace('{{' + k + '}}', replaces[k] || '');
-                        }
-                        let options = {
-                            border: {
-                                top: "1cm",            // default is 0, units: mm, cm, in, px
-                                right: "1cm",
-                                bottom: "1cm",
-                                left: "1cm"
+                        db.getModel('config').find({ raw: true }).then(config => {
+                            replaces.__reportimage = '';
+                            if (config.reportimage) {
+                                let reportimage = JSON.parse(config.reportimage);
+                                replaces.__reportimage = __dirname + '/../files/' + reportimage[0].id + '.' + reportimage[0].type;
                             }
-                            , orientation: report.landscape ? 'landscape' : 'portait'
-                        }
-                        let filename = process.hrtime()[1] + '.pdf';
-                        pdf.create(html, options).toFile(__dirname + '/../tmp/' + filename, function (err, res) {
-                            return resolve(filename);
+                            let html = `
+                            <html>
+                                <head>
+                                <meta charset="utf8">
+                                <style>
+                                    html, body, table {
+                                        font-size: ${report.fontsize || 12}
+                                    }
+                                </style>
+                                </head>
+                                <body>          
+                                    ${report.html}
+                                </body>
+                            </html>
+                            `;
+                            for (let k in replaces) {
+                                html = html.replace('{{' + k + '}}', replaces[k] || '');
+                            }
+                            let options = {
+                                border: {
+                                    top: "1cm",            // default is 0, units: mm, cm, in, px
+                                    right: "1cm",
+                                    bottom: "1cm",
+                                    left: "1cm"
+                                }
+                                , orientation: report.landscape ? 'landscape' : 'portait'
+                            }
+                            let filename = process.hrtime()[1] + '.pdf';
+                            pdf.create(html, options).toFile(__dirname + '/../tmp/' + filename, function (err, res) {
+                                return resolve(filename);
+                            });
                         });
                     });
                 } catch (err) {
