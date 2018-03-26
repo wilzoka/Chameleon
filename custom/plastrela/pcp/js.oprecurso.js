@@ -94,10 +94,12 @@ $(function () {
                             if (response.success) {
                                 $modal.find('input[name="idvolume"]').val(response.data.id);
                                 $modal.find('input[name="qtdreal"]').val(response.data.qtdreal);
+                                $modal.find('input[name="produto"]').val(response.data.produto);
                                 $modal.find('input[name="qtd"]').focus().val(response.data.qtdreal);
                             } else {
                                 $modal.find('input[name="idvolume"]').val('');
                                 $modal.find('input[name="qtdreal"]').val('');
+                                $modal.find('input[name="produto"]').val('');
                                 $modal.find('input[name="qtd"]').val('');
                                 $modal.find('input[name="codigodebarra"]').focus().val('');
                             }

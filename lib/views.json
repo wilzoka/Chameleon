@@ -9,6 +9,7 @@
         "template": "box-6",
         "model": "schedule",
         "module": "Plataforma",
+        "url": "agendamento",
         "_field": [
             {
                 "templatezone": "z1",
@@ -101,6 +102,7 @@
         "template": "box-12",
         "model": "file",
         "module": "Plataforma",
+        "url": "arquivo",
         "_field": [
             {
                 "templatezone": "z1",
@@ -222,6 +224,7 @@
         "template": "box-12",
         "model": "audit",
         "module": "Plataforma",
+        "url": "auditoria",
         "_field": [
             {
                 "templatezone": "z1",
@@ -257,9 +260,17 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "changes",
+                "modelattribute": "type",
                 "width": 12,
                 "order": 5,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "changes",
+                "width": 12,
+                "order": 6,
                 "disabled": true,
                 "disablefilter": false
             }
@@ -327,6 +338,7 @@
         "template": "tpl_config",
         "model": "config",
         "module": "Plataforma",
+        "url": "configuracao_da_plataforma",
         "_field": [
             {
                 "templatezone": "system",
@@ -415,6 +427,7 @@
         "template": "box-6",
         "model": "menu",
         "module": "Plataforma",
+        "url": "menu",
         "_field": [
             {
                 "templatezone": "z1",
@@ -517,6 +530,7 @@
         "template": "box-6-6",
         "model": "model",
         "module": "Plataforma",
+        "url": "modelo",
         "_field": [
             {
                 "templatezone": "z1",
@@ -594,12 +608,6 @@
         ],
         "_event": [
             {
-                "description": "Sincronizar",
-                "icon": "fa fa-refresh",
-                "function": "platform.model.e_syncAll",
-                "parameters": null
-            },
-            {
                 "description": "Exportar",
                 "icon": "fa fa-cloud-upload",
                 "function": "platform.model.e_export",
@@ -609,6 +617,12 @@
                 "description": "Importar",
                 "icon": "fa fa-cloud-download",
                 "function": "platform.model.e_import",
+                "parameters": null
+            },
+            {
+                "description": "Sincronizar",
+                "icon": "fa fa-refresh",
+                "function": "platform.model.e_syncAll",
                 "parameters": null
             }
         ]
@@ -623,6 +637,7 @@
         "template": "box-6",
         "model": "modelattribute",
         "module": "Plataforma",
+        "url": "modelo_-_atributo",
         "_field": [
             {
                 "templatezone": "z1",
@@ -720,6 +735,7 @@
         "template": "box-6",
         "model": "module",
         "module": "Plataforma",
+        "url": "modulo",
         "_field": [
             {
                 "templatezone": "z1",
@@ -753,6 +769,7 @@
         "template": "box-6",
         "model": "permission",
         "module": "Plataforma",
+        "url": "permissao",
         "_field": [
             {
                 "templatezone": "z1",
@@ -857,6 +874,71 @@
         "_event": []
     },
     {
+        "name": "Relatório",
+        "namecomplete": "Plataforma - Relatório",
+        "js": "core/js/report.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6-12",
+        "model": "report",
+        "module": "Plataforma",
+        "url": "relatorio",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "fontsize",
+                "width": 4,
+                "order": 101,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "landscape",
+                "width": 4,
+                "order": 102,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z3",
+                "modelattribute": "html",
+                "width": 12,
+                "order": 201,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Pré-Visualizar",
+                "icon": "fa fa-search",
+                "function": "platform.report.e_preview",
+                "parameters": null
+            }
+        ]
+    },
+    {
         "name": "Rota",
         "namecomplete": "Plataforma - Rota",
         "js": null,
@@ -866,6 +948,7 @@
         "template": "box-6",
         "model": "route",
         "module": "Plataforma",
+        "url": "rota",
         "_field": [
             {
                 "templatezone": "z1",
@@ -976,6 +1059,7 @@
         "template": "box-6-6",
         "model": "template",
         "module": "Plataforma",
+        "url": "template",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1031,6 +1115,7 @@
         "template": "box-6",
         "model": "templatezone",
         "module": "Plataforma",
+        "url": "template_-_zona",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1064,6 +1149,7 @@
         "template": "box-6",
         "model": "users",
         "module": "Plataforma",
+        "url": "usuario",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1161,6 +1247,7 @@
         "template": "tpl_view",
         "model": "view",
         "module": "Plataforma",
+        "url": "view",
         "_field": [
             {
                 "templatezone": "view",
@@ -1247,14 +1334,9 @@
         ],
         "_subview": [
             {
-                "subview": "View - Subview",
-                "templatezone": "viewsubview",
-                "description": "Subviews"
-            },
-            {
-                "subview": "View - Evento",
-                "templatezone": "viewevent",
-                "description": "Eventos"
+                "subview": "View - Atributo",
+                "templatezone": "viewfield",
+                "description": "Atributos"
             },
             {
                 "subview": "View - Tabela",
@@ -1262,9 +1344,14 @@
                 "description": "Campos da Tabela"
             },
             {
-                "subview": "View - Atributo",
-                "templatezone": "viewfield",
-                "description": "Atributos"
+                "subview": "View - Evento",
+                "templatezone": "viewevent",
+                "description": "Eventos"
+            },
+            {
+                "subview": "View - Subview",
+                "templatezone": "viewsubview",
+                "description": "Subviews"
             }
         ],
         "_event": [
@@ -1292,6 +1379,7 @@
         "template": "box-6",
         "model": "viewfield",
         "module": "Plataforma",
+        "url": "view_-_atributo",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1424,6 +1512,7 @@
         "template": "box-6",
         "model": "viewevent",
         "module": "Plataforma",
+        "url": "view_-_evento",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1505,6 +1594,7 @@
         "template": "box-6",
         "model": "viewsubview",
         "module": "Plataforma",
+        "url": "view_-_subview",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1570,6 +1660,7 @@
         "template": "box-6",
         "model": "viewtable",
         "module": "Plataforma",
+        "url": "view_-_tabela",
         "_field": [
             {
                 "templatezone": "z1",

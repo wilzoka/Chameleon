@@ -532,7 +532,6 @@ let platform = {
                     }
                     return registers;
                 }
-
                 db.getModel('model').find({ where: { name: modelname } }).then(model => {
                     if (!model) {
                         return reject('model not found');
@@ -686,11 +685,17 @@ let platform = {
             }
         }
         , f_generate: function (report, replaces) {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 try {
-                    db.getModel('report').find({ where: { $or: [{ id: report }, { name: report }] } }).then(report => {
+                    let where = {};
+                    if (isNaN(report)) {
+                        where = { name: report };
+                    } else {
+                        where = { id: report };
+                    }
+                    db.getModel('report').find({ where: where }).then(report => {
                         if (!report) {
-                            return resolve(false);
+                            return reject('Relatório não encontrado');
                         }
                         db.getModel('config').find({ raw: true }).then(config => {
                             replaces.__reportimage = '';
@@ -727,13 +732,15 @@ let platform = {
                             }
                             let filename = process.hrtime()[1] + '.pdf';
                             pdf.create(html, options).toFile(__dirname + '/../tmp/' + filename, function (err, res) {
+                                if (err) {
+                                    return reject(err);
+                                }
                                 return resolve(filename);
                             });
                         });
                     });
                 } catch (err) {
-                    console.error(err);
-                    return resolve(false);
+                    return reject(err);
                 }
             });
         }
@@ -984,7 +991,7 @@ let platform = {
                             , class: viewtables[z].class
                         });
                     }
-                    let viewsubviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: views[i].id } });
+                    let viewsubviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['description', 'asc']] });
                     j[j.length - 1]._subview = [];
                     for (let z = 0; z < viewsubviews.length; z++) {
                         j[j.length - 1]._subview.push({
@@ -993,7 +1000,7 @@ let platform = {
                             , description: viewsubviews[z].description
                         });
                     }
-                    let viewevents = await db.getModel('viewevent').findAll({ where: { idview: views[i].id } });
+                    let viewevents = await db.getModel('viewevent').findAll({ where: { idview: views[i].id }, order: [['description', 'asc']] });
                     j[j.length - 1]._event = [];
                     for (let z = 0; z < viewevents.length; z++) {
                         j[j.length - 1]._event.push({
@@ -1080,6 +1087,7 @@ let platform = {
                                     , js: views[i].js
                                     , namecomplete: views[i].namecomplete
                                     , orderfixed: views[i].orderfixed
+                                    , url: views[i].url
                                 });
                                 console.log('CREATED');
                             }
@@ -1437,15 +1445,13 @@ let platform = {
                             view.wherefixed = view.wherefixed.replace(/\$id/g, obj.req.body.id);
                             where['$col'] = db.Sequelize.literal(view.wherefixed);
                         }
-                        if ('tableview' + view.url + 'filter' in obj.req.cookies) {
-                            where['$and'] = getFilter(obj.req.cookies['tableview' + view.url + 'filter'], viewfields);
-                        }
                         let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
                         if ('onlySelected' in parameters && parameters.onlySelected) {
-                            if (!where['$and']) {
-                                where['$and'] = {};
+                            where['$and'].id = { $in: obj.ids };
+                        } else {
+                            if ('tableview' + view.url + 'filter' in obj.req.cookies) {
+                                where['$and'] = getFilter(obj.req.cookies['tableview' + view.url + 'filter'], viewfields);
                             }
-                            where['$and'].id = { $in: obj.ids }
                         }
                         let order = parameters.order;
                         let ordercolumn = order[0];

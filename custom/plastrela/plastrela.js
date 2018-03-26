@@ -1223,15 +1223,20 @@ let main = {
                         let body = '';
                         body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
                         body += application.components.html.integer({
-                            width: 6
+                            width: 4
                             , label: 'Volumes a serem Gerados'
                             , name: 'qtd'
                         });
                         body += application.components.html.decimal({
-                            width: 6
+                            width: 4
                             , label: 'Quantidade por Volume'
                             , name: 'qtdvolume'
                             , precision: 4
+                        });
+                        body += application.components.html.text({
+                            width: 4
+                            , label: 'Lote'
+                            , name: 'lote'
                         });
 
                         return application.success(obj.res, {
@@ -1276,7 +1281,7 @@ let main = {
                                 qtdvolume = (nfitem.qtd / obj.req.body.qtd).toFixed(4);
                             }
 
-                            for (var i = 0; i < obj.req.body.qtd; i++) {
+                            for (let i = 0; i < obj.req.body.qtd; i++) {
                                 bulkvolume.push({
                                     idversao: nfitem.idversao
                                     , iddeposito: nf.iddeposito
@@ -1286,6 +1291,7 @@ let main = {
                                     , qtdreal: qtdvolume
                                     , consumido: false
                                     , idnfentradaitem: nfitem.id
+                                    , lote: obj.req.body.lote
                                 });
                             }
 
@@ -2872,6 +2878,13 @@ let main = {
                     });
 
                     body += application.components.html.text({
+                        width: '12'
+                        , name: 'produto'
+                        , label: 'Produto'
+                        , disabled: 'disabled="disabled"'
+                    });
+
+                    body += application.components.html.text({
                         width: '4'
                         , name: 'idvolume'
                         , label: 'ID Volume'
@@ -2914,7 +2927,7 @@ let main = {
                                 let codigodebarra = obj.data.codigodebarra.split('-');
                                 codigodebarra = parseInt(codigodebarra[codigodebarra.length - 1]);
 
-                                let volume = await db.getModel('est_volume').find({ where: { id: codigodebarra } });
+                                let volume = await db.getModel('est_volume').find({ include: [{ all: true }], where: { id: codigodebarra } });
                                 if (volume) {
                                     if (volume.consumido) {
                                         return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
@@ -2923,6 +2936,7 @@ let main = {
                                             data: {
                                                 id: volume.id
                                                 , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
+                                                , produto: volume.pcp_versao.descricaocompleta
                                             }
                                         });
                                     }
@@ -2956,6 +2970,7 @@ let main = {
                                         data: {
                                             id: volumeb.id
                                             , qtdreal: application.formatters.fe.decimal(volumeb.qtdreal, 4)
+                                            , produto: versao.descricaocompleta
                                         }
                                     });
                                 } else {
@@ -3923,413 +3938,39 @@ let main = {
                         if (obj.ids.length != 1) {
                             return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
-                        let register = (await main.platform.model.find('ven_proposta', { where: { id: obj.ids[0] } })).rows[0];
+                        let proposta = (await main.platform.model.find('ven_proposta', { where: { id: obj.ids[0] } })).rows[0];
+                        let entregas = (await main.platform.model.find('ven_propostaentrega', { where: { idproposta: obj.ids[0] } })).rows;
 
-                        let html = `
-                        <html>
-                        <head>
-                          <meta charset="utf8">
-                          <style>
-                            table {
-                                font-size: 10px;
-                                border-collapse: collapse;
-                                
-                            }
-                          </style>
-                        </head>
-                        <body>
-                       
-                        <table border="1" cellpadding="1" cellspacing="0" style="width:100%">
-                        <tbody>
+                        proposta._entregas = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                             <tr>
-                                <td colspan="4"><strong>Cliente:</strong> {{v_cliente}}</td>
+                                <td style="text-align:center;"><strong>Entregas</strong></td>
+                                <td style="text-align:center;"><strong>Quantidades</strong></td>
+                                <td style="text-align:center;"><strong>Ordem de Compra</strong></td>
                             </tr>
+                        `;
+                        for (let i = 0; i < entregas.length; i++) {
+                            proposta._entregas += `
                             <tr>
-                                <td colspan="2" rowspan="1"><strong>Endere&ccedil;o:</strong> {{cliente_endereco}}</td>
-                                <td><strong>Bairro:</strong> {{cliente_bairro}}</td>
-                                <td><strong>UF:</strong> {{cliente_uf}}</td>
+                                <td style="text-align:center;"> ${entregas[i]['data']}          </td>
+                                <td style="text-align:right;">  ${entregas[i]['qtd']}           </td>
+                                <td style="text-align:left;">   ${entregas[i]['ordemcompra']}   </td>
                             </tr>
-                            <tr>
-                                <td colspan="2" rowspan="1"><strong>Cidade:</strong> {{cliente_cidade}}</td>
-                                <td colspan="2"><strong>CEP:</strong> {{cliente_cep}}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" rowspan="1"><strong>CNPJ:</strong> {{cliente_cnpj}}</td>
-                                <td colspan="2"><strong>Inscr. Estadual:</strong> {{cliente_inscr_estadual}}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" rowspan="1"><strong>Comprador Nome:</strong> {{cliente_comprador_nome}}</td>
-                                <td colspan="2"><strong>Fone:</strong> {{cliente_fone}}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" rowspan="1"><strong>E-mail Comprador:</strong> {{cliente_email_comprador}}</td>
-                                <td colspan="2"><strong>E-mail Qualidade:</strong> {{cliente_email_qualidade}}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="4"><strong>E-mail para XML:</strong> {{cliente_email_xml}}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <hr />
-                    <table border="1" cellpadding="1" cellspacing="0" style="width:100%">
-                        <tbody>
-                            <tr>
-                                <td colspan="2" rowspan="2" style="text-align:center; width:150px"><strong><span style="font-size:16px">Dados do Produto</span> -&nbsp;{{produto_tipo_pedido}}</strong></td>
-                                <td style="text-align:center"><strong>Quantidade</strong></td>
-                                <td style="text-align:center"><strong>Un</strong></td>
-                                <td style="text-align:center"><strong>Pre&ccedil;o</strong></td>
-                                <td style="text-align:center"><strong>IPI</strong></td>
-                                <td style="text-align:center"><strong>ICMS</strong></td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:center">{{entrega_quantidade}}</td>
-                                <td style="text-align:center">{{entrega_unidade}}</td>
-                                <td style="text-align:center">{{entrega_preco}}</td>
-                                <td style="text-align:center">{{entrega_ipi}}</td>
-                                <td style="text-align:center">{{entrega_icms}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Nome do Item</strong></td>
-                                <td>{{produto_nome}}</td>
-                                <td colspan="5"><strong>Varia&ccedil;&atilde;o (%) quantidade aceita pelo cliente:</strong>&nbsp;{{entrega_variacao_quantidade}}</td>
-                            </tr>
-                            <tr>
-                                <td rowspan="1"><strong>Material</strong></td>
-                                <td rowspan="1">{{produto_tipo}} - {{produto_liso_imp}}</td>
-                                <td colspan="5"><strong>Quantidade por Volume:</strong>&nbsp;{{entrega_quantidade_por_volume}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Pigmentado</strong></td>
-                                <td>{{produto_pigmentado}}</td>
-                                <td colspan="5"><strong>Tipo de Reembalagem:</strong> {{entrega_tipo_reembalagem}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Cor do Pigmento</strong></td>
-                                <td>{{produto_cor_pigmento}}</td>
-                                <td colspan="5">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Laminado</strong></td>
-                                <td>{{produto_laminado}}</td>
-                                <td colspan="5" style="text-align:center"><strong><span style="font-size:16px">Entregas</span></strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Estrutura</strong></td>
-                                <td>{{produto_estrutura}}</td>
-                                <td colspan="5" rowspan="10" style="vertical-align:top">{table select to_char(data, &#39;dd/MM/YYYY&#39;) as &quot;Data&quot;, qtd as &quot;Quantidades&quot;, ordemcompra as &quot;Ordem Compra&quot; from ven_propostaentrega where idproposta = {{id}}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Produto a Embalar</strong></td>
-                                <td>{{produto_embalar}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>C&oacute;digo de Barras</strong></td>
-                                <td>{{produto_codigo_barra}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Validade Impressa Embalagem</strong></td>
-                                <td>{{produto_validade_imp_emb}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Peso a Envasar</strong></td>
-                                <td>{{produto_peso_envasar}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Aplicar Logotipo Plastrela</strong></td>
-                                <td>{{produto_aplicar_logo}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Qtde pastas padr&atilde;o cores solicitadas pelo cliente</strong></td>
-                                <td>{{produto_qtd_pasta_padrao}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Aprova&ccedil;&atilde;o arte</strong></td>
-                                <td>{{produto_aprovacao_arte}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Refer&ecirc;ncia de cores</strong></td>
-                                <td>{{produto_referencia_cores}}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Clicheria por conta do cliente</strong></td>
-                                <td>{{produto_clicheria_cliente}}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <p style="text-align:center"><span style="font-size:14px"><strong>Ficha T&eacute;cnica</strong></span></p>
-                    
-                    <table border="1" cellpadding="1" cellspacing="0" style="width:100%">
-                        <tbody>
-                            <tr>
-                                <td colspan="5" style="text-align:center"><span style="font-size:16px"><strong>Saco</strong></span></td>
-                                <td colspan="3" rowspan="1" style="text-align:center"><span style="font-size:16px"><strong>Pel&iacute;cula</strong></span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Largura Final</strong></td>
-                                <td style="text-align:right">{{s_largura_final}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Pingo de Solda</strong></td>
-                                <td>{{s_pingo_solda}}</td>
-                                <td><strong>Largura Final</strong></td>
-                                <td style="text-align:right">{{p_largura_final}}</td>
-                                <td><strong>cm</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Altura Final</strong></td>
-                                <td style="text-align:right">{{s_altura_final}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Qtde Pingo de Solda</strong></td>
-                                <td>{{s_qtd_pingo_solda}}</td>
-                                <td><strong>Passo de Fotoc&eacute;lula</strong></td>
-                                <td style="text-align:right">&nbsp;</td>
-                                <td><strong>cm</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Espessura Final</strong></td>
-                                <td style="text-align:right">{{s_espessura_final}}</td>
-                                <td><strong>micras</strong></td>
-                                <td><strong>Localiza&ccedil;&atilde;o do Pingo de Solda</strong></td>
-                                <td>{{s_localizacao_pingo_solda}}</td>
-                                <td><strong>Espessura Final</strong></td>
-                                <td style="text-align:right">&nbsp;</td>
-                                <td><strong>micras</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Sanfona Esquerda</strong></td>
-                                <td style="text-align:right">{{s_sanfona_esquerda}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Facilitador</strong></td>
-                                <td>{{s_facilitador}}</td>
-                                <td><strong>Sanfona Esquerda</strong></td>
-                                <td style="text-align:right">&nbsp;</td>
-                                <td><strong>cm</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Sanfona Direita</strong></td>
-                                <td style="text-align:right">{{s_sanfona_direita}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Tipo Al&ccedil;a</strong></td>
-                                <td>{{s_tipo_alca}}</td>
-                                <td><strong>Sanfona Direita</strong></td>
-                                <td style="text-align:right">&nbsp;</td>
-                                <td><strong>cm</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Sanfona Inferior</strong></td>
-                                <td style="text-align:right">{{s_sanfona_inferior}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Posi&ccedil;&atilde;o Al&ccedil;a</strong></td>
-                                <td>{{s_posicao_alca}}</td>
-                                <td><strong>Peso M&aacute;xima Bobina</strong></td>
-                                <td style="text-align:right">&nbsp;</td>
-                                <td><strong>kg</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Sanfona Superior</strong></td>
-                                <td style="text-align:right">{{s_sanfona_superior}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Aplicar V&aacute;lvula</strong></td>
-                                <td>{{s_aplicar_valvula}}</td>
-                                <td><strong>Di&acirc;metro M&aacute;ximo Bobina</strong></td>
-                                <td style="text-align:right">&nbsp;</td>
-                                <td><strong>cm</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Fundo Dobrado</strong></td>
-                                <td style="text-align:right">{{s_fundo_dobrado}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Posi&ccedil;&atilde;o V&aacute;lvula</strong></td>
-                                <td>{{s_posicao_valvula}}</td>
-                                <td><strong>Tipo Tubete</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Medida Aba</strong></td>
-                                <td style="text-align:right">{{s_medida_aba}}</td>
-                                <td><strong>cm</strong></td>
-                                <td><strong>Aplicar Z&iacute;per</strong></td>
-                                <td>{{s_aplicar_ziper}}</td>
-                                <td><strong>Di&acirc;metro Tubete</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Tipo Solda</strong></td>
-                                <td>{{s_tipo_solda}}</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Aplicar Z&iacute;per F&aacute;cil</strong></td>
-                                <td>{{s_aplicar_ziper_facil}}</td>
-                                <td><strong>Tipo Emenda</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Tipo Furo</strong></td>
-                                <td>{{s_tipo_furo}}</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Tamanho do Z&iacute;p. F&aacute;cil</strong></td>
-                                <td>{{s_tamanho_ziper_facil}}</td>
-                                <td><strong>M&aacute;ximo Emenda por Bobina</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Qtde Furos</strong></td>
-                                <td>{{s_qtd_furo}}</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Picote</strong></td>
-                                <td>{{s_picote}}</td>
-                                <td><strong>Aplicar Microfuros</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Localiza&ccedil;&atilde;o de furos</strong></td>
-                                <td>{{s_localizacao_furos}}</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Quantidade Microfuros</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Dist&acirc;ncia entre furos</strong></td>
-                                <td>{{s_distancia_furos}}</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Posi&ccedil;&atilde;o Microfuros</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Aplicar Z&iacute;p. F&aacute;cil</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Tamanho do Z&iacute;p. F&aacute;cil</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td><strong>Sentido de Embobinamento</strong></td>
-                                <td colspan="2" rowspan="1">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td colspan="5" rowspan="1" style="text-align:center"><span style="font-size:16px"><strong>Observa&ccedil;&otilde;es</strong></span></td>
-                                <td>&nbsp;</td>
-                                <td colspan="2">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td colspan="5" rowspan="6" style="vertical-align:top">{{observacao}}</td>
-                                <td style="text-align:right"><span style="font-size:9px">An&aacute;lise Dire&ccedil;&atilde;o</span></td>
-                                <td colspan="2">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:right"><span style="font-size:9px">An&aacute;lise Comercial</span></td>
-                                <td colspan="2">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:right"><span style="font-size:9px">An&aacute;lise Desenvolvimento</span></td>
-                                <td colspan="2">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:right"><span style="font-size:9px">An&aacute;lise Cr&eacute;dito (Financeiro)</span></td>
-                                <td colspan="2">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:right"><span style="font-size:9px">Limite Cr&eacute;dito Concedido</span></td>
-                                <td colspan="2">&nbsp;</td>
-                            </tr>
-                            <tr>
-                                <td style="text-align:right"><span style="font-size:9px">Comiss&atilde;o Pedido</span></td>
-                                <td colspan="2">&nbsp;</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                        
-                                        
-                         
-                        </body>
-                      </html>
+                            `;
+                        }
+                        proposta._entregas += `
+                        </table>
                         `;
 
-                        // console.log(register);
-
-                        let filename = process.hrtime()[1] + '.pdf';
-                        var pdf = require('html-pdf');
-
-                        for (let k in register) {
-                            html = html.replace('{{' + k + '}}', register[k] || '');
-                        }
-
-                        let tableIndex = html.indexOf('{table');
-                        while (tableIndex > 0) {
-                            let tableEnd = html.indexOf('}', tableIndex + 1);
-                            let query = html.substring(tableIndex + 7, tableEnd).replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-                            let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
-                            let table = '<table border="1" cellpadding="1" cellspacing="0" style="width:100%; padding: 0;">';
-                            for (let i = 0; i < sql.length; i++) {
-                                if (i == 0) {
-                                    table += '<tr>';
-                                    for (let k in sql[i]) {
-                                        table += '<td style="text-align: center">';
-                                        table += '<strong>' + k + '</strong>';
-                                        table += '</td>';
-                                    }
-                                    table += '</tr>';
-                                }
-                                table += '<tr>';
-                                for (let k in sql[i]) {
-                                    if (!isNaN(sql[i][k])) {
-                                        table += '<td style="text-align: right">';
-                                        let dotIndex = sql[i][k].indexOf('.');
-                                        if (dotIndex > 0) {
-                                            table += application.formatters.fe.decimal(sql[i][k], sql[i][k].length - 1 - dotIndex);
-                                        } else {
-                                            table += sql[i][k];
-                                        }
-                                    } else {
-                                        table += '<td style="text-align: left">';
-                                        table += sql[i][k];
-                                    }
-
-                                    table += '</td>';
-                                }
-                                table += '</tr>';
+                        let file = await main.platform.report.f_generate('Comercial - Espelho Pedido', proposta);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                             }
-                            table += '</table>';
-
-                            html = html.substring(0, tableIndex) + table + html.substring(tableEnd + 1, html.length);
-                            tableIndex = html.indexOf('{table');
-                        }
-
-                        var options = {
-                            border: '1cm'//, orientation: 'landscape'
-                        }
-
-                        pdf.create(html, options).toFile(__dirname + '/../../tmp/' + filename, function (err, res) {
-                            return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevt'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
-                            });
                         });
 
                     } catch (err) {

@@ -450,6 +450,42 @@
         ]
     },
     {
+        "name": "report",
+        "description": "Relatório",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "html",
+                "label": "HTML",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "landscape",
+                "label": "Paisagem?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "fontsize",
+                "label": "Tamanho da Fonte",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": null
+            }
+        ]
+    },
+    {
         "name": "route",
         "description": "Rota",
         "onsave": "platform.route.onsave",

@@ -64,6 +64,14 @@
         "tree": "Plataforma - Permissões"
     },
     {
+        "description": "Relatórios",
+        "icon": "fa fa-file-pdf-o",
+        "menuparent": "Plataforma",
+        "view": "Relatório",
+        "url": null,
+        "tree": "Plataforma - Relatórios"
+    },
+    {
         "description": "Rotas",
         "icon": "fa fa-refresh",
         "menuparent": "Plataforma",
