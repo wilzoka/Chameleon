@@ -1163,7 +1163,9 @@ let main = {
                                 .font('Courier-Bold').text(f.lpad('Data Emi.: ', width1, padstr), { continued: true })
                                 .font('Courier').text(f.rpad(nfentrada ? application.formatters.fe.date(nfentrada.dataemissao) : '', width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Data Inc.: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad(application.formatters.fe.date(volume.datahora), width1val, padstr))
+                                .font('Courier').text(f.rpad(application.formatters.fe.date(volume.datahora), width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Data Validade: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(application.formatters.fe.date(volume.datavalidade), width1val, padstr))
                                 .moveDown(md);
 
                             doc
@@ -1172,7 +1174,9 @@ let main = {
                                 .font('Courier-Bold').text(f.lpad('OC: ', width1, padstr), { continued: true })
                                 .font('Courier').text(f.rpad(nfentradaitem ? nfentrada.oc : '', width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Vol.: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad(volume.id, width1val, padstr))
+                                .font('Courier').text(f.rpad(volume.id, width1val, padstr), { continued: true })
+                                .font('Courier-Bold').text(f.lpad('Lote: ', width1, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(volume.lote, width1val, padstr))
                                 .moveDown(md);
 
                             doc.moveTo(25, 578)
