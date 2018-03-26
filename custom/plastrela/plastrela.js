@@ -1238,6 +1238,11 @@ let main = {
                             , label: 'Lote'
                             , name: 'lote'
                         });
+                        body += application.components.html.date({
+                            width: 4
+                            , label: 'Data de Validade'
+                            , name: 'datavalidade'
+                        });
 
                         return application.success(obj.res, {
                             modal: {
@@ -1292,6 +1297,7 @@ let main = {
                                     , consumido: false
                                     , idnfentradaitem: nfitem.id
                                     , lote: obj.req.body.lote
+                                    , datavalidade: obj.req.body.datavalidade ? application.formatters.be.date(obj.req.body.datavalidade) : null
                                 });
                             }
 
