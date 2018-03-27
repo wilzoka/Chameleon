@@ -1172,7 +1172,7 @@ let main = {
                                 .font('Courier-Bold').text(f.lpad('Qtde: ', width1, padstr), { continued: true })
                                 .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4), width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('OC: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad(nfentradaitem ? nfentrada.oc : '', width1val, padstr), { continued: true })
+                                .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Vol.: ', width1, padstr), { continued: true })
                                 .font('Courier').text(f.rpad(volume.id, width1val, padstr), { continued: true })
                                 .font('Courier-Bold').text(f.lpad('Lote: ', width1, padstr), { continued: true })

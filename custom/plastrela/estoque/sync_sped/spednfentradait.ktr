@@ -290,7 +290,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	nfi.item&#xd;&#xa;	, nfi.codigo_produto&#xd;&#xa;	, nfi.nome_produto&#xd;&#xa;	, nfi.quantidade&#xd;&#xa;	, nfi.total&#xd;&#xa;	, nfi.ordem_compra&#xd;&#xa;	, nfi.produto&#xd;&#xa;	, nfi.versao&#xd;&#xa;	, nfi.chave_nfe&#xd;&#xa;from&#xd;&#xa;	spednfentradait nfi&#xd;&#xa;left join spednfentrada nf on &#x28;nfi.chave_nfe &#x3d; nf.chave_nfe&#x29;&#xd;&#xa;where&#xd;&#xa;	nf.data_emissao &#x3e;&#x3d; SYSDATE - 60</sql>
+    <sql>select&#xd;&#xa;	nfi.item&#xd;&#xa;	, nfi.codigo_produto&#xd;&#xa;	, nfi.nome_produto&#xd;&#xa;	, case when nfi.unidade &#x3d; &#x27;TO&#x27; then nfi.quantidade &#x2a; 1000&#xd;&#xa;	else nfi.quantidade&#xd;&#xa;	end as quantidade&#xd;&#xa;	, nfi.total&#xd;&#xa;	, nfi.ordem_compra&#xd;&#xa;	, nfi.produto&#xd;&#xa;	, nfi.versao&#xd;&#xa;	, nfi.chave_nfe&#xd;&#xa;	, nfi.unidade&#xd;&#xa;from&#xd;&#xa;	spednfentradait nfi&#xd;&#xa;left join spednfentrada nf on &#x28;nfi.chave_nfe &#x3d; nf.chave_nfe&#x29;&#xd;&#xa;where&#xd;&#xa;	nf.data_emissao &#x3e;&#x3d; SYSDATE - 60</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>

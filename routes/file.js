@@ -35,9 +35,9 @@ module.exports = function (app) {
             if (file) {
                 let body = '';
                 if (file.mimetype.match(/image.*/)) {
-                    body = '<div class="text-center"><img src="/files/' + file.id + '.' + file.type + ' " style="max-width: 100%; max-height: 100%;"></div>';
+                    body = '<div class="text-center"><img src="/files/' + file.id + '.' + file.type + ' " style="max-width: 100%;"></div>';
                 } else if (file.mimetype == 'application/pdf') {
-                    body = '<iframe src="/file/download/' + file.id + '" style="width: 100%; height: 99%;"></iframe>';
+                    body = '<iframe src="/file/download/' + file.id + '" style="width: 100%; height: 500px;"></iframe>';
                 } else {
                     body = '<div class="text-center"><i class="fa fa-3x fa-eye-slash" aria-hidden="true"></i></div>';
                 }
