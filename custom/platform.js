@@ -1447,7 +1447,7 @@ let platform = {
                         }
                         let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
                         if ('onlySelected' in parameters && parameters.onlySelected) {
-                            where['$and'].id = { $in: obj.ids };
+                            where['$and'] = { id: { $in: obj.ids } };
                         } else {
                             if ('tableview' + view.url + 'filter' in obj.req.cookies) {
                                 where['$and'] = getFilter(obj.req.cookies['tableview' + view.url + 'filter'], viewfields);
