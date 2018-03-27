@@ -2006,5 +2006,4 @@ let platform = {
     }
 }
 
-
 module.exports = platform;

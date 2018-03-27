@@ -82,6 +82,13 @@ $(function () {
                         $modal.find('select[name="iduser"]').append(newOption).trigger('change');
                     }
                 });
+                application.jsfunction('plastrela.pcp.ap.js_recipienteUltimoAp', {
+                    idoprecurso: application.functions.getId()
+                }, function (response) {
+                    if (response.data.id) {
+                        $modal.find('select[name="recipiente"]').val(response.data.id).trigger('change');
+                    }
+                });
 
                 $modal.on('shown.bs.modal', function () {
                     $modal.find('input[name="codigodebarra"]').focus();
@@ -118,7 +125,7 @@ $(function () {
                         , iduser: $modal.find('select[name="iduser"]').val()
                         , idvolume: $modal.find('input[name="idvolume"]').val()
                         , qtd: $modal.find('input[name="qtd"]').val()
-                        , recipiente: $modal.find('input[name="recipiente"]').val()
+                        , recipiente: $modal.find('select[name="recipiente"]').val()
                     }, function (response) {
                         application.handlers.responseSuccess(response);
                         if (response.success) {

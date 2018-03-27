@@ -522,75 +522,76 @@ let main = {
                     let reservascriadas = [];
                     let solicitacoesfinalizadas = [];
 
-                    for (let i = 0; i < nfentradaitens.length; i++) {
-                        let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').findAll({
-                            where: {
-                                idversao: nfentradaitens[i].idversao
-                                , ociniflex: nfentradaitens[i].oc
-                                , idestado: config.idsolicitacaoestadocomprado
-                            }
-                            , order: [['datainclusao', 'asc']]
-                        });
+                    if (!nfentrada.semsolicitacaocompra) {
+                        for (let i = 0; i < nfentradaitens.length; i++) {
+                            let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').findAll({
+                                where: {
+                                    idversao: nfentradaitens[i].idversao
+                                    , ociniflex: nfentradaitens[i].oc
+                                    , idestado: config.idsolicitacaoestadocomprado
+                                }
+                                , order: [['datainclusao', 'asc']]
+                            });
 
-                        if (solicitacaoitem.length <= 0) {
-                            for (let z = 0; z < solicitacoesfinalizadas.length; z++) {
-                                solicitacoesfinalizadas[z].qtdrecebida = null;
-                                await solicitacoesfinalizadas[z].save();
-                            }
-                            for (let z = 0; z < reservascriadas.length; z++) {
-                                reservascriadas[z].destroy();
-                            }
+                            if (solicitacaoitem.length <= 0) {
+                                for (let z = 0; z < solicitacoesfinalizadas.length; z++) {
+                                    solicitacoesfinalizadas[z].qtdrecebida = null;
+                                    await solicitacoesfinalizadas[z].save();
+                                }
+                                for (let z = 0; z < reservascriadas.length; z++) {
+                                    reservascriadas[z].destroy();
+                                }
 
-
-                            application.error(obj.res, { msg: 'Solicitação de compra não encontrado para o item com sequencial ' + nfentradaitens[i].sequencial });
-                            return main.platform.mail.f_sendmail({
-                                to: est_config.gv_email.split(';')
-                                , subject: 'SIP - Solicitação não encontrada'
-                                , html: `Entrada de NF:<br/>
+                                application.error(obj.res, { msg: 'Solicitação de compra não encontrado para o item com sequencial ' + nfentradaitens[i].sequencial });
+                                return main.platform.mail.f_sendmail({
+                                    to: est_config.gv_email.split(';')
+                                    , subject: 'SIP - Solicitação não encontrada'
+                                    , html: `Entrada de NF:<br/>
                                         Solicitação de compra não encontrada.<br/>
                                         <b>OC:</b> `+ nfentradaitens[i].oc + `<br/>
                                         <b>Código do item:</b> `+ nfentradaitens[i].pcp_versao.descricaocompleta + `</br></br>
                                         Responder o e-mail após realização do procedimento.`
-                            });
-                        }
+                                });
+                            }
 
-                        for (let y = 0; y < solicitacaoitem.length; y++) {
-                            let pesorestante = parseFloat(solicitacaoitem[y].qtd) - parseFloat(solicitacaoitem[y].qtdrecebida || 0);
-                            if (pesorestante > 0) {
-                                // Reservas                                
-                                let volumes = await db.getModel('est_volume').findAll({ where: { idnfentradaitem: nfentradaitens[i].id } });
-                                for (let z = 0; z < volumes.length; z++) {
-                                    let totalreservado = await db.sequelize.query('select sum(qtd) as soma from est_volumereserva where idvolume = :v1', { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: volumes[z].id } });
-                                    let qtd = parseFloat(volumes[z].qtd) - parseFloat(totalreservado.length > 0 ? totalreservado[0].soma || 0 : 0);
-                                    if (pesorestante < qtd) {
-                                        qtd = pesorestante;
-                                        if (pesorestante > 0) {
-                                            reservascriadas.push(await db.getModel('est_volumereserva').create({
-                                                idvolume: volumes[z].id
-                                                , idpedidoitem: solicitacaoitem[y].idpedidoitem
-                                                , idop: solicitacaoitem[y].idop
-                                                , qtd: pesorestante.toFixed(4)
-                                                , apontado: false
-                                            }));
+                            for (let y = 0; y < solicitacaoitem.length; y++) {
+                                let pesorestante = parseFloat(solicitacaoitem[y].qtd) - parseFloat(solicitacaoitem[y].qtdrecebida || 0);
+                                if (pesorestante > 0) {
+                                    // Reservas                                
+                                    let volumes = await db.getModel('est_volume').findAll({ where: { idnfentradaitem: nfentradaitens[i].id } });
+                                    for (let z = 0; z < volumes.length; z++) {
+                                        let totalreservado = await db.sequelize.query('select sum(qtd) as soma from est_volumereserva where idvolume = :v1', { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: volumes[z].id } });
+                                        let qtd = parseFloat(volumes[z].qtd) - parseFloat(totalreservado.length > 0 ? totalreservado[0].soma || 0 : 0);
+                                        if (pesorestante < qtd) {
+                                            qtd = pesorestante;
+                                            if (pesorestante > 0) {
+                                                reservascriadas.push(await db.getModel('est_volumereserva').create({
+                                                    idvolume: volumes[z].id
+                                                    , idpedidoitem: solicitacaoitem[y].idpedidoitem
+                                                    , idop: solicitacaoitem[y].idop
+                                                    , qtd: pesorestante.toFixed(4)
+                                                    , apontado: false
+                                                }));
+                                            }
+                                            solicitacaoitem[y].qtdrecebida = parseFloat(solicitacaoitem[y].qtdrecebida || 0) + pesorestante;
+                                        } else {
+                                            pesorestante -= qtd;
+                                            if (qtd > 0) {
+                                                reservascriadas.push(await db.getModel('est_volumereserva').create({
+                                                    idvolume: volumes[z].id
+                                                    , idpedidoitem: solicitacaoitem[y].idpedidoitem
+                                                    , idop: solicitacaoitem[y].idop
+                                                    , qtd: qtd.toFixed(4)
+                                                    , apontado: false
+                                                }));
+                                            }
+                                            solicitacaoitem[y].qtdrecebida = parseFloat(solicitacaoitem[y].qtdrecebida || 0) + qtd;
                                         }
-                                        solicitacaoitem[y].qtdrecebida = parseFloat(solicitacaoitem[y].qtdrecebida || 0) + pesorestante;
-                                    } else {
-                                        pesorestante -= qtd;
-                                        if (qtd > 0) {
-                                            reservascriadas.push(await db.getModel('est_volumereserva').create({
-                                                idvolume: volumes[z].id
-                                                , idpedidoitem: solicitacaoitem[y].idpedidoitem
-                                                , idop: solicitacaoitem[y].idop
-                                                , qtd: qtd.toFixed(4)
-                                                , apontado: false
-                                            }));
-                                        }
-                                        solicitacaoitem[y].qtdrecebida = parseFloat(solicitacaoitem[y].qtdrecebida || 0) + qtd;
                                     }
-                                }
 
-                                await solicitacaoitem[y].save();
-                                solicitacoesfinalizadas.push(solicitacaoitem[y]);
+                                    await solicitacaoitem[y].save();
+                                    solicitacoesfinalizadas.push(solicitacaoitem[y]);
+                                }
                             }
                         }
                     }
@@ -2285,6 +2286,32 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , js_recipienteUltimoAp: async function (obj) {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        let sql = await db.sequelize.query(`
+                            select
+                                datahora, recipiente
+                            from
+                                pcp_apinsumo api
+                            where api.idoprecurso = :v1
+                            order by datahora desc
+                            limit 1                           
+                            `
+                            , {
+                                replacements: { v1: oprecurso.id }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            });
+                        let data = { id: null, text: null };
+                        if (sql.length > 0) {
+                            data.id = sql[0].recipiente;
+                            data.text = sql[0].recipiente;
+                        }
+                        return application.success(obj.res, { data: data });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
                 , js_dataUltimoAp: async function (obj) {
                     try {
 
@@ -2875,10 +2902,11 @@ let main = {
                         , where: 'active and c_codigosenior is not null'
                     });
 
-                    body += application.components.html.text({
+                    body += application.components.html.autocomplete({
                         width: 12
                         , label: 'Camada/Estação'
                         , name: 'recipiente'
+                        , options: ['', 'A/1', 'B/2', 'C/3', 'D/4', 'E/5', 'F/6', 'G/7', 'H/8', 'I/9', 'J/10']
                     });
 
                     body += application.components.html.text({
@@ -3004,6 +3032,7 @@ let main = {
                         let config = await db.getModel('pcp_config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
                         let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
                         let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
                         let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
@@ -3028,9 +3057,6 @@ let main = {
                         if (qtd > qtdreal) {
                             return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
                         }
-                        if (obj.data.recipiente != null && obj.data.recipiente.length > 1) {
-                            return application.error(obj.res, { msg: 'A Camada/Estação deve conter apenas 1 caractere', invalidfields: ['recipiente'] });
-                        }
                         if (!user.c_codigosenior) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
@@ -3044,21 +3070,33 @@ let main = {
                         }
                         volume.iddeposito = recurso.iddepositoprodutivo;
 
-                        if (apinsumo) {
-                            apinsumo.iduser = obj.data.iduser;
-                            apinsumo.datahora = moment();
-                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + qtd).toFixed(4);
-                            await apinsumo.save();
-                        } else {
+                        if ([10].indexOf(etapa.codigo) >= 0) {//Não agrupar insumos
                             await db.getModel('pcp_apinsumo').create({
                                 iduser: obj.data.iduser
                                 , idvolume: obj.data.idvolume
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
                                 , qtd: qtd
-                                , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta
-                                , recipiente: obj.data.recipiente.toUpperCase()
+                                , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                , recipiente: obj.data.recipiente
                             });
+                        } else {
+                            if (apinsumo) {
+                                apinsumo.iduser = obj.data.iduser;
+                                apinsumo.datahora = moment();
+                                apinsumo.qtd = (parseFloat(apinsumo.qtd) + qtd).toFixed(4);
+                                await apinsumo.save();
+                            } else {
+                                await db.getModel('pcp_apinsumo').create({
+                                    iduser: obj.data.iduser
+                                    , idvolume: obj.data.idvolume
+                                    , idoprecurso: obj.data.idoprecurso
+                                    , datahora: moment()
+                                    , qtd: qtd
+                                    , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                    , recipiente: obj.data.recipiente
+                                });
+                            }
                         }
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
 

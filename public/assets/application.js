@@ -372,6 +372,7 @@ var application = {
                         $hidden.val(JSON.stringify(value));
                         $(file.previewElement).attr('data-id', response.data.id);
                     }
+                    , parallelUploads: 1
                 });
                 dz.on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
