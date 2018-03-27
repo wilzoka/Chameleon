@@ -818,7 +818,7 @@ let main = {
                                 doc
                                     .fontSize(7.5)
                                     .text('Anexo - 03', 500, 40)
-                                    .text('Nº PPP - 05 Revisão: 09', 460, 55);
+                                    .text('Nº PPP - 05 Revisão: 10', 460, 55);
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
