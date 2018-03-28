@@ -3428,11 +3428,11 @@ let main = {
                             });
                             let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
                             vol.qtdreal = (parseFloat(vol.qtdreal) - parseFloat(volumes[i].qtd)).toFixed(4);
-                            vol.save();
+                            await vol.save();
                         }
 
                         mistura.idvolume = volume.id;
-                        mistura.save();
+                        await mistura.save();
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
@@ -3456,6 +3456,38 @@ let main = {
                         }
                         obj.ids = ids;
                         main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.ids[0] } });
+                        let volume = await db.getModel('est_volume').find({ where: { id: mistura.idvolume || 0 } });
+                        if (mistura.idvolume) {
+                            if (parseFloat(volume.qtd) - parseFloat(volume.qtdreal) != 0) {
+                                return application.error(obj.res, { msg: 'Esta mistura já se encontra utilizada' });
+                            }
+                        }
+
+                        let misturas = await db.getModel('pcp_apmisturavolume').findAll({ where: { idapmistura: mistura.id } });
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            volume.destroy();
+                            for (let i = 0; i < misturas.length; i++) {
+                                let vol = await db.getModel('est_volume').find({ where: { id: misturas[i].idvolume } });
+                                vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
+                                vol.consumido = false;
+                                await vol.save();
+                            }
+                        }
+
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
