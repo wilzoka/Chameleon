@@ -3517,6 +3517,9 @@ let main = {
                         if (!mistura) {
                             return application.error(obj.res, { msg: 'Mistura não encontrada' });
                         }
+                        if (mistura.idvolume) {
+                            return application.error(obj.res, { msg: 'Esta mistura já foi apontada, caso deseje alterar, apague o INSUMO e a MISTURA e aponte novamente' });
+                        }
 
                         await db.getModel('pcp_apmisturavolume').create({
                             idapmistura: obj.data.idapmistura
@@ -3526,6 +3529,27 @@ let main = {
                         });
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , apmisturavolume: {
+                ondelete: async function (obj, next) {
+                    try {
+
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let misturavolume = await db.getModel('pcp_apmisturavolume').find({ where: { id: obj.ids[0] } });
+                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: misturavolume.idapmistura } });
+                        if (mistura.idvolume) {
+                            return application.error(obj.res, { msg: 'Esta mistura já foi finalizada' });
+                        }
+
+                        await next(obj);
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

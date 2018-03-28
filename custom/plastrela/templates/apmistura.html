@@ -114,6 +114,15 @@
             }
         });
 
+        $(document).on('app-datatable', function (e, table) {
+            switch (table) {
+                case 'tableviewapontamento_de_producao_-_mistura_-_volume':// Mistura
+                    $('button#' + table + '_insert').remove();
+                    $('button#' + table + '_edit').remove();
+                    break;
+            }
+        });
+
     });
 
 </script>

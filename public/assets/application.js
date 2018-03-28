@@ -1279,17 +1279,17 @@ var application = {
         , success: function (message) {
             $.notify({
                 message: message
-            }, $.extend(application.notify.getOptions(), { type: 'success' }));
+            }, $.extend(application.notify.getOptions(), { type: 'success', timer: message.length * 50 }));
         }
         , error: function (message) {
             $.notify({
                 message: message
-            }, $.extend(application.notify.getOptions(), { type: 'error' }));
+            }, $.extend(application.notify.getOptions(), { type: 'error', timer: message.length * 50 }));
         }
         , info: function (message) {
             $.notify({
                 message: message
-            }, $.extend(application.notify.getOptions(), { type: 'warning' }));
+            }, $.extend(application.notify.getOptions(), { type: 'warning', timer: message.length * 50 }));
         }
     }
     , route: {
