@@ -2990,7 +2990,7 @@ let main = {
                                             data: {
                                                 id: volume.id
                                                 , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
-                                                , produto: volume.pcp_versao ? volume.pcp_versao.descricaocompleta : ''
+                                                , produto: volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao
                                             }
                                         });
                                     }
@@ -3093,7 +3093,7 @@ let main = {
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
                                 , qtd: qtd
-                                , produto: obj.data.idvolume + (versao ? ' - ' + versao.descricaocompleta : '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                , produto: obj.data.idvolume + ' - ' + obj.data.produto + (volume.lote ? ' - Lote: ' + volume.lote : '')
                                 , recipiente: obj.data.recipiente
                             });
                         } else {
