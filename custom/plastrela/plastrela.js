@@ -3391,6 +3391,9 @@ let main = {
                             return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
 
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.id } });
+                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+
                         let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.ids[0] } });
                         if (!mistura) {
                             return application.error(obj.res, { msg: 'Mistura não encontrada' });
@@ -3415,8 +3418,9 @@ let main = {
                             iduser: obj.req.user.id
                             , datahora: moment()
                             , qtd: qtdtotal.toFixed(4)
-                            , consumido: false
-                            , qtdreal: qtdtotal.toFixed(4)
+                            , consumido: true
+                            , iddeposito: recurso.iddepositoprodutivo
+                            , qtdreal: (0.0).toFixed(4)
                             , observacao: mistura.descricao
                         });
 
@@ -3433,6 +3437,16 @@ let main = {
 
                         mistura.idvolume = volume.id;
                         await mistura.save();
+
+                        await db.getModel('pcp_apinsumo').create({
+                            iduser: mistura.iduser
+                            , idvolume: volume.id
+                            , idoprecurso: obj.id
+                            , datahora: moment()
+                            , qtd: qtdtotal.toFixed(4)
+                            , produto: volume.id + ' - ' + volume.observacao
+                            , recipiente: mistura.recipiente
+                        });
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
