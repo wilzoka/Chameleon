@@ -254,7 +254,7 @@ let application = {
 		}
 	}
 	, fatal: function (res, err) {
-		console.error(err);
+		console.error(moment().format(application.formatters.fe.datetime_format), err);
 		if (!res.headersSent) {
 			res.status(500).json({});
 		}
