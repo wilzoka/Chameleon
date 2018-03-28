@@ -3408,7 +3408,7 @@ let main = {
                         let qtdtotal = 0.0;
                         for (let i = 0; i < volumes.length; i++) {
                             let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
-                            if (parseFloat(vol.qtdreal) <= parseFloat(volumes[i].qtd)) {
+                            if (parseFloat(vol.qtdreal) < parseFloat(volumes[i].qtd)) {
                                 return application.error(obj.res, { msg: 'O volume ' + vol.id + ' possui apenas ' + application.formatters.fe.decimal(vol.qtdreal, 4) + ' - (apontado ' + application.formatters.fe.decimal(volumes[i].qtd, 4) + ')' });
                             }
                             qtdtotal += parseFloat(volumes[i].qtd);
