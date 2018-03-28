@@ -919,16 +919,6 @@ let main = {
                                     )
                                     .moveDown(md);
 
-                                doc
-                                    .font('Courier-Bold')
-                                    .text(
-                                    f.lpad('Extrusão:', 14, padstr) +
-                                    f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                                    f.lpad('[ ] A [ ] R', 72, padstr) +
-                                    f.lpad('[ ] A [ ] R', 14, padstr)
-                                    )
-                                    .moveDown(md);
-
                                 let str = '';
                                 if (approducaotempos.length > 0) {
                                     let hora = application.formatters.fe.datetime(approducaotempos[0].dataini);
@@ -944,16 +934,42 @@ let main = {
                                 } else {
                                     str = '[ ]A [ ]B [ ]C';
                                 }
+
+                                // doc
+                                //     .font('Courier-Bold')
+                                //     .text(
+                                //     f.lpad('Extrusão:', 14, padstr) +
+                                //     f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                                //     f.lpad('[ ] A [ ] R', 72, padstr) +
+                                //     f.lpad('[ ] A [ ] R', 14, padstr)
+                                //     )
+                                //     .moveDown(md);
+
+                                doc
+                                    .font('Courier-Bold')
+                                    .text(
+                                    f.lpad('Extrusão:', 14, padstr) +
+                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
+                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
+                                    f.lpad('', 13, padstr) +
+                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
+                                    f.lpad('[ ] A [ ] R', 12, padstr) +
+                                    f.lpad('[ ] A [ ] R', 14, padstr)
+                                    )
+                                    .moveDown(md);
+
                                 doc
                                     .font('Courier-Bold')
                                     .text(
                                     f.lpad('Impressão:', 14, padstr) +
-                                    f.lpad(str, 21, padstr) +
-                                    f.lpad(oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
+                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
+                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
                                     f.lpad('', 13, padstr) +
-                                    f.lpad(approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
-                                    f.lpad(approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
-                                    f.lpad(approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
+                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
                                     f.lpad('[ ] A [ ] R', 12, padstr) +
                                     f.lpad('[ ] A [ ] R', 14, padstr)
                                     )
@@ -2726,7 +2742,7 @@ let main = {
                         let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
                         let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.id != ' + obj.register.id + ' and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
                         let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                        
+
                         if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.peso)) < 0) {
                             return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
