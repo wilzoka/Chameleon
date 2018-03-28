@@ -152,6 +152,19 @@ $(function () {
         $('#modalsobra').modal('show');
     }
 
+    $('#mistura').click(function () {
+        $('#modalmistura').modal('show');
+    });
+    $('#modalmistura').on('shown.bs.modal', function () {
+        Cookies.set('modalmistura', true);
+    });
+    $('#modalmistura').on('hidden.bs.modal', function () {
+        Cookies.remove('modalmistura');
+    });
+    if (Cookies.get('modalmistura')) {
+        $('#modalmistura').modal('show');
+    }
+
     $('#retorno').click(function () {
         $('#modalretorno').modal('show');
     });

@@ -744,8 +744,8 @@ let main = {
                         for (let i = 0; i < volumes.length; i++) {
                             let volume = volumes[i];
                             let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
-                            let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
-                            let grupo = await db.getModel('est_grupo').find({ where: { id: item.idgrupo } });
+                            let item = await db.getModel('cad_item').find({ where: { id: versao ? versao.iditem : 0 } });
+                            let grupo = await db.getModel('est_grupo').find({ where: { id: item ? item.idgrupo : 0 } });
 
                             let nfentradaitem = await db.getModel('est_nfentradaitem').find({ where: { id: volume.idnfentradaitem } });
                             let nfentrada = await db.getModel('est_nfentrada').find({ where: { id: nfentradaitem ? nfentradaitem.idnfentrada : 0 } });
@@ -790,7 +790,7 @@ let main = {
                             let padstr = ' ';
                             let md = 0.65;
 
-                            if (grupo.codigo != 533 && grupo.codigo != 502) {
+                            if (grupo && grupo.codigo != 533 && grupo.codigo != 502) {
 
                                 doc.moveTo(25, 25)
                                     .lineTo(589, 25) //top
@@ -1159,7 +1159,7 @@ let main = {
 
                             doc
                                 .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
-                                .font('Courier').text(f.rpad(versao.descricaocompleta, width1val, padstr))
+                                .font('Courier').text(f.rpad(versao ? versao.descricaocompleta : '', width1val, padstr))
                                 .moveDown(md);
 
                             doc
@@ -2990,7 +2990,7 @@ let main = {
                                             data: {
                                                 id: volume.id
                                                 , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
-                                                , produto: volume.pcp_versao.descricaocompleta
+                                                , produto: volume.pcp_versao ? volume.pcp_versao.descricaocompleta : ''
                                             }
                                         });
                                     }
@@ -3093,7 +3093,7 @@ let main = {
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
                                 , qtd: qtd
-                                , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                , produto: obj.data.idvolume + (versao ? ' - ' + versao.descricaocompleta : '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
                                 , recipiente: obj.data.recipiente
                             });
                         } else {
@@ -3375,6 +3375,84 @@ let main = {
 
                         for (let i = 0; i < results.length; i++) {
                             ids.push(results[i].id);
+                        }
+                        obj.ids = ids;
+                        main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , apmistura: {
+                e_criarVolume: async function (obj) {
+                    try {
+
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+
+                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.ids[0] } });
+                        if (!mistura) {
+                            return application.error(obj.res, { msg: 'Mistura não encontrada' });
+                        }
+                        if (mistura.idvolume) {
+                            return application.error(obj.res, { msg: 'Esta mistura já possui volume gerado' });
+                        }
+                        let volumes = await db.getModel('pcp_apmisturavolume').findAll({ where: { idapmistura: mistura.id } });
+                        if (volumes.length <= 0) {
+                            return application.error(obj.res, { msg: 'A Mistura deve conter no mínimo 1 volume' });
+                        }
+                        let qtdtotal = 0.0;
+                        for (let i = 0; i < volumes.length; i++) {
+                            let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
+                            if (parseFloat(vol.qtdreal) <= parseFloat(volumes[i].qtd)) {
+                                return application.error(obj.res, { msg: 'O volume ' + vol.id + ' possui apenas ' + application.formatters.fe.decimal(vol.qtdreal, 4) + ' - (apontado ' + application.formatters.fe.decimal(volumes[i].qtd, 4) + ')' });
+                            }
+                            qtdtotal += parseFloat(volumes[i].qtd);
+                        }
+
+                        let volume = await db.getModel('est_volume').create({
+                            iduser: obj.req.user.id
+                            , datahora: moment()
+                            , qtd: qtdtotal.toFixed(4)
+                            , consumido: false
+                            , qtdreal: qtdtotal.toFixed(4)
+                            , observacao: mistura.descricao
+                        });
+
+                        for (let i = 0; i < volumes.length; i++) {
+                            await db.getModel('est_volumemistura').create({
+                                idvolume: volume.id
+                                , idvmistura: volumes[i].idvolume
+                                , qtd: volumes[i].qtd
+                            });
+                            let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
+                            vol.qtdreal = (parseFloat(vol.qtdreal) - parseFloat(volumes[i].qtd)).toFixed(4);
+                            vol.save();
+                        }
+
+                        mistura.idvolume = volume.id;
+                        mistura.save();
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_imprimirEtiqueta: async function (obj) {
+                    try {
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let ids = [];
+                        let misturas = await db.getModel('pcp_apmistura').findAll({ where: { id: { $in: obj.ids } } });
+
+                        for (let i = 0; i < misturas.length; i++) {
+                            if (!misturas[i].idvolume) {
+                                return application.error(obj.res, { msg: 'Selecione uma mistura com volume criado para imprimir etiquetas' });
+                            }
+                            ids.push(misturas[i].idvolume);
                         }
                         obj.ids = ids;
                         main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
