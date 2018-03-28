@@ -3506,6 +3506,30 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , js_apontarMistura: async function (obj) {
+                    try {
+                        let invalidfields = application.functions.getEmptyFields(obj.data, ['idapmistura', 'idvolume', 'produto', 'qtd']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { invalidfields: invalidfields });
+                        }
+
+                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.data.idapmistura } });
+                        if (!mistura) {
+                            return application.error(obj.res, { msg: 'Mistura não encontrada' });
+                        }
+
+                        await db.getModel('pcp_apmisturavolume').create({
+                            idapmistura: obj.data.idapmistura
+                            , idvolume: obj.data.idvolume
+                            , qtd: parseFloat(obj.data.qtd).toFixed(4)
+                            , produto: obj.data.produto
+                        });
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , oprecurso: {
                 onsave: async function (obj, next) {
