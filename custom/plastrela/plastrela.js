@@ -2036,6 +2036,17 @@ let main = {
                     }
                 }
             }
+            , volumemistura:{
+                ondelete: async function (obj, next) {
+                    try {
+
+                        return application.error(obj.res, {msg: 'Não é possível excluir este registro'});
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
 
             , est_mov: {
                 onsave: async function (obj, next) {
@@ -3432,6 +3443,9 @@ let main = {
                             });
                             let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
                             vol.qtdreal = (parseFloat(vol.qtdreal) - parseFloat(volumes[i].qtd)).toFixed(4);
+                            if (parseFloat(vol.qtdreal) == 0) {
+                                vol.consumido = true;
+                            }
                             await vol.save();
                         }
 
