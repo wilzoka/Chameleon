@@ -3001,7 +3001,7 @@ let main = {
                                             data: {
                                                 id: volume.id
                                                 , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
-                                                , produto: volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao
+                                                , produto: (volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao) + (volume.lote ? ' - Lote: ' + volume.lote : '')
                                             }
                                         });
                                     }
@@ -3168,6 +3168,10 @@ let main = {
 
                             if (volume.metragem) {
                                 volume.metragem = ((parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal).toFixed(2);
+                                if (isNaN(volume.metragem)) {
+                                    volume.metragem = null;
+                                }
+
                             }
 
                             volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
@@ -3180,11 +3184,11 @@ let main = {
 
                         for (let i = 0; i < volumes.length; i++) {
                             volumes[i].save();
-                            for (let i = 0; i < volumesreservas.length; i++) {
-                                if (volumesreservas[i].idop = op.id) {
-                                    volumesreservas[i].apontado = false;
-                                    volumesreservas[i].save();
-                                }
+                        }
+                        for (let i = 0; i < volumesreservas.length; i++) {
+                            if (volumesreservas[i].idop = op.id) {
+                                volumesreservas[i].apontado = false;
+                                volumesreservas[i].save();
                             }
                         }
 
