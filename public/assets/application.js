@@ -109,7 +109,9 @@ var application = {
                         application.handlers.responseError(response);
                     }
                     , complete: function () {
-                        $this.find('button:submit').prop('disabled', false);
+                        setTimeout(function () {
+                            $this.find('button:submit').prop('disabled', false);
+                        }, 1000);
                     }
                 });
             });
