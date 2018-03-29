@@ -2036,11 +2036,11 @@ let main = {
                     }
                 }
             }
-            , volumemistura:{
+            , volumemistura: {
                 ondelete: async function (obj, next) {
                     try {
 
-                        return application.error(obj.res, {msg: 'Não é possível excluir este registro'});
+                        return application.error(obj.res, { msg: 'Não é possível excluir este registro' });
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -3506,7 +3506,9 @@ let main = {
                         let misturas = await db.getModel('pcp_apmisturavolume').findAll({ where: { idapmistura: mistura.id } });
                         let deleted = await next(obj);
                         if (deleted.success) {
-                            volume.destroy();
+                            if (volume) {
+                                volume.destroy();
+                            }
                             for (let i = 0; i < misturas.length; i++) {
                                 let vol = await db.getModel('est_volume').find({ where: { id: misturas[i].idvolume } });
                                 vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
@@ -3538,7 +3540,7 @@ let main = {
                         await db.getModel('pcp_apmisturavolume').create({
                             idapmistura: obj.data.idapmistura
                             , idvolume: obj.data.idvolume
-                            , qtd: parseFloat(obj.data.qtd).toFixed(4)
+                            , qtd: application.formatters.be.decimal(obj.data.qtd, 4)
                             , produto: obj.data.produto
                         });
 
