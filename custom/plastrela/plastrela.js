@@ -3097,33 +3097,21 @@ let main = {
                         }
                         volume.iddeposito = recurso.iddepositoprodutivo;
 
-                        if ([10].indexOf(etapa.codigo) >= 0) {//Não agrupar insumos
+                        if (apinsumo) {
+                            apinsumo.iduser = obj.data.iduser;
+                            apinsumo.datahora = moment();
+                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + qtd).toFixed(4);
+                            await apinsumo.save();
+                        } else {
                             await db.getModel('pcp_apinsumo').create({
                                 iduser: obj.data.iduser
                                 , idvolume: obj.data.idvolume
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
                                 , qtd: qtd
-                                , produto: obj.data.idvolume + ' - ' + obj.data.produto + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta + (volume.lote ? ' - Lote: ' + volume.lote : '')
                                 , recipiente: obj.data.recipiente
                             });
-                        } else {
-                            if (apinsumo) {
-                                apinsumo.iduser = obj.data.iduser;
-                                apinsumo.datahora = moment();
-                                apinsumo.qtd = (parseFloat(apinsumo.qtd) + qtd).toFixed(4);
-                                await apinsumo.save();
-                            } else {
-                                await db.getModel('pcp_apinsumo').create({
-                                    iduser: obj.data.iduser
-                                    , idvolume: obj.data.idvolume
-                                    , idoprecurso: obj.data.idoprecurso
-                                    , datahora: moment()
-                                    , qtd: qtd
-                                    , produto: obj.data.idvolume + ' - ' + versao.descricaocompleta + (volume.lote ? ' - Lote: ' + volume.lote : '')
-                                    , recipiente: obj.data.recipiente
-                                });
-                            }
                         }
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
 
