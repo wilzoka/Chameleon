@@ -128,6 +128,9 @@
                 case 'tableviewapontamento_de_producao_-_mistura_-_volume':// Mistura
                     $('button#' + table + '_insert').remove();
                     $('button#' + table + '_edit').remove();
+                    tables[table].page.len(-1);
+                    tables[table].draw();
+                    $('#' + table + '_paginate').remove();
                     break;
             }
         });
