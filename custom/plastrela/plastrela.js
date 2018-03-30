@@ -2679,7 +2679,7 @@ let main = {
                                     idapproducaovolume: saved.register.id
                                     , idversao: op.idversao
                                     , iddeposito: deposito.id
-                                    , iduser: obj.req.user.id
+                                    , iduser: saved.register.iduser
                                     , datahora: moment()
                                     , qtd: qtd
                                     , metragem: metragem
