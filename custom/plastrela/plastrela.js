@@ -2287,7 +2287,7 @@ let main = {
                                 union all
                             
                                 select
-                                    v.datahora, v.iduser
+                                    v.datahora, apv.iduser
                                 from
                                     pcp_approducao app
                                 inner join pcp_approducaovolume apv on (app.id = apv.idapproducao)
@@ -3109,7 +3109,7 @@ let main = {
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
                                 , qtd: qtd
-                                , produto: obj.data.idvolume +' - '+ (versao ?  + versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                , produto: obj.data.idvolume + ' - ' + (versao ? + versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
                                 , recipiente: obj.data.recipiente
                             });
                         }
