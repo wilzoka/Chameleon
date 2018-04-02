@@ -17,14 +17,10 @@ $(function () {
 
 
         $('button.btnfilter[data-table="' + table + '"]').remove();
+        customTable(table);
 
         switch (table) {
             case 'tableviewapontamento_de_producao_-_insumo':// Insumo
-                customTable(table);
-                setTimeout(function () {
-                    tables[table].column(0).order('desc');
-                    tables[table].draw()
-                }, 100);
 
                 $('button#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', {}, function (response) {
@@ -34,11 +30,6 @@ $(function () {
 
                 break;
             case 'tableviewapontamento_de_producao_-_producao':// Produção
-                customTable(table);
-                setTimeout(function () {
-                    tables[table].column(0).order('desc');
-                    tables[table].draw()
-                }, 100);
 
                 $('#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.approducao.__adicionar', { idoprecurso: application.functions.getId() }, function (response) {
@@ -46,25 +37,12 @@ $(function () {
                     });
                 });
                 break;
-            case 'tableviewapontamento_de_producao_-_perda':// Perda
-                customTable(table);
-
-                break;
-            case 'tableviewapontamento_de_producao_-_parada':// Parada
-                customTable(table);
-                setTimeout(function () {
-                    tables[table].column(0).order('desc');
-                    tables[table].draw()
-                }, 100);
-
-                break;
-            case 'tableviewapontamento_de_producao_-_sobra':// Sobra
-
-                break;
-            default:
-                tables[table].draw();
-                break;
         }
+
+        setTimeout(function () {
+            tables[table].column(0).order('desc');
+            tables[table].draw()
+        }, 100);
 
     });
 

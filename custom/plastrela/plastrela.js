@@ -3532,6 +3532,16 @@ let main = {
                         if (!volume.idversao) {
                             return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
                         }
+                        let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
+                        let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
+                        let grupo = await db.getModel('est_grupo').find({ where: { id: item.idgrupo } });
+                        if ([
+                            500 // Polietileno
+                            , 501 // Pigmentos e Aditivos
+                            , 506 // Peletizado
+                        ].indexOf(grupo.codigo) < 0) {
+                            return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
+                        }
 
                         await db.getModel('pcp_apmisturavolume').create({
                             idapmistura: obj.data.idapmistura
