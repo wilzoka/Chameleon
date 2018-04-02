@@ -13,8 +13,22 @@ $(function () {
         $('#col-parada').addClass('hide');
     }
 
+    var aux = 0;
+
     $(document).on('app-datatable', function (e, table) {
 
+        aux++;
+        if (aux == 7) {
+            for (var k in tables) {
+                if (tables[k].rows().count() == 0) {
+                    aux--;
+                }
+            }
+            if (aux == 0) {
+                application.functions.confirmMessage('Favor verificar se o recurso informado na OP está correto.', function () {
+                });
+            }
+        }
 
         $('button.btnfilter[data-table="' + table + '"]').remove();
         customTable(table);
