@@ -3529,6 +3529,11 @@ let main = {
                             return application.error(obj.res, { msg: 'Esta mistura já foi apontada, caso deseje alterar, apague o INSUMO e a MISTURA e aponte novamente' });
                         }
                         let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
+                        let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
+                        if (deposito && deposito.descricao == 'Almoxarifado') {
+                            return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
+                        }
+
                         if (!volume.idversao) {
                             return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
                         }
