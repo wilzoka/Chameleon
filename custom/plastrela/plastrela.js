@@ -757,8 +757,12 @@ let main = {
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
+                            let opmae = await db.getModel('pcp_op').find({ where: { id: op && op.idopmae ? op.idopmae : 0 } });
                             let opep = await db.getModel('pcp_opep').find({ where: { idop: op ? op.id : 0 } });
+                            let opmaeopep = await db.getModel('pcp_opep').find({ where: { idop: opmae ? opmae.id : 0 } });
                             let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
+                            let opmaepedido = await db.getModel('ven_pedido').find({ where: { id: opmaeopep ? opmaeopep.idpedido : 0 } });
+                            let opmaepedidoitem = await db.getModel('ven_pedidoitem').find({ include: [{ all: true }], where: { idpedido: opmaepedido ? opmaepedido.id : 0 } });
                             let cliente = await db.getModel('cad_corr').find({ where: { id: pedido ? pedido.idcliente : 0 } });
 
                             let formato = await db.sequelize.query(`
@@ -800,8 +804,12 @@ let main = {
                                     .stroke();
 
                                 if (fs.existsSync('files/' + image.id + '.' + image.type)) {
-                                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 50 });
+                                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 20 });
                                 }
+
+                                doc.moveTo(25, 60)
+                                    .lineTo(589, 60) // Cabeçalho
+                                    .stroke();
 
                                 doc.moveTo(25, 75)
                                     .lineTo(589, 75) // Cabeçalho
@@ -812,16 +820,16 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .fontSize(11)
-                                    .text('IDENTIFICAÇÃO E STATUS DO VOLUME Nº ' + volume.id, 165, 47);
+                                    .text('IDENTIFICAÇÃO E STATUS DO VOLUME Nº ' + volume.id, 165, 40);
 
 
                                 doc
                                     .fontSize(7.5)
-                                    .text('Anexo - 03', 500, 40)
-                                    .text('Nº PPP - 05 Revisão: 10', 460, 55);
+                                    .text('Anexo - 03', 500, 35)
+                                    .text('Nº PPP - 05 Revisão: 10', 460, 50);
 
                                 doc
-                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 67, { continued: true })
                                     .font('Courier').text(f.rpad(pedido ? pedido.codigo : '', width1val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
@@ -830,12 +838,19 @@ let main = {
                                     .moveDown(md);
 
                                 doc
-                                    .moveTo(240, 75)
-                                    .lineTo(240, 91)
+                                    .moveTo(240, 60)
+                                    .lineTo(240, 75)
                                     .stroke()
-                                    .moveTo(460, 75)
-                                    .lineTo(460, 91)
+                                    .moveTo(460, 60)
+                                    .lineTo(460, 75)
                                     .stroke();
+
+                                doc
+                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
+                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmae.codigo + ' - ' + opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('OP Mãe: ', 8, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
+                                    .moveDown(md);
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
