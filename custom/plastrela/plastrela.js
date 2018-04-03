@@ -767,13 +767,19 @@ let main = {
 
                             let formato = await db.sequelize.query(`
                             select
-                                (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20))::decimal as largura
+                                case when tp.codigo = 2 then
+                                    (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (123))::decimal
+                                else
+                                    (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20))::decimal
+                                end as largura
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22))::decimal as espessura
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (23)) as implargura
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (1190)) as impespessura
                             from
                                 est_volume vol
                             left join pcp_versao v on (vol.idversao = v.id)
+                            left join cad_item i on (v.iditem = i.id)
+                            left join est_tpitem tp on (i.idtpitem = tp.id)
                             where vol.id = :v1
                             `, {
                                     type: db.sequelize.QueryTypes.SELECT
@@ -3124,7 +3130,7 @@ let main = {
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
                                 , qtd: qtd
-                                , produto: '' + obj.data.idvolume + ' - ' + (versao ? versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                , produto: obj.data.idvolume + ' - ' + (versao ? versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
                                 , recipiente: obj.data.recipiente
                             });
                         }
@@ -3625,6 +3631,8 @@ let main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'OP já se encontra encerrada' });
                         }
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
 
                         let sql = await db.sequelize.query(`
                         select
@@ -3640,6 +3648,23 @@ let main = {
                             });
                         if (sql.length <= 0 || parseFloat(sql[0].sumprod || 0) <= 0 || parseFloat(sql[0].qtdtempo || 0) <= 0) {
                             return application.error(obj.res, { msg: 'OP sem produção' });
+                        }
+
+                        let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let dif = Math.trunc(100 - (((qtdapproducaovolume + qtdapperda) / qtdapinsumo) * 100));
+
+                        if (etapa.tol_min != null) {
+                            if (dif > etapa.tol_min) {
+                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a menos (tolerável ' + etapa.tol_min + '%)' });
+                            }
+                        }
+                        dif = Math.abs(dif);
+                        if (etapa.tol_max != null) {
+                            if (dif > etapa.tol_max) {
+                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a mais (tolerável ' + etapa.tol_max + '%)' });
+                            }
                         }
 
                         oprecurso.idestado = config.idestadoencerrada;
