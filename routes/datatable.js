@@ -13,7 +13,8 @@ const fixResults = function (registers, modelattributes) {
         if (modelattributes[i].typeadd) {
             j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
         }
-        switch (modelattributes[i].type) {
+        let realtype = modelattributes[i].type == 'virtual' ? j.type : modelattributes[i].type;
+        switch (realtype) {
             case 'autocomplete':
                 let vas = j.as || j.model;
                 for (let x = 0; x < registers.rows.length; x++) {
@@ -48,17 +49,6 @@ const fixResults = function (registers, modelattributes) {
                     if (registers.rows[x][modelattributes[i].name]) {
                         registers.rows[x][modelattributes[i].name] = application.formatters.fe.time(registers.rows[x][modelattributes[i].name]);
                     }
-                }
-                break;
-            case 'virtual':
-                switch (j.type) {
-                    case 'decimal':
-                        for (let x = 0; x < registers.rows.length; x++) {
-                            if (registers.rows[x][modelattributes[i].name]) {
-                                registers.rows[x][modelattributes[i].name] = application.formatters.fe.decimal(registers.rows[x][modelattributes[i].name], j.precision);
-                            }
-                        }
-                        break;
                 }
                 break;
         }

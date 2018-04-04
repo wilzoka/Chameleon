@@ -64,7 +64,11 @@
 
         if (application.functions.getId() > 0) {
             $('#divmistura').removeClass('hidden');
+            setTimeout(function () {
+                $('input[name="codigodebarra"]').focus();
+            }, 250);
         } else {
+            $('input:radio[name="recipiente"]').filter('[value="A/1"]').prop('checked', true);
             application.jsfunction('plastrela.pcp.ap.js_usuarioUltimoAp', {
                 idoprecurso: application.functions.getUrlParameter('parent')
             }, function (response) {
