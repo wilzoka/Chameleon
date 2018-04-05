@@ -835,36 +835,15 @@ let main = {
                                     .text('Nº PPP - 05 Revisão: 10', 460, 50);
 
                                 doc
-                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 67, { continued: true })
-                                    .font('Courier').text(f.rpad(pedido ? pedido.codigo : '', width1val, padstr), { continued: true })
-                                    .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
-                                    .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(op ? op.codigo : '', width3val, padstr))
-                                    .moveDown(md);
-
-                                doc
-                                    .moveTo(240, 60)
-                                    .lineTo(240, 75)
+                                    .moveTo(240, 75)
+                                    .lineTo(240, 104)
                                     .stroke()
-                                    .moveTo(460, 60)
-                                    .lineTo(460, 75)
+                                    .moveTo(460, 75)
+                                    .lineTo(460, 117)
                                     .stroke();
 
                                 doc
-                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), 30, 82, { continued: true })
-                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmae.codigo + ' - ' + opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
-                                    .font('Courier-Bold').text(f.lpad('OP Mãe: ', 8, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
-                                    .moveDown(md);
-
-                                doc
-                                    .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(cliente ? cliente.nome : '', 87, padstr))
-                                    .moveDown(md);
-
-                                doc
-                                    .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), 30, 67, { continued: true })
                                     .font('Courier').text(f.rpad(versao.descricaocompleta, 87, padstr))
                                     .moveDown(md);
 
@@ -875,6 +854,27 @@ let main = {
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.metragem || 0, 4) + ' M', width3val, padstr))
+                                    .moveDown(md);
+
+                                doc
+                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(pedido ? pedido.codigo : '', width1val, padstr), { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(op ? op.codigo : '', width3val, padstr))
+                                    .moveDown(md);
+
+                                doc
+                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmae.codigo + ' - ' + opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('OP Mãe: ', 8, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
+                                    .moveDown(md);
+
+                                doc
+                                    .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(cliente ? cliente.nome : '', 87, padstr))
                                     .moveDown(md);
 
                                 doc
@@ -1023,7 +1023,7 @@ let main = {
                                     .moveTo(195, 169)
                                     .lineTo(195, 260)
                                     .stroke()
-                                    .moveTo(240, 117)
+                                    .moveTo(240, 130)
                                     .lineTo(240, 260)
                                     .stroke()
                                     .moveTo(303, 169)
@@ -1035,7 +1035,7 @@ let main = {
                                     .moveTo(415, 169)
                                     .lineTo(415, 260)
                                     .stroke()
-                                    .moveTo(460, 117)
+                                    .moveTo(460, 130)
                                     .lineTo(460, 260)
                                     .stroke()
                                     .moveTo(523, 169)
