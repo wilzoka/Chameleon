@@ -757,7 +757,7 @@ let main = {
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
-                            let opmae = await db.getModel('pcp_op').find({ where: { id: op && op.idopmae ? op.idopmae : 0 } });
+                            let opmae = await db.getModel('pcp_op').find({ include: [{ all: true }], where: { id: op && op.idopmae ? op.idopmae : 0 } });
                             let opep = await db.getModel('pcp_opep').find({ where: { idop: op ? op.id : 0 } });
                             let opmaeopep = await db.getModel('pcp_opep').find({ where: { idop: opmae ? opmae.id : 0 } });
                             let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
@@ -867,7 +867,7 @@ let main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
+                                    .font('Courier').text(f.rpad(opmae ? opmae.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
                                     .font('Courier-Bold').text(f.lpad('OP Mãe: ', 8, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
                                     .moveDown(md);
