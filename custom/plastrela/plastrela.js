@@ -867,7 +867,7 @@ let main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmae.codigo + ' - ' + opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
+                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmaepedido.codigo + ' | ' + opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
                                     .font('Courier-Bold').text(f.lpad('OP Mãe: ', 8, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
                                     .moveDown(md);
