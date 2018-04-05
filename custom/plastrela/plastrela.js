@@ -858,7 +858,7 @@ let main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(pedido ? pedido.codigo : '', width1val, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(pedido ? pedido.codigo : opmaepedidoitem ? opmaepedido.codigo : '', width1val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
@@ -866,8 +866,8 @@ let main = {
                                     .moveDown(md);
 
                                 doc
-                                    .font('Courier-Bold').text(f.lpad('Pedido: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmaepedido.codigo + ' | ' + opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(opmaepedidoitem ? opmaepedidoitem.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
                                     .font('Courier-Bold').text(f.lpad('OP Mãe: ', 8, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
                                     .moveDown(md);
