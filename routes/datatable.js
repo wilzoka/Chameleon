@@ -4,10 +4,7 @@ const application = require('./application')
     , lodash = require('lodash')
     ;
 
-const fixResults = function (registers, modelattributes) {
-    for (let i = 0; i < registers.rows.length; i++) {
-        registers.rows[i]['DT_RowId'] = registers.rows[i].id;
-    }
+const fixResults = function (registers, modelattributes, viewtables) {
     let j = {};
     for (let i = 0; i < modelattributes.length; i++) {
         if (modelattributes[i].typeadd) {
@@ -52,6 +49,18 @@ const fixResults = function (registers, modelattributes) {
                 }
                 break;
         }
+    }
+    let keys = ['id'];
+    for (let i = 0; i < viewtables.length; i++) {
+        keys.push(viewtables[i].modelattribute.name);
+    }
+    for (let i = 0; i < registers.rows.length; i++) {
+        for (let k in registers.rows[i]) {
+            if (keys.indexOf(k) < 0) {
+                delete registers.rows[i][k];
+            }
+        }
+        registers.rows[i]['DT_RowId'] = registers.rows[i].id;
     }
     return registers;
 }
@@ -189,6 +198,7 @@ module.exports = function (app) {
     app.post('/datatables', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await db.getModel('view').find({ where: { url: req.body.view }, include: [{ all: true }] });
+            const viewtables = await db.getModel('viewtable').findAll({ where: { idview: view.id }, include: [{ all: true }] });
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let where = {};
             if (view.wherefixed) {
@@ -244,7 +254,7 @@ module.exports = function (app) {
                 , where: where
                 , order: [[ordercolumn, orderdir], ['id', orderdir]]
             }));
-            registers = fixResults(registers, modelattributes);
+            registers = fixResults(registers, modelattributes, viewtables);
             return application.success(res, {
                 recordsTotal: registers.count,
                 recordsFiltered: registers.count,

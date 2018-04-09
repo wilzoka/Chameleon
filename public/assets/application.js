@@ -760,6 +760,7 @@ var application = {
                         }
                     });
                 }
+                , rowId: 'id'
                 , initComplete: function (settings) {
                     var $table = $(settings.nTable);
                     var subview = $table.attr('data-subview');
