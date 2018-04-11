@@ -530,6 +530,7 @@ var application = {
                                     , page: params.page
                                     , model: $(this).attr('data-model')
                                     , attribute: $(this).attr('data-attribute')
+                                    , query: $(this).attr('data-query')
                                     , where: $(this).attr('data-where')
                                 };
                             }

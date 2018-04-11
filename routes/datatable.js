@@ -16,7 +16,9 @@ const fixResults = function (registers, modelattributes, viewtables) {
                 let vas = j.as || j.model;
                 for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
-                        registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + j.attribute];
+                        if (!j.query) {
+                            registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + j.attribute];
+                        }
                     }
                 }
                 break;
@@ -60,7 +62,6 @@ const fixResults = function (registers, modelattributes, viewtables) {
                 delete registers.rows[i][k];
             }
         }
-        registers.rows[i]['DT_RowId'] = registers.rows[i].id;
     }
     return registers;
 }
@@ -212,6 +213,7 @@ module.exports = function (app) {
             let orderdir = view.orderfixed ? view.orderfixed.split(',')[1] : req.body.order[0].dir;
             let attributes = ['id'];
             for (let i = 0; i < modelattributes.length; i++) {
+                let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
                 switch (modelattributes[i].type) {
                     case 'parent':
                         if (req.body.issubview == 'true') {
@@ -219,8 +221,15 @@ module.exports = function (app) {
                         }
                         attributes.push(modelattributes[i].name);
                         break;
+                    case 'autocomplete':
+                        if (j.query) {
+                            attributes.push([db.Sequelize.literal(j.query), modelattributes[i].name]);
+                        } else {
+                            attributes.push(modelattributes[i].name);
+                        }
+                        break;
                     case 'virtual':
-                        attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[i].typeadd).subquery), modelattributes[i].name]);
+                        attributes.push([db.Sequelize.literal(j.subquery), modelattributes[i].name]);
                         break;
                     default:
                         attributes.push(modelattributes[i].name);
@@ -230,9 +239,12 @@ module.exports = function (app) {
                 if (modelattributes[i].name == ordercolumn) {
                     switch (modelattributes[i].type) {
                         case 'autocomplete':
-                            let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
-                            let vas = j.as || j.model;
-                            ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
+                            if (j.query) {
+                                ordercolumn = db.Sequelize.literal(j.query);
+                            } else {
+                                let vas = j.as || j.model;
+                                ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
+                            }
                             break;
                         case 'virtual':
                             ordercolumn = db.Sequelize.literal(modelattributes[i].name);

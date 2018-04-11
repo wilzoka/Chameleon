@@ -95,6 +95,7 @@ let application = {
 					, model: ''
 					, attribute: ''
 					, where: ''
+					, query: ''
 					, multiple: ''
 					, option: ''
 					, options: ''
@@ -108,6 +109,7 @@ let application = {
 					+ 'data-model="' + obj.model + '" '
 					+ 'data-attribute="' + obj.attribute + '" '
 					+ 'data-where="' + obj.where + '" '
+					+ 'data-query="' + obj.query + '" '
 					+ 'data-options="' + obj.options + '" '
 					+ obj.multiple + '>'
 					+ obj.option

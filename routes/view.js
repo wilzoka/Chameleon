@@ -116,16 +116,12 @@ const renderDecimal = function (viewfield, register) {
 const renderAutocomplete = function (viewfield, register) {
 
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
-    let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
-    let where = '';
-    if ('where' in json) {
-        where = json.where;
-    }
+    let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
 
     let option = '';
-    let vas = json.as || json.model;
+    let vas = j.as || j.model;
     if (value && register[vas]) {
-        option = '<option value="' + register[vas].id + '" selected>' + register[vas][json.attribute] + '</option>';
+        option = '<option value="' + register[vas].id + '" selected>' + (j.query ? register[viewfield.modelattribute.name] : register[vas][j.attribute]) + '</option>';
     }
 
     let label = viewfield.modelattribute.label;
@@ -142,9 +138,10 @@ const renderAutocomplete = function (viewfield, register) {
         , label: label
         , name: viewfield.modelattribute.name
         , disabled: disabled
-        , model: json.model
-        , attribute: json.attribute
-        , where: where
+        , model: j.model
+        , attribute: j.attribute || ''
+        , where: j.where || ''
+        , query: j.query || ''
         , multiple: ''
         , option: option
     });
@@ -624,7 +621,7 @@ const deleteModel = function (obj) {
                 if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {
                     let errsplited = err.original.detail.split('"');
                     if (errsplited.length == 3) {
-                        db.getModel('model').find({ where: { name: err.original.detail.split('"')[1] } }).then(model => {
+                        db.getModel('model').find({ where: { name: errsplited[1] } }).then(model => {
                             if (model) {
                                 resolve({ success: false, err: err });
                                 return application.error(obj.res, { msg: 'Este registro está em uso em ' + (model.description || model.name) });
@@ -960,7 +957,8 @@ module.exports = function (app) {
                                 , name: filtername
                                 , disabled: ''
                                 , model: json.model
-                                , attribute: json.attribute
+                                , attribute: json.attribute || ''
+                                , query: json.query || ''
                                 , where: req.body.issubview == 'true' && json.where ? json.where : ''
                                 , multiple: 'multiple="multiple"'
                                 , option: getFilterValue(filtername, cookiefilter).options || ''
@@ -1142,9 +1140,17 @@ module.exports = function (app) {
                 });
                 let attributes = ['id'];
                 for (let i = 0; i < viewfields.length; i++) {
+                    let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                     switch (viewfields[i].modelattribute.type) {
+                        case 'autocomplete':
+                            if (j.query) {
+                                attributes.push([db.Sequelize.literal(j.query), viewfields[i].modelattribute.name]);
+                            } else {
+                                attributes.push(viewfields[i].modelattribute.name);
+                            }
+                            break;
                         case 'virtual':
-                            attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
+                            attributes.push([db.Sequelize.literal(j.subquery), viewfields[i].modelattribute.name]);
                             break;
                         default:
                             attributes.push(viewfields[i].modelattribute.name);
