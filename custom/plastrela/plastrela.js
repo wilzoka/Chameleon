@@ -3521,12 +3521,12 @@ let main = {
                         if (deleted.success) {
                             if (volume) {
                                 volume.destroy();
-                            }
-                            for (let i = 0; i < misturas.length; i++) {
-                                let vol = await db.getModel('est_volume').find({ where: { id: misturas[i].idvolume } });
-                                vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
-                                vol.consumido = false;
-                                await vol.save();
+                                for (let i = 0; i < misturas.length; i++) {
+                                    let vol = await db.getModel('est_volume').find({ where: { id: misturas[i].idvolume } });
+                                    vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
+                                    vol.consumido = false;
+                                    await vol.save();
+                                }
                             }
                         }
 
