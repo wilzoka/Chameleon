@@ -2655,6 +2655,9 @@ let main = {
                         if (obj.register.pesobruto <= 0) {
                             return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
                         }
+                        if (obj.register.tara <= 0) {
+                            return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
+                        }
 
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
@@ -2765,6 +2768,9 @@ let main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
+                        if (obj.register.peso <= 0) {
+                            return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['peso'] });
                         }
                         let tipoperda = await db.getModel('pcp_tipoperda').find({ where: { id: obj.register.idtipoperda } });
 
@@ -3102,6 +3108,9 @@ let main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
+                        if (qtd <= 0) {
+                            return application.error(obj.res, { msg: 'A quantidade apontada deve ser maior que 0', invalidfields: ['qtd'] });
+                        }
                         if (qtd > qtdreal) {
                             return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
                         }
@@ -3320,6 +3329,10 @@ let main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
+
+                        if (parseFloat(obj.register.qtd) <= 0) {
+                            return application.error(obj.res, { msg: 'A quantidade apontada deve ser maior que 0', invalidfields: ['qtd'] });
                         }
 
                         let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: obj.register.idapinsumo } });
@@ -3567,6 +3580,11 @@ let main = {
                             , 506 // Peletizado
                         ].indexOf(grupo.codigo) < 0) {
                             return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
+                        }
+
+                        let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
+                        if (qtd <= 0) {
+                            return application.error(obj.res, { msg: 'A quantidade apontada deve ser maior que 0', invalidfields: ['qtd'] });
                         }
 
                         await db.getModel('pcp_apmisturavolume').create({
