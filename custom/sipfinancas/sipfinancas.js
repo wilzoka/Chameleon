@@ -962,7 +962,14 @@ let main = {
                                 , label: 'Data Final'
                                 , name: 'datafim'
                             });
-
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Categoria'
+                                , name: 'idcategoria'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 1'
+                            });
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -975,7 +982,7 @@ let main = {
                             });
                         } else {
 
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idcategoria']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
@@ -994,6 +1001,7 @@ let main = {
                                     and cat.dc = 1
                                     and m.datavcto >= :dataini
                                     and m.datavcto <= :datafim
+                                    and m.idcategoria = :idcategoria
                                 group by 1,2
                                 order by 2) as x
                                 
@@ -1012,17 +1020,19 @@ let main = {
                                     and cat.dc = 1
                                     and m.datavcto >= :dataini
                                     and m.datavcto <= :datafim
+                                    and m.idcategoria = :idcategoria
                             `, {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
                                         dataini: application.formatters.be.date(obj.req.body.dataini)
                                         , datafim: application.formatters.be.date(obj.req.body.datafim)
+                                        , idcategoria: obj.req.body.idcategoria
                                     }
                                 });
 
                             let report = {};
-
-                            report.__title = `Contas a Pagar abertas de ${obj.req.body.dataini} até ${obj.req.body.datafim}`;
+                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            report.__title = `Contas a Pagar Abertas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>Categoria: ${categoria.descricaocompleta} `;
 
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
