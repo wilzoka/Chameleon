@@ -4148,14 +4148,29 @@ let main = {
                                         , 's_qtd_furo'
                                         , 's_localizacao_furos'
                                         , 's_pingo_solda'
-                                        , 's_qtd_pingo_solda'
-                                        , 's_localizacao_pingo_solda'
                                         , 's_facilitador'
                                         , 's_aplicar_valvula'
                                         , 's_aplicar_ziper'
                                         , 's_aplicar_ziper_facil'
                                         , 's_picote'
                                     ].concat(validar_produto_geral));
+
+                                    if (obj.register['s_pingo_solda'] == 'Sim' && !obj.register['s_qtd_pingo_solda']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_qtd_pingo_solda'] });
+                                    }
+
+                                    if (obj.register['s_pingo_solda'] == 'Sim' && !obj.register['s_localizacao_pingo_solda']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_localizacao_pingo_solda'] });
+                                    }
+
+                                    if (obj.register['s_aplicar_valvula'] == 'Sim' && !obj.register['s_posicao_valvula']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_posicao_valvula'] });
+                                    }
+
+                                    if (obj.register['s_aplicar_ziper_facil'] == 'Sim' && !obj.register['s_tamanho_ziper_facil']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_tamanho_ziper_facil'] });
+                                    }
+
                                 } else if (obj.register.produto_tipo == 'Película') {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         'p_largura_final'
@@ -4169,10 +4184,22 @@ let main = {
                                         , 'p_diametro_tubete'
                                         , 'p_tipo_emenda'
                                         , 'p_aplicar_microfuros'
-                                        , 'p_quantidade_microfuros'
                                         , 'p_aplicar_ziper_facil'
                                         , 'p_sentido_embobinamento'
                                     ].concat(validar_produto_geral));
+
+                                    if (obj.register['p_aplicar_microfuros'] == 'Sim' && !obj.register['p_quantidade_microfuros']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_quantidade_microfuros'] });
+                                    }
+
+                                    if (obj.register['p_aplicar_microfuros'] == 'Sim' && !obj.register['p_posicao_microfuros']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_posicao_microfuros'] });
+                                    }
+
+                                    if (obj.register['p_aplicar_ziper_facil'] == 'Sim' && !obj.register['p_tamanho_zip_facil']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_tamanho_zip_facil'] });
+                                    }
+
                                 } else {
                                     invalidfields = ['produto_tipo'];
                                 }
@@ -4295,6 +4322,36 @@ let main = {
                                 , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                             }
                         });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , propostaentrega: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        let proposta = await db.getModel('ven_proposta').find({ where: { id: obj.register.idproposta } });
+                        if (proposta.digitado) {
+                            return application.error(obj.res, { msg: 'Não é possível editar uma proposta completamente digitada' });
+                        }
+
+                        await next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+
+                        let propostaentrega = await db.getModel('ven_propostaentrega').find({ include: [{ all: true }], where: { id: obj.ids[0] } });
+                        if (propostaentrega.ven_proposta.digitado) {
+                            return application.error(obj.res, { msg: 'Não é possível editar uma proposta completamente digitada' });
+                        }
+
+                        await next(obj);
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
