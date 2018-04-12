@@ -862,18 +862,18 @@ let main = {
                                     .font('Courier-Bold').text(f.lpad('Ordem de Compra: ', width2, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(nfentradaitem ? nfentradaitem.oc : '', width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('OP: ', width3, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(op ? op.codigo : '', width3val, padstr))
+                                    .font('Courier-Bold').text(f.rpad(op ? op.codigo : '', width3val, padstr))
                                     .moveDown(md);
 
                                 doc
-                                    .font('Courier-Bold').text(f.lpad('Produto: ', width1, padstr), { continued: true })
+                                    .font('Courier-Bold').fontSize(7.5).text(f.lpad('Produto: ', width1, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(opmae ? opmae.pcp_versao.descricaocompleta : '', width1val + width2val + 24, padstr) + ' ', { continued: true })
                                     .font('Courier-Bold').text(f.lpad('OP Mãe: ', 8, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
+                                    .font('Courier-Bold').text(f.rpad(opmae ? opmae.codigo : '', width3val - 5, padstr))
                                     .moveDown(md);
 
                                 doc
-                                    .font('Courier-Bold').text(f.lpad('Cliente: ', width1, padstr), { continued: true })
+                                    .font('Courier-Bold').fontSize(7.5).text(f.lpad('Cliente: ', width1, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(cliente ? cliente.nome : '', 87, padstr))
                                     .moveDown(md);
 
@@ -966,14 +966,16 @@ let main = {
                                 //     )
                                 //     .moveDown(md);
 
+                                let operador = volume['users.fullname'].split(' ');
+
                                 doc
                                     .font('Courier-Bold')
                                     .text(
                                     f.lpad('Extrusão:', 14, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
-                                    f.lpad('', 13, padstr) +
-                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                    f.lpad('     ' + (operador.length >= 3 ? operador[2] : ''), 16, padstr) +
+                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
                                     f.lpad('[ ] A [ ] R', 12, padstr) +

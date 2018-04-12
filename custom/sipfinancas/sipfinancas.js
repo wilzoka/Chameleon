@@ -947,6 +947,120 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_report_correntista: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            let body = '';
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Inicial'
+                                , name: 'dataini'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Final'
+                                , name: 'datafim'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let sql = await db.sequelize.query(`
+                                select * from (select
+                                    c.codigo::text
+                                    , c.nome
+                                    , sum(m.valor) as valortotal
+                                from
+                                    fin_mov m
+                                left join cad_corr c on (m.idcorr = c.id)
+                                left join fin_categoria cat on (m.idcategoria = cat.id)
+                                where
+                                    m.quitado = false
+                                    and cat.dc = 1
+                                    and m.datavcto >= :dataini
+                                    and m.datavcto <= :datafim
+                                group by 1,2
+                                order by 2) as x
+                                
+                                union all
+                                
+                                select
+                                    '<strong>Total</strong>' as codigo
+                                    , ''
+                                    , sum(m.valor)
+                                from
+                                    fin_mov m
+                                left join cad_corr c on (m.idcorr = c.id)
+                                left join fin_categoria cat on (m.idcategoria = cat.id)
+                                where
+                                    m.quitado = false
+                                    and cat.dc = 1
+                                    and m.datavcto >= :dataini
+                                    and m.datavcto <= :datafim
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: application.formatters.be.date(obj.req.body.dataini)
+                                        , datafim: application.formatters.be.date(obj.req.body.datafim)
+                                    }
+                                });
+
+                            let report = {};
+
+                            report.__title = `Contas a Pagar abertas de ${obj.req.body.dataini} até ${obj.req.body.datafim}`;
+
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Código</strong></td>
+                                    <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:left;"> ${sql[i]['codigo']}          </td>
+                                    <td style="text-align:left;">  ${sql[i]['nome']}           </td>
+                                    <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valortotal'], 2)}   </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , movparccheque: {
                 ondelete: async function (obj, next) {

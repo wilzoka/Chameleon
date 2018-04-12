@@ -16,7 +16,7 @@ const fixResults = function (registers, modelattributes, viewtables) {
                 let vas = j.as || j.model;
                 for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][modelattributes[i].name]) {
-                        if (!j.query) {
+                        if (j.attribute && registers.rows[x][vas + '.' + j.attribute]) {
                             registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + j.attribute];
                         }
                     }

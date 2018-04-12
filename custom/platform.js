@@ -703,6 +703,7 @@ let platform = {
                                 let reportimage = JSON.parse(config.reportimage);
                                 replaces.__reportimage = __dirname + '/../files/' + reportimage[0].id + '.' + reportimage[0].type;
                             }
+                            replaces.__datetime = moment().format(application.formatters.fe.datetime_format);
                             let html = `
                             <html>
                                 <head>
