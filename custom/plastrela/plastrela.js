@@ -4138,6 +4138,11 @@ let main = {
                                     , 'produto_aprovacao_arte'
                                     , 'produto_clicheria_cliente'
                                 ];
+
+                                if (obj.register['produto_pigmentado'] == 'Sim' && !obj.register['produto_cor_pigmento']) {
+                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['produto_cor_pigmento'] });
+                                }
+
                                 if (obj.register.produto_tipo == 'Saco') {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         's_largura_final'
@@ -4223,9 +4228,9 @@ let main = {
                                 nextStep();
                                 break;
                             case '3'://Entregas
-                                let count = await db.getModel('ven_propostaentrega').count({ where: { idproposta: obj.register.id } });
-                                if (count <= 0) {
-                                    return application.error(obj.res, { msg: 'Adicione no mínimo 1 entrega' });
+                                let sum = await db.getModel('ven_propostaentrega').sum('qtd', { where: { idproposta: obj.register.id } });
+                                if (sum != obj.register.entrega_quantidade) {
+                                    return application.error(obj.res, { msg: 'A quantidade das entregas é diferente da quantidade do pedido' });
                                 }
                                 nextStep();
                                 break;
