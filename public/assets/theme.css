@@ -93,6 +93,9 @@ div.btn-group-events .dropdown-menu > li > a {
 .radio {
     margin-top: 0;
 }
+.form-group {
+    margin-bottom: 5px;
+}
 
 /* Datatables */
 @media (min-width: 768px) {
