@@ -305,13 +305,6 @@
                 "typeadd": null
             },
             {
-                "name": "type",
-                "label": "Tipo",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "notnull",
                 "label": "NotNull?",
                 "type": "boolean",
@@ -326,11 +319,18 @@
                 "typeadd": "{\"model\": \"model\", \"cascade\": true}"
             },
             {
+                "name": "type",
+                "label": "Tipo",
+                "type": "radio",
+                "notnull": true,
+                "typeadd": "{\r\n\"options\": [\"autocomplete\",\"boolean\",\"date\",\"datetime\",\"decimal\",\"file\",\"georeference\",\"integer\",\"parent\",\"radio\",\"text\",\"textarea\",\"time\",\"virtual\"]\r\n}"
+            },
+            {
                 "name": "typeadd",
                 "label": "Adicional",
                 "type": "textarea",
                 "notnull": false,
-                "typeadd": null
+                "typeadd": "{\r\n\"rows\": 8\r\n , \"placeholder\": \"\"\r\n }"
             }
         ]
     },

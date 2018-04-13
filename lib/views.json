@@ -630,7 +630,7 @@
     {
         "name": "Modelo - Atributo",
         "namecomplete": "Plataforma - Modelo - Atributo",
-        "js": null,
+        "js": "core/js/modelattribute.js",
         "wherefixed": null,
         "orderfixed": null,
         "supressid": true,

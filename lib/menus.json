@@ -16,6 +16,14 @@
         "tree": "Plataforma - Agendamentos"
     },
     {
+        "description": "Arquivos",
+        "icon": "fa fa-file-archive-o",
+        "menuparent": "Plataforma",
+        "view": "Arquivo",
+        "url": null,
+        "tree": "Plataforma - Arquivos"
+    },
+    {
         "description": "Auditoria",
         "icon": "fa fa-eye",
         "menuparent": "Plataforma",

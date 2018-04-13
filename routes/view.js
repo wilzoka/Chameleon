@@ -34,12 +34,7 @@ const renderTextArea = function (viewfield, register) {
     let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
     value = escape(value);
 
-    let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
-
-    let rows = 3;
-    if (json && 'rows' in json) {
-        rows = json.rows;
-    }
+    let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
 
     let label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
@@ -54,7 +49,7 @@ const renderTextArea = function (viewfield, register) {
         width: viewfield.width
         , label: label
         , name: viewfield.modelattribute.name
-        , rows: rows
+        , rows: j.rows || 3
         , value: value
         , disabled: disabled
     });

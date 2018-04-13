@@ -477,32 +477,32 @@ let application = {
 	, sequelize: {
 		decodeType: function (Sequelize, datatype) {
 			switch (datatype) {
-				case 'text':
-					return Sequelize.TEXT;
-				case 'textarea':
-					return Sequelize.TEXT;
-				case 'date':
-					return Sequelize.DATEONLY;
-				case 'datetime':
-					return Sequelize.DATE;
-				case 'time':
-					return Sequelize.INTEGER;
-				case 'parent':
-					return Sequelize.INTEGER;
 				case 'autocomplete':
 					return Sequelize.INTEGER;
 				case 'boolean':
 					return Sequelize.BOOLEAN;
-				case 'integer':
-					return Sequelize.INTEGER;
+				case 'date':
+					return Sequelize.DATEONLY;
+				case 'datetime':
+					return Sequelize.DATE;
 				case 'decimal':
 					return Sequelize.DECIMAL;
 				case 'file':
 					return Sequelize.TEXT;
 				case 'georeference':
 					return Sequelize.TEXT;
+				case 'integer':
+					return Sequelize.INTEGER;
+				case 'parent':
+					return Sequelize.INTEGER;
 				case 'radio':
 					return Sequelize.TEXT;
+				case 'text':
+					return Sequelize.TEXT;
+				case 'textarea':
+					return Sequelize.TEXT;
+				case 'time':
+					return Sequelize.INTEGER;
 			}
 		}
 	}
