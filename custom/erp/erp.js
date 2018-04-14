@@ -32,9 +32,34 @@ let main = {
                             obj.register.datahora = moment();
                         }
 
-                        var fullUrl = obj.req.protocol + '://' + obj.req.get('host') + obj.req.originalUrl;
-                        console.log(fullUrl);
-                        //Setar o cookie com o wizard step
+                        function nextStep() {
+                            obj._responseModifier = function (ret) {
+                                delete ret['msg'];
+                                delete ret['historyBack'];
+                                return ret;
+                            }
+                            obj._cookies = [{ key: 'wizard-step', value: parseInt(obj.req.body['wizard-step']) + 1 }];
+                        }
+
+                        switch (obj.req.body['wizard-step']) {
+                            case '0'://Cliente
+                                nextStep();
+                                break;
+
+                            case '1'://Produto
+                                nextStep();
+                                break;
+                            case '2'://Retorno
+                                nextStep();
+                                break;
+                            case '3'://Pagamento
+
+                                obj.register.digitado = true;
+                                break;
+                            default:
+                                return application.error(obj.res, {});
+                                break;
+                        }
 
                         let saved = await next(obj);
 
