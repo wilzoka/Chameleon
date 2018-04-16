@@ -557,7 +557,7 @@ let main = {
                             for (let y = 0; y < solicitacaoitem.length; y++) {
                                 let pesorestante = parseFloat(solicitacaoitem[y].qtd) - parseFloat(solicitacaoitem[y].qtdrecebida || 0);
                                 if (pesorestante > 0) {
-                                    // Reservas                                
+                                    // Reservas                          
                                     let volumes = await db.getModel('est_volume').findAll({ where: { idnfentradaitem: nfentradaitens[i].id } });
                                     for (let z = 0; z < volumes.length; z++) {
                                         let totalreservado = await db.sequelize.query('select sum(qtd) as soma from est_volumereserva where idvolume = :v1', { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: volumes[z].id } });
@@ -763,7 +763,7 @@ let main = {
                             let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
                             let opmaepedido = await db.getModel('ven_pedido').find({ where: { id: opmaeopep ? opmaeopep.idpedido : 0 } });
                             let opmaepedidoitem = await db.getModel('ven_pedidoitem').find({ include: [{ all: true }], where: { idpedido: opmaepedido ? opmaepedido.id : 0 } });
-                            let cliente = await db.getModel('cad_corr').find({ where: { id: pedido ? pedido.idcliente : 0 } });
+                            let cliente = await db.getModel('cad_corr').find({ where: { id: pedido ? pedido.idcliente : opmaepedido ? opmaepedido.idcliente : 0 } });
 
                             let formato = await db.sequelize.query(`
                             select
@@ -974,7 +974,7 @@ let main = {
                                     f.lpad('Extrusão:', 14, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
-                                    f.lpad('     ' + (operador.length >= 3 ? operador[2] : ''), 16, padstr) +
+                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
                                     f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
@@ -989,8 +989,8 @@ let main = {
                                     f.lpad('Impressão:', 14, padstr) +
                                     f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
                                     f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
-                                    f.lpad('', 13, padstr) +
-                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
+                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
                                     f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
                                     f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
                                     f.lpad('[ ] A [ ] R', 12, padstr) +
@@ -2028,6 +2028,83 @@ let main = {
                             f[obj.req.body.function](obj);
                         } else {
                             return application.error(obj.res, { msg: 'Função não encontrada' });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_gerarVolumes: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Depósito*'
+                                , name: 'iddeposito'
+                                , model: 'est_deposito'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.integer({
+                                width: '12'
+                                , label: 'Quantidade de Volumes'
+                                , name: 'qtdvolumes'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Produto'
+                                , name: 'idversao'
+                                , model: 'pcp_versao'
+                                , attribute: 'descricaocompleta'
+                            });
+                            body += application.components.html.decimal({
+                                width: '12'
+                                , label: 'Quantidade por Volume'
+                                , name: 'qtd'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['iddeposito', 'qtdvolumes', 'idversao', 'qtd']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let ids = [];
+
+                            for (let i = 0; i < obj.req.body.qtdvolumes; i++) {
+                                let volume = await db.getModel('est_volume').create({
+                                    idversao: obj.req.body.idversao
+                                    , iduser: obj.req.user.id
+                                    , datahora: moment()
+                                    , qtd: application.formatters.be.decimal(obj.req.body.qtd, 4)
+                                    , consumido: false
+                                    , qtdreal: application.formatters.be.decimal(obj.req.body.qtd, 4)
+                                    , iddeposito: obj.req.body.iddeposito
+                                }, { iduser: obj.req.user.id });
+                                ids.push(volume.id);
+                            }
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt2' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: '<div class="col-md-12">IDs gerados: ' + ids.join(', ') + '</div>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>'
+                                }
+                                , reloadtables: true
+                            });
                         }
 
                     } catch (err) {
