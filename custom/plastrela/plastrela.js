@@ -2049,20 +2049,30 @@ let main = {
                             });
                             body += application.components.html.integer({
                                 width: '12'
-                                , label: 'Quantidade de Volumes'
+                                , label: 'Quantidade de Volumes*'
                                 , name: 'qtdvolumes'
                             });
                             body += application.components.html.autocomplete({
                                 width: '12'
-                                , label: 'Produto'
+                                , label: 'Produto*'
                                 , name: 'idversao'
                                 , model: 'pcp_versao'
                                 , attribute: 'descricaocompleta'
                             });
                             body += application.components.html.decimal({
                                 width: '12'
-                                , label: 'Quantidade por Volume'
+                                , label: 'Quantidade por Volume*'
                                 , name: 'qtd'
+                            });
+                            body += application.components.html.text({
+                                width: '6'
+                                , label: 'Lote'
+                                , name: 'lote'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data de Validade'
+                                , name: 'datavalidade'
                             });
 
                             return application.success(obj.res, {
@@ -2092,6 +2102,8 @@ let main = {
                                     , consumido: false
                                     , qtdreal: application.formatters.be.decimal(obj.req.body.qtd, 4)
                                     , iddeposito: obj.req.body.iddeposito
+                                    , lote: obj.req.body.lote || null
+                                    , datavalidade: application.formatters.be.date(obj.req.body.datavalidade) || null
                                 }, { iduser: obj.req.user.id });
                                 ids.push(volume.id);
                             }
