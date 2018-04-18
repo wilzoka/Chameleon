@@ -10,8 +10,7 @@ const fixResults = function (registers, modelattributes, viewtables) {
         if (modelattributes[i].typeadd) {
             j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
         }
-        let realtype = modelattributes[i].type == 'virtual' ? j.type : modelattributes[i].type;
-        switch (realtype) {
+        switch (j.type || modelattributes[i].type) {
             case 'autocomplete':
                 let vas = j.as || j.model;
                 for (let x = 0; x < registers.rows.length; x++) {

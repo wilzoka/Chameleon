@@ -527,7 +527,7 @@
         "wherefixed": null,
         "orderfixed": "name,asc",
         "supressid": false,
-        "template": "box-6-6",
+        "template": "box-12-12",
         "model": "model",
         "module": "Plataforma",
         "url": "modelo",
@@ -535,7 +535,7 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "name",
-                "width": 12,
+                "width": 6,
                 "order": 1,
                 "disabled": false,
                 "disablefilter": false
@@ -543,7 +543,7 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "description",
-                "width": 12,
+                "width": 6,
                 "order": 2,
                 "disabled": false,
                 "disablefilter": false
@@ -551,7 +551,7 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "onsave",
-                "width": 12,
+                "width": 6,
                 "order": 3,
                 "disabled": false,
                 "disablefilter": false
@@ -559,7 +559,7 @@
             {
                 "templatezone": "z1",
                 "modelattribute": "ondelete",
-                "width": 12,
+                "width": 6,
                 "order": 4,
                 "disabled": false,
                 "disablefilter": false
@@ -1507,7 +1507,7 @@
         "namecomplete": "Plataforma - View - Evento",
         "js": null,
         "wherefixed": null,
-        "orderfixed": null,
+        "orderfixed": "description,asc",
         "supressid": false,
         "template": "box-6",
         "model": "viewevent",
@@ -1551,7 +1551,7 @@
             {
                 "modelattribute": "description",
                 "ordertable": 1,
-                "orderable": true,
+                "orderable": false,
                 "render": null,
                 "totalize": null,
                 "class": null
@@ -1560,14 +1560,14 @@
                 "modelattribute": "icon",
                 "ordertable": 2,
                 "orderable": false,
-                "render": null,
+                "render": "icon",
                 "totalize": null,
                 "class": null
             },
             {
                 "modelattribute": "function",
                 "ordertable": 3,
-                "orderable": true,
+                "orderable": false,
                 "render": null,
                 "totalize": null,
                 "class": null

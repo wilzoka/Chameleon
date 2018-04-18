@@ -2,7 +2,7 @@
 @media (max-width: 991px){
     .main-header .navbar-custom-menu a, .main-header .navbar-right a {
         color: #3c8dbc;
-    }
+    }    
 }
 @media (max-width: 767px) {
     .skin-blue .main-header .navbar .dropdown-menu li a {
@@ -10,6 +10,11 @@
     }
     .skin-blue .main-header .navbar .dropdown-menu li a:hover {
         background: none;
+    }
+    .main-header {
+        position: fixed;
+        top: 0px;
+        width: 100%;
     }
     .main-header .logo {
         font-size: 12px;
@@ -30,6 +35,19 @@
     }
     .btn-biggermobile {
         font-size: 20px;
+    }
+    .navbar-custom-menu .navbar-nav > li > a {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+    .main-header .navbar {
+        min-height: auto;
+    }
+    .main-header .sidebar-toggle {
+        padding: 8px 15px;
+    }
+    .content-wrapper {
+        margin-top: 60px;
     }
 }
 div.wrapper {

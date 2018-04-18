@@ -7,8 +7,7 @@ const application = require('./application')
     ;
 
 const renderText = function (viewfield, register) {
-
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
     value = escape(value);
 
     let label = viewfield.modelattribute.label;
@@ -328,7 +327,12 @@ const renderSubView = function (viewsubview) {
 }
 
 const render = function (viewfield, register) {
-    switch (viewfield.modelattribute.type) {
+    let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
+    if (viewfield.modelattribute.type == 'virtual') {
+        viewfield.disabled = true;
+        j.type = j.type == 'autocomplete' ? 'text' : j.type;
+    }
+    switch (j.type || viewfield.modelattribute.type) {
         case 'text':
             return renderText(viewfield, register);
         case 'textarea':
@@ -351,15 +355,6 @@ const render = function (viewfield, register) {
             return renderFile(viewfield, register);
         case 'georeference':
             return renderGeoreference(viewfield, register);
-        case 'virtual':
-            return application.components.html.text({
-                name: viewfield.modelattribute.name
-                , width: viewfield.width
-                , label: viewfield.modelattribute.label
-                , value: register && register.dataValues[viewfield.modelattribute.name] || ''
-                , disabled: 'disabled="disabled"'
-            });
-            break;
         case 'radio':
             return renderRadio(viewfield, register);
             break;
@@ -832,13 +827,11 @@ module.exports = function (app) {
                     let filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type;
                     let filterbegin = '';
                     let filterend = '';
-                    let json = {};
-                    if (viewfields[i].modelattribute.typeadd) {
-                        json = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                    }
-                    switch (viewfields[i].modelattribute.type) {
+                    let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                    let virtual = viewfields[i].modelattribute.type == 'virtual' ? 'v' : ''
+                    switch (j.type || viewfields[i].modelattribute.type) {
                         case 'text':
-                            filtername += separator + 's';
+                            filtername += separator + 's' + virtual;
                             filter += application.components.html.text({
                                 width: 12
                                 , label: viewfields[i].modelattribute.label
@@ -847,7 +840,7 @@ module.exports = function (app) {
                             });
                             break;
                         case 'textarea':
-                            filtername += separator + 's';
+                            filtername += separator + 's' + virtual;
                             filter += application.components.html.text({
                                 width: 12
                                 , label: viewfields[i].modelattribute.label
@@ -856,9 +849,9 @@ module.exports = function (app) {
                             });
                             break;
                         case 'integer':
-                            filterbegin = filtername + separator + 'b';
-                            filterend = filtername + separator + 'e';
-                            filtername += separator + 'r';
+                            filterbegin = filtername + separator + 'b' + virtual;
+                            filterend = filtername + separator + 'e' + virtual;
+                            filtername += separator + 'r' + virtual;
                             filter += application.components.html.integer({
                                 width: 4
                                 , label: viewfields[i].modelattribute.label
@@ -879,8 +872,8 @@ module.exports = function (app) {
                             });
                             break;
                         case 'date':
-                            filterbegin = filtername + separator + 'b';
-                            filterend = filtername + separator + 'e';
+                            filterbegin = filtername + separator + 'b' + virtual;
+                            filterend = filtername + separator + 'e' + virtual;
                             filter += application.components.html.date({
                                 width: 6
                                 , label: viewfields[i].modelattribute.label + ' - Inicial'
@@ -895,8 +888,8 @@ module.exports = function (app) {
                             });
                             break;
                         case 'datetime':
-                            filterbegin = filtername + separator + 'b';
-                            filterend = filtername + separator + 'e';
+                            filterbegin = filtername + separator + 'b' + virtual;
+                            filterend = filtername + separator + 'e' + virtual;
                             filter += application.components.html.datetime({
                                 width: 6
                                 , label: viewfields[i].modelattribute.label + ' - Inicial'
@@ -911,8 +904,8 @@ module.exports = function (app) {
                             });
                             break;
                         case 'time':
-                            filterbegin = filtername + separator + 'b';
-                            filterend = filtername + separator + 'e';
+                            filterbegin = filtername + separator + 'b' + virtual;
+                            filterend = filtername + separator + 'e' + virtual;
                             filter += application.components.html.time({
                                 width: 6
                                 , label: viewfields[i].modelattribute.label + ' - Inicial'
@@ -927,56 +920,56 @@ module.exports = function (app) {
                             });
                             break;
                         case 'decimal':
-                            filterbegin = filtername + separator + 'b';
-                            filterend = filtername + separator + 'e';
+                            filterbegin = filtername + separator + 'b' + virtual;
+                            filterend = filtername + separator + 'e' + virtual;
                             filter += application.components.html.decimal({
                                 width: 6
                                 , label: viewfields[i].modelattribute.label + ' - Inicial'
                                 , name: filterbegin
                                 , value: getFilterValue(filterbegin, cookiefilter)
-                                , precision: json.precision
+                                , precision: j.precision
                             });
                             filter += application.components.html.decimal({
                                 width: 6
                                 , label: viewfields[i].modelattribute.label + ' - Final'
                                 , name: filterend
                                 , value: getFilterValue(filterend, cookiefilter)
-                                , precision: json.precision
+                                , precision: j.precision
                             });
                             break;
                         case 'autocomplete':
-                            filtername += separator + 'i';
+                            filtername += separator + 'i' + virtual;
                             filter += application.components.html.autocomplete({
                                 width: 12
                                 , label: viewfields[i].modelattribute.label
                                 , name: filtername
                                 , disabled: ''
-                                , model: json.model
-                                , attribute: json.attribute || ''
-                                , query: json.query || ''
-                                , where: req.body.issubview == 'true' && json.where ? json.where : ''
+                                , model: j.model
+                                , attribute: j.attribute || ''
+                                , query: j.query || ''
+                                , where: req.body.issubview == 'true' && j.where ? j.where : ''
                                 , multiple: 'multiple="multiple"'
                                 , option: getFilterValue(filtername, cookiefilter).options || ''
                             });
                             break;
                         case 'radio':
-                            filtername += separator + 'i';
+                            filtername += separator + 'i' + virtual;
                             filter += application.components.html.autocomplete({
                                 width: 12
                                 , label: viewfields[i].modelattribute.label
                                 , name: filtername
                                 , disabled: ''
                                 , multiple: 'multiple="multiple"'
-                                , options: json.options
+                                , options: j.options
                                 , option: getFilterValue(filtername, cookiefilter).options || ''
                             });
                             break;
                         case 'boolean':
-                            filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type + separator + 'r';
+                            filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type + separator + 'r' + virtual;
                             filter += '<div class="col-md-12">'
                                 + '<div class="form-group">'
                                 + '<label>' + viewfields[i].modelattribute.label + '</label>'
-                                + '<div class="row">'
+                                + '<div class="row" style="text-align: center;">'
                                 + '<div class="col-xs-4">'
                                 + '<label>'
                                 + '<input type="radio" name="' + filtername + '" value="" ' + (getFilterValue(filtername, cookiefilter) == '' ? 'checked="checked"' : '') + '>'
@@ -998,75 +991,6 @@ module.exports = function (app) {
                                 + '</div>'
                                 + '</div>'
                                 + '</div>';
-                            break;
-                        case 'virtual':
-                            filtername = viewfields[i].modelattribute.name + separator + json.type;
-                            switch (json.type) {
-                                case 'text':
-                                    filtername += separator + 'sv';
-                                    filter += application.components.html.text({
-                                        width: 12
-                                        , label: viewfields[i].modelattribute.label
-                                        , name: filtername
-                                        , value: getFilterValue(filtername, cookiefilter)
-                                    });
-                                    break;
-                                case 'integer':
-                                    filterbegin = filtername + separator + 'bv';
-                                    filterend = filtername + separator + 'ev';
-                                    filtername += separator + 'rv';
-                                    filter += application.components.html.integer({
-                                        width: 4
-                                        , label: viewfields[i].modelattribute.label
-                                        , name: filtername
-                                        , value: getFilterValue(filtername, cookiefilter)
-                                    });
-                                    filter += application.components.html.integer({
-                                        width: 4
-                                        , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                        , name: filterbegin
-                                        , value: getFilterValue(filterbegin, cookiefilter)
-                                    });
-                                    filter += application.components.html.integer({
-                                        width: 4
-                                        , label: viewfields[i].modelattribute.label + ' - Final'
-                                        , name: filterend
-                                        , value: getFilterValue(filterend, cookiefilter)
-                                    });
-                                    break;
-                                case 'decimal':
-                                    filterbegin = filtername + separator + 'bv';
-                                    filterend = filtername + separator + 'ev';
-                                    filter += application.components.html.decimal({
-                                        width: 6
-                                        , label: viewfields[i].modelattribute.label + ' - Inicial'
-                                        , name: filterbegin
-                                        , value: getFilterValue(filterbegin, cookiefilter)
-                                        , precision: json.precision
-                                    });
-                                    filter += application.components.html.decimal({
-                                        width: 6
-                                        , label: viewfields[i].modelattribute.label + ' - Final'
-                                        , name: filterend
-                                        , value: getFilterValue(filterend, cookiefilter)
-                                        , precision: json.precision
-                                    });
-                                    break;
-                                case 'autocomplete':
-                                    filtername += separator + 'iv';
-                                    filter += application.components.html.autocomplete({
-                                        width: 12
-                                        , label: viewfields[i].modelattribute.label
-                                        , name: filtername
-                                        , disabled: ''
-                                        , model: json.model
-                                        , attribute: json.attribute
-                                        , where: req.body.issubview == 'true' && json.where ? json.where : ''
-                                        , multiple: 'multiple="multiple"'
-                                        , option: getFilterValue(filtername, cookiefilter).options || ''
-                                    });
-                                    break;
-                            }
                             break;
                     }
                 }

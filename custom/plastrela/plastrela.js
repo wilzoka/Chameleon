@@ -180,8 +180,8 @@ let main = {
 
                         let config = await db.getModel('config').find({ raw: true });
                         let image = JSON.parse(config.reportimage)[0];
-                        var filename = process.hrtime()[1] + '.pdf';
-                        var stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                        let filename = process.hrtime()[1] + '.pdf';
+                        let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
 
                         doc.addPage({
                             margin: 30
@@ -428,7 +428,7 @@ let main = {
                         if (spednfitem.length <= 0) {
                             return application.error(obj.res, { msg: 'Esta nota não possui itens' });
                         }
-                        for (var i = 0; i < spednfitem.length; i++) {
+                        for (let i = 0; i < spednfitem.length; i++) {
                             if (!spednfitem[i].ordem_compra) {
                                 return application.error(obj.res, { msg: 'Existe algum item desta nota sem ordem de compra vinculado' });
                             }
@@ -446,7 +446,7 @@ let main = {
                         });
 
                         let bulkitens = [];
-                        for (var i = 0; i < spednfitem.length; i++) {
+                        for (let i = 0; i < spednfitem.length; i++) {
 
                             let sql = await db.sequelize.query("select v.id from pcp_versao v left join cad_item i on (v.iditem = i.id) where i.codigo = :item and v.codigo = :versao", {
                                 type: db.sequelize.QueryTypes.SELECT
@@ -1399,10 +1399,10 @@ let main = {
 
                         //unbound files
                         let filestounbound = [];
-                        for (var i = 0; i < volumes.length; i++) {
+                        for (let i = 0; i < volumes.length; i++) {
                             if (volumes[i].fotos) {
                                 let j = JSON.parse(volumes[i].fotos);
-                                for (var z = 0; z < j.length; z++) {
+                                for (let z = 0; z < j.length; z++) {
                                     filestounbound.push(j[z].id);
                                 }
                             }
@@ -1684,6 +1684,25 @@ let main = {
                                 }
                             });
 
+                            for (let i = 0; i < volumes.length; i++) {
+                                if (volumes[i].consumido) {
+                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} está consumido` });
+                                }
+                                let requisicao = await db.getModel('est_requisicaovolume').find({ where: { idvolume: volumes[i].id, datahoraatendido: null } });
+                                if (requisicao) {
+                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} já possui uma requisição em aberto` });
+                                }
+                                let reservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volumes[i].id } });
+                                if (reservas.length <= 0) {
+                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} não possui reservas` });
+                                }
+                                for (let z = 0; z < reservas.length; z++) {
+                                    if (!reservas[z].idop) {
+                                        return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} possui uma reserva sem OP` });
+                                    }
+                                }
+                            }
+
                             let body = '';
                             body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
                             body += application.components.html.autocomplete({
@@ -1695,8 +1714,13 @@ let main = {
                             });
                             body += application.components.html.datetime({
                                 width: '12'
-                                , label: 'Data/Hora para Atender'
+                                , label: 'Data/Hora para Entregar*'
                                 , name: 'datahora'
+                            });
+                            body += application.components.html.textarea({
+                                width: '12'
+                                , label: 'Observações'
+                                , name: 'observacao'
                             });
 
                             return application.success(obj.res, {
@@ -1713,6 +1737,17 @@ let main = {
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'iddeposito', 'datahora']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let ids = obj.req.body.ids.split(',');
+                            for (let i = 0; i < ids.length; i++) {
+                                await db.getModel('est_requisicaovolume').create({
+                                    iduser: obj.req.user.id
+                                    , datahora: application.formatters.be.datetime(obj.req.body.datahora)
+                                    , iddeposito: obj.req.body.iddeposito
+                                    , idvolume: ids[i]
+                                    , observacao: obj.req.body.observacao || null
+                                }, { iduser: obj.req.user.id });
                             }
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
@@ -1832,7 +1867,7 @@ let main = {
                                     v.id
                                     , de.descricao as depositoendereco
                                     , v.qtdreal
-                                    , ver.descricaocompleta as produto
+                                    , coalesce(ver.descricaocompleta, ' ') as produto
                                 from
                                     est_volume v
                                 left join est_depositoendereco de on (v.iddepositoendereco = de.id)
@@ -1892,7 +1927,7 @@ let main = {
                                         v.id
                                         , de.descricao as depositoendereco
                                         , v.qtdreal
-                                        , ver.descricaocompleta as produto
+                                        , coalesce(ver.descricaocompleta, '') as produto
                                     from
                                         est_volume v
                                     left join est_depositoendereco de on (v.iddepositoendereco = de.id)
@@ -2246,7 +2281,7 @@ let main = {
                             let fieldsrequired = ['iddeposito', 'prefixo', 'inicial', 'final'];
                             let invalidfields = [];
 
-                            for (var i = 0; i < fieldsrequired.length; i++) {
+                            for (let i = 0; i < fieldsrequired.length; i++) {
                                 if (!(fieldsrequired[i] in obj.req.body && obj.req.body[fieldsrequired[i]])) {
                                     invalidfields.push(fieldsrequired[i]);
                                 }
@@ -2314,6 +2349,70 @@ let main = {
                     }
                 }
             }
+            , requisicao: {
+                e_entregar: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let requisicoes = await db.getModel('est_requisicaovolume').findAll({ where: { id: { $in: obj.ids } } });
+
+                        for (let i = 0; i < requisicoes.length; i++) {
+                            if (requisicoes[i].datahoraatendido) {
+                                return application.error(obj.res, { msg: `A requisição ${requisicoes[i].id} já foi atendida` });
+                            }
+                        }
+
+                        for (let i = 0; i < requisicoes.length; i++) {
+                            requisicoes[i].datahoraatendido = moment();
+                            requisicoes[i].iduseratendimento = obj.req.user.id;
+                            let volume = await db.getModel('est_volume').find({ where: { id: requisicoes[i].idvolume } });
+                            requisicoes[i].iddepositoorigem = volume.iddeposito;
+                            requisicoes[i].iddepositoenderecoorigem = volume.iddepositoendereco;
+                            volume.iddeposito = requisicoes[i].iddeposito;
+                            volume.iddepositoendereco = null;
+                            volume.save();
+                            requisicoes[i].save();
+                        }
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_undoentregar: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let requisicoes = await db.getModel('est_requisicaovolume').findAll({ where: { id: { $in: obj.ids } } });
+
+                        for (let i = 0; i < requisicoes.length; i++) {
+                            if (!requisicoes[i].datahoraatendido) {
+                                return application.error(obj.res, { msg: `A requisição ${requisicoes[i].id} não foi atendida` });
+                            }
+                        }
+
+                        for (let i = 0; i < requisicoes.length; i++) {
+                            requisicoes[i].datahoraatendido = null;
+                            requisicoes[i].iduseratendimento = null;
+                            let volume = await db.getModel('est_volume').find({ where: { id: requisicoes[i].idvolume } });
+                            volume.iddeposito = requisicoes[i].iddepositoorigem;
+                            volume.iddepositoendereco = requisicoes[i].iddepositoenderecoorigem;
+                            requisicoes[i].iddepositoorigem = null;
+                            requisicoes[i].iddepositoenderecoorigem = null;
+                            volume.save();
+                            requisicoes[i].save();
+                        }
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
         }
         , pcp: {
             ap: {
@@ -2353,6 +2452,63 @@ let main = {
                             ).then(results => {
                                 resolve(results[0].max);
                             });
+                        });
+                    });
+                }
+                , f_usuarioUltimoAp: function (idoprecurso) {
+                    return new Promise((resolve) => {
+                        db.getModel('pcp_oprecurso').find({ where: { id: idoprecurso } }).then(oprecurso => {
+                            db.sequelize.query(`
+                                select
+                                    x.*
+                                    , u.fullname
+                                from
+                                    (select
+                                        datahora, iduser
+                                    from
+                                        pcp_apinsumo api
+                                    where api.idoprecurso = :v1
+                                
+                                    union all
+                                
+                                    select
+                                        datahora, iduser
+                                    from
+                                        pcp_apperda app
+                                    where app.idoprecurso = :v1
+                                
+                                    union all
+                                
+                                    select
+                                        datafim, iduser
+                                    from
+                                        pcp_apparada app
+                                    where app.idoprecurso = :v1
+                                
+                                    union all
+                                
+                                    select
+                                        v.datahora, apv.iduser
+                                    from
+                                        pcp_approducao app
+                                    inner join pcp_approducaovolume apv on (app.id = apv.idapproducao)
+                                    left join est_volume v on (apv.id = v.idapproducaovolume)
+                                    where app.idoprecurso = :v1) as x
+                                left join users u on (x.iduser = u.id)
+                                order by datahora desc
+                                limit 1                          
+                                `
+                                , {
+                                    replacements: { v1: idoprecurso }
+                                    , type: db.sequelize.QueryTypes.SELECT
+                                }).then(sql => {
+                                    let data = { id: null, text: null };
+                                    if (sql.length > 0) {
+                                        data.id = sql[0].iduser;
+                                        data.text = sql[0].fullname;
+                                    }
+                                    resolve(data);
+                                });
                         });
                     });
                 }
@@ -2560,11 +2716,11 @@ let main = {
                                     let pesoliquido = 0;
                                     let qtd = 0;
 
-                                    for (var i = 0; i < tempos.length; i++) {
+                                    for (let i = 0; i < tempos.length; i++) {
                                         intervalos.push(moment(tempos[i].dataini).format('DD/MM HH:mm') + ' - ' + moment(tempos[i].datafim).format('DD/MM HH:mm'));
                                     }
 
-                                    for (var i = 0; i < volumes.length; i++) {
+                                    for (let i = 0; i < volumes.length; i++) {
                                         pesoliquido += parseFloat(volumes[i].pesoliquido);
                                         qtd += parseFloat(volumes[i].qtd);
                                     }
@@ -2630,6 +2786,10 @@ let main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                        }
+
+                        if (!obj.register.dataini || !obj.register.datafim) {
+                            return application.error(obj.res, { msg: 'Informe as datas corretamente', invalidfields: ['dataini', 'datafim'] });
                         }
 
                         let dataini = moment(obj.register.dataini);
@@ -2849,6 +3009,151 @@ let main = {
                     }
                     obj.ids = ids;
                     main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
+                }
+                , e_gerarVolumes: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+                            body += application.components.html.hidden({
+                                name: 'idapproducao'
+                                , value: obj.id
+                            });
+
+                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.id } });
+                            let usuarioultimoap = await main.plastrela.pcp.ap.f_usuarioUltimoAp(approducao.idoprecurso);
+
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Usuário*'
+                                , name: 'iduser'
+                                , model: 'users'
+                                , attribute: 'fullname'
+                                , where: 'active and c_codigosenior is not null'
+                                , option: usuarioultimoap.id ? `<option value="${usuarioultimoap.id}" selected>${usuarioultimoap.text}</option>` : ''
+                            });
+                            body += application.components.html.integer({
+                                width: '12'
+                                , label: 'Quantidade de Volumes*'
+                                , name: 'qtdvolumes'
+                            });
+                            body += application.components.html.decimal({
+                                width: '4'
+                                , label: 'Quantidade*'
+                                , name: 'qtd'
+                                , precision: 4
+                            });
+                            body += application.components.html.decimal({
+                                width: '4'
+                                , label: 'Peso Bruto(Kg)*'
+                                , name: 'pesobruto'
+                                , precision: 4
+                            });
+                            body += application.components.html.decimal({
+                                width: '4'
+                                , label: 'Tara(Kg)*'
+                                , name: 'tara'
+                                , precision: 2
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, [
+                                'idapproducao'
+                                , 'qtdvolumes'
+                                , 'iduser'
+                                , 'qtd'
+                                , 'pesobruto'
+                                , 'tara'
+                            ]);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            obj.req.body.qtd = application.formatters.be.decimal(obj.req.body.qtd, 4);
+                            obj.req.body.pesobruto = application.formatters.be.decimal(obj.req.body.pesobruto, 4)
+                            obj.req.body.tara = application.formatters.be.decimal(obj.req.body.tara, 4);
+
+                            let config = await db.getModel('pcp_config').find();
+                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.req.body.idapproducao } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                            if (oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
+                            }
+                            if (obj.req.body.qtd <= 0) {
+                                return application.error(obj.res, { msg: 'A quantidade deve ser maior que 0', invalidfields: ['qtd'] });
+                            }
+                            if (obj.req.body.pesobruto <= 0) {
+                                return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
+                            }
+                            if (obj.req.body.tara <= 0) {
+                                return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
+                            }
+
+                            let pesoliquido = (obj.req.body.pesobruto - obj.req.body.tara).toFixed(4);
+
+                            let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                            let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                            let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+
+                            if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + (parseFloat(pesoliquido) * obj.req.body.qtdvolumes)) < 0) {
+                                return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                            }
+
+                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
+                            let tprecurso = await db.getModel('pcp_tprecurso').find({ where: { id: etapa.idtprecurso } });
+                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                            let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+                            let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
+
+                            let qtd = obj.req.body.qtd;
+                            let metragem = null;
+                            if ([1, 2, 3].indexOf(tprecurso.codigo) >= 0) {
+                                qtd = pesoliquido;
+                                metragem = obj.req.body.qtd;
+                            }
+
+                            for (let i = 0; i < obj.req.body.qtdvolumes; i++) {
+
+                                let approducaovolume = await db.getModel('pcp_approducaovolume').create({
+                                    iduser: obj.req.body.iduser
+                                    , pesobruto: obj.req.body.pesobruto
+                                    , pesoliquido: pesoliquido
+                                    , tara: obj.req.body.tara
+                                    , idapproducao: approducao.id
+                                    , qtd: obj.req.body.qtd
+                                }, { iduser: obj.req.body.iduser });
+
+                                await db.getModel('est_volume').create({
+                                    idapproducaovolume: approducaovolume.id
+                                    , idversao: op.idversao
+                                    , iddeposito: deposito.id
+                                    , iduser: obj.req.body.iduser
+                                    , datahora: moment()
+                                    , qtd: qtd
+                                    , metragem: metragem
+                                    , consumido: false
+                                    , qtdreal: qtd
+                                }, { iduser: obj.req.body.iduser });
+                            }
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
             }
             , apperda: {
@@ -3207,6 +3512,9 @@ let main = {
                         }
                         if (!user.c_codigosenior) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
+                        }
+                        if ([10].indexOf(etapa.codigo) >= 0 && !obj.data.recipiente) {
+                            return application.error(obj.res, { msg: 'Camada/Estação obrigatória na Extrusão', invalidfields: ['recipiente'] });
                         }
 
                         if (volume.metragem) {

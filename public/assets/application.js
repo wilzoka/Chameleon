@@ -188,7 +188,7 @@ var application = {
                 if (!application.functions.isMobile()) {
                     $('#' + table + 'filter').on('shown.bs.modal', function () {
                         setTimeout(function () {
-                            application.functions.focusFirstElement($(this));
+                            $(this).find('button.close').focus();
                         }.apply(this), 200);
                         $('#' + table + 'filter').unbind('shown.bs.modal');
                     });
