@@ -1,7 +1,8 @@
 // Datatable
 $.extend(true, $.fn.dataTable.defaults, {
     language: {
-        paginate: {
+        search: ''
+        , paginate: {
             next: 'Próximo'
             , previous: 'Anterior'
         }
@@ -737,6 +738,8 @@ var application = {
                 , ordering: data.permissions.orderable
                 , stateSave: true
                 , columns: data.columns
+                , pageLength: data.pageLength
+                , paging: data.pageLength > 0
                 , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
                 , select: {
                     style: 'multi'

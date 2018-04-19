@@ -1252,7 +1252,7 @@
             {
                 "templatezone": "view",
                 "modelattribute": "name",
-                "width": 12,
+                "width": 6,
                 "order": 1,
                 "disabled": false,
                 "disablefilter": false
@@ -1260,7 +1260,7 @@
             {
                 "templatezone": "view",
                 "modelattribute": "idtemplate",
-                "width": 12,
+                "width": 6,
                 "order": 2,
                 "disabled": false,
                 "disablefilter": false
@@ -1268,7 +1268,7 @@
             {
                 "templatezone": "view",
                 "modelattribute": "idmodel",
-                "width": 12,
+                "width": 6,
                 "order": 3,
                 "disabled": false,
                 "disablefilter": false
@@ -1276,24 +1276,8 @@
             {
                 "templatezone": "view",
                 "modelattribute": "idmodule",
-                "width": 12,
+                "width": 6,
                 "order": 4,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "view",
-                "modelattribute": "wherefixed",
-                "width": 12,
-                "order": 5,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "view",
-                "modelattribute": "orderfixed",
-                "width": 12,
-                "order": 6,
                 "disabled": false,
                 "disablefilter": false
             },
@@ -1301,7 +1285,31 @@
                 "templatezone": "view",
                 "modelattribute": "js",
                 "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "wherefixed",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "orderfixed",
+                "width": 6,
                 "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "pagelength",
+                "width": 6,
+                "order": 8,
                 "disabled": false,
                 "disablefilter": false
             },
@@ -1309,7 +1317,7 @@
                 "templatezone": "view",
                 "modelattribute": "supressid",
                 "width": 6,
-                "order": 8,
+                "order": 9,
                 "disabled": false,
                 "disablefilter": false
             }

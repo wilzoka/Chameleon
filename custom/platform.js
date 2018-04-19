@@ -967,6 +967,7 @@ let platform = {
                         , model: views[i].model.name
                         , module: views[i].module.description
                         , url: views[i].url
+                        , pagelength: views[i].pagelength
                     });
                     let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['order', 'asc']] });
                     j[j.length - 1]._field = [];
@@ -1071,6 +1072,7 @@ let platform = {
                                 view.namecomplete = views[i].namecomplete;
                                 view.orderfixed = views[i].orderfixed;
                                 view.url = views[i].url;
+                                view.pagelength = views[i].pagelength;
                                 if (view.changed()) {
                                     await view.save();
                                     console.log('UPDATED');

@@ -761,6 +761,13 @@
                 "type": "text",
                 "notnull": false,
                 "typeadd": null
+            },
+            {
+                "name": "pagelength",
+                "label": "Linhas por Página",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": null
             }
         ]
     },

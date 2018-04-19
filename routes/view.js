@@ -1004,6 +1004,7 @@ module.exports = function (app) {
                         count: cookiefiltercount
                         , html: filter
                     }
+                    , pageLength: view.pagelength || 10
                 });
             } else {
                 return application.forbidden(res);

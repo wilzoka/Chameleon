@@ -3,6 +3,7 @@ const application = require('../routes/application')
   , Sequelize = require('sequelize')
   , sequelize = new Sequelize('db', 'postgres', 'postgres', {
     host: '127.0.0.1'
+    , port: 5432
     , dialect: 'postgres'
     , pool: {
       max: 5
