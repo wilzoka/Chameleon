@@ -2164,15 +2164,15 @@ let main = {
                     try {
 
                         let volume = await db.getModel('est_volume').find({ where: { id: obj.register.idvolume } });
-                        let qtdreservada = parseFloat(await db.getModel('est_volumereserva').sum('qtd', {
+                        let qtdreservada = await db.getModel('est_volumereserva').sum('qtd', {
                             where: {
                                 id: { $ne: obj.register.id }
                                 , idvolume: volume.id
                                 , apontado: false
                             }
-                        })) || 0;
+                        });
 
-                        if ((qtdreservada + parseFloat(obj.register.qtd)) > parseFloat(volume.qtdreal)) {
+                        if ((qtdreservada + parseFloat(obj.register.qtd)).toFixed(2) > parseFloat(volume.qtdreal)) {
                             return application.error(obj.res, { msg: 'Este volume não possui essa quantidade para ser reservado' });
                         }
 
@@ -2370,6 +2370,7 @@ let main = {
                             let volume = await db.getModel('est_volume').find({ where: { id: requisicoes[i].idvolume } });
                             requisicoes[i].iddepositoorigem = volume.iddeposito;
                             requisicoes[i].iddepositoenderecoorigem = volume.iddepositoendereco;
+                            requisicoes[i].qtd = volume.qtdreal;
                             volume.iddeposito = requisicoes[i].iddeposito;
                             volume.iddepositoendereco = null;
                             volume.save();
@@ -2398,6 +2399,7 @@ let main = {
                         for (let i = 0; i < requisicoes.length; i++) {
                             requisicoes[i].datahoraatendido = null;
                             requisicoes[i].iduseratendimento = null;
+                            requisicoes[i].qtd = null;
                             let volume = await db.getModel('est_volume').find({ where: { id: requisicoes[i].idvolume } });
                             volume.iddeposito = requisicoes[i].iddepositoorigem;
                             volume.iddepositoendereco = requisicoes[i].iddepositoenderecoorigem;
@@ -2408,6 +2410,104 @@ let main = {
                         }
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_relentregues: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            let body = '';
+                            body += application.components.html.datetime({
+                                width: '6'
+                                , label: 'Data Inicial'
+                                , name: 'dataini'
+                            });
+                            body += application.components.html.datetime({
+                                width: '6'
+                                , label: 'Data Final'
+                                , name: 'datafim'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let sql = await db.sequelize.query(`
+                            select
+                                rv.datahoraatendido
+                                , i.codigo || '/' || v.codigo as produto
+                                , rv.qtd
+                                , e.codigo || ' - ' || e.descricao as etapa
+                                , vol.id as idvolume
+                            from
+                                est_requisicaovolume rv
+                            left join est_volume vol on (rv.idvolume = vol.id)	
+                            left join pcp_versao v on (vol.idversao = v.id)
+                            left join cad_item i on (v.iditem = i.id)
+                            left join pcp_etapa e on (rv.iddeposito = e.iddeposito)
+                            where
+                                rv.datahoraatendido between :dataini and :datafim
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: application.formatters.be.datetime(obj.req.body.dataini)
+                                        , datafim: application.formatters.be.datetime(obj.req.body.datafim)
+                                    }
+                                });
+
+                            let report = {};
+                            report.__title = `Requisições Atendidas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}`;
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Data Atendimento</strong></td>
+                                    <td style="text-align:center;"><strong>ID Volume</strong></td>
+                                    <td style="text-align:center;"><strong>Item / Versão</strong></td>
+                                    <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    <td style="text-align:center;"><strong>Etapa</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:left;"> ${application.formatters.fe.datetime(sql[i]['datahoraatendido'])} </td>
+                                    <td style="text-align:left;"> ${sql[i]['idvolume']} </td>
+                                    <td style="text-align:left;"> ${sql[i]['produto']} </td>
+                                    <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
+                                    <td style="text-align:left;"> ${sql[i]['etapa']} </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
+                        }
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

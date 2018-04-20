@@ -6,7 +6,7 @@ $.extend(true, $.fn.dataTable.defaults, {
             next: 'Próximo'
             , previous: 'Anterior'
         }
-        , sInfo: 'Exibindo _START_ a _END_ de _TOTAL_'
+        , sInfo: '_TOTAL_ Registros'
         , sInfoEmpty: ''
         , sInfoFiltered: '(filtrado de _MAX_ registros)'
         , sLengthMenu: '_MENU_'
@@ -17,6 +17,10 @@ $.extend(true, $.fn.dataTable.defaults, {
         , sEmptyTable: 'Vazio'
     }
 });
+$.extend(true, $.fn.dataTable.ext.classes, {
+    sFilterInput: 'form-control'
+});
+
 // Dropzone
 Dropzone.autoDiscover = false;
 Dropzone.prototype.defaultOptions.dictFallbackMessage = "Your browser does not support drag'n'drop file uploads.";
@@ -150,7 +154,7 @@ var application = {
                 window.history.back();
             });
             $(document).on('click', 'a.btndeselectall', function () {
-                var $table = $(this).parent().siblings('table');
+                var $table = $(this).parent().parent().parent().parent().find('table');
                 var selected = $table.attr('data-selected').split(',');
                 for (var i = 0; i < selected.length; i++) {
                     tables[$table[0].id].row('tr#' + selected[i]).deselect();
@@ -593,7 +597,7 @@ var application = {
                     deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
                 }
 
-                $('#' + sTableId).closest('div#' + sTableId + '_wrapper').after('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
+                $('#' + sTableId + '_buttons').append('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
 
                 $('button#' + sTableId + '_insert').click(function () {
                     var tableid = $(this).attr('data-table');
@@ -664,31 +668,22 @@ var application = {
                     }
                 });
 
-                // Events
-                var html = '<div class="row"><div class="col-sm-12">';
-                if (data.events.length > 0) {
-                    html += '<div class="btn-group btn-group-events">'
-                        + '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">'
-                        + '<i class="fa fa-caret-down"></i>'
-                        + '</button>'
-                        + '<ul class="dropdown-menu">'
-                    for (var i = 0; i < data.events.length; i++) {
-                        html += '<li><a class="btnevent" href="javascript:void(0)" data-table="tableview' + data.name + '" data-event="' + data.events[i].id + '"><i class="' + data.events[i].icon + '"></i> ' + data.events[i].description + '</a></li>';
-                    }
-                    html += '</ul>'
-                        + '</div>';
-                }
-
-                // Filter Button
-                html += '<div class="btn-group btn-group-filter">'
-                    + '<button type="button" class="btn btnfilter ' + (data.filter.count > 0 ? 'btn-primary' : 'btn-default') + '" data-table="tableview' + data.name + '">'
-                    + '<i class="fa fa-search fa-flip-horizontal"></i>'
+                var html = '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">'
+                    + '<i class="fa fa-caret-down"></i>'
                     + '</button>'
-                    + '</div>'
-                    + '</div>'
-                    + '</div>';
-                $(html).insertBefore('#tableview' + data.name + '_wrapper');
+                    + '<ul class="dropdown-menu">';
+                for (var i = 0; i < tables[sTableId]._config.events.length; i++) {
+                    html += '<li><a class="btnevent" href="javascript:void(0)" data-table="tableview' + tables[sTableId]._config.name + '" data-event="' + tables[sTableId]._config.events[i].id + '"><i class="' + tables[sTableId]._config.events[i].icon + '"></i> ' + tables[sTableId]._config.events[i].description + '</a></li>';
+                }
+                html += '</ul>';
+                $('#tableview' + tables[sTableId]._config.name + '_events').prepend(html);
 
+
+                $('#tableview' + tables[sTableId]._config.name + '_filter').append(
+                    '<button type="button" class="btn btnfilter '
+                    + (tables[sTableId]._config.filter.count > 0 ? 'btn-primary' : 'btn-default')
+                    + '" data-table="tableview' + tables[sTableId]._config.name + '"><i class="fa fa-search fa-flip-horizontal"></i></button>'
+                );
             }
 
             // Renders
@@ -721,9 +716,11 @@ var application = {
             $('#tableview' + data.name).attr('data-editable', data.permissions.editable);
             $('#tableview' + data.name).attr('data-deletable', data.permissions.deletable);
 
+            var dom = '<"row no-margin"<"#tableview' + data.name + '_events.col-sm-6 no-padding"i><"col-sm-6 text-center no-padding"f>>'
+                + '<"hr">tr<"#tableview' + data.name + '_buttons.col-md-6 no-padding col-sm-center"><"col-md-6 no-padding"p>';
             // Datatable
             tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
-                dom: 'trip'
+                dom: dom
                 , drawCallback: function (settings) {
                     var selected = $(settings.nTable).attr('data-selected');
                     if (selected) {
@@ -732,7 +729,7 @@ var application = {
                             tables[settings.sInstance].row('tr#' + selected[i]).select();
                         }
                         $('#' + settings.sInstance + '_info').find('a').remove();
-                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
+                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
                     }
                 }
                 , ordering: data.permissions.orderable
@@ -741,6 +738,7 @@ var application = {
                 , pageLength: data.pageLength
                 , paging: data.pageLength > 0
                 , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
+                , searchDelay: 750
                 , select: {
                     style: 'multi'
                     , info: false
@@ -791,7 +789,7 @@ var application = {
                 }
                 $this.attr('data-selected', selected);
                 $('#' + $this[0].id + '_info').find('a').remove();
-                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
+                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
             }).on('deselect', function (e, dt, type, indexes) {
                 var $this = $(this);
                 var rowData = tables[$this[0].id].rows(indexes).data().toArray()[0];
@@ -804,7 +802,7 @@ var application = {
 
                     $('#' + $this[0].id + '_info').find('a').remove();
                     if (selected.length > 0) {
-                        $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Selecionado(s) </a>');
+                        $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
                     }
                 }
                 $this.attr('data-selected', selected);
@@ -827,6 +825,7 @@ var application = {
                     }
                 }
             });
+            tables['tableview' + data.name]._config = data;
         }
         , deselectAll: function (idtable) {
             tables[idtable].rows().deselect();

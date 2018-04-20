@@ -277,10 +277,10 @@ let application = {
 					return parseInt(value);
 				}
 			}
-			, decimal: function (value, precision) {
-				value = value.replace(/\./g, "");
-				value = value.replace(/\,/g, ".");
-				return parseFloat(value).toFixed(precision);
+			, decimal: function (value) {
+				value = value.replace(/\./g, '');
+				value = value.replace(/\,/g, '.');
+				return parseFloat(value);
 			}
 			, date_format: 'YYYY-MM-DD'
 			, datetime_format: 'YYYY-MM-DD HH:mm'

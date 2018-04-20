@@ -30,7 +30,7 @@ const renderText = function (viewfield, register) {
 
 const renderTextArea = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
     value = escape(value);
 
     let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
@@ -56,7 +56,7 @@ const renderTextArea = function (viewfield, register) {
 
 const renderInteger = function (viewfield, register) {
 
-    let value = register && Number.isInteger(parseInt(register[viewfield.modelattribute.name])) ? register[viewfield.modelattribute.name] : '';
+    let value = register && Number.isInteger(parseInt(register.dataValues[viewfield.modelattribute.name])) ? register.dataValues[viewfield.modelattribute.name] : '';
 
     let label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
@@ -78,7 +78,7 @@ const renderInteger = function (viewfield, register) {
 
 const renderDecimal = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
 
     let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
     precision = json.precision;
@@ -109,7 +109,7 @@ const renderDecimal = function (viewfield, register) {
 
 const renderAutocomplete = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
     let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
 
     let option = '';
@@ -143,7 +143,7 @@ const renderAutocomplete = function (viewfield, register) {
 
 const renderDate = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
 
     let label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
@@ -170,7 +170,7 @@ const renderDate = function (viewfield, register) {
 
 const renderDateTime = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
 
     let label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
@@ -197,7 +197,7 @@ const renderDateTime = function (viewfield, register) {
 
 const renderTime = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
 
     let label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
@@ -229,7 +229,7 @@ const renderCheckbox = function (viewfield, register) {
         disabled = 'disabled="disabled"';
     }
     let checked = '';
-    if (register && register[viewfield.modelattribute.name]) {
+    if (register && register.dataValues[viewfield.modelattribute.name]) {
         checked = 'checked';
     }
 
@@ -244,7 +244,7 @@ const renderCheckbox = function (viewfield, register) {
 
 const renderFile = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
     value = escape(value);
 
     let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
@@ -272,7 +272,7 @@ const renderFile = function (viewfield, register) {
 
 const renderGeoreference = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
     value = escape(value);
 
     let label = viewfield.modelattribute.label;
@@ -290,7 +290,7 @@ const renderGeoreference = function (viewfield, register) {
 
 const renderRadio = function (viewfield, register) {
 
-    let value = register && register[viewfield.modelattribute.name] ? register[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
 
     let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
 

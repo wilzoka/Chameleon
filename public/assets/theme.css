@@ -99,9 +99,6 @@ h4.title_subview {
         padding: 4px;
     }
 }
-div.btn-group-events .dropdown-menu > li > a {
-    padding: 3px 10px;
-}
 .checkbox {
     padding: 0 3px;
 }
@@ -125,6 +122,9 @@ div.btn-group-events .dropdown-menu > li > a {
     table.dataTable {
         font-size: 8pt;
     }
+    .col-sm-center{
+        text-align: center;
+    }
 }
 .table-bordered {
     border: 1px solid #ddd;
@@ -138,15 +138,16 @@ div.btn-group-events .dropdown-menu > li > a {
 table.dataTable.compact thead th, table.dataTable.compact tbody td {
     padding: 4px;
 }
-.btn-group-filter {
-    float: right;
-}
 table.dataTable thead tr th, table.dataTable tfoot tr td {
     background-color: #f4f4f4;
     font-weight: bold;
 }
 table.dataTable thead .sorting:after, table.dataTable thead .sorting_asc:after, table.dataTable thead .sorting_desc:after, table.dataTable thead .sorting_asc_disabled:after, table.dataTable thead .sorting_desc_disabled:after {
     bottom: 3px;
+}
+.dataTables_info {
+    display: inline-block;
+    margin-left: 5px;
 }
 
 /* Select2 */
