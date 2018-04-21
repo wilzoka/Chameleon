@@ -121,7 +121,17 @@ let main = {
                 }
             }
             , conta: {
-                f_recalculaSaldos: function () {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.register.id == 0) {
+                            obj.register.saldoatual = 0;
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , f_recalculaSaldos: function () {
                     db.sequelize.query(`                    
                     update fin_conta c set saldoatual = (
                         with saldoanterior as (

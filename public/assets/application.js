@@ -720,32 +720,7 @@ var application = {
                 + '<"hr">tr<"#tableview' + data.name + '_buttons.col-md-6 no-padding col-sm-center"><"col-md-6 no-padding"p>';
             // Datatable
             tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
-                dom: dom
-                , drawCallback: function (settings) {
-                    var selected = $(settings.nTable).attr('data-selected');
-                    if (selected) {
-                        selected = selected.split(',');
-                        for (var i = 0; i < selected.length; i++) {
-                            tables[settings.sInstance].row('tr#' + selected[i]).select();
-                        }
-                        $('#' + settings.sInstance + '_info').find('a').remove();
-                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
-                    }
-                }
-                , ordering: data.permissions.orderable
-                , stateSave: true
-                , columns: data.columns
-                , pageLength: data.pageLength
-                , paging: data.pageLength > 0
-                , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
-                , searchDelay: 750
-                , select: {
-                    style: 'multi'
-                    , info: false
-                }
-                , processing: true
-                , serverSide: true
-                , ajax: function (data, callback, settings) {
+                ajax: function (data, callback, settings) {
                     $.ajax({
                         url: '/datatables'
                         , type: 'POST'
@@ -762,7 +737,19 @@ var application = {
                         }
                     });
                 }
-                , rowId: 'id'
+                , columns: data.columns
+                , dom: dom
+                , drawCallback: function (settings) {
+                    var selected = $(settings.nTable).attr('data-selected');
+                    if (selected) {
+                        selected = selected.split(',');
+                        for (var i = 0; i < selected.length; i++) {
+                            tables[settings.sInstance].row('tr#' + selected[i]).select();
+                        }
+                        $('#' + settings.sInstance + '_info').find('a').remove();
+                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
+                    }
+                }
                 , initComplete: function (settings) {
                     var $table = $(settings.nTable);
                     var subview = $table.attr('data-subview');
@@ -774,6 +761,19 @@ var application = {
                     application.tables.reloadFooter(settings.sTableId);
                     $(document).trigger('app-datatable', settings.sTableId);
                 }
+                , ordering: data.permissions.orderable
+                , pageLength: data.pageLength
+                , paging: data.pageLength > 0
+                , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
+                , processing: true
+                , rowId: 'id'
+                , searchDelay: 500
+                , select: {
+                    style: 'multi'
+                    , info: false
+                }
+                , serverSide: true
+                , stateSave: true
             }).on('select', function (e, dt, type, indexes) {
                 var $this = $(this);
                 var rowData = tables[$this[0].id].rows(indexes).data().toArray()[0];
