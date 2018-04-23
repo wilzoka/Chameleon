@@ -684,8 +684,11 @@ var application = {
                     + '" data-table="tableview' + tables[sTableId]._config.name + '"><i class="fa fa-search fa-flip-horizontal"></i></button></span></div>'
                 );
                 $('#tableview' + tables[sTableId]._config.name + '_filter input').prependTo($('#tableview' + tables[sTableId]._config.name + '_filter .input-group'));
-                if (!tables[sTableId]._config.fastsearch) {
-                    $('#tableview' + tables[sTableId]._config.name + '_filter input').prop('disabled', true);
+                var $fastsearch = $('#tableview' + tables[sTableId]._config.name + '_filter input');
+                if (tables[sTableId]._config.fastsearch) {
+                    $fastsearch.attr('placeholder', tables[sTableId]._config.fastsearch);
+                } else {
+                    $fastsearch.prop('disabled', true);
                 }
 
             }

@@ -52,11 +52,6 @@ $(function () {
                 break;
         }
 
-        setTimeout(function () {
-            tables[table].column(0).order('desc');
-            tables[table].draw()
-        }, 100);
-
     });
 
     $(document).on('app-modal', function (e, modal) {
