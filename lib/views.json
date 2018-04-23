@@ -1240,7 +1240,7 @@
     {
         "name": "View",
         "namecomplete": "Plataforma - View",
-        "js": null,
+        "js": "core/js/view.js",
         "wherefixed": null,
         "orderfixed": "namecomplete,asc",
         "supressid": false,
@@ -1248,6 +1248,7 @@
         "model": "view",
         "module": "Plataforma",
         "url": "view",
+        "pagelength": null,
         "_field": [
             {
                 "templatezone": "view",
@@ -1283,7 +1284,7 @@
             },
             {
                 "templatezone": "view",
-                "modelattribute": "js",
+                "modelattribute": "idfastsearch",
                 "width": 12,
                 "order": 5,
                 "disabled": false,
@@ -1291,7 +1292,7 @@
             },
             {
                 "templatezone": "view",
-                "modelattribute": "wherefixed",
+                "modelattribute": "js",
                 "width": 12,
                 "order": 6,
                 "disabled": false,
@@ -1299,15 +1300,15 @@
             },
             {
                 "templatezone": "view",
-                "modelattribute": "orderfixed",
-                "width": 6,
+                "modelattribute": "wherefixed",
+                "width": 12,
                 "order": 7,
                 "disabled": false,
                 "disablefilter": false
             },
             {
                 "templatezone": "view",
-                "modelattribute": "pagelength",
+                "modelattribute": "orderfixed",
                 "width": 6,
                 "order": 8,
                 "disabled": false,
@@ -1315,9 +1316,17 @@
             },
             {
                 "templatezone": "view",
-                "modelattribute": "supressid",
+                "modelattribute": "pagelength",
                 "width": 6,
                 "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "supressid",
+                "width": 6,
+                "order": 10,
                 "disabled": false,
                 "disablefilter": false
             }
@@ -1334,6 +1343,14 @@
             {
                 "modelattribute": "js",
                 "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "url",
+                "ordertable": 3,
                 "orderable": false,
                 "render": null,
                 "totalize": false,

@@ -1005,6 +1005,7 @@ module.exports = function (app) {
                         , html: filter
                     }
                     , pageLength: view.pagelength || 10
+                    , fastsearch: view.idfastsearch ? view.fastsearch.label : false
                 });
             } else {
                 return application.forbidden(res);

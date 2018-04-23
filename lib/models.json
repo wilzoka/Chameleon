@@ -693,11 +693,11 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "js",
-                "label": "Arquivo JS",
-                "type": "text",
+                "name": "idfastsearch",
+                "label": "Pesquisa Rápida",
+                "type": "autocomplete",
                 "notnull": false,
-                "typeadd": null
+                "typeadd": "{\r\n\"as\": \"fastsearch\"\r\n , \"cascade\": true\r\n , \"model\": \"modelattribute\"\r\n , \"attribute\": \"name\"\r\n }"
             },
             {
                 "name": "idmodel",
@@ -707,11 +707,11 @@
                 "typeadd": "{\"model\": \"model\", \"attribute\": \"name\", \"cascade\": true}"
             },
             {
-                "name": "namecomplete",
-                "label": "Nome Completo",
-                "type": "text",
+                "name": "idmodule",
+                "label": "Módulo",
+                "type": "autocomplete",
                 "notnull": false,
-                "typeadd": null
+                "typeadd": "{\"model\": \"module\", \"attribute\": \"description\"}"
             },
             {
                 "name": "idtemplate",
@@ -721,6 +721,13 @@
                 "typeadd": "{\"model\": \"template\", \"attribute\": \"name\"}"
             },
             {
+                "name": "js",
+                "label": "Arquivo JS",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
                 "name": "name",
                 "label": "Nome",
                 "type": "text",
@@ -728,16 +735,23 @@
                 "typeadd": null
             },
             {
-                "name": "idmodule",
-                "label": "Módulo",
-                "type": "autocomplete",
+                "name": "namecomplete",
+                "label": "Nome Completo",
+                "type": "text",
                 "notnull": false,
-                "typeadd": "{\"model\": \"module\", \"attribute\": \"description\"}"
+                "typeadd": null
             },
             {
-                "name": "wherefixed",
-                "label": "Where",
+                "name": "orderfixed",
+                "label": "Ordem",
                 "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "pagelength",
+                "label": "Linhas por Página",
+                "type": "integer",
                 "notnull": false,
                 "typeadd": null
             },
@@ -749,13 +763,6 @@
                 "typeadd": null
             },
             {
-                "name": "orderfixed",
-                "label": "Ordem",
-                "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
                 "name": "url",
                 "label": "URL",
                 "type": "text",
@@ -763,9 +770,9 @@
                 "typeadd": null
             },
             {
-                "name": "pagelength",
-                "label": "Linhas por Página",
-                "type": "integer",
+                "name": "wherefixed",
+                "label": "Where",
+                "type": "text",
                 "notnull": false,
                 "typeadd": null
             }

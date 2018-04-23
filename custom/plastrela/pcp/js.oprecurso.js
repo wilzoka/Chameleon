@@ -1,9 +1,7 @@
 $(function () {
 
     function customTable(table) {
-        tables[table].page.len(-1);
         $('#' + table + '_wrapper').css('height', '350px');
-        $('#' + table + '_paginate').remove();
     }
 
     if ($('input[name="etapa"]').val() == '70') {
@@ -30,7 +28,8 @@ $(function () {
             }
         }
 
-        $('button.btnfilter[data-table="' + table + '"]').remove();
+        $('.dataTables_filter').remove();
+        $('#' + table + '_events').find('button').remove();
         customTable(table);
 
         switch (table) {

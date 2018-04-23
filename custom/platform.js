@@ -362,7 +362,7 @@ let platform = {
                         , onsave: models[i].onsave
                         , ondelete: models[i].ondelete
                     });
-                    let attributes = await db.getModel('modelattribute').findAll({ where: { idmodel: models[i].id } });
+                    let attributes = await db.getModel('modelattribute').findAll({ where: { idmodel: models[i].id }, order: [['name', 'asc']] });
                     j[j.length - 1]._attribute = [];
                     for (let z = 0; z < attributes.length; z++) {
                         j[j.length - 1]._attribute.push({

@@ -683,8 +683,11 @@ var application = {
                     + (tables[sTableId]._config.filter.count > 0 ? 'btn-primary' : 'btn-default')
                     + '" data-table="tableview' + tables[sTableId]._config.name + '"><i class="fa fa-search fa-flip-horizontal"></i></button></span></div>'
                 );
-
                 $('#tableview' + tables[sTableId]._config.name + '_filter input').prependTo($('#tableview' + tables[sTableId]._config.name + '_filter .input-group'));
+                if (!tables[sTableId]._config.fastsearch) {
+                    $('#tableview' + tables[sTableId]._config.name + '_filter input').prop('disabled', true);
+                }
+
             }
 
             // Renders
