@@ -217,7 +217,7 @@ module.exports = function (app) {
                         where['$and'][view.fastsearch.name] = db.Sequelize.literal(j.subquery + "::text ilike '%" + req.body.search.value + "%'");
                         break;
                     default:
-                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(view.name + '.' + view.fastsearch.name + "::text ilike '%" + req.body.search.value + "%'");
+                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(view.model.name + '.' + view.fastsearch.name + "::text ilike '%" + req.body.search.value + "%'");
                         break;
                 }
             }

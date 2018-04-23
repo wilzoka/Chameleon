@@ -824,12 +824,11 @@ module.exports = function (app) {
                     });
                 }
                 for (let i = 0; i < viewfields.length; i++) {
-
                     let filterbegin = '';
                     let filterend = '';
                     let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                    let virtual = viewfields[i].modelattribute.type == 'virtual' ? 'v' : ''
                     let filtername = viewfields[i].modelattribute.name + separator + (j.type || viewfields[i].modelattribute.type);
+                    let virtual = viewfields[i].modelattribute.type == 'virtual' ? 'v' : ''
                     switch (j.type || viewfields[i].modelattribute.type) {
                         case 'text':
                             filtername += separator + 's' + virtual;

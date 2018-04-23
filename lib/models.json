@@ -697,7 +697,7 @@
                 "label": "Pesquisa Rápida",
                 "type": "autocomplete",
                 "notnull": false,
-                "typeadd": "{\r\n\"as\": \"fastsearch\"\r\n , \"cascade\": true\r\n , \"model\": \"modelattribute\"\r\n , \"attribute\": \"name\"\r\n }"
+                "typeadd": "{\r\n\"as\": \"fastsearch\"\r\n , \"cascade\": true\r\n , \"model\": \"modelattribute\"\r\n , \"attribute\": \"label\"\r\n }"
             },
             {
                 "name": "idmodel",

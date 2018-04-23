@@ -968,6 +968,7 @@ let platform = {
                         , module: views[i].module.description
                         , url: views[i].url
                         , pagelength: views[i].pagelength
+                        , fastsearch: views[i].idfastsearch ? views[i].fastsearch.name : null
                     });
                     let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['order', 'asc']] });
                     j[j.length - 1]._field = [];
@@ -1060,6 +1061,7 @@ let platform = {
                         let model = await db.getModel('model').find({ where: { name: views[i].model } });
                         let modulee = await db.getModel('module').findOrCreate({ where: { description: views[i].module } });
                         let template = await db.getModel('template').findOrCreate({ where: { name: views[i].template } });
+                        let fastsearch = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i].fastsearch } });
                         if (model) {
                             if (view) {
                                 view.name = views[i].name;
@@ -1073,6 +1075,7 @@ let platform = {
                                 view.orderfixed = views[i].orderfixed;
                                 view.url = views[i].url;
                                 view.pagelength = views[i].pagelength;
+                                view.idfastsearch = fastsearch ? fastsearch.id : null;
                                 if (view.changed()) {
                                     await view.save();
                                     console.log('UPDATED');
@@ -1091,6 +1094,8 @@ let platform = {
                                     , namecomplete: views[i].namecomplete
                                     , orderfixed: views[i].orderfixed
                                     , url: views[i].url
+                                    , pagelength: views[i].pagelength
+                                    , idfastsearch: fastsearch ? fastsearch.id : null
                                 });
                                 console.log('CREATED');
                             }

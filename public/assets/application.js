@@ -767,6 +767,9 @@ var application = {
                     }
                     application.tables.reloadFooter(settings.sTableId);
                     $(document).trigger('app-datatable', settings.sTableId);
+                    if (!application.functions.isMobile()) {
+                        $('#' + settings.sTableId + '_filter input').focus();
+                    }
                 }
                 , ordering: data.permissions.orderable
                 , pageLength: data.pageLength

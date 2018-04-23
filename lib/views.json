@@ -531,6 +531,7 @@
         "model": "model",
         "module": "Plataforma",
         "url": "modelo",
+        "fastsearch": "name",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1249,6 +1250,7 @@
         "module": "Plataforma",
         "url": "view",
         "pagelength": null,
+        "fastsearch": "namecomplete",
         "_field": [
             {
                 "templatezone": "view",
