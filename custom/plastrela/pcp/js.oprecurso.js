@@ -29,12 +29,12 @@ $(function () {
         }
 
         $('.dataTables_filter').remove();
-        $('#' + table + '_events').find('button').remove();
+
         customTable(table);
 
         switch (table) {
             case 'tableviewapontamento_de_producao_-_insumo':// Insumo
-
+                $('#' + table + '_events').find('button').remove();
                 $('button#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', {}, function (response) {
                         application.handlers.responseSuccess(response);
@@ -43,12 +43,18 @@ $(function () {
 
                 break;
             case 'tableviewapontamento_de_producao_-_producao':// Produção
-
+                $('#' + table + '_events').find('button').remove();
                 $('#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.approducao.__adicionar', { idoprecurso: application.functions.getId() }, function (response) {
                         application.handlers.responseSuccess(response);
                     });
                 });
+                break;
+            case 'tableviewapontamento_de_producao_-_perda':// Perda
+                $('#' + table + '_events').find('button').remove();
+                break;
+            case 'tableviewapontamento_de_producao_-_parada':// Parada
+                $('#' + table + '_events').find('button').remove();
                 break;
         }
 
