@@ -774,7 +774,7 @@ var application = {
                 , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
                 , processing: true
                 , rowId: 'id'
-                , searchDelay: 500
+                , searchDelay: 250
                 , select: {
                     style: 'multi'
                     , info: false
