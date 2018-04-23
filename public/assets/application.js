@@ -668,7 +668,7 @@ var application = {
                     }
                 });
 
-                var html = '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">'
+                var html = '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">'
                     + '<i class="fa fa-caret-down"></i>'
                     + '</button>'
                     + '<ul class="dropdown-menu">';
@@ -678,12 +678,13 @@ var application = {
                 html += '</ul>';
                 $('#tableview' + tables[sTableId]._config.name + '_events').prepend(html);
 
-
                 $('#tableview' + tables[sTableId]._config.name + '_filter').append(
-                    '<button type="button" class="btn btnfilter '
+                    '<div class="input-group input-group-sm"><span class="input-group-btn"><button type="button" class="btn btnfilter '
                     + (tables[sTableId]._config.filter.count > 0 ? 'btn-primary' : 'btn-default')
-                    + '" data-table="tableview' + tables[sTableId]._config.name + '"><i class="fa fa-search fa-flip-horizontal"></i></button>'
+                    + '" data-table="tableview' + tables[sTableId]._config.name + '"><i class="fa fa-search fa-flip-horizontal"></i></button></span></div>'
                 );
+
+                $('#tableview' + tables[sTableId]._config.name + '_filter input').prependTo($('#tableview' + tables[sTableId]._config.name + '_filter .input-group'));
             }
 
             // Renders
