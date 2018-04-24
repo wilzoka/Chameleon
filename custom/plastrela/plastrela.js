@@ -2158,6 +2158,81 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_inventarioAlmox: async function (obj) {
+                    try {
+                        let sql = await db.sequelize.query(`
+                        select * from (select
+                            g.descricao as grupo
+                            , v.descricaocompleta
+                            , sum(vol.qtdreal) as qtd
+                        from
+                            est_volume vol
+                        left join pcp_versao v on (vol.idversao = v.id)
+                        left join cad_item i on (v.iditem = i.id)
+                        left join est_grupo g on (i.idgrupo = g.id)
+                        where
+                            vol.consumido = false
+                            and vol.iddeposito = 1
+                        group by 1,2
+                        order by 1,2) as x
+
+                        union all
+
+                        select * from (select
+                            'Total' as grupo
+                            , ''
+                            , sum(vol.qtdreal) as qtd
+                        from
+                            est_volume vol
+                        left join pcp_versao v on (vol.idversao = v.id)
+                        left join cad_item i on (v.iditem = i.id)
+                        left join est_grupo g on (i.idgrupo = g.id)
+                        where
+                            vol.consumido = false
+                            and vol.iddeposito = 1
+                        group by 1,2
+                        order by 1,2) as x
+                    `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                            });
+
+                        let report = {};
+                        report.__title = `Inventário Almoxarifado`;
+                        report.__table = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>Grupo</strong></td>
+                                <td style="text-align:center;"><strong>Produto</strong></td>
+                                <td style="text-align:center;"><strong>Quantidade</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            report.__table += `
+                            <tr>
+                                <td style="text-align:left;"> ${sql[i]['grupo']} </td>
+                                <td style="text-align:left;"> ${sql[i]['descricaocompleta']} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
+                            </tr>
+                            `;
+                        }
+                        report.__table += `
+                        </table>
+                        `;
+
+                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            }
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , volumereserva: {
                 onsave: async function (obj, next) {
@@ -2423,11 +2498,13 @@ let main = {
                                 width: '6'
                                 , label: 'Data Inicial'
                                 , name: 'dataini'
+                                , value: moment().subtract(1, 'day').format(application.formatters.fe.date_format) + ' 07:00'
                             });
                             body += application.components.html.datetime({
                                 width: '6'
                                 , label: 'Data Final'
                                 , name: 'datafim'
+                                , value: moment().format(application.formatters.fe.date_format) + ' 07:00'
                             });
                             return application.success(obj.res, {
                                 modal: {
@@ -2447,12 +2524,10 @@ let main = {
                             }
 
                             let sql = await db.sequelize.query(`
-                            select
-                                rv.datahoraatendido
-                                , i.codigo || '/' || v.codigo as produto
-                                , rv.qtd
+                            select * from (select
+                                v.descricaocompleta as produto
                                 , e.codigo || ' - ' || e.descricao as etapa
-                                , vol.id as idvolume
+                                , sum(rv.qtd) as qtd
                             from
                                 est_requisicaovolume rv
                             left join est_volume vol on (rv.idvolume = vol.id)	
@@ -2461,6 +2536,24 @@ let main = {
                             left join pcp_etapa e on (rv.iddeposito = e.iddeposito)
                             where
                                 rv.datahoraatendido between :dataini and :datafim
+                            group by 1,2
+                            order by 1,2) as x
+
+                            union all
+
+                            select * from (select
+                                count(*)::text as produto
+                                , '' as etapa
+                                , sum(rv.qtd) as qtd
+                            from
+                                est_requisicaovolume rv
+                            left join est_volume vol on (rv.idvolume = vol.id)	
+                            left join pcp_versao v on (vol.idversao = v.id)
+                            left join cad_item i on (v.iditem = i.id)
+                            left join pcp_etapa e on (rv.iddeposito = e.iddeposito)
+                            where
+                                rv.datahoraatendido between :dataini and :datafim
+                            group by 2) as x
                             `, {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
@@ -2474,21 +2567,17 @@ let main = {
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
-                                    <td style="text-align:center;"><strong>Data Atendimento</strong></td>
-                                    <td style="text-align:center;"><strong>ID Volume</strong></td>
-                                    <td style="text-align:center;"><strong>Item / Versão</strong></td>
-                                    <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    <td style="text-align:center;"><strong>Produto</strong></td>
                                     <td style="text-align:center;"><strong>Etapa</strong></td>
+                                    <td style="text-align:center;"><strong>Quantidade</strong></td>                                    
                                 </tr>
                             `;
                             for (let i = 0; i < sql.length; i++) {
                                 report.__table += `
                                 <tr>
-                                    <td style="text-align:left;"> ${application.formatters.fe.datetime(sql[i]['datahoraatendido'])} </td>
-                                    <td style="text-align:left;"> ${sql[i]['idvolume']} </td>
                                     <td style="text-align:left;"> ${sql[i]['produto']} </td>
-                                    <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
                                     <td style="text-align:left;"> ${sql[i]['etapa']} </td>
+                                    <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
                                 </tr>
                                 `;
                             }
