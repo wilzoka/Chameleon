@@ -2541,9 +2541,9 @@ let main = {
 
                             union all
 
-                            select * from (select
-                                count(*)::text as produto
-                                , '' as etapa
+                            select count(*)::text, '', sum(qtd) from (select
+                                v.descricaocompleta as produto
+                                , e.codigo || ' - ' || e.descricao as etapa
                                 , sum(rv.qtd) as qtd
                             from
                                 est_requisicaovolume rv
@@ -2553,7 +2553,7 @@ let main = {
                             left join pcp_etapa e on (rv.iddeposito = e.iddeposito)
                             where
                                 rv.datahoraatendido between :dataini and :datafim
-                            group by 2) as x
+                            group by 1,2) as x
                             `, {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
