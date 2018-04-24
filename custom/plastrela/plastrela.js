@@ -2527,6 +2527,7 @@ let main = {
                             select * from (select
                                 v.descricaocompleta as produto
                                 , e.codigo || ' - ' || e.descricao as etapa
+                                , string_agg(vol.id::text, ' ,') as ids
                                 , sum(rv.qtd) as qtd
                             from
                                 est_requisicaovolume rv
@@ -2541,7 +2542,7 @@ let main = {
 
                             union all
 
-                            select count(*)::text, '', sum(qtd) from (select
+                            select count(*)::text, '', '', sum(qtd) from (select
                                 v.descricaocompleta as produto
                                 , e.codigo || ' - ' || e.descricao as etapa
                                 , sum(rv.qtd) as qtd
@@ -2568,6 +2569,7 @@ let main = {
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
                                     <td style="text-align:center;"><strong>Produto</strong></td>
+                                    <td style="text-align:center;"><strong>IDs</strong></td>
                                     <td style="text-align:center;"><strong>Etapa</strong></td>
                                     <td style="text-align:center;"><strong>Quantidade</strong></td>                                    
                                 </tr>
@@ -2576,6 +2578,7 @@ let main = {
                                 report.__table += `
                                 <tr>
                                     <td style="text-align:left;"> ${sql[i]['produto']} </td>
+                                    <td style="text-align:left;"> ${sql[i]['ids']} </td>
                                     <td style="text-align:left;"> ${sql[i]['etapa']} </td>
                                     <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
                                 </tr>
@@ -4331,6 +4334,44 @@ let main = {
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_resumoProducao: async function (obj) {
+                    try {
+
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } })
+                        if (!oprecurso) {
+                            return application.error(obj.res, { msg: 'OP não encontrada' });
+                        }
+                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } })
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let versao = await db.getModel('pcp_versao').find({ where: { id: op.idversao } });
+                        let opep = await db.getModel('pcp_opep').find({ where: { idop: op.id } });
+                        let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
+
+                        let report = {};
+                        report.__title = `Resumo OP ${op.codigo}`;
+                        report.pedido = pedido ? pedido.codigo : '';
+                        report.produto = versao.descricaocompleta;
+                        report.etapa = etapa.codigo;
+                        report.recurso = recurso.codigo;
+
+                        
+
+                        let file = await main.platform.report.f_generate('PCP - Resumo Produção OP', report);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            }
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
