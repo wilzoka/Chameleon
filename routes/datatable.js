@@ -5,11 +5,8 @@ const application = require('./application')
     ;
 
 const fixResults = function (registers, modelattributes, viewtables) {
-    let j = {};
     for (let i = 0; i < modelattributes.length; i++) {
-        if (modelattributes[i].typeadd) {
-            j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
-        }
+        let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
         switch (j.type || modelattributes[i].type) {
             case 'autocomplete':
                 let vas = j.as || j.model;

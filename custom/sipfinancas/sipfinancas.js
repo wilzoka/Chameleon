@@ -659,17 +659,6 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
-                            let pdfMakePrinter = require('pdfmake');
-                            let fontDescriptors = {
-                                Roboto: {
-                                    normal: __dirname + '/../../fonts/cour.ttf',
-                                    bold: __dirname + '/../../fonts/courbd.ttf',
-                                    italics: __dirname + '/../../fonts/couri.ttf',
-                                    bolditalics: __dirname + '/../../fonts/courbi.ttf'
-                                }
-                            };
-                            let printer = new pdfMakePrinter(fontDescriptors);
-                            let body = [];
                             let dataini = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format);
                             let datafim = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format).endOf('month');
                             let contas = await db.getModel('fin_conta').findAll({ raw: true, order: [['descricao', 'asc']] });
@@ -679,26 +668,40 @@ let main = {
                             }
                             let categorias = await db.getModel('fin_categoria').findAll({ raw: true, order: [['descricaocompleta', 'asc']] });
 
-                            //Header
-                            body.push(['']);
-                            body.push(['Saldo Inicial']);
+                            let report = {};
+                            report.__title = 'Apuração de Resultado<br>Competência ' + obj.req.body.mes + '/' + obj.req.body.ano;
+                            report.tableresultado = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td></td>
+                            `;
                             let totalsaldoinicial = 0.0;
                             for (let i = 0; i < contas.length; i++) {
-                                body[body.length - 1].push({ text: application.formatters.fe.decimal(contas[i]._saldo, 2), alignment: 'right' });
-                                body[body.length - 2].push({ text: contas[i].descricao, alignment: 'center' });
+                                report.tableresultado += `<td style="text-align:center;"><strong>${contas[i].descricao}</strong></td>`;
+                            }
+                            report.tableresultado += `
+                                    <td style="text-align:center;"><strong>Total</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Saldo Inicial</strong></td>
+                            `;
+                            for (let i = 0; i < contas.length; i++) {
+                                report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(contas[i]._saldo, 2)}</td>`;
                                 totalsaldoinicial += contas[i]._saldo;
                             }
-                            body[body.length - 1].push({ text: application.formatters.fe.decimal(totalsaldoinicial, 2), alignment: 'right' });
-                            body[body.length - 2].push({ text: 'Total', alignment: 'right' });
-                            body.push([{ text: '', colSpan: contas.length + 2, border: [0, 0, 0, 0] }]);
-
+                            report.tableresultado += `
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(totalsaldoinicial, 2)}</td>
+                                </tr>
+                            `;
                             for (let i = 0; i < categorias.length; i++) {
-                                body.push([]);
                                 if (categorias[i].descricaocompleta.indexOf('-') < 0 && (categorias[i].descricaocompleta.indexOf('RS ') >= 0 || categorias[i].descricaocompleta.indexOf('MS ') >= 0)) {
-                                    body[body.length - 1].push({ text: categorias[i].descricaocompleta, colSpan: contas.length + 2, alignment: 'center', border: [0, 0, 0, 0] });
+                                    report.tableresultado += `
+                                    <tr>
+                                        <td style="text-align:center;" colspan="${contas.length + 2}"><strong>${categorias[i].descricaocompleta}</strong></td>
+                                    </tr>`;
                                 } else {
+                                    report.tableresultado += `<tr><td><strong>${categorias[i].descricao}</strong></td>`;
                                     let totalcategoria = 0.0;
-                                    body[body.length - 1].push({ text: categorias[i].descricao });
                                     for (let z = 0; z < contas.length; z++) {
                                         let sql = await db.sequelize.query(`
                                         select
@@ -730,82 +733,123 @@ let main = {
                                             totalcategoria += parseFloat(sql[0].vt);
                                             contas[z]._saldo += parseFloat(sql[0].vt);
                                         }
-                                        body[body.length - 1].push({
-                                            text: sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00'
-                                            , alignment: 'right'
-                                        });
+                                        report.tableresultado += `<td style="text-align:right;">${sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00'}</td>`;
                                     }
-                                    body[body.length - 1].push({ text: application.formatters.fe.decimal(totalcategoria, 2), alignment: 'right' });
+                                    report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(totalcategoria, 2)}</td></tr>`;
                                 }
                             }
-
-                            //Footer
-                            body.push([{ text: '', colSpan: contas.length + 2, border: [0, 0, 0, 0] }]);
-                            body.push(['Saldo Final']);
+                            report.tableresultado += `
+                                <tr>
+                                    <td colspan="${contas.length + 2}">
+                                     
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Saldo Final</strong></td>
+                            `;
                             let totalsaldofinal = 0.0;
                             for (let i = 0; i < contas.length; i++) {
+                                report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(contas[i]._saldo, 2)}</td>`;
                                 totalsaldofinal += contas[i]._saldo;
-                                body[body.length - 1].push(application.formatters.fe.decimal(contas[i]._saldo, 2));
                             }
-                            body[body.length - 1].push({ text: application.formatters.fe.decimal(totalsaldofinal, 2), alignment: 'right' });
+                            report.tableresultado += `
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(totalsaldofinal, 2)}</td>
+                                </tr>
+                            `;
+                            report.tableresultado += `
+                            </table>
+                            `;
+                            report.juros = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('juro', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
+                            report.descontos = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
 
-                            let body2 = [];
-
-                            body2.push([]);
-                            body2[body2.length - 1].push('Vendas Livro - Digitado');
-                            body2[body2.length - 1].push('');
-                            body2.push([]);
-                            body2[body2.length - 1].push('Juros');
-                            body2[body2.length - 1].push(application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('juro', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2));
-                            body2.push([]);
-                            body2[body2.length - 1].push('Descontos');
-                            body2[body2.length - 1].push(application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2));
-
-                            dd = {
-                                content: [
-                                    { text: obj.req.body.mes + '/' + obj.req.body.ano, style: 'header' }
-                                    , {
-                                        style: 'tb'
-                                        , table: {
-                                            body: body
-                                        }
-                                    }
-                                    , {
-                                        style: 'tb'
-                                        , table: {
-                                            body: body2
-                                        }
-                                    }
-                                ]
-                                , styles: {
-                                    header: {
-                                        fontSize: 18,
-                                        bold: true,
-                                        margin: [0, 0, 0, 10],
-                                        alignment: 'center'
-                                    }
-                                    , tb: {
-                                        fontSize: 6
-                                        , bold: true
-                                        , margin: [0, 0, 0, 10]
+                            let sql = await db.sequelize.query(`
+                                select sum(m.valor - coalesce((select sum(mp.valor) from fin_movparc mp where m.id = mp.idmov), 0)) as vt from fin_mov m left join fin_categoria c on (m.idcategoria = c.id) where c.dc = 2 and m.quitado = false and m.datavcto < :data
+                            `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        data: dataini.format(application.formatters.be.date_format)
                                     }
                                 }
-                            }
+                            );
+                            report.saldoanteriorctarec = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
-                            let doc = printer.createPdfKitDocument(dd);
-                            let filename = process.hrtime()[1] + '.pdf';
-                            let stream = doc.pipe(fs.createWriteStream(__dirname + '/../../tmp/' + filename));
-                            doc.end();
-                            stream.on('finish', function () {
-                                return application.success(obj.res, {
-                                    modal: {
-                                        id: 'modalevt2'
-                                        , fullscreen: true
-                                        , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                        , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 442px;"></iframe>'
-                                        , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            sql = await db.sequelize.query(`
+                            select sum(m.valor - coalesce((select sum(mp.valor) from fin_movparc mp where m.id = mp.idmov), 0)) as vt from fin_mov m left join fin_categoria c on (m.idcategoria = c.id) where c.dc = 2 and m.quitado = false
+                        `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                }
+                            );
+                            report.saldoctarec = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
+                            select total as vt from
+                                (select
+                                    substring(c.descricaocompleta,0,3) as unidade
+                                    , sum(x.valortotal) as total
+                                from
+                                    (select
+                                        *
+                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
+                                        , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                    from
+                                        ven_pedido p
+                                    where
+                                        p.data >= :dataini and p.data <= :datafim
+                                    ) as x
+                                left join fin_categoria c on (x.idcategoria = c.id)
+                                group by 1) as x
+                            where unidade = 'RS'	
+                            `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
                                     }
-                                });
+                                }
+                            );
+                            report.faturamentors = sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
+                            select total as vt from
+                                (select
+                                    substring(c.descricaocompleta,0,3) as unidade
+                                    , sum(x.valortotal) as total
+                                from
+                                    (select
+                                        *
+                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
+                                        , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                    from
+                                        ven_pedido p
+                                    where
+                                        p.data >= :dataini and p.data <= :datafim
+                                    ) as x
+                                left join fin_categoria c on (x.idcategoria = c.id)
+                                group by 1) as x
+                            where unidade = 'MS'	
+                            `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
+                                    }
+                                }
+                            );
+                            report.faturamentoms = sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            let file = await main.platform.report.f_generate('Financeiro - Resultado', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt2'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
                             });
                         }
 
