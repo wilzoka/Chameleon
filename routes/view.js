@@ -803,6 +803,8 @@ module.exports = function (app) {
                         }
                     }
                 }
+
+                filter = `<div class="${viewfields.length > 8 ? 'col-md-6 no-padding' : ''}">`;
                 if (!view.supressid) {
                     filter += application.components.html.integer({
                         width: 4
@@ -824,6 +826,9 @@ module.exports = function (app) {
                     });
                 }
                 for (let i = 0; i < viewfields.length; i++) {
+                    if (i == Math.trunc(viewfields.length / 2) && viewfields.length > 8) {
+                        filter += '</div><div class="col-md-6 no-padding">';
+                    }
                     let filterbegin = '';
                     let filterend = '';
                     let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
@@ -994,6 +999,7 @@ module.exports = function (app) {
                             break;
                     }
                 }
+                filter += '</div>';
                 return application.success(res, {
                     name: view.url
                     , columns: columns
@@ -1003,6 +1009,7 @@ module.exports = function (app) {
                     , filter: {
                         count: cookiefiltercount
                         , html: filter
+                        , available: viewfields.length
                     }
                     , pageLength: view.pagelength || 10
                     , fastsearch: view.idfastsearch ? view.fastsearch.label : false

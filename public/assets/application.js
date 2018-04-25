@@ -708,6 +708,7 @@ var application = {
             // Filter Modal
             $('body').append(application.modal.create({
                 id: 'tableview' + data.name + 'filter'
+                , fullscreen: data.filter.available > 8
                 , title: 'Filtro'
                 , body: data.filter.html
                 , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="button" class="btn btncleanfilter btn-default">Limpar</button> <button type="button" class="btn btngofilter btn-primary">Filtrar</button>'

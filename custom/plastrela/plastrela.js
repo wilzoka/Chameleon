@@ -4360,7 +4360,130 @@ let main = {
                         report.etapa = etapa.codigo;
                         report.recurso = recurso.codigo;
 
-                        
+                        let sql = await db.sequelize.query(`
+                        select
+                            (select count(*) from pcp_approducao ap inner join pcp_approducaovolume apv on (ap.id = apv.idapproducao) where ap.idoprecurso = opr.id) as producaoqtdvolumes
+                            , (select coalesce(sum(apv.pesoliquido), 0) from pcp_approducao ap inner join pcp_approducaovolume apv on (ap.id = apv.idapproducao) where ap.idoprecurso = opr.id) as producaopeso
+                            , (select coalesce(sum(apt.duracao), 0) from pcp_approducao ap inner join pcp_approducaotempo apt on (ap.id = apt.idapproducao) where ap.idoprecurso = opr.id) as producaotempo
+                            , (select count(*) from pcp_apperda ap where ap.idoprecurso = opr.id) as perdaqtd
+                            , (select coalesce(sum(ap.peso), 0) from pcp_apperda ap where ap.idoprecurso = opr.id) as perdapeso
+                            , (select coalesce(sum(ap.duracao), 0) from pcp_apparada ap where ap.idoprecurso = opr.id) as paradatempo    
+                        from
+                            pcp_oprecurso opr
+                        where
+                            opr.id = :idoprecurso
+                        `
+                            , {
+                                type: db.Sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    idoprecurso: oprecurso.id
+                                }
+                            });
+
+                        if (sql.length <= 0) {
+                            return application.error(obj.res, { msg: 'Ordem de Produção ainda não possui dados para montar o resumo' });
+                        }
+                        report.volume_qtd = sql[0].producaoqtdvolumes;
+                        report.volume_peso = application.formatters.fe.decimal(sql[0].producaopeso, 4);
+                        report.perda_qtd = sql[0].perdaqtd;
+                        report.perda_peso = application.formatters.fe.decimal(sql[0].perdapeso, 4);
+                        report.producao_tempo = application.formatters.fe.time(sql[0].producaotempo);
+                        report.parada_tempo = application.formatters.fe.time(sql[0].paradatempo);
+                        report.insumo_qtd = (await db.getModel('pcp_apinsumo').sum('qtd', { where: { idoprecurso: oprecurso.id } }) || 0);
+
+                        sql = await db.sequelize.query(`
+                            select
+                                api.recipiente
+                                , sum(api.qtd) as total
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                            where
+                                opr.id = :idoprecurso
+                            group by 1
+                            order by 1
+                            `
+                            , {
+                                type: db.Sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    idoprecurso: oprecurso.id
+                                }
+                            });
+
+                        report.table_insumo = '<table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">';
+                        for (let i = 0; i < sql.length; i++) {
+                            report.table_insumo += `
+                                <tr>
+                                    <td style="text-align:center;"><strong>Recipiente</strong></td>
+                                    <td style="text-align:center;"><strong>${sql[i]['recipiente']}</strong></td>
+                                    <td style="text-align:right;"><strong>${application.formatters.fe.decimal(sql[i]['total'], 4)} KG</strong></td>
+                                    <td style="text-align:right;"><strong>${application.formatters.fe.decimal((sql[i]['total'] / report.insumo_qtd) * 100, 2)}%</strong></td>
+                                </tr>
+                                `;
+
+                            let sql2 = await db.sequelize.query(
+                                etapa.codigo == 10 ?
+                                    `
+                                select
+                                    coalesce(v.descricaocompleta, vol.observacao, 'Mistura') as descricao
+                                    , sum(round(api.qtd * (volm.qtd / vol.qtd), 4)) as qtd
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                left join est_volume vol on (api.idvolume = vol.id)
+                                left join est_volumemistura volm on (vol.id = volm.idvolume)
+                                left join est_volume volmv on (volm.idvmistura = volmv.id)
+                                left join pcp_versao v on (volmv.idversao = v.id)
+                                where
+                                    opr.id = :idoprecurso
+                                    and api.recipiente = :recipiente
+                                group by 1
+                                order by 1
+                                `
+                                    :
+                                    `
+                                select
+                                    i.descricao
+                                    , sum(api.qtd) as qtd
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                left join est_volume vol on (api.idvolume = vol.id)
+                                left join pcp_versao v on (vol.idversao = v.id)
+                                left join cad_item i on (v.iditem = i.id)
+                                where
+                                    opr.id = :idoprecurso
+                                    and api.recipiente = :recipiente
+                                group by 1
+                                order by 1
+                                `
+                                , {
+                                    type: db.Sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        idoprecurso: oprecurso.id
+                                        , recipiente: sql[i]['recipiente']
+                                    }
+                                });
+                            for (let z = 0; z < sql2.length; z++) {
+                                report.table_insumo += `
+                                <tr>
+                                    <td></td>
+                                    <td style="text-align:left;">${sql2[z]['descricao']}</td>
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(sql2[z]['qtd'], 4)} KG</td>
+                                    <td style="text-align:right;">${application.formatters.fe.decimal((sql2[z]['qtd'] / sql[i]['total']) * 100, 2)}%</td>
+                                </tr>
+                                `;
+                            }
+                        }
+                        report.table_insumo += `
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td style="text-align:right;"><strong>${application.formatters.fe.decimal(report.insumo_qtd, 4)} KG</strong></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                        `;
 
                         let file = await main.platform.report.f_generate('PCP - Resumo Produção OP', report);
                         return application.success(obj.res, {

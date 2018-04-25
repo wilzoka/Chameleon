@@ -189,4 +189,12 @@ $(function () {
         }
     });
 
+    $('#resumo').click(function () {
+        application.jsfunction('plastrela.pcp.oprecurso.js_resumoProducao', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            application.handlers.responseSuccess(response);
+        });
+    });
+
 });
