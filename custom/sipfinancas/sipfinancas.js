@@ -1209,6 +1209,7 @@ let main = {
                         report.table_produtos += `
                         </table>
                         `;
+                        report.total = application.formatters.fe.decimal(report.totalprodutos - (pedido.desconto || 0), 2);
                         report.totalprodutos = application.formatters.fe.decimal(report.totalprodutos, 2);
 
                         sql = await db.sequelize.query(`
