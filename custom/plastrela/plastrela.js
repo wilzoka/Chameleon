@@ -4029,7 +4029,7 @@ let main = {
                         if (mistura.idvolume) {
                             return application.error(obj.res, { msg: 'Esta mistura já possui volume gerado' });
                         }
-                        let volumes = await db.getModel('pcp_apmisturavolume').findAll({ where: { idapmistura: mistura.id } });
+                        let volumes = await db.getModel('pcp_apmisturavolume').findAll({ include: [{ all: true }], where: { idapmistura: mistura.id } });
                         if (volumes.length <= 0) {
                             return application.error(obj.res, { msg: 'A Mistura deve conter no mínimo 1 volume' });
                         }
@@ -4045,19 +4045,30 @@ let main = {
                         let volume = await db.getModel('est_volume').create({
                             iduser: obj.req.user.id
                             , datahora: moment()
-                            , qtd: qtdtotal.toFixed(4)
+                            , qtd: qtdtotal
                             , consumido: true
                             , iddeposito: recurso.iddepositoprodutivo
-                            , qtdreal: (0.0).toFixed(4)
+                            , qtdreal: 0
                             , observacao: mistura.descricao
                         });
 
                         for (let i = 0; i < volumes.length; i++) {
-                            await db.getModel('est_volumemistura').create({
-                                idvolume: volume.id
-                                , idvmistura: volumes[i].idvolume
-                                , qtd: volumes[i].qtd
-                            });
+                            if (volumes[i].est_volume.idversao) {
+                                await db.getModel('est_volumemistura').create({
+                                    idvolume: volume.id
+                                    , idvmistura: volumes[i].idvolume
+                                    , qtd: volumes[i].qtd
+                                });
+                            } else {
+                                let misturas = await db.getModel('est_volumemistura').findAll({ include: [{ all: true }], where: { idvolume: volumes[i].idvolume } });
+                                for (let z = 0; z < misturas.length; z++) {
+                                    await db.getModel('est_volumemistura').create({
+                                        idvolume: volume.id
+                                        , idvmistura: misturas[z].idvmistura
+                                        , qtd: (misturas[z].qtd / misturas[z].est_volume.qtd) * volumes[i].qtd
+                                    });
+                                }
+                            }
                             let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
                             vol.qtdreal = (parseFloat(vol.qtdreal) - parseFloat(volumes[i].qtd)).toFixed(4);
                             if (parseFloat(vol.qtdreal) == 0) {
@@ -4159,18 +4170,17 @@ let main = {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
                         }
 
-                        if (!volume.idversao) {
-                            return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
-                        }
-                        let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
-                        let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
-                        let grupo = await db.getModel('est_grupo').find({ where: { id: item.idgrupo } });
-                        if ([
-                            500 // Polietileno
-                            , 501 // Pigmentos e Aditivos
-                            , 506 // Peletizado
-                        ].indexOf(grupo.codigo) < 0) {
-                            return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
+                        if (volume.idversao) {
+                            let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
+                            let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
+                            let grupo = await db.getModel('est_grupo').find({ where: { id: item.idgrupo } });
+                            if ([
+                                500 // Polietileno
+                                , 501 // Pigmentos e Aditivos
+                                , 506 // Peletizado
+                            ].indexOf(grupo.codigo) < 0) {
+                                return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
+                            }
                         }
 
                         let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
