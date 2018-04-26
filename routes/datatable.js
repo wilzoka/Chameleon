@@ -91,6 +91,9 @@ const getFilter = function (cookie, modelattributes) {
                 case 'decimal':
                     cookie[i][k] = application.formatters.be.decimal(cookie[i][k]);
                     break;
+                case 'integer':
+                    cookie[i][k] = cookie[i][k].substring(0, 8);
+                    break;
             }
             let o = {};
             switch (field[2]) {
