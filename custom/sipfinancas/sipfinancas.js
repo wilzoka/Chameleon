@@ -609,7 +609,7 @@ let main = {
                                 , datavcto: i == 1 ? application.formatters.be.date(obj.data.data) : obj.data.dias == 30 ? moment(obj.data.data, 'DD/MM/YYYY').add(i - 1, 'M').format('YYYY-MM-DD') : moment(obj.data.data, 'DD/MM/YYYY').add((i - 1) * obj.data.dias, 'day').format('YYYY-MM-DD')
                                 , idpedido: obj.data.idpedido
                                 , idcategoria: obj.data.idcategoria
-                                , valor: (sum / parseInt(obj.data.qtd)).toFixed(2)
+                                , valor: ((sum - (pedido.desconto || 0)) / parseInt(obj.data.qtd)).toFixed(2)
                                 , idcorr: pedido.idcliente
                                 , detalhes: 'Venda ' + pedido.id + ' NF ' + pedido.nfe
                                 , quitado: false
@@ -1147,6 +1147,116 @@ let main = {
                         }
 
                         next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_imprimirBilhete: async function (obj) {
+                    try {
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+
+                        let pedido = await db.getModel('ven_pedido').find({ include: [{ all: true }], where: { id: obj.ids[0] } });
+                        let report = {};
+
+                        report.id = pedido.id
+                        report.nfe = pedido.nfe;
+                        report.cliente = pedido.cad_corr.nome;
+                        report.representante = pedido.vendedor.nome;
+                        report.data = application.formatters.fe.date(pedido.data);
+                        report.desconto = application.formatters.fe.decimal(pedido.desconto || 0, 2);
+                        report.totalprodutos = 0;
+                        let sql = await db.sequelize.query(`
+                        select
+                            i.codigo || ' - ' || i.descricao as produto
+                            , pi.unitario
+                            , pi.qtd
+                            , pi.unitario * pi.qtd as subtotal
+                        from
+                            ven_pedido p
+                        left join ven_pedidoitem pi on (p.id = pi.idpedido)
+                        left join cad_item i on (pi.iditem = i.id)
+                        where p.id = :idpedido
+                        `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    idpedido: pedido.id
+                                }
+                            }
+                        );
+
+                        report.table_produtos = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;background-color:#dddddd;"><strong>Produto</strong></td>
+                                <td style="text-align:center;background-color:#dddddd;"><strong>Preço Unit.</strong></td>
+                                <td style="text-align:center;background-color:#dddddd;"><strong>Quant/KG/MIL</strong></td>
+                                <td style="text-align:center;background-color:#dddddd;"><strong>Subtotal</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            report.table_produtos += `
+                            <tr>
+                                <td style="text-align:left;"> ${sql[i]['produto']} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['unitario'], 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['subtotal'], 2)} </td>
+                            </tr>
+                            `;
+                            report.totalprodutos += parseFloat(sql[i]['subtotal']);
+                        }
+                        report.table_produtos += `
+                        </table>
+                        `;
+                        report.totalprodutos = application.formatters.fe.decimal(report.totalprodutos, 2);
+
+                        sql = await db.sequelize.query(`
+                        select
+                            m.datavcto
+                            , m.valor
+                        from
+                            fin_mov m
+                        where m.idpedido = :idpedido
+                        `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    idpedido: pedido.id
+                                }
+                            }
+                        );
+
+                        report.table_parcelas = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;background-color:#dddddd;"><strong>Vencimentos</strong></td>
+                                <td style="text-align:center;background-color:#dddddd;"><strong>Data</strong></td>
+                                <td style="text-align:center;background-color:#dddddd;"><strong>Valor</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            report.table_parcelas += `
+                            <tr>
+                                <td style="text-align:center;"> ${i + 1} </td>
+                                <td style="text-align:center;"> ${application.formatters.fe.date(sql[i]['datavcto'])} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['valor'], 2)} </td>
+                            </tr>
+                            `;
+                        }
+                        report.table_parcelas += `
+                        </table>
+                        `;
+
+                        let file = await main.platform.report.f_generate('Vendas - Bilhete', report);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 400px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            }
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

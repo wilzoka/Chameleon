@@ -584,21 +584,17 @@ var application = {
                 if ($('#' + sTableId).attr('data-insertable') == 'true') {
                     insertButton = '<button id="' + sTableId + '_insert" type="button" class="btn btn-success btn-biggermobile" data-table="' + sTableId + '" title="Incluir"><i class="fa fa-plus"></i></button>';
                 }
-
                 var editButton = '';
                 if ($('#' + sTableId).attr('data-editable') == 'true') {
                     editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
                 } else {
                     editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
                 }
-
                 var deleteButton = '';
                 if ($('#' + sTableId).attr('data-deletable') == 'true') {
                     deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
                 }
-
                 $('#' + sTableId + '_buttons').append('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
-
                 $('button#' + sTableId + '_insert').click(function () {
                     var tableid = $(this).attr('data-table');
                     var view = $('#' + tableid).attr('data-view');
@@ -627,24 +623,18 @@ var application = {
                     }
                 });
                 $('button#' + sTableId + '_delete').click(function () {
-
                     var tableid = $(this).attr('data-table');
                     var selected = $('#' + tableid).attr('data-selected');
                     var view = $('#' + tableid).attr('data-view');
-
                     if (selected) {
-
                         selectedsplited = selected.split(',');
-
                         var msg = '';
                         if (selectedsplited.length > 1) {
                             msg = 'Os registros selecionados serão Excluídos. Continuar?';
                         } else {
                             msg = 'O registro selecionado será Excluído. Continuar?';
                         }
-
                         application.functions.confirmMessage(msg, function () {
-
                             $.ajax({
                                 url: '/v/' + view + '/delete'
                                 , type: 'POST'
@@ -660,9 +650,7 @@ var application = {
                                     application.handlers.responseError(response);
                                 }
                             });
-
                         });
-
                     } else {
                         application.notify.error('Selecione um registro para Excluir');
                     }
@@ -688,7 +676,9 @@ var application = {
                 if (tables[sTableId]._config.fastsearch) {
                     $fastsearch.attr('placeholder', tables[sTableId]._config.fastsearch);
                 } else {
-                    $fastsearch.prop('disabled', true);
+                    // $fastsearch.prop('disabled', true);
+                    $fastsearch.addClass('hidden');
+                    $fastsearch.parent().siblings('label').addClass('hidden');
                 }
 
             }
@@ -755,7 +745,7 @@ var application = {
                             tables[settings.sInstance].row('tr#' + selected[i]).select();
                         }
                         $('#' + settings.sInstance + '_info').find('a').remove();
-                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
+                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
                     }
                 }
                 , initComplete: function (settings) {
@@ -763,14 +753,14 @@ var application = {
                     var subview = $table.attr('data-subview');
                     if (!subview) {
                         createButtons(settings.sTableId);
+                        if (!application.functions.isMobile()) {
+                            $('#' + settings.sTableId + '_filter input').focus();
+                        }
                     } else if (subview && application.functions.getId() > 0) {
                         createButtons(settings.sTableId);
                     }
                     application.tables.reloadFooter(settings.sTableId);
                     $(document).trigger('app-datatable', settings.sTableId);
-                    if (!application.functions.isMobile()) {
-                        $('#' + settings.sTableId + '_filter input').focus();
-                    }
                 }
                 , ordering: data.permissions.orderable
                 , pageLength: data.pageLength
@@ -800,7 +790,7 @@ var application = {
                 }
                 $this.attr('data-selected', selected);
                 $('#' + $this[0].id + '_info').find('a').remove();
-                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
+                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
             }).on('deselect', function (e, dt, type, indexes) {
                 var $this = $(this);
                 var rowData = tables[$this[0].id].rows(indexes).data().toArray()[0];
@@ -813,7 +803,7 @@ var application = {
 
                     $('#' + $this[0].id + '_info').find('a').remove();
                     if (selected.length > 0) {
-                        $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + (application.functions.isMobile() ? ' Sel.' : ' Selecionado(s) ') + ' </a>');
+                        $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
                     }
                 }
                 $this.attr('data-selected', selected);
