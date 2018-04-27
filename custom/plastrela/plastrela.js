@@ -4276,13 +4276,13 @@ let main = {
 
                         if (etapa.tol_min != null) {
                             if (dif > etapa.tol_min) {
-                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a menos (tolerável ' + etapa.tol_min + '%)' });
+                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a menos' });
                             }
                         }
                         dif = Math.abs(dif);
                         if (etapa.tol_max != null) {
                             if (dif > etapa.tol_max) {
-                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a mais (tolerável ' + etapa.tol_max + '%)' });
+                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a mais' });
                             }
                         }
 

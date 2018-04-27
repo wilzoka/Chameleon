@@ -65,6 +65,16 @@
           case 115://F4
             $('button.btnfilter').trigger('click');
             break;
+          case 118://F7
+            for (var k in tables) {
+              tables[k].page('previous').draw(false);
+            }
+            break;
+          case 119://F8
+            for (var k in tables) {
+              tables[k].page('next').draw(false);
+            }
+            break;
         }
       });
       $(document).ready(function () {
