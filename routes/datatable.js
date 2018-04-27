@@ -73,11 +73,11 @@ const getFilter = function (cookie, modelattributes) {
             switch (field[1]) {
                 case 'date':
                     m = moment(cookie[i][k], application.formatters.fe.date_format);
-                    cookie[i][k] = m.format(application.formatters.be.date_format);
+                    cookie[i][k] = m.isValid() ? m.format(application.formatters.be.date_format) : null;
                     break;
                 case 'datetime':
                     m = moment(cookie[i][k], application.formatters.fe.datetime_format);
-                    cookie[i][k] = m.format(application.formatters.be.datetime_format + (field[2] == 'b' ? ':00' : ':59'));
+                    cookie[i][k] = m.isValid() ? m.format(application.formatters.be.datetime_format + (field[2] == 'b' ? ':00' : ':59')) : null;
                     break;
                 case 'time':
                     cookie[i][k] = application.formatters.be.time(cookie[i][k]);

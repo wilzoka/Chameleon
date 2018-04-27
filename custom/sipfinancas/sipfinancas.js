@@ -1165,7 +1165,7 @@ let main = {
                         report.cliente = pedido.cad_corr.nome;
                         report.representante = pedido.vendedor.nome;
                         report.data = application.formatters.fe.date(pedido.data);
-                        report.desconto = application.formatters.fe.decimal(pedido.desconto || 0, 2) + ' ' + pedido.observacao;
+                        report.desconto = application.formatters.fe.decimal(pedido.desconto || 0, 2) + ' ' + (pedido.observacao || '');
                         report.totalprodutos = 0;
                         let sql = await db.sequelize.query(`
                         select
@@ -1200,7 +1200,7 @@ let main = {
                             <tr>
                                 <td style="text-align:left;"> ${sql[i]['produto']} </td>
                                 <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['unitario'], 2)} </td>
-                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 3)} </td>
                                 <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['subtotal'], 2)} </td>
                             </tr>
                             `;
