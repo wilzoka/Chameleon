@@ -77,6 +77,22 @@ let main = {
                     }
                 }
             }
+            , precovenda: {
+                js_getValorUnitario: async function (obj) {
+                    try {
+                        if (!obj.data.iditem) {
+                            return application.error(obj.res, {});
+                        }
+                        let item = await db.getModel('com_precovenda').find({ where: { iditem: obj.data.iditem }, order: [['datahora', 'desc']] });
+                        if (!item) {
+                            return application.error(obj.res, { msg: 'Preço não encontrado' });
+                        }
+                        return application.success(obj.res, { data: application.formatters.fe.decimal(item.precovenda, 2) });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
         }
         , financeiro: {
             categoria: {
