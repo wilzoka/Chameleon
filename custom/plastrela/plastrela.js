@@ -4806,7 +4806,7 @@ let main = {
                         if (data.producao.qtd > 0 && data.producao.tempo > 0) {
                             data.ind.velmedia = application.formatters.fe.decimal(data.producao.qtd / (data.producao.tempo + data.parada.tempo), 2);
                             data.ind.velefet = application.formatters.fe.decimal(data.producao.qtd / data.producao.tempo, 2);
-                            data.ind.dif = application.formatters.fe.decimal(data.insumo.qtd - data.producao.pesoliquido, 4);
+                            data.ind.dif = application.formatters.fe.decimal(data.insumo.qtd - data.producao.pesoliquido - data.perda.qtd, 4);
                         }
 
                         data.producao.pesoliquido = application.formatters.fe.decimal(data.producao.pesoliquido, 4);
