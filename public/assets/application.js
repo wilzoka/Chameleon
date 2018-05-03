@@ -20,7 +20,6 @@ $.extend(true, $.fn.dataTable.defaults, {
 $.extend(true, $.fn.dataTable.ext.classes, {
     sFilterInput: 'form-control'
 });
-
 // Dropzone
 Dropzone.autoDiscover = false;
 Dropzone.prototype.defaultOptions.dictFallbackMessage = "Your browser does not support drag'n'drop file uploads.";

@@ -693,12 +693,24 @@ let main = {
                                     <td style="text-align:right;">${application.formatters.fe.decimal(totalsaldoinicial, 2)}</td>
                                 </tr>
                             `;
+                            let subtotais = {};
+                            let k = '';
                             for (let i = 0; i < categorias.length; i++) {
                                 if (categorias[i].descricaocompleta.indexOf('-') < 0 && (categorias[i].descricaocompleta.indexOf('RS ') >= 0 || categorias[i].descricaocompleta.indexOf('MS ') >= 0)) {
+                                    if (i > 0) {
+                                        report.tableresultado += `<td style="text-align:center;">Subtotal</td>`;
+                                        let sub = 0;
+                                        for (let z = 0; z < contas.length; z++) {
+                                            report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(subtotais[k + '_' + contas[z].descricao] || 0, 2)}</td>`;
+                                            sub += (subtotais[k + '_' + contas[z].descricao] || 0);
+                                        }
+                                        report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(sub, 2)}</td>`;
+                                    }
                                     report.tableresultado += `
                                     <tr>
                                         <td style="text-align:center;" colspan="${contas.length + 2}"><strong>${categorias[i].descricaocompleta}</strong></td>
                                     </tr>`;
+                                    k = categorias[i].descricaocompleta;
                                 } else {
                                     report.tableresultado += `<tr><td><strong>${categorias[i].descricao}</strong></td>`;
                                     let totalcategoria = 0.0;
@@ -732,10 +744,22 @@ let main = {
                                         if (sql[0].vt) {
                                             totalcategoria += parseFloat(sql[0].vt);
                                             contas[z]._saldo += parseFloat(sql[0].vt);
+                                            if (!subtotais[k + '_' + contas[z].descricao])
+                                                subtotais[k + '_' + contas[z].descricao] = 0;
+                                            subtotais[k + '_' + contas[z].descricao] += parseFloat(sql[0].vt);
                                         }
                                         report.tableresultado += `<td style="text-align:right;">${sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00'}</td>`;
                                     }
                                     report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(totalcategoria, 2)}</td></tr>`;
+                                }
+                                if (i == categorias.length - 1) {
+                                    report.tableresultado += `<td style="text-align:center;">Subtotal</td>`;
+                                    let sub = 0;
+                                    for (let z = 0; z < contas.length; z++) {
+                                        report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(subtotais[k + '_' + contas[z].descricao] || 0, 2)}</td>`;
+                                        sub += (subtotais[k + '_' + contas[z].descricao] || 0);
+                                    }
+                                    report.tableresultado += `<td style="text-align:right;">${application.formatters.fe.decimal(sub, 2)}</td>`;
                                 }
                             }
                             report.tableresultado += `
@@ -763,24 +787,55 @@ let main = {
                             report.descontos = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
 
                             let sql = await db.sequelize.query(`
-                                select sum(m.valor - coalesce((select sum(mp.valor) from fin_movparc mp where m.id = mp.idmov), 0)) as vt from fin_mov m left join fin_categoria c on (m.idcategoria = c.id) where c.dc = 2 and m.quitado = false and m.datavcto < :data
-                            `
-                                , {
+                                select (select
+                                    sum(pi.qtd * pi.unitario)
+                                from
+                                    ven_pedido p
+                                left join ven_pedidoitem pi on (p.id = pi.idpedido)
+                                where	
+                                    p.data < :data)                            
+                                -	                            
+                                (select
+                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) )
+                                from
+                                    fin_mov m
+                                left join fin_movparc mp on (m.id = mp.idmov)
+                                where	
+                                    mp.data < :data
+                                    and m.idcategoria in (1, 2, 3, 47, 48, 49))                            
+                                as vt
+                                `, {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
                                         data: dataini.format(application.formatters.be.date_format)
                                     }
-                                }
-                            );
+                                });
                             report.saldoanteriorctarec = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
                             sql = await db.sequelize.query(`
-                            select sum(m.valor - coalesce((select sum(mp.valor) from fin_movparc mp where m.id = mp.idmov), 0)) as vt from fin_mov m left join fin_categoria c on (m.idcategoria = c.id) where c.dc = 2 and m.quitado = false
-                        `
-                                , {
+                                select (select
+                                    sum(pi.qtd * pi.unitario)
+                                from
+                                    ven_pedido p
+                                left join ven_pedidoitem pi on (p.id = pi.idpedido)
+                                where	
+                                    p.data <= :data)                            
+                                -	                            
+                                (select
+                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) )
+                                from
+                                    fin_mov m
+                                left join fin_movparc mp on (m.id = mp.idmov)
+                                where	
+                                    mp.data <= :data
+                                    and m.idcategoria in (1, 2, 3, 47, 48, 49))                            
+                                as vt
+                                `, {
                                     type: db.sequelize.QueryTypes.SELECT
-                                }
-                            );
+                                    , replacements: {
+                                        data: datafim.format(application.formatters.be.date_format)
+                                    }
+                                });
                             report.saldoctarec = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
                             sql = await db.sequelize.query(`
@@ -810,7 +865,7 @@ let main = {
                                     }
                                 }
                             );
-                            report.faturamentors = sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+                            report.faturamentors = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
                             sql = await db.sequelize.query(`
                             select total as vt from
@@ -839,7 +894,7 @@ let main = {
                                     }
                                 }
                             );
-                            report.faturamentoms = sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+                            report.faturamentoms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
                             let file = await main.platform.report.f_generate('Financeiro - Resultado', report);
                             return application.success(obj.res, {
