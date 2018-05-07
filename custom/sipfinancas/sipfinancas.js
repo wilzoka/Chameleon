@@ -97,7 +97,7 @@ let main = {
                         let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
                         let sql = await db.sequelize.query(`
                         select
-                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
+                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0) end) as soma
                         from
                             fin_mov m
                         left join fin_movparc mp on (m.id = mp.idmov)
@@ -129,7 +129,7 @@ let main = {
                         let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
                         let sql = await db.sequelize.query(`
                         select
-                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
+                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0) end) as soma
                         from
                             fin_mov m
                         left join fin_movparc mp on (m.id = mp.idmov)
@@ -249,7 +249,7 @@ let main = {
                                 body += '<div class="row no-margin">';
 
                                 body += application.components.html.integer({
-                                    width: '2'
+                                    width: '1'
                                     , label: 'ID'
                                     , name: 'id' + obj.ids[i]
                                     , value: mov.id
@@ -257,7 +257,7 @@ let main = {
                                 });
 
                                 body += application.components.html.text({
-                                    width: '4'
+                                    width: '3'
                                     , label: 'Correntista'
                                     , name: 'cliente' + obj.ids[i]
                                     , value: mov.cad_corr.nome
@@ -286,13 +286,20 @@ let main = {
                                     , precision: 2
                                 });
 
+                                body += application.components.html.decimal({
+                                    width: '2'
+                                    , label: 'Devolução'
+                                    , name: 'devolucao' + obj.ids[i]
+                                    , precision: 2
+                                });
+
                                 body += '</div><hr>';
 
                             }
 
                             body += '<div class="row no-margin">';
                             body += application.components.html.autocomplete({
-                                width: '6'
+                                width: '10'
                                 , label: 'Cheques <a target="_blank" href="/view/90/0"><button style="padding: 0px 5px;" type="button" class="btn btn-success"><i class="fa fa-plus"></i></button></a>'
                                 , name: 'idcheques'
                                 , model: 'fin_cheque'
@@ -363,6 +370,7 @@ let main = {
                                     , idconta: obj.req.body.idconta
                                     , desconto: obj.req.body['desconto' + ids[i]] ? application.formatters.be.decimal(obj.req.body['desconto' + ids[i]], 2) : null
                                     , juro: obj.req.body['juro' + ids[i]] ? application.formatters.be.decimal(obj.req.body['juro' + ids[i]], 2) : null
+                                    , devolucao: obj.req.body['devolucao' + ids[i]] ? application.formatters.be.decimal(obj.req.body['devolucao' + ids[i]], 2) : null
                                     , data: application.formatters.be.date(obj.req.body.data)
                                 });
 
@@ -386,13 +394,13 @@ let main = {
                                         total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
                                         comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
                                     }
-                                    if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) > 0 && comissao > 0) {
+                                    if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0) - parseFloat(movparc.devolucao || 0)) > 0 && comissao > 0) {
                                         let movcom = await db.getModel('fin_mov').create({
                                             data: moment()
                                             , parcela: '1/1'
                                             , datavcto: application.formatters.be.date('01/' + moment(movparc.data).add(1, 'M').format('MM/YYYY'))
                                             , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
-                                            , valor: (((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) * comissao) / total).toFixed(2)
+                                            , valor: (((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0) - parseFloat(movparc.devolucao || 0)) * comissao) / total).toFixed(2)
                                             , idcorr: mov.ven_pedido.idvendedor
                                             , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
                                             , quitado: false
@@ -455,13 +463,13 @@ let main = {
                                     total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
                                     comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
                                 }
-                                if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) > 0 && comissao > 0) {
+                                if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0) - parseFloat(movparc.devolucao || 0)) > 0 && comissao > 0) {
                                     let movcom = await db.getModel('fin_mov').create({
                                         data: moment()
                                         , parcela: '1/1'
                                         , datavcto: application.formatters.be.date('01/' + moment().add(1, 'M').format('MM/YYYY'))
                                         , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9
-                                        , valor: (((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0)) * comissao) / total).toFixed(2)
+                                        , valor: (((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0) - parseFloat(movparc.devolucao || 0)) * comissao) / total).toFixed(2)
                                         , idcorr: mov.ven_pedido.idvendedor
                                         , detalhes: 'Comissão gerada sobre a movimentação ID ' + movparc.id
                                         , quitado: false
@@ -721,7 +729,7 @@ let main = {
                                         from
                                             (select
                                                 *
-                                                , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) as valortotal
+                                                , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) as valortotal
                                             from
                                                 fin_movparc mp
                                             left join fin_mov m on (mp.idmov = m.id)
@@ -785,6 +793,7 @@ let main = {
                             `;
                             report.juros = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('juro', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
                             report.descontos = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
+                            report.devolucao = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('devolucao', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
 
                             let sql = await db.sequelize.query(`
                                 select (select
@@ -796,7 +805,7 @@ let main = {
                                     p.data < :data)                            
                                 -	                            
                                 (select
-                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) )
+                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) )
                                 from
                                     fin_mov m
                                 left join fin_movparc mp on (m.id = mp.idmov)
@@ -822,7 +831,7 @@ let main = {
                                     p.data <= :data)                            
                                 -	                            
                                 (select
-                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) )
+                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) )
                                 from
                                     fin_mov m
                                 left join fin_movparc mp on (m.id = mp.idmov)

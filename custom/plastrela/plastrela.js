@@ -564,7 +564,7 @@ let main = {
                                         let qtd = parseFloat(volumes[z].qtd) - parseFloat(totalreservado.length > 0 ? totalreservado[0].soma || 0 : 0);
                                         if (pesorestante < qtd) {
                                             qtd = pesorestante;
-                                            if (pesorestante > 0) {
+                                            if (pesorestante > 0 && solicitacaoitem[y].idpedidoitem) {
                                                 reservascriadas.push(await db.getModel('est_volumereserva').create({
                                                     idvolume: volumes[z].id
                                                     , idpedidoitem: solicitacaoitem[y].idpedidoitem
@@ -576,7 +576,7 @@ let main = {
                                             solicitacaoitem[y].qtdrecebida = parseFloat(solicitacaoitem[y].qtdrecebida || 0) + pesorestante;
                                         } else {
                                             pesorestante -= qtd;
-                                            if (qtd > 0) {
+                                            if (qtd > 0 && solicitacaoitem[y].idpedidoitem) {
                                                 reservascriadas.push(await db.getModel('est_volumereserva').create({
                                                     idvolume: volumes[z].id
                                                     , idpedidoitem: solicitacaoitem[y].idpedidoitem
