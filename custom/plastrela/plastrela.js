@@ -3168,8 +3168,9 @@ let main = {
                             if (volume) {
                                 volume.qtd = qtd;
                                 volume.qtdreal = qtd;
-                                volume.observacao = saved.register.observacao
-                                volume.metragem = metragem
+                                volume.observacao = saved.register.observacao;
+                                volume.metragem = metragem;
+                                volume.iduser = saved.register.iduser;
                                 volume.save();
                             } else {
 
