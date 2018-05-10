@@ -396,7 +396,7 @@ let main = {
                                     }
                                     if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0) - parseFloat(movparc.devolucao || 0)) > 0 && comissao > 0) {
                                         let movcom = await db.getModel('fin_mov').create({
-                                            data: moment()
+                                            data: movparc.data
                                             , parcela: '1/1'
                                             , datavcto: application.formatters.be.date('01/' + moment(movparc.data).add(1, 'M').format('MM/YYYY'))
                                             , idcategoria: mov.fin_categoria.descricaocompleta.substring(0, 2) == 'MS' ? 8 : 9

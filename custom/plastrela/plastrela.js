@@ -4541,6 +4541,46 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_duplicarOP: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Recurso'
+                                , name: 'idrecurso'
+                                , model: 'pcp_recurso'
+                                , attribute: 'codigo'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'idrecurso']);
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.id } });
+                            let opnova = oprecurso.dataValues;
+                            delete opnova['id'];
+                            opnova.idestado = 1;
+                            opnova.idrecurso = obj.req.body.idrecurso;
+                            await db.getModel('pcp_oprecurso').create(opnova);
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , r_conferenciaAp: async function (obj) {
                 try {
