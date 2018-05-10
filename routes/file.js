@@ -43,7 +43,7 @@ module.exports = function (app) {
                 }
                 return application.success(res, {
                     modal: {
-                        id: 'modalevt'
+                        id: 'modalpreview'
                         , fullscreen: true
                         , title: '<div class="col-sm-12" style="text-align: center;">' + file.filename + '</div>'
                         , body: body

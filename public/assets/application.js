@@ -22,15 +22,15 @@ $.extend(true, $.fn.dataTable.ext.classes, {
 });
 // Dropzone
 Dropzone.autoDiscover = false;
-Dropzone.prototype.defaultOptions.dictFallbackMessage = "Your browser does not support drag'n'drop file uploads.";
-Dropzone.prototype.defaultOptions.dictFallbackText = "Please use the fallback form below to upload your files like in the olden days.";
-Dropzone.prototype.defaultOptions.dictFileTooBig = "Arquivo é grande demais ({{filesize}}MiB). Tamanho máximo: {{maxFilesize}}MiB.";
-Dropzone.prototype.defaultOptions.dictInvalidFileType = "Você não pode enviar arquivos deste tipo.";
-Dropzone.prototype.defaultOptions.dictResponseError = "Servidor respondeu com {{statusCode}} código.";
 Dropzone.prototype.defaultOptions.dictCancelUpload = "Cancelar Upload";
-Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "Você tem certeza que quer cancelar este envio?";
-Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
+Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "Você tem certeza que deseja cancelar este envio?";
+Dropzone.prototype.defaultOptions.dictFallbackMessage = "Seu navegador não suporta fazer upload via drag'n'drop.";
+Dropzone.prototype.defaultOptions.dictFallbackText = "Por favor utilize o formulário abaixo para fazer upload do arquivo como nos velhos tempos.";
+Dropzone.prototype.defaultOptions.dictFileTooBig = "Arquivo é grande demais ({{filesize}}MB). Tamanho máximo: {{maxFilesize}}MB.";
+Dropzone.prototype.defaultOptions.dictInvalidFileType = "Você não pode enviar arquivos deste tipo.";
 Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este arquivo não será salvo.";
+Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
+Dropzone.prototype.defaultOptions.dictResponseError = "Servidor respondeu com {{statusCode}} código.";
 // Global Vars
 var maps = [];
 var notifications = [];
@@ -379,6 +379,7 @@ var application = {
                         $(file.previewElement).attr('data-id', response.data.id);
                     }
                     , parallelUploads: 1
+                    , timeout: null
                 });
                 dz.on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
