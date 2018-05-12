@@ -40,6 +40,7 @@ let main = {
                             }
                             obj._cookies = [{ key: 'wizard-step', value: parseInt(obj.req.body['wizard-step']) + 1 }];
                         }
+                        let neednotification = false;
 
                         switch (obj.req.body['wizard-step']) {
                             case '0'://Cliente
@@ -53,8 +54,25 @@ let main = {
                                 nextStep();
                                 break;
                             case '3'://Pagamento
+                                if (!obj.register.digitado) {
+                                    obj.register.digitado = true;
+                                    neednotification = true;
 
-                                obj.register.digitado = true;
+                                    let tipovenda = await db.getModel('com_tipovenda').find({ where: { id: obj.register.idtipovenda } });
+                                    if (!tipovenda.idcategoria) {
+                                        return application.error(obj.res, { msg: `Tipo de venda "${tipovenda.description}" sem categoria definida` })
+                                    }
+                                    let sql = await db.sequelize.query(`select sum(vi.qtd * vi.valorunitario) as total from com_vendaitem vi where vi.idvenda = :idvenda`, { type: db.Sequelize.QueryTypes.SELECT, replacements: { idvenda: obj.register.id } });
+                                    let total = parseFloat(sql[0]['total']) - parseFloat(obj.register.desconto || 0) + parseFloat(obj.register.acrescimo || 0);
+                                    let mov = await db.getModel('fin_mov').create({
+                                        datavcto: moment()
+                                        , idcategoria: tipovenda.idcategoria
+                                        , valor: total
+                                        , quitado: false
+                                        , idpessoa: obj.register.idcliente
+                                        , detalhe: `Venda ID ${obj.register.id}`
+                                    })
+                                }
                                 break;
                             default:
                                 return application.error(obj.res, {});
@@ -63,7 +81,7 @@ let main = {
 
                         let saved = await next(obj);
 
-                        if (saved.success && saved.register.identregador) {
+                        if (saved.success && saved.register.identregador && neednotification) {
                             let cliente = await db.getModel('cad_pessoa').find({ where: { id: saved.register.idcliente } })
                             main.platform.notification.create([saved.register.identregador], {
                                 title: 'Nova Venda'
@@ -78,7 +96,17 @@ let main = {
                 }
             }
             , precovenda: {
-                js_getValorUnitario: async function (obj) {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.register.id == 0) {
+                            obj.register.datahora = moment();
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_getValorUnitario: async function (obj) {
                     try {
                         if (!obj.data.iditem) {
                             return application.error(obj.res, {});
