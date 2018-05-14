@@ -870,7 +870,7 @@ let main = {
                                 from
                                     (select
                                         *
-                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
+                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
                                         , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
                                     from
                                         ven_pedido p
@@ -899,7 +899,7 @@ let main = {
                                 from
                                     (select
                                         *
-                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
+                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
                                         , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
                                     from
                                         ven_pedido p
