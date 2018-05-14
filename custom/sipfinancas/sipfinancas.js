@@ -798,13 +798,20 @@ let main = {
 
                             let sql = await db.sequelize.query(`
                                 select (select
-                                    sum(pi.qtd * pi.unitario) - coalesce(p.desconto, 0)
+                                    sum(pi.qtd * pi.unitario)
                                 from
                                     ven_pedido p
                                 left join ven_pedidoitem pi on (p.id = pi.idpedido)
                                 where	
                                     p.data < :data)                            
-                                -	                            
+                                -	 
+                                (select
+                                    sum(coalesce(p.desconto, 0))
+                                from
+                                    ven_pedido p
+                                where	
+                                    p.data < :data) 
+                                -                         
                                 (select
                                     sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) )
                                 from
@@ -824,12 +831,19 @@ let main = {
 
                             sql = await db.sequelize.query(`
                                 select (select
-                                    sum(pi.qtd * pi.unitario) - coalesce(p.desconto, 0)
+                                    sum(pi.qtd * pi.unitario)
                                 from
                                     ven_pedido p
                                 left join ven_pedidoitem pi on (p.id = pi.idpedido)
                                 where	
-                                    p.data <= :data)                            
+                                    p.data <= :data)   
+                                -	 
+                                (select
+                                    sum(coalesce(p.desconto, 0))
+                                from
+                                    ven_pedido p
+                                where	
+                                    p.data < :data)                          
                                 -	                            
                                 (select
                                     sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) )
