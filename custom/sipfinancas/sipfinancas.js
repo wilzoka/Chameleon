@@ -794,10 +794,11 @@ let main = {
                             report.juros = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('juro', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
                             report.descontos = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
                             report.devolucao = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('devolucao', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
+                            report.descontos_venda = application.formatters.fe.decimal((await db.getModel('ven_pedido').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
 
                             let sql = await db.sequelize.query(`
                                 select (select
-                                    sum(pi.qtd * pi.unitario)
+                                    sum(pi.qtd * pi.unitario) - coalesce(p.desconto, 0)
                                 from
                                     ven_pedido p
                                 left join ven_pedidoitem pi on (p.id = pi.idpedido)
@@ -823,7 +824,7 @@ let main = {
 
                             sql = await db.sequelize.query(`
                                 select (select
-                                    sum(pi.qtd * pi.unitario)
+                                    sum(pi.qtd * pi.unitario) - coalesce(p.desconto, 0)
                                 from
                                     ven_pedido p
                                 left join ven_pedidoitem pi on (p.id = pi.idpedido)
@@ -855,7 +856,7 @@ let main = {
                                 from
                                     (select
                                         *
-                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
+                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
                                         , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
                                     from
                                         ven_pedido p
@@ -884,7 +885,7 @@ let main = {
                                 from
                                     (select
                                         *
-                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
+                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
                                         , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
                                     from
                                         ven_pedido p
