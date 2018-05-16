@@ -4649,7 +4649,7 @@ let main = {
                         let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
-                        main.platform.notification.create([14], {
+                        main.platform.notification.create([2830], {
                             title: obj.req.body.motivo
                             , description: recurso.codigo + ' / ' + op.codigo
                         });
