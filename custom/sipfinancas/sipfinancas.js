@@ -791,12 +791,53 @@ let main = {
                             report.tableresultado += `
                             </table>
                             `;
-                            report.juros = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('juro', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
-                            report.descontos = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
-                            report.devolucao = application.formatters.fe.decimal((await db.getModel('fin_movparc').sum('devolucao', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
-                            report.descontos_venda = application.formatters.fe.decimal((await db.getModel('ven_pedido').sum('desconto', { where: { $and: [{ data: { $gte: dataini } }, { data: { $lte: datafim } }] } })) || 0, 2);
-
                             let sql = await db.sequelize.query(`
+                                select
+                                    sum(mp.juro) as juro
+                                    , sum(mp.desconto) as desconto
+                                    , sum(mp.devolucao) as devolucao
+                                from
+                                    fin_movparc mp
+                                left join fin_mov m on (mp.idmov = m.id)
+                                left join fin_categoria c on (m.idcategoria = c.id)
+                                where
+                                    c.descricaocompleta like 'RS%'
+                                    and mp.data >= :dataini and mp.data <= :datafim
+                                `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
+                                    }
+                                });
+                            report.juro_rs = sql.length > 0 && sql[0].juro ? application.formatters.fe.decimal(sql[0].juro, 2) : '0,00';
+                            report.desconto_rs = sql.length > 0 && sql[0].desconto ? application.formatters.fe.decimal(sql[0].desconto, 2) : '0,00';
+                            report.devolucao_rs = sql.length > 0 && sql[0].devolucao ? application.formatters.fe.decimal(sql[0].devolucao, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
+                                select
+                                    sum(mp.juro) as juro
+                                    , sum(mp.desconto) as desconto
+                                    , sum(mp.devolucao) as devolucao
+                                from
+                                    fin_movparc mp
+                                left join fin_mov m on (mp.idmov = m.id)
+                                left join fin_categoria c on (m.idcategoria = c.id)
+                                where
+                                    c.descricaocompleta like 'MS%'
+                                    and mp.data >= :dataini and mp.data <= :datafim
+                                `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
+                                    }
+                                });
+                            report.juro_ms = sql.length > 0 && sql[0].juro ? application.formatters.fe.decimal(sql[0].juro, 2) : '0,00';
+                            report.desconto_ms = sql.length > 0 && sql[0].desconto ? application.formatters.fe.decimal(sql[0].desconto, 2) : '0,00';
+                            report.devolucao_ms = sql.length > 0 && sql[0].devolucao ? application.formatters.fe.decimal(sql[0].devolucao, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
                                 select (select
                                     sum(pi.qtd * pi.unitario)
                                 from
@@ -813,7 +854,7 @@ let main = {
                                     p.data < :data) 
                                 -                         
                                 (select
-                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) )
+                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) )
                                 from
                                     fin_mov m
                                 left join fin_movparc mp on (m.id = mp.idmov)
@@ -846,7 +887,7 @@ let main = {
                                     p.data < :data)                          
                                 -	                            
                                 (select
-                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) )
+                                    sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) )
                                 from
                                     fin_mov m
                                 left join fin_movparc mp on (m.id = mp.idmov)
@@ -863,24 +904,24 @@ let main = {
                             report.saldoctarec = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
                             sql = await db.sequelize.query(`
-                            select total as vt from
-                                (select
-                                    substring(c.descricaocompleta,0,3) as unidade
-                                    , sum(x.valortotal) as total
-                                from
+                                select total as vt from
                                     (select
-                                        *
-                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
-                                        , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        substring(c.descricaocompleta,0,3) as unidade
+                                        , sum(x.valortotal) as total
                                     from
-                                        ven_pedido p
-                                    where
-                                        p.data >= :dataini and p.data <= :datafim
-                                    ) as x
-                                left join fin_categoria c on (x.idcategoria = c.id)
-                                group by 1) as x
-                            where unidade = 'RS'	
-                            `
+                                        (select
+                                            *
+                                            , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
+                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        from
+                                            ven_pedido p
+                                        where
+                                            p.data >= :dataini and p.data <= :datafim
+                                        ) as x
+                                    left join fin_categoria c on (x.idcategoria = c.id)
+                                    group by 1) as x
+                                where unidade = 'RS'	
+                                `
                                 , {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
@@ -889,27 +930,27 @@ let main = {
                                     }
                                 }
                             );
-                            report.faturamentors = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+                            report.faturamentobruto_rs = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
                             sql = await db.sequelize.query(`
-                            select total as vt from
-                                (select
-                                    substring(c.descricaocompleta,0,3) as unidade
-                                    , sum(x.valortotal) as total
-                                from
+                                select total as vt from
                                     (select
-                                        *
-                                        , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
-                                        , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        substring(c.descricaocompleta,0,3) as unidade
+                                        , sum(x.valortotal) as total
                                     from
-                                        ven_pedido p
-                                    where
-                                        p.data >= :dataini and p.data <= :datafim
-                                    ) as x
-                                left join fin_categoria c on (x.idcategoria = c.id)
-                                group by 1) as x
-                            where unidade = 'MS'	
-                            `
+                                        (select
+                                            *
+                                            , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
+                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        from
+                                            ven_pedido p
+                                        where
+                                            p.data >= :dataini and p.data <= :datafim
+                                        ) as x
+                                    left join fin_categoria c on (x.idcategoria = c.id)
+                                    group by 1) as x
+                                where unidade = 'RS'	
+                                `
                                 , {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
@@ -918,7 +959,126 @@ let main = {
                                     }
                                 }
                             );
-                            report.faturamentoms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+                            report.faturamentoliquido_rs = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
+                                select total as vt from
+                                    (select
+                                        substring(c.descricaocompleta,0,3) as unidade
+                                        , sum(x.valortotal) as total
+                                    from
+                                        (select
+                                            *
+                                            , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
+                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        from
+                                            ven_pedido p
+                                        where
+                                            p.data >= :dataini and p.data <= :datafim
+                                        ) as x
+                                    left join fin_categoria c on (x.idcategoria = c.id)
+                                    group by 1) as x
+                                where unidade = 'MS'	
+                                `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
+                                    }
+                                }
+                            );
+                            report.faturamentobruto_ms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
+                                select total as vt from
+                                    (select
+                                        substring(c.descricaocompleta,0,3) as unidade
+                                        , sum(x.valortotal) as total
+                                    from
+                                        (select
+                                            *
+                                            , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
+                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        from
+                                            ven_pedido p
+                                        where
+                                            p.data >= :dataini and p.data <= :datafim
+                                        ) as x
+                                    left join fin_categoria c on (x.idcategoria = c.id)
+                                    group by 1) as x
+                                where unidade = 'MS'	
+                                `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
+                                    }
+                                }
+                            );
+                            report.faturamentoliquido_ms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
+                                select total as vt from
+                                    (select
+                                        substring(c.descricaocompleta,0,3) as unidade
+                                        , sum(x.valortotal) as total
+                                    from
+                                        (select
+                                            *
+                                            , p.desconto as valortotal
+                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        from
+                                            ven_pedido p
+                                        where
+                                            p.data >= :dataini and p.data <= :datafim
+                                        ) as x
+                                    left join fin_categoria c on (x.idcategoria = c.id)
+                                    group by 1) as x
+                                where unidade = 'RS'	
+                                `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
+                                    }
+                                }
+                            );
+                            report.descontovenda_rs = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            sql = await db.sequelize.query(`
+                                select total as vt from
+                                    (select
+                                        substring(c.descricaocompleta,0,3) as unidade
+                                        , sum(x.valortotal) as total
+                                    from
+                                        (select
+                                            *
+                                            , p.desconto as valortotal
+                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
+                                        from
+                                            ven_pedido p
+                                        where
+                                            p.data >= :dataini and p.data <= :datafim
+                                        ) as x
+                                    left join fin_categoria c on (x.idcategoria = c.id)
+                                    group by 1) as x
+                                where unidade = 'MS'	
+                                `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: dataini.format(application.formatters.be.date_format)
+                                        , datafim: datafim.format(application.formatters.be.date_format)
+                                    }
+                                }
+                            );
+                            report.descontovenda_ms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            report.faturamentobruto = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentobruto_rs) + application.formatters.be.decimal(report.faturamentobruto_ms), 2);
+                            report.faturamentoliquido = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentoliquido_rs) + application.formatters.be.decimal(report.faturamentoliquido_ms), 2);
 
                             let file = await main.platform.report.f_generate('Financeiro - Resultado', report);
                             return application.success(obj.res, {
