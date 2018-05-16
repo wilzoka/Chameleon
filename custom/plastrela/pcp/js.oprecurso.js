@@ -170,6 +170,10 @@ $(function () {
         $('#modalretorno').modal('show');
     }
 
+    $('#conjugada').click(function () {
+        $('#modalconjugada').modal('show');
+    });
+
     $('#encerrar').click(function () {
         application.functions.confirmMessage('Confirma o encerramento desta OP?', function () {
             application.jsfunction('plastrela.pcp.oprecurso.js_encerrar', {
@@ -196,5 +200,15 @@ $(function () {
             application.handlers.responseSuccess(response);
         });
     });
+
+    if ($('input[name="etapa"]').val() == '20') {
+        var $ul = $('#resumo').parent().parent();
+        $ul.prepend('<li><a id="chamarColorista" href="javascript:void(0)"><i class="fa fa-paint-brush"></i> Chamar Colorista</a></li>');
+        $('#chamarColorista').click(function () {
+            application.jsfunction('plastrela.pcp.oprecurso.js_chamarColoristaModal', { idoprecurso: application.functions.getId() }, function (response) {
+                application.handlers.responseSuccess(response);
+            });
+        });
+    }
 
 });

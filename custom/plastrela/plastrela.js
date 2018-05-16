@@ -752,7 +752,7 @@ let main = {
                             let approducaovolume = await db.getModel('pcp_approducaovolume').find({ where: { id: volume.idapproducaovolume } });
                             let approducao = await db.getModel('pcp_approducao').find({ where: { id: approducaovolume ? approducaovolume.idapproducao : 0 } });
                             let approducaotempos = await db.getModel('pcp_approducaotempo').findAll({ where: { idapproducao: approducao ? approducao.id : 0 }, order: [['dataini', 'asc']] });
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao ? approducao.idoprecurso : 0 } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducaovolume && approducaovolume.idopreferente ? approducaovolume.idopreferente : approducao ? approducao.idoprecurso : 0 } });
                             let oprecurso_recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso ? oprecurso.idrecurso : 0 } });
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
@@ -3010,6 +3010,11 @@ let main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                         }
+                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
+                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
+                        }
 
                         if (!obj.register.dataini || !obj.register.datafim) {
                             return application.error(obj.res, { msg: 'Informe as datas corretamente', invalidfields: ['dataini', 'datafim'] });
@@ -3120,6 +3125,11 @@ let main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                         }
+                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
+                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
+                        }
                         if (!user.c_codigosenior) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
@@ -3147,8 +3157,8 @@ let main = {
                         let saved = await next(obj);
 
                         if (saved.success) {
-
-                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                            let opr = await db.getModel('pcp_oprecurso').find({ where: { id: saved.register.idopreferente || oprecurso.id } });
+                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: opr.idopetapa } });
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
                             let tprecurso = await db.getModel('pcp_tprecurso').find({ where: { id: etapa.idtprecurso } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
@@ -3171,6 +3181,7 @@ let main = {
                                 volume.observacao = saved.register.observacao;
                                 volume.metragem = metragem;
                                 volume.iduser = saved.register.iduser;
+                                volume.idversao = op.idversao;
                                 volume.save();
                             } else {
 
@@ -3389,6 +3400,11 @@ let main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
+                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
+                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
+                        }
                         if (obj.register.peso <= 0) {
                             return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['peso'] });
                         }
@@ -3437,6 +3453,11 @@ let main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
+                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
+                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
 
                         let dataini = moment(obj.register.dataini);
@@ -3728,6 +3749,11 @@ let main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
+                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
+                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
+                        }
                         if (qtd <= 0) {
                             return application.error(obj.res, { msg: 'A quantidade apontada deve ser maior que 0', invalidfields: ['qtd'] });
                         }
@@ -3952,6 +3978,11 @@ let main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
+                        }
+                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
+                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
 
                         if (parseFloat(obj.register.qtd) <= 0) {
@@ -4576,7 +4607,112 @@ let main = {
                             await db.getModel('pcp_oprecurso').create(opnova);
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
-
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_chamarColoristaModal: async (obj) => {
+                    try {
+                        let body = '';
+                        body += application.components.html.hidden({ name: 'name', value: 'plastrela.pcp.oprecurso.js_chamarColorista' });
+                        body += application.components.html.hidden({ name: 'idoprecurso', value: obj.data.idoprecurso });
+                        body += application.components.html.radio({
+                            width: '12'
+                            , label: 'Motivo'
+                            , name: 'motivo'
+                            , options: [
+                                'Fazer secagem'
+                                , 'Ajuste de cor'
+                                , 'Acerto de cor'
+                                , 'Reposição'
+                                , 'Pré-Setup próximo pedido'
+                                , 'Colorista comparecer na máquina'
+                            ]
+                        });
+                        return application.success(obj.res, {
+                            modal: {
+                                form: true
+                                , action: '/jsfunction'
+                                , id: 'modaljs'
+                                , title: 'Chamar Colorista'
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                            }
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_chamarColorista: async (obj) => {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        main.platform.notification.create([14], {
+                            title: obj.req.body.motivo
+                            , description: recurso.codigo + ' / ' + op.codigo
+                        });
+                        return application.success(obj.res, { msg: application.message.success });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_conjugarOP: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length < 2) {
+                                return application.error(obj.res, { msg: 'Selecione pelo menos 2 OPs para conjugar' });
+                            }
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'OP Principal'
+                                , name: 'idopprincipal'
+                                , model: 'pcp_oprecurso'
+                                , query: '(select op.codigo::text || \'/\' || e.codigo from pcp_opetapa ope left join pcp_etapa e on (ope.idetapa = e.id) left join pcp_op op on (ope.idop = op.id) where ope.id = pcp_oprecurso.idopetapa)'
+                                , where: 'id in (' + obj.ids.join(',') + ')'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idopprincipal']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let ids = obj.req.body.ids.split(',');
+                            //Validação
+                            for (let i = 0; i < ids.length; i++) {
+                                let opr = await db.getModel('pcp_oprecurso').find({ where: { id: ids[i] } });
+                                if (opr.idestado != 1) {
+                                    return application.error(obj.res, { msg: `Só é possível conjugar OPs com estado de "Em Fila de Produção"` })
+                                }
+                                let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: ids[i] } });
+                                if (opconjugada) {
+                                    let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: opconjugada.idopprincipal } });
+                                    let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                                    let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                                    return application.error(obj.res, { msg: `Na seleção existe alguma OP já conjugada com a OP ${op.codigo}` })
+                                }
+                            }
+                            //Conjugação
+                            for (let i = 0; i < ids.length; i++) {
+                                await db.getModel('pcp_opconjugada').create({
+                                    idopprincipal: obj.req.body.idopprincipal
+                                    , idopconjugada: ids[i]
+                                });
+                            }
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

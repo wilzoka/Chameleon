@@ -22,6 +22,11 @@
                                     <i class="fa fa-print"></i> Resumo da Produção
                                 </a>
                             </li>
+                            <li>
+                                <a id="conjugada" href="javascript:void(0)">
+                                    <i class="fa fa-random"></i> Verificar Conjugação
+                                </a>
+                            </li>
                             <li class="divider"></li>
                             <li>
                                 <a id="sobra" href="javascript:void(0)">
@@ -136,6 +141,21 @@
             <div class="modal-body">
                 <div class="row">
                     {{{retorno}}}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalconjugada">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    {{{conjugada}}}
                 </div>
             </div>
             <div class="modal-footer">

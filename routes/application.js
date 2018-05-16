@@ -11,7 +11,7 @@ let application = {
 					name: ''
 					, value: ''
 				}, obj);
-				return '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">';
+				return `<input name="${obj.name}" type="hidden" value="${obj.value}">`;
 			}
 			, text: function (obj) {
 				obj = lodash.extend({
@@ -21,14 +21,13 @@ let application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
-					+ 'data-type="text" '
-					+ obj.disabled
-					+ '></div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" data-type="text" ${obj.disabled}>
+					</div>
+				</div>`;
 			}
 			, textarea: function (obj) {
 				obj = lodash.extend({
@@ -39,16 +38,13 @@ let application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<textarea name="' + obj.name + '" rows="' + obj.rows + '" class="form-control" data-type="textarea" '
-					+ obj.disabled
-					+ '>'
-					+ obj.value
-					+ '</textarea>'
-					+ '</div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<textarea name="${obj.name}" rows="${obj.rows}" class="form-control" data-type="textarea" ${obj.disabled}>${obj.value}</textarea>
+					</div>
+				</div>`;
 			}
 			, integer: function (obj) {
 				obj = lodash.extend({
@@ -58,14 +54,13 @@ let application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
-					+ 'data-type="integer" '
-					+ obj.disabled
-					+ '></div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" data-type="integer" ${obj.disabled}>
+					</div>
+				</div>`;
 			}
 			, decimal: function (obj) {
 				obj = lodash.extend({
@@ -76,15 +71,13 @@ let application = {
 					, precision: '2'
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
-					+ 'data-type="decimal" '
-					+ 'data-precision="' + obj.precision + '" '
-					+ obj.disabled
-					+ '></div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<input name="${ obj.name}" type="text" class="form-control" value="${obj.value}" data-type="decimal" data-precision="${obj.precision}" ${obj.disabled}>
+					</div>
+				</div>`;
 			}
 			, autocomplete: function (obj) {
 				obj = lodash.extend({
@@ -100,21 +93,23 @@ let application = {
 					, option: ''
 					, options: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<select name="' + obj.name + '" class="form-control select2" ' + obj.disabled
-					+ 'style="width: 100%;" '
-					+ 'data-type="autocomplete" '
-					+ 'data-model="' + obj.model + '" '
-					+ 'data-attribute="' + obj.attribute + '" '
-					+ 'data-where="' + obj.where + '" '
-					+ 'data-query="' + obj.query + '" '
-					+ 'data-options="' + obj.options + '" '
-					+ obj.multiple + '>'
-					+ obj.option
-					+ '</select></div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<select name="${obj.name}" class="form-control select2" ${obj.disabled}
+							style="width:100%;"
+							data-type="autocomplete"
+							data-model="${obj.model}"
+							data-attribute="${obj.attribute}"
+							data-where="${obj.where}"
+							data-query="${obj.query}"
+							data-options="${obj.options}"
+							${obj.multiple}>
+							${obj.option}
+						</select>
+					</div>
+				</div>`;
 			}
 			, date: function (obj) {
 				obj = lodash.extend({
