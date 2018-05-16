@@ -3838,24 +3838,25 @@ let main = {
                                 if (isNaN(volume.metragem)) {
                                     volume.metragem = null;
                                 }
-
                             }
-
+                            
                             volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
                             volume.consumido = false;
                             volumes.push(volume);
                             volumesreservas = volumesreservas.concat(volumereservas);
                         }
 
-                        await next(obj);
+                        let saved = await next(obj);
 
-                        for (let i = 0; i < volumes.length; i++) {
-                            volumes[i].save();
-                        }
-                        for (let i = 0; i < volumesreservas.length; i++) {
-                            if (volumesreservas[i].idop = op.id) {
-                                volumesreservas[i].apontado = false;
-                                volumesreservas[i].save();
+                        if (saved.success) {
+                            for (let i = 0; i < volumes.length; i++) {
+                                volumes[i].save();
+                            }
+                            for (let i = 0; i < volumesreservas.length; i++) {
+                                if (volumesreservas[i].idop = op.id) {
+                                    volumesreservas[i].apontado = false;
+                                    volumesreservas[i].save();
+                                }
                             }
                         }
 
