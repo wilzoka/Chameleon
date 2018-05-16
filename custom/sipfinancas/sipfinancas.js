@@ -884,7 +884,7 @@ let main = {
                                 from
                                     ven_pedido p
                                 where	
-                                    p.data < :data)                          
+                                    p.data <= :data)                          
                                 -	                            
                                 (select
                                     sum( mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) )
