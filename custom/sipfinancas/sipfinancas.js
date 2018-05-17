@@ -940,35 +940,6 @@ let main = {
                                     from
                                         (select
                                             *
-                                            , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
-                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
-                                        from
-                                            ven_pedido p
-                                        where
-                                            p.data >= :dataini and p.data <= :datafim
-                                        ) as x
-                                    left join fin_categoria c on (x.idcategoria = c.id)
-                                    group by 1) as x
-                                where unidade = 'RS'	
-                                `
-                                , {
-                                    type: db.sequelize.QueryTypes.SELECT
-                                    , replacements: {
-                                        dataini: dataini.format(application.formatters.be.date_format)
-                                        , datafim: datafim.format(application.formatters.be.date_format)
-                                    }
-                                }
-                            );
-                            report.faturamentoliquido_rs = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
-
-                            sql = await db.sequelize.query(`
-                                select total as vt from
-                                    (select
-                                        substring(c.descricaocompleta,0,3) as unidade
-                                        , sum(x.valortotal) as total
-                                    from
-                                        (select
-                                            *
                                             , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) as valortotal
                                             , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
                                         from
@@ -989,35 +960,6 @@ let main = {
                                 }
                             );
                             report.faturamentobruto_ms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
-
-                            sql = await db.sequelize.query(`
-                                select total as vt from
-                                    (select
-                                        substring(c.descricaocompleta,0,3) as unidade
-                                        , sum(x.valortotal) as total
-                                    from
-                                        (select
-                                            *
-                                            , (select sum(pi.qtd * pi.unitario) from ven_pedidoitem pi where pi.idpedido = p.id) - coalesce(p.desconto, 0) as valortotal
-                                            , (select m.idcategoria from fin_mov m where m.idpedido = p.id limit 1)
-                                        from
-                                            ven_pedido p
-                                        where
-                                            p.data >= :dataini and p.data <= :datafim
-                                        ) as x
-                                    left join fin_categoria c on (x.idcategoria = c.id)
-                                    group by 1) as x
-                                where unidade = 'MS'	
-                                `
-                                , {
-                                    type: db.sequelize.QueryTypes.SELECT
-                                    , replacements: {
-                                        dataini: dataini.format(application.formatters.be.date_format)
-                                        , datafim: datafim.format(application.formatters.be.date_format)
-                                    }
-                                }
-                            );
-                            report.faturamentoliquido_ms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
 
                             sql = await db.sequelize.query(`
                                 select total as vt from
@@ -1076,6 +1018,9 @@ let main = {
                                 }
                             );
                             report.descontovenda_ms = sql.length > 0 && sql[0].vt ? application.formatters.fe.decimal(sql[0].vt, 2) : '0,00';
+
+                            report.faturamentoliquido_rs = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentobruto_rs) - application.formatters.be.decimal(report.devolucao_rs) - application.formatters.be.decimal(report.descontovenda_rs), 2);
+                            report.faturamentoliquido_ms = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentobruto_ms) - application.formatters.be.decimal(report.devolucao_ms) - application.formatters.be.decimal(report.descontovenda_ms), 2);
 
                             report.faturamentobruto = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentobruto_rs) + application.formatters.be.decimal(report.faturamentobruto_ms), 2);
                             report.faturamentoliquido = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentoliquido_rs) + application.formatters.be.decimal(report.faturamentoliquido_ms), 2);
