@@ -19,6 +19,9 @@ let main = {
             , integracaoVolumes: function () {
                 main.platform.kettle.f_runJob('plastrela/estoque/integracaovolumes/Job.kjb');
             }
+            , notificacaoReserva: function () {
+                main.platform.kettle.f_runJob('plastrela/jobs/notificacaoReserva/Job.kjb');
+            }
         }
         , compra: {
             solicitacaoitem: {
