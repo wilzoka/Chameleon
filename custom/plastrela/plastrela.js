@@ -2191,75 +2191,103 @@ let main = {
                 }
                 , e_inventarioAlmox: async function (obj) {
                     try {
-                        let sql = await db.sequelize.query(`
-                        select * from (select
-                            g.descricao as grupo
-                            , v.descricaocompleta
-                            , sum(vol.qtdreal) as qtd
-                        from
-                            est_volume vol
-                        left join pcp_versao v on (vol.idversao = v.id)
-                        left join cad_item i on (v.iditem = i.id)
-                        left join est_grupo g on (i.idgrupo = g.id)
-                        where
-                            vol.consumido = false
-                            and vol.iddeposito = 1
-                        group by 1,2
-                        order by 1,2) as x
+                        if (obj.req.method == 'GET') {
 
-                        union all
-
-                        select * from (select
-                            'Total' as grupo
-                            , ''
-                            , sum(vol.qtdreal) as qtd
-                        from
-                            est_volume vol
-                        left join pcp_versao v on (vol.idversao = v.id)
-                        left join cad_item i on (v.iditem = i.id)
-                        left join est_grupo g on (i.idgrupo = g.id)
-                        where
-                            vol.consumido = false
-                            and vol.iddeposito = 1
-                        group by 1,2
-                        order by 1,2) as x
-                    `, {
-                                type: db.sequelize.QueryTypes.SELECT
+                            let body = '';
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Depósito*'
+                                , name: 'iddeposito'
+                                , model: 'est_deposito'
+                                , attribute: 'descricao'
                             });
 
-                        let report = {};
-                        report.__title = `Inventário Almoxarifado`;
-                        report.__table = `
-                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
-                            <tr>
-                                <td style="text-align:center;"><strong>Grupo</strong></td>
-                                <td style="text-align:center;"><strong>Produto</strong></td>
-                                <td style="text-align:center;"><strong>Quantidade</strong></td>
-                            </tr>
-                        `;
-                        for (let i = 0; i < sql.length; i++) {
-                            report.__table += `
-                            <tr>
-                                <td style="text-align:left;"> ${sql[i]['grupo']} </td>
-                                <td style="text-align:left;"> ${sql[i]['descricaocompleta']} </td>
-                                <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
-                            </tr>
-                            `;
-                        }
-                        report.__table += `
-                        </table>
-                        `;
-
-                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
-                        return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['iddeposito']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                        });
+                            let sql = await db.sequelize.query(`
+                                select * from (select
+                                    g.descricao as grupo
+                                    , v.descricaocompleta
+                                    , sum(vol.qtdreal) as qtd
+                                from
+                                    est_volume vol
+                                left join pcp_versao v on (vol.idversao = v.id)
+                                left join cad_item i on (v.iditem = i.id)
+                                left join est_grupo g on (i.idgrupo = g.id)
+                                where
+                                    vol.consumido = false
+                                    and vol.iddeposito = :iddeposito
+                                group by 1,2
+                                order by 1,2) as x
+
+                                union all
+
+                                select * from (select
+                                    'Total' as grupo
+                                    , ''
+                                    , sum(vol.qtdreal) as qtd
+                                from
+                                    est_volume vol
+                                left join pcp_versao v on (vol.idversao = v.id)
+                                left join cad_item i on (v.iditem = i.id)
+                                left join est_grupo g on (i.idgrupo = g.id)
+                                where
+                                    vol.consumido = false
+                                    and vol.iddeposito = :iddeposito
+                                group by 1,2
+                                order by 1,2) as x
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: { iddeposito: obj.req.body.iddeposito }
+                                });
+
+                            let report = {};
+                            report.__title = `Inventário Almoxarifado`;
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Grupo</strong></td>
+                                    <td style="text-align:center;"><strong>Produto</strong></td>
+                                    <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:left;"> ${sql[i]['grupo']} </td>
+                                    <td style="text-align:left;"> ${sql[i]['descricaocompleta']} </td>
+                                    <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -3839,7 +3867,7 @@ let main = {
                                     volume.metragem = null;
                                 }
                             }
-                            
+
                             volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
                             volume.consumido = false;
                             volumes.push(volume);
