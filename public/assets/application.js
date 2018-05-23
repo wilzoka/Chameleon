@@ -736,7 +736,7 @@ var application = {
                     });
                 }
                 , columns: data.columns
-                , dom: dom
+                , dom: $('#tableview' + data.name).attr('data-subview') == 'true' && application.functions.getId() <= 0 ? 't' : dom
                 , drawCallback: function (settings) {
                     var selected = $(settings.nTable).attr('data-selected');
                     if (selected) {

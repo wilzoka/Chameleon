@@ -52,3 +52,16 @@
 // mailListener.on("attachment", function (attachment) {
 //     console.log(attachment.path);
 // });
+
+WITH RECURSIVE tree AS
+(SELECT id, idcategoriapai, descricao
+FROM fin_categoria
+WHERE idcategoriapai IS NULL
+UNION ALL
+SELECT c.id,c.idcategoriapai, trim(tree.descricao) || ' - ' || c.descricao as descricao
+FROM fin_categoria c
+	INNER JOIN tree
+	ON (tree.id = c.idcategoriapai)
+)
+SELECT *
+FROM tree order by 3

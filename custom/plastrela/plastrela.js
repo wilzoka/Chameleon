@@ -23,6 +23,38 @@ let main = {
                 main.platform.kettle.f_runJob('plastrela/jobs/notificacaoReserva/Job.kjb');
             }
         }
+        , cadastro: {
+            vinculacaolicenca: {
+                onsave: async (obj, next) => {
+                    try {
+                        let licenca = await db.getModel('cad_licenca').find({ where: { id: obj.register.idlicenca || 0 } });
+                        if (!licenca) {
+                            return application.error(obj.res, { msg: 'Licença não encontrada' });
+                        }
+                        let count = await db.getModel('cad_vinculacaolicenca').count({ where: { idlicenca: licenca.id, id: { $ne: obj.register.id } } });
+                        if (count >= licenca.qtd) {
+                            return application.error(obj.res, { msg: 'Esta licença excedeu o número de vinculações' });
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , vinculacaopeca: {
+                onsave: async (obj, next) => {
+                    try {
+                        let count = await db.getModel('cad_vinculacaopeca').count({ where: { idpeca: obj.register.idpeca, id: { $ne: obj.register.id } } });
+                        if (count > 0) {
+                            return application.error(obj.res, { msg: 'Esta peça já foi utilizada' });
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+        }
         , compra: {
             solicitacaoitem: {
                 onsave: async function (obj, next) {
@@ -337,7 +369,102 @@ let main = {
             }
         }
         , manutencao: {
-            os: {
+            grupo: {
+                onsave: async function (obj, next) {
+                    try {
+
+                        await next(obj);
+                        main.plastrela.manutencao.grupo.treeAll();
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , treeAll: function () {
+
+                    let getChildren = function (current, childs) {
+                        for (var i = 0; i < childs.length; i++) {
+                            if (current.idgrupopai == childs[i].id) {
+                                if (childs[i].idgrupopai) {
+                                    return getChildren(childs[i], childs) + childs[i].descricao + ' - ';
+                                } else {
+                                    return childs[i].descricao + ' - ';
+                                }
+                            }
+                        }
+                    }
+
+                    db.getModel('man_grupo').findAll().then(grupos => {
+                        grupos.map(grupo => {
+                            if (grupo.idgrupopai) {
+                                grupo.descricaocompleta = getChildren(grupo, grupos) + grupo.descricao;
+                            } else {
+                                grupo.descricaocompleta = grupo.descricao;
+                            }
+                            grupo.save();
+                        });
+                    });
+
+                }
+            }
+            , movimentacao: {
+                onsave: async function (obj, next) {
+                    try {
+                        let peca = await db.getModel('man_peca').find({ where: { id: obj.register.idmanpeca } });
+
+                        if (obj.register.qtd <= 0) {
+                            return application.error(obj.res, { msg: 'A Quantidade deve ser maior que 0', invalidfields: ['qtd'] });
+                        }
+
+                        if (obj.register.id > 0) {
+                            if (obj.register._previousDataValues.tipo == 'Entrada') {
+                                peca.estoque = parseFloat(peca.estoque) - parseFloat(obj.register._previousDataValues.qtd);
+                            } else {
+                                peca.estoque = parseFloat(peca.estoque) + parseFloat(obj.register._previousDataValues.qtd);
+                            }
+                        }
+                        if (obj.register.tipo == 'Entrada') {
+                            peca.estoque = parseFloat(peca.estoque || 0) + parseFloat(obj.register.qtd);
+                        } else {
+                            peca.estoque = parseFloat(peca.estoque || 0) - parseFloat(obj.register.qtd);
+                        }
+                        if (peca.estoque < 0) {
+                            return application.error(obj.res, { msg: 'Estoque insuficiente' });
+                        }
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            peca.save();
+                            if (parseFloat(peca.estoque) < parseFloat(peca.minimo)) {
+                                main.platform.notification.create([obj.req.user.id], {
+                                    title: 'Estoque Mínimo Atingido!'
+                                    , description: `Peça: ${peca.descricao} Qtd em Estoque: ${application.formatters.fe.decimal(peca.estoque, 2)} Mínimo: ${application.formatters.fe.decimal(peca.minimo, 2)}`
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+                        let movimentacoes = await db.getModel('man_movimentacao').findAll({ where: { id: { $in: obj.ids } } });
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            for (let i = 0; i < movimentacoes.length; i++) {
+                                let peca = await db.getModel('man_peca').find({ where: { id: movimentacoes[i].idmanpeca } });
+                                if (movimentacoes[i].tipo == 'Entrada') {
+                                    peca.estoque = parseFloat(peca.estoque) - parseFloat(movimentacoes[i].qtd);
+                                } else {
+                                    peca.estoque = parseFloat(peca.estoque) + parseFloat(movimentacoes[i].qtd);
+                                }
+                                await peca.save();
+                            }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , os: {
                 save: function (json, next) {
                     db.getModel('man_config').find().then(config => {
 
@@ -2427,9 +2554,9 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
+                            let deposito = await db.getModel('est_deposito').find({ where: { id: obj.req.body.iddeposito } })
                             let inicial = parseInt(obj.req.body.inicial);
                             let final = parseInt(obj.req.body.final);
-
                             let bulkEndereco = [];
 
                             for (let i = inicial; i <= final; i++) {
@@ -2438,21 +2565,21 @@ let main = {
                                         descricao: obj.req.body.prefixo + '00' + i
                                         , iddeposito: obj.req.body.iddeposito
                                         , depositopadrao: false
-                                        , descricaocompleta: ''
+                                        , descricaocompleta: `${deposito.descricao}(${obj.req.body.prefixo + '00' + i})`
                                     });
                                 } else if (i < 100) {
                                     bulkEndereco.push({
                                         descricao: obj.req.body.prefixo + '0' + i
                                         , iddeposito: obj.req.body.iddeposito
                                         , depositopadrao: false
-                                        , descricaocompleta: ''
+                                        , descricaocompleta: `${deposito.descricao}(${obj.req.body.prefixo + '0' + i})`
                                     });
                                 } else {
                                     bulkEndereco.push({
                                         descricao: obj.req.body.prefixo + i
                                         , iddeposito: obj.req.body.iddeposito
                                         , depositopadrao: false
-                                        , descricaocompleta: ''
+                                        , descricaocompleta: `${deposito.descricao}(${obj.req.body.prefixo + i})`
                                     });
                                 }
                             }
@@ -2662,6 +2789,44 @@ let main = {
                             });
                         }
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , volumeajuste: {
+                onsave: async (obj, next) => {
+                    try {
+                        if (obj.register.id != 0) {
+                            return application.error(obj.res, { msg: 'Não é permitido alteração neste registro.' });
+                        }
+                        obj.register.datahora = moment();
+
+                        let volume = await db.getModel('est_volume').find({ where: { id: obj.register.idvolume || 0 } });
+                        if (!volume) {
+                            return application.error(obj.res, { msg: 'Volume não encontrado' });
+                        }
+
+                        volume.qtdreal = parseFloat(volume.qtdreal) + obj.register.qtd;
+                        volume.consumido = false;
+
+                        if (volume.qtdreal < 0) {
+                            return application.error(obj.res, { msg: `Não é possível aplicar um ajuste deixando a quantidade negativa (Qtd em Estoque: ${application.formatters.fe.decimal(volume._previousDataValues.qtdreal, 4)})` });
+                        } else if (volume.qtdreal == 0) {
+                            volume.consumido = true;
+                        }
+
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            volume.save({ _iduser: obj.req.user.id });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async (obj, next) => {
+                    try {
+                        return application.error(obj.res, { msg: 'Não é permitido exclusões.' });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
