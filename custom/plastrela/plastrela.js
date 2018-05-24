@@ -2831,6 +2831,92 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_realizarAjuste: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            let body = '';
+                            body += application.components.html.text({
+                                width: 12
+                                , label: 'Código de Barra'
+                                , name: 'codbar'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevtg'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            if (obj.req.body.codbar) {
+
+                                let codigodebarra = obj.req.body.codbar.split('-');
+                                codigodebarra = parseInt(codigodebarra[codigodebarra.length - 1]);
+                                let volume = await db.getModel('est_volume').find({ include: [{ all: true }], where: { id: codigodebarra || 0 } });
+                                if (!volume) {
+                                    return application.error(obj.res, { msg: 'Volume não encontrado' });
+                                }
+                                if (volume.iddeposito == 1) {
+                                    return application.error(obj.res, { msg: 'Não é possível ajustar volumes do Almoxarifado' });
+                                }
+
+                                let body = '';
+                                body += application.components.html.hidden({ name: 'idvolume', value: volume.id });
+                                body += application.components.html.text({ width: 4, label: 'ID', value: volume.id, disabled: 'disabled="disabled"' });
+                                body += application.components.html.text({ width: 8, label: 'Produto', value: volume.pcp_versao.descricaocompleta, disabled: 'disabled="disabled"' });
+                                body += application.components.html.decimal({ width: 4, label: 'Qtd', value: application.formatters.fe.decimal(volume.qtdreal, 4), precision: 4, disabled: 'disabled="disabled"' });
+                                body += application.components.html.text({ width: 8, label: 'Depósito', value: volume.est_deposito.descricao, disabled: 'disabled="disabled"' });
+                                body += application.components.html.decimal({ width: 4, name: 'qtdajuste', label: 'Qtd Ajuste', precision: 4 });
+                                body += application.components.html.autocomplete({ width: 8, name: 'idajustemotivo', label: 'Motivo', model: 'est_volumeajustemotivo', attribute: 'descricao', where: 'ativo = true' });
+
+
+                                return application.success(obj.res, {
+                                    modal: {
+                                        form: true
+                                        , action: '/event/' + obj.event.id
+                                        , id: 'modalevtf'
+                                        , title: obj.event.description
+                                        , body: body
+                                        , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                    }
+                                });
+                            } else {
+                                let invalidfields = application.functions.getEmptyFields(obj.req.body, ['idvolume','idajustemotivo','qtdajuste']);
+                                if (invalidfields.length > 0) {
+                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                                }
+
+                                let volume = await db.getModel('est_volume').find({ include: [{ all: true }], where: { id: obj.req.body.idvolume || 0 } });
+                                if (!volume) {
+                                    return application.error(obj.res, { msg: 'Volume não encontrado' });
+                                }
+
+                                volume.qtdreal = parseFloat(volume.qtdreal) + application.formatters.be.decimal(obj.req.body.qtdajuste);
+                                volume.consumido = false;
+
+                                if (volume.qtdreal < 0) {
+                                    return application.error(obj.res, { msg: `Não é possível aplicar um ajuste deixando a quantidade negativa (Qtd em Estoque: ${application.formatters.fe.decimal(volume._previousDataValues.qtdreal, 4)})` });
+                                } else if (volume.qtdreal == 0) {
+                                    volume.consumido = true;
+                                }
+                                await volume.save({ _iduser: obj.req.user.id });
+                                await db.getModel('est_volumeajuste').create({
+                                    datahora: moment()
+                                    , idvolume: volume.id
+                                    , idvolumeajustemotivo: obj.req.body.idajustemotivo
+                                    , qtd: application.formatters.be.decimal(obj.req.body.qtdajuste)
+                                });
+                                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                            }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
         }
         , pcp: {
