@@ -30,7 +30,83 @@ let main = {
             }
         }
         , financeiro: {
-            categoria: {
+            adiantamento: {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.register.id > 0 && obj.register.valorcompensado > 0) {
+                            return application.error(obj.res, { msg: 'Não é possível editar um adiantamento com valor compensado' });
+                        }
+                        let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.register.idconta, data: { $gte: obj.register.data } } });
+                        if (fechamento) {
+                            return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
+                        }
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            if (saved.register._isInsert) {
+                                let mov = await db.getModel('fin_mov').create({
+                                    parcela: '1/1'
+                                    , datavcto: saved.register.data
+                                    , idcategoria: saved.register.idcategoria
+                                    , valor: saved.register.valor
+                                    , detalhes: 'Adiantamento ID ' + saved.register.id
+                                    , idcorr: saved.register.idcorr
+                                    , quitado: true
+                                    , data: saved.register.data
+                                    , idadiantamento: saved.register.id
+                                });
+                                let movparc = await db.getModel('fin_movparc').create({
+                                    valor: saved.register.valor
+                                    , idmov: mov.id
+                                    , idformapgto: saved.register.idformapgto
+                                    , idconta: saved.register.idconta
+                                    , data: saved.register.data
+                                });
+                            } else {
+                                let mov = await db.getModel('fin_mov').find({ where: { idadiantamento: saved.register.id } });
+                                mov.datavcto = saved.register.data;
+                                mov.idcategoria = saved.register.idcategoria;
+                                mov.valor = saved.register.valor;
+                                mov.idcorr = saved.register.idcorr;
+                                mov.data = saved.register.data;
+                                mov.quitado = true;
+                                await mov.save();
+                                let movparc = await db.getModel('fin_movparc').find({ where: { idmov: mov.id } });
+                                movparc.valor = saved.register.valor;
+                                movparc.idformapgto = saved.register.idformapgto;
+                                movparc.idconta = saved.register.idconta;
+                                movparc.data = saved.register.data;
+                                await movparc.save();
+                            }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
+                    try {
+                        let adiantamentos = await db.getModel('fin_adiantamento').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < adiantamentos.length; i++) {
+                            if (adiantamentos[i].valorcompensado > 0) {
+                                return application.error(obj.res, { msg: 'Existe um adiantamento com valor compensado na seleção' });
+                            }
+                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: adiantamentos[i].idconta, data: { $gte: adiantamentos[i].data } } });
+                            if (fechamento) {
+                                return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
+                            }
+                        }
+                        for (let i = 0; i < obj.ids.length; i++) {
+                            let mov = await db.getModel('fin_mov').find({ where: { idadiantamento: obj.ids[i] } });
+                            let movparc = await db.getModel('fin_movparc').find({ where: { idmov: mov.id } });
+                            movparc.destroy();
+                            mov.destroy();
+                        }
+                        await next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , categoria: {
                 onsave: async function (obj, next) {
                     try {
 
@@ -215,7 +291,7 @@ let main = {
                                 , attribute: 'descricao'
                             });
                             body += application.components.html.autocomplete({
-                                width: '2'
+                                width: '4'
                                 , label: 'Forma de Pagamento*'
                                 , name: 'idformapgto'
                                 , model: 'fin_formapgto'
@@ -244,7 +320,19 @@ let main = {
                                             v1: mov.id
                                         }
                                     }))[0].valoraberto, 2);
-                                valortotalselecionado += parseFloat(application.formatters.be.decimal(valoraberto, 2))
+                                valortotalselecionado += parseFloat(application.formatters.be.decimal(valoraberto, 2));
+
+                                let valoradiantamento = await db.sequelize.query(`
+                                select
+                                    sum(a.valor - coalesce(a.valorcompensado, 0)) as soma
+                                from
+                                    fin_adiantamento a
+                                left join fin_categoria c on (a.idcategoria = c.id)
+                                where
+                                    a.idcorr = :idcorr
+                                    and c.dc = :dc
+                                `
+                                    , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idcorr: mov.idcorr, dc: mov.fin_categoria.dc } });
 
                                 body += '<div class="row no-margin">';
 
@@ -258,7 +346,7 @@ let main = {
 
                                 body += application.components.html.text({
                                     width: '3'
-                                    , label: 'Correntista'
+                                    , label: 'Correntista ' + (valoradiantamento[0].soma ? `<span style="color:red;"> - Adiant. ${application.formatters.fe.decimal(valoradiantamento[0].soma, 2)}</span>` : '')
                                     , name: 'cliente' + obj.ids[i]
                                     , value: mov.cad_corr.nome
                                     , disabled: 'disabled="disabled"'
@@ -361,6 +449,13 @@ let main = {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
                             }
 
+                            //Validar se é compensação, verificar o valor máximo
+                            if (obj.req.body.idformapgto == 4) {
+                                for (let i = 0; i < ids.length; i++) {
+
+                                }
+                            }
+
                             for (let i = 0; i < ids.length; i++) {
                                 let mov = await db.getModel('fin_mov').find({ where: { id: ids[i] }, include: [{ all: true }] });
                                 let movparc = await db.getModel('fin_movparc').create({
@@ -384,6 +479,8 @@ let main = {
                                             db.getModel('fin_cheque').update({ utilizado: true }, { where: { id: obj.req.body.idcheques[z] } });
                                         }
                                     }
+                                } else if (movparc.idformapgto == 4) {// Compensação
+
                                 }
 
                                 if (mov.fin_categoria.dc == 2 && mov.ven_pedido && mov.ven_pedido.idvendedor) {
@@ -441,7 +538,6 @@ let main = {
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -481,6 +577,130 @@ let main = {
                                     });
                                 }
                             }
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_analitico: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            let body = '';
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Vencimento Inicial*'
+                                , name: 'dataini'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Vencimento Final*'
+                                , name: 'datafim'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Categoria'
+                                , name: 'idcategoria'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 1'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let sql = await db.sequelize.query(`
+                                select
+                                    m.datavcto
+                                    , c.nome as correntista
+                                    , m.parcela
+                                    , cat.descricaocompleta as categoria
+                                    , m.detalhes
+                                    , m.valor - coalesce((select sum(mp.valor) from fin_movparc mp where mp.idmov = m.id), 0) as valoraberto
+                                from
+                                    fin_mov m
+                                left join cad_corr c on (m.idcorr = c.id)
+                                left join fin_categoria cat on (m.idcategoria = cat.id)
+                                where
+                                    m.quitado = false
+                                    and cat.dc = 1
+                                    and m.datavcto >= :dataini
+                                    and m.datavcto <= :datafim
+                                    ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
+                                order by 1,2                                  
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: application.formatters.be.date(obj.req.body.dataini)
+                                        , datafim: application.formatters.be.date(obj.req.body.datafim)
+                                    }
+                                });
+
+                            let total = 0;
+                            let report = {};
+                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            report.__title = `Contas a Pagar Abertas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
+
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Data Vcto</strong></td>
+                                    <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Parcela</strong></td>
+                                    <td style="text-align:center;"><strong>Categoria</strong></td>
+                                    <td style="text-align:center;"><strong>Detalhes</strong></td>
+                                    <td style="text-align:center;"><strong>Valor em Aberto</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:left;">${application.formatters.fe.date(sql[i]['datavcto'])}</td>
+                                    <td style="text-align:left;">${sql[i]['correntista']}</td>
+                                    <td style="text-align:center;">${sql[i]['parcela']}</td>
+                                    <td style="text-align:left;">${sql[i]['categoria']}</td>
+                                    <td style="text-align:left;">${sql[i]['detalhes']}</td>
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}</td>
+                                </tr>
+                                `;
+                                total += parseFloat(sql[i]['valoraberto']);
+                            }
+                            report.__table += `
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="text-align:right;"><strong>${application.formatters.fe.decimal(total, 2)}</strong></td>
+                                </tr>
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 400px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
                         }
 
                     } catch (err) {
@@ -1182,17 +1402,17 @@ let main = {
                             let body = '';
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Inicial'
+                                , label: 'Data Vencimento Inicial*'
                                 , name: 'dataini'
                             });
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Final'
+                                , label: 'Data Vencimento Final*'
                                 , name: 'datafim'
                             });
                             body += application.components.html.autocomplete({
                                 width: '12'
-                                , label: 'Categoria'
+                                , label: 'Categoria*'
                                 , name: 'idcategoria'
                                 , model: 'fin_categoria'
                                 , attribute: 'descricaocompleta'
