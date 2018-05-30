@@ -438,7 +438,7 @@ const modelate = function (obj) {
                 break;
             case 'decimal':
                 if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name], application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name]).toFixed(application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
                 } else {
                     obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }

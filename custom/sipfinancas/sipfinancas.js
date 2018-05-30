@@ -180,6 +180,7 @@ let main = {
                         left join fin_categoria c on (m.idcategoria = c.id)
                         where
                             mp.idconta = :conta
+                            and mp.idformapgto != 4
                             and mp.data > :dataini
                             and mp.data <= :datafim
                             `, {
@@ -212,6 +213,7 @@ let main = {
                         left join fin_categoria c on (m.idcategoria = c.id)
                         where
                             mp.idconta = :conta
+                            and mp.idformapgto != 4
                             and mp.data > :dataini
                             `, {
                                 type: db.sequelize.QueryTypes.SELECT
@@ -324,7 +326,7 @@ let main = {
 
                                 let valoradiantamento = await db.sequelize.query(`
                                 select
-                                    sum(a.valor - coalesce(a.valorcompensado, 0)) as soma
+                                    sum(a.valor - coalesce((select sum(amov.valor) from fin_adiantamentomov amov where amov.idadiantamento = a.id), 0)) as soma
                                 from
                                     fin_adiantamento a
                                 left join fin_categoria c on (a.idcategoria = c.id)
@@ -346,7 +348,7 @@ let main = {
 
                                 body += application.components.html.text({
                                     width: '3'
-                                    , label: 'Correntista ' + (valoradiantamento[0].soma ? `<span style="color:red;"> - Adiant. ${application.formatters.fe.decimal(valoradiantamento[0].soma, 2)}</span>` : '')
+                                    , label: 'Correntista ' + (parseFloat(valoradiantamento[0].soma) > 0 ? `<span style="color:red;"> - Adiant. ${application.formatters.fe.decimal(valoradiantamento[0].soma, 2)}</span>` : '')
                                     , name: 'cliente' + obj.ids[i]
                                     , value: mov.cad_corr.nome
                                     , disabled: 'disabled="disabled"'
@@ -451,8 +453,23 @@ let main = {
 
                             //Validar se é compensação, verificar o valor máximo
                             if (obj.req.body.idformapgto == 4) {
+                                let sql = await db.sequelize.query(`select idcorr, sum(valoraberto) as valoraberto from (select a.idcorr, a.valor - coalesce((select sum(m.valor) from fin_adiantamentomov m where m.idadiantamento = a.id), 0) as valoraberto from fin_adiantamento a) as x where x.valoraberto > 0 group by 1`,
+                                    { type: db.Sequelize.QueryTypes.SELECT });
+                                if (sql.length <= 0) {
+                                    return application.error(obj.res, { msg: 'Não existem compensações em aberto para este cliente' });
+                                }
                                 for (let i = 0; i < ids.length; i++) {
-
+                                    let mov = await db.getModel('fin_mov').find({ where: { id: ids[i] } });
+                                    for (let z = 0; z < sql.length; z++) {
+                                        if (sql[z].idcorr == mov.idcorr) {
+                                            sql[z].valoraberto = parseFloat(sql[z].valoraberto) - application.formatters.be.decimal(obj.req.body['valor' + ids[i]]);
+                                        }
+                                    }
+                                }
+                                for (let z = 0; z < sql.length; z++) {
+                                    if (sql[z].valoraberto < 0) {
+                                        return application.error(obj.res, { msg: 'O valor total à ser quitado ultrapassa o valor do adiantamento' });
+                                    }
                                 }
                             }
 
@@ -480,7 +497,30 @@ let main = {
                                         }
                                     }
                                 } else if (movparc.idformapgto == 4) {// Compensação
-
+                                    let sql = await db.sequelize.query(`select * from (select a.id, a.idcorr, a.valor - coalesce((select sum(m.valor) from fin_adiantamentomov m where m.idadiantamento = m.id), 0) as valoraberto from fin_adiantamento a where a.idcorr = ${mov.idcorr} order by a.data) as x where x.valoraberto > 0`,
+                                        { type: db.Sequelize.QueryTypes.SELECT });
+                                    let valorrestante = application.formatters.be.decimal(obj.req.body['valor' + ids[i]]);
+                                    while (valorrestante > 0) {
+                                        for (let z = 0; z < sql.length; z++) {
+                                            if (valorrestante > parseFloat(sql[z].valoraberto)) {
+                                                await db.getModel('fin_adiantamentomov').create({
+                                                    idadiantamento: sql[z].id
+                                                    , idmovparc: movparc.id
+                                                    , valor: sql[z].valoraberto
+                                                });
+                                                valorrestante -= parseFloat(sql[z].valoraberto);
+                                                sql[z].valoraberto = 0;
+                                            } else {
+                                                await db.getModel('fin_adiantamentomov').create({
+                                                    idadiantamento: sql[z].id
+                                                    , idmovparc: movparc.id
+                                                    , valor: valorrestante
+                                                });
+                                                sql[z].valoraberto = parseFloat(sql[z].valoraberto) - valorrestante;
+                                                valorrestante = 0;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 if (mov.fin_categoria.dc == 2 && mov.ven_pedido && mov.ven_pedido.idvendedor) {
@@ -956,6 +996,7 @@ let main = {
                                             left join fin_categoria c on (m.idcategoria = c.id)
                                             where
                                                 mp.data >= :dataini and mp.data <= :datafim
+                                                and mp.idformapgto != 4
                                                 and mp.idconta = :idconta
                                                 and c.id = :idcategoria) as x
                                         `
@@ -1022,6 +1063,7 @@ let main = {
                                 left join fin_categoria c on (m.idcategoria = c.id)
                                 where
                                     c.descricaocompleta like 'RS%'
+                                    and mp.idformapgto != 4
                                     and mp.data >= :dataini and mp.data <= :datafim
                                 `, {
                                     type: db.sequelize.QueryTypes.SELECT
@@ -1045,6 +1087,7 @@ let main = {
                                 left join fin_categoria c on (m.idcategoria = c.id)
                                 where
                                     c.descricaocompleta like 'MS%'
+                                    and mp.idformapgto != 4
                                     and mp.data >= :dataini and mp.data <= :datafim
                                 `, {
                                     type: db.sequelize.QueryTypes.SELECT

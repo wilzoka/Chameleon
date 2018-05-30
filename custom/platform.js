@@ -918,7 +918,34 @@ let platform = {
         }
     }
     , users: {
-        js_getNotifications: async function (obj) {
+        e_mylink: async (obj) => {
+            try {
+                let url = `http://${obj.req.headers.host}?user=${obj.req.user.username}`;
+                return application.success(obj.res, {
+                    modal: {
+                        id: 'modalevt' + obj.event.id
+                        , title: obj.event.description
+                        , body: `<div class="col-sm-12 text-center"> <a href="${url}" target="_blank">${url}</a></div>`
+                        , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
+                    }
+                });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , onsave: async (obj, next) => {
+            try {
+                let user = await db.getModel('users').find({ where: { id: { $ne: obj.register.id }, username: obj.register.username } });
+                if (user) {
+                    return application.error(obj.res, { msg: 'Já existe um usuário com este Username', invalidfields: ['username'] });
+                }
+
+                next(obj);
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , js_getNotifications: async function (obj) {
             try {
                 let data = {
                     notifications: []
