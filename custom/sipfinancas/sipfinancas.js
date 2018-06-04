@@ -630,12 +630,12 @@ let main = {
                             let body = '';
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Vencimento Inicial*'
+                                , label: 'Data Inicial*'
                                 , name: 'dataini'
                             });
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Vencimento Final*'
+                                , label: 'Data Final*'
                                 , name: 'datafim'
                             });
                             body += application.components.html.autocomplete({
@@ -665,21 +665,21 @@ let main = {
 
                             let sql = await db.sequelize.query(`
                                 select
-                                    m.datavcto
+                                    mp.data
                                     , c.nome as correntista
                                     , m.parcela
                                     , cat.descricaocompleta as categoria
                                     , m.detalhes
-                                    , m.valor - coalesce((select sum(mp.valor) from fin_movparc mp where mp.idmov = m.id), 0) as valoraberto
+                                    , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) as valor
                                 from
                                     fin_mov m
+                                inner join fin_movparc mp on (m.id = mp.idmov)
                                 left join cad_corr c on (m.idcorr = c.id)
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
                                 where
-                                    m.quitado = false
-                                    and cat.dc = 1
-                                    and m.datavcto >= :dataini
-                                    and m.datavcto <= :datafim
+                                    cat.dc = 1
+                                    and mp.data >= :dataini
+                                    and mp.data <= :datafim
                                     ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
                                 order by 1,2                                  
                             `, {
@@ -693,31 +693,31 @@ let main = {
                             let total = 0;
                             let report = {};
                             let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
-                            report.__title = `Contas a Pagar Abertas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
+                            report.__title = `Contas a Pagar Pagas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
-                                    <td style="text-align:center;"><strong>Data Vcto</strong></td>
+                                    <td style="text-align:center;"><strong>Data</strong></td>
                                     <td style="text-align:center;"><strong>Correntista</strong></td>
                                     <td style="text-align:center;"><strong>Parcela</strong></td>
                                     <td style="text-align:center;"><strong>Categoria</strong></td>
                                     <td style="text-align:center;"><strong>Detalhes</strong></td>
-                                    <td style="text-align:center;"><strong>Valor em Aberto</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
                                 </tr>
                             `;
                             for (let i = 0; i < sql.length; i++) {
                                 report.__table += `
                                 <tr>
-                                    <td style="text-align:left;">${application.formatters.fe.date(sql[i]['datavcto'])}</td>
+                                    <td style="text-align:left;">${application.formatters.fe.date(sql[i]['data'])}</td>
                                     <td style="text-align:left;">${sql[i]['correntista']}</td>
                                     <td style="text-align:center;">${sql[i]['parcela']}</td>
                                     <td style="text-align:left;">${sql[i]['categoria']}</td>
                                     <td style="text-align:left;">${sql[i]['detalhes']}</td>
-                                    <td style="text-align:right;">${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}</td>
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(sql[i]['valor'], 2)}</td>
                                 </tr>
                                 `;
-                                total += parseFloat(sql[i]['valoraberto']);
+                                total += parseFloat(sql[i]['valor']);
                             }
                             report.__table += `
                                 <tr>
