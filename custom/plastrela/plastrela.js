@@ -2867,7 +2867,7 @@ let main = {
                                 let body = '';
                                 body += application.components.html.hidden({ name: 'idvolume', value: volume.id });
                                 body += application.components.html.text({ width: 4, label: 'ID', value: volume.id, disabled: 'disabled="disabled"' });
-                                body += application.components.html.text({ width: 8, label: 'Produto', value: volume.pcp_versao.descricaocompleta, disabled: 'disabled="disabled"' });
+                                body += application.components.html.text({ width: 8, label: 'Produto', value: volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao || '', disabled: 'disabled="disabled"' });
                                 body += application.components.html.decimal({ width: 4, label: 'Qtd', value: application.formatters.fe.decimal(volume.qtdreal, 4), precision: 4, disabled: 'disabled="disabled"' });
                                 body += application.components.html.text({ width: 8, label: 'Depósito', value: volume.est_deposito.descricao, disabled: 'disabled="disabled"' });
                                 body += application.components.html.decimal({ width: 4, name: 'qtdajuste', label: 'Qtd Ajuste', precision: 4 });
