@@ -33,73 +33,13 @@ let main = {
             adiantamento: {
                 onsave: async function (obj, next) {
                     try {
-                        if (obj.register.id > 0 && obj.register.valorcompensado > 0) {
-                            return application.error(obj.res, { msg: 'Não é possível editar um adiantamento com valor compensado' });
-                        }
-                        let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.register.idconta, data: { $gte: obj.register.data } } });
-                        if (fechamento) {
-                            return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
-                        }
-                        let saved = await next(obj);
-                        if (saved.success) {
-                            if (saved.register._isInsert) {
-                                let mov = await db.getModel('fin_mov').create({
-                                    parcela: '1/1'
-                                    , datavcto: saved.register.data
-                                    , idcategoria: saved.register.idcategoria
-                                    , valor: saved.register.valor
-                                    , detalhes: 'Adiantamento ID ' + saved.register.id
-                                    , idcorr: saved.register.idcorr
-                                    , quitado: true
-                                    , data: saved.register.data
-                                    , idadiantamento: saved.register.id
-                                });
-                                let movparc = await db.getModel('fin_movparc').create({
-                                    valor: saved.register.valor
-                                    , idmov: mov.id
-                                    , idformapgto: saved.register.idformapgto
-                                    , idconta: saved.register.idconta
-                                    , data: saved.register.data
-                                });
-                            } else {
-                                let mov = await db.getModel('fin_mov').find({ where: { idadiantamento: saved.register.id } });
-                                mov.datavcto = saved.register.data;
-                                mov.idcategoria = saved.register.idcategoria;
-                                mov.valor = saved.register.valor;
-                                mov.idcorr = saved.register.idcorr;
-                                mov.data = saved.register.data;
-                                mov.quitado = true;
-                                await mov.save();
-                                let movparc = await db.getModel('fin_movparc').find({ where: { idmov: mov.id } });
-                                movparc.valor = saved.register.valor;
-                                movparc.idformapgto = saved.register.idformapgto;
-                                movparc.idconta = saved.register.idconta;
-                                movparc.data = saved.register.data;
-                                await movparc.save();
-                            }
-                        }
+                        await next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
                 }
                 , ondelete: async function (obj, next) {
                     try {
-                        let adiantamentos = await db.getModel('fin_adiantamento').findAll({ where: { id: { $in: obj.ids } } });
-                        for (let i = 0; i < adiantamentos.length; i++) {
-                            if (adiantamentos[i].valorcompensado > 0) {
-                                return application.error(obj.res, { msg: 'Existe um adiantamento com valor compensado na seleção' });
-                            }
-                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: adiantamentos[i].idconta, data: { $gte: adiantamentos[i].data } } });
-                            if (fechamento) {
-                                return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
-                            }
-                        }
-                        for (let i = 0; i < obj.ids.length; i++) {
-                            let mov = await db.getModel('fin_mov').find({ where: { idadiantamento: obj.ids[i] } });
-                            let movparc = await db.getModel('fin_movparc').find({ where: { idmov: mov.id } });
-                            movparc.destroy();
-                            mov.destroy();
-                        }
                         await next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -180,7 +120,6 @@ let main = {
                         left join fin_categoria c on (m.idcategoria = c.id)
                         where
                             mp.idconta = :conta
-                            and mp.idformapgto != 4
                             and mp.data > :dataini
                             and mp.data <= :datafim
                             `, {
@@ -213,7 +152,6 @@ let main = {
                         left join fin_categoria c on (m.idcategoria = c.id)
                         where
                             mp.idconta = :conta
-                            and mp.idformapgto != 4
                             and mp.data > :dataini
                             `, {
                                 type: db.sequelize.QueryTypes.SELECT
@@ -497,7 +435,7 @@ let main = {
                                         }
                                     }
                                 } else if (movparc.idformapgto == 4) {// Compensação
-                                    let sql = await db.sequelize.query(`select * from (select a.id, a.idcorr, a.valor - coalesce((select sum(m.valor) from fin_adiantamentomov m where m.idadiantamento = m.id), 0) as valoraberto from fin_adiantamento a where a.idcorr = ${mov.idcorr} order by a.data) as x where x.valoraberto > 0`,
+                                    let sql = await db.sequelize.query(`select * from (select a.id, a.idcorr, a.valor - coalesce((select sum(m.valor) from fin_adiantamentomov m where m.idadiantamento = a.id), 0) as valoraberto from fin_adiantamento a where a.idcorr = ${mov.idcorr} order by a.data) as x where x.valoraberto > 0`,
                                         { type: db.Sequelize.QueryTypes.SELECT });
                                     let valorrestante = application.formatters.be.decimal(obj.req.body['valor' + ids[i]]);
                                     while (valorrestante > 0) {
@@ -518,6 +456,7 @@ let main = {
                                                 });
                                                 sql[z].valoraberto = parseFloat(sql[z].valoraberto) - valorrestante;
                                                 valorrestante = 0;
+                                                break;
                                             }
                                         }
                                     }
@@ -996,7 +935,6 @@ let main = {
                                             left join fin_categoria c on (m.idcategoria = c.id)
                                             where
                                                 mp.data >= :dataini and mp.data <= :datafim
-                                                and mp.idformapgto != 4
                                                 and mp.idconta = :idconta
                                                 and c.id = :idcategoria) as x
                                         `
@@ -1062,8 +1000,7 @@ let main = {
                                 left join fin_mov m on (mp.idmov = m.id)
                                 left join fin_categoria c on (m.idcategoria = c.id)
                                 where
-                                    c.descricaocompleta like 'RS%'
-                                    and mp.idformapgto != 4
+                                    c.descricaocompleta like 'RS%'                                
                                     and mp.data >= :dataini and mp.data <= :datafim
                                 `, {
                                     type: db.sequelize.QueryTypes.SELECT
@@ -1087,7 +1024,6 @@ let main = {
                                 left join fin_categoria c on (m.idcategoria = c.id)
                                 where
                                     c.descricaocompleta like 'MS%'
-                                    and mp.idformapgto != 4
                                     and mp.data >= :dataini and mp.data <= :datafim
                                 `, {
                                     type: db.sequelize.QueryTypes.SELECT
@@ -1287,6 +1223,106 @@ let main = {
 
                             report.faturamentobruto = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentobruto_rs) + application.formatters.be.decimal(report.faturamentobruto_ms), 2);
                             report.faturamentoliquido = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentoliquido_rs) + application.formatters.be.decimal(report.faturamentoliquido_ms), 2);
+
+                            sql = await db.sequelize.query(`
+                                select c.nome, sum(x.valoraberto) as valoraberto from (
+                                    select
+                                        *
+                                        , a.valor - coalesce((select
+                                            sum(m.valor)
+                                        from
+                                            fin_adiantamentomov m
+                                        inner join fin_movparc mp on (m.idmovparc = mp.id)
+                                        where
+                                            m.idadiantamento = a.id
+                                            and mp.data <= :data
+                                        ),0) as valoraberto
+                                    from
+                                        fin_adiantamento a
+                                    where
+                                        a.data <= :data) as x
+                                left join cad_corr c on (x.idcorr = c.id)
+                                left join fin_categoria cat on (x.idcategoria = cat.id)
+                                where
+                                    x.valoraberto > 0
+                                    and cat.dc = 2
+                                group by 1
+                                `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        data: datafim.format(application.formatters.be.date_format)
+                                    }
+                                }
+                            );
+                            report.tableadiantamentocliente = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Valor Disponível</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.tableadiantamentocliente += `
+                                <tr>
+                                    <td style="text-align:left;"> ${sql[i]['nome']}          </td>
+                                    <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}   </td>
+                                </tr>
+                                `;
+                            }
+                            report.tableadiantamentocliente += `
+                            </table>
+                            `;
+
+                            sql = await db.sequelize.query(`
+                                select c.nome, sum(x.valoraberto) as valoraberto from (
+                                    select
+                                        *
+                                        , a.valor - coalesce((select
+                                            sum(m.valor)
+                                        from
+                                            fin_adiantamentomov m
+                                        inner join fin_movparc mp on (m.idmovparc = mp.id)
+                                        where
+                                            m.idadiantamento = a.id
+                                            and mp.data <= :data
+                                        ),0) as valoraberto
+                                    from
+                                        fin_adiantamento a
+                                    where
+                                        a.data <= :data) as x
+                                left join cad_corr c on (x.idcorr = c.id)
+                                left join fin_categoria cat on (x.idcategoria = cat.id)
+                                where
+                                    x.valoraberto > 0
+                                    and cat.dc = 1
+                                group by 1
+                                `
+                                , {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        data: datafim.format(application.formatters.be.date_format)
+                                    }
+                                }
+                            );
+                            report.tableadiantamentofornecedor = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Valor Disponível</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.tableadiantamentofornecedor += `
+                                <tr>
+                                    <td style="text-align:left;"> ${sql[i]['nome']}          </td>
+                                    <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}   </td>
+                                </tr>
+                                `;
+                            }
+                            report.tableadiantamentofornecedor += `
+                            </table>
+                            `;
 
                             let file = await main.platform.report.f_generate('Financeiro - Resultado', report);
                             return application.success(obj.res, {
