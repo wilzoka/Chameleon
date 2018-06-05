@@ -5384,8 +5384,10 @@ let main = {
                                     , 'produto_estrutura'
                                     , 'produto_embalar'
                                     , 'produto_peso_envasar'
+                                    , 'produto_peso_envasar_un'
                                     , 'produto_aplicar_logo'
                                     , 'produto_qtd_pasta_padrao'
+                                    , 'produto_confec_pasta_padrao'
                                     , 'produto_aprovacao_arte'
                                     , 'produto_clicheria_cliente'
                                 ];
@@ -5400,8 +5402,6 @@ let main = {
                                         , 's_altura_final'
                                         , 's_espessura_final'
                                         , 's_tipo_solda'
-                                        , 's_tipo_furo'
-                                        , 's_qtd_furo'
                                         , 's_localizacao_furos'
                                         , 's_pingo_solda'
                                         , 's_facilitador'
@@ -5427,13 +5427,15 @@ let main = {
                                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_tamanho_ziper_facil'] });
                                     }
 
+                                    if (obj.register['s_possui_furos'] == 'Sim' && !obj.register['s_qtd_furo'] && !obj.register['s_tipo_furo']) {
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_qtd_furo','s_tipo_furo'] });
+                                    }
+
                                 } else if (obj.register.produto_tipo == 'Película') {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         'p_largura_final'
                                         , 'p_passo_fotocelula'
                                         , 'p_espessura_final'
-                                        , 'p_sanfona_esquerda'
-                                        , 'p_sanfona_direita'
                                         , 'p_peso_maximo_bob'
                                         , 'p_diametro_maximo_bob'
                                         , 'p_tipo_tubete'
@@ -5454,6 +5456,10 @@ let main = {
 
                                     if (obj.register['p_aplicar_ziper_facil'] == 'Sim' && !obj.register['p_tamanho_zip_facil']) {
                                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_tamanho_zip_facil'] });
+                                    }
+
+                                    if (obj.register['p_possui_sanfona'] == 'Sim' && !obj.register['p_sanfona_direita'] && !obj.register['p_sanfona_esquerda']) {
+                                        return application.error(obj.res, {msg: application.message.invalidFields, invalidfields: ['p_sanfona_esquerda', 'p_sanfona_direita'] });
                                     }
 
                                 } else {
