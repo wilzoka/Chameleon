@@ -605,10 +605,10 @@ let main = {
                             let sql = await db.sequelize.query(`
                                 select
                                     mp.data
-                                    , c.nome as correntista
-                                    , m.parcela
+                                    , coalesce(c.nome, '') as correntista
+                                    , coalesce(m.parcela, '') as parcela
                                     , cat.descricaocompleta as categoria
-                                    , m.detalhes
+                                    , coalesce(m.detalhes, '') as detalhes
                                     , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) as valor
                                 from
                                     fin_mov m
