@@ -3203,6 +3203,88 @@ let main = {
                     });
                 }
             }
+            , apclichemontagem: {
+                e_listaUltimaMontagem: async (obj) => {
+                    try {
+                        let item = await db.sequelize.query(`
+                            select ver.id, cli.datahora
+                            from pcp_versao ver
+                            left join pcp_op op on (ver.id = op.idversao)
+                            left join pcp_opetapa eta on (op.id = eta.idop)
+                            left join pcp_oprecurso rec on (eta.id = rec.idopetapa)
+                            left join pcp_apcliche cli on (rec.id = cli.idoprecurso) 
+                            where cli.id = :idapcliche`
+                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: obj.id } }
+                        );
+                        let ultimaMontagem = await db.sequelize.query(`
+                            select cli.id
+                            from pcp_apcliche cli
+                            left join pcp_oprecurso rec on (cli.idoprecurso = rec.id)
+                            left join pcp_opetapa eta on (rec.idopetapa = eta.id)
+                            left join pcp_op op on (eta.idop = op.id)
+                            left join pcp_versao ver on (op.idversao = ver.id)
+                            where ver.id = :apclichemontagem
+                            and cli.datahora < :datahora
+                            order by cli.datahora desc
+                            limit 1`
+                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { apclichemontagem: item[0].id, datahora: item[0].datahora } }
+                        );
+                        if (ultimaMontagem.length <= 0) {
+                            return application.error(obj.res, { msg: 'Não possui montagens anteriores'});
+                        } 
+                        let consumos = await db.sequelize.query(`
+                            select mon.estacao, ite.descricao as cor, 'ID ' || cam.id || ' - ' || cam.descricao as camisa, 
+                                (select string_agg(df.descricao,' | ') from pcp_apclichemontconsumo com left join est_duplaface df on (com.idduplaface = df.id) where mon.id = com.idapclichemontagem) as duplaface
+                            from pcp_apclichemontagem mon
+                            left join est_camisa cam on (mon.idcamisa = cam.id) 
+                            left join pcp_versao ver on (mon.idversao = ver.id)
+                            left join cad_item ite on (ver.iditem = ite.id)
+                            where idapcliche = :idapcliche
+                            order by 1`
+                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: ultimaMontagem[0].id } }
+                        );
+
+                        let body = `
+                        <div class="col-md-12">
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>Estação</strong></td>
+                                <td style="text-align:center;"><strong>Cor</strong></td>
+                                <td style="text-align:center;"><strong>Camisa</strong></td>
+                                <td style="text-align:center;"><strong>Dupla Face</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < consumos.length; i++) {
+                            body += `
+                            <tr>
+                                <td style="text-align:center;"> ${consumos[i].estacao}   </td>
+                                <td style="text-align:left;">  ${consumos[i].cor}   </td>
+                                <td style="text-align:left;">   ${consumos[i].camisa}   </td>
+                                <td style="text-align:left;">  ${consumos[i].duplaface}   </td>
+                            </tr>
+                            `;
+                        }
+                        body += `
+                        </table>
+                        </div>
+                        `;
+
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevtg'
+                                , title: obj.event.description
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>'
+                            }
+                        });
+
+
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
             , approducao: {
                 _recalcula: function (id) {
                     return new Promise((resolve, reject) => {
@@ -5013,6 +5095,9 @@ let main = {
                             if (etapa.pcp_tprecurso.codigo != 2) {
                                 return application.error(obj.res, { msg: "Só é permitido montagem de clichê para OPs de impressão" });
                             }
+                            if (oprecurso.idestado == 2 || oprecurso.idestado == 7) {
+                                return application.error(obj.res, { msg: "Não é permitido montagem de clichê para OPs que não estão em produção" });
+                            }
                             let checkCliche = await db.getModel('pcp_apcliche').find({ where: { idoprecurso: obj.ids[0] } });
                             if (checkCliche) {
                                 return application.success(obj.res, { redirect: "/v/apontamento_cliche/" + checkCliche.id });
@@ -5032,7 +5117,7 @@ let main = {
                             });
                             body += application.components.html.decimal({
                                 width: 12
-                                , label: 'Passo*'
+                                , label: 'Passo(cm)*'
                                 , name: 'passo'
                             });
 
@@ -5065,10 +5150,11 @@ let main = {
 
                             for (let i = 0; i < componentes.length; i++) {
                                 let item = await db.getModel('cad_item').find({ where: { id: componentes[i].pcp_versao.iditem }, include: [{ all: true }] });
-                                if (item.est_grupo.codigo == 533) {
+                                if (item.est_grupo.codigo == 533) { // Tintas
                                     await db.getModel('pcp_apclichemontagem').create({
-                                        idapcliche: cliche.id
-                                        , cor: item.descricao
+                                        estacao: componentes[i].estacao
+                                        , idapcliche: cliche.id
+                                        , idversao: componentes[i].pcp_versao.id
                                     });
                                 }
                             }
