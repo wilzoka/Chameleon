@@ -305,13 +305,13 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    f.lpad(' OC ', w[0], padstr) + ' '
-                                    + f.rpad('Tipo', w[1], padstr) + ' '
-                                    + f.lpad('Largura(mm)', w[2], padstr) + ' '
-                                    + f.lpad('Espessura(mm)', w[3], padstr) + ' '
-                                    + f.lpad('Quantidade', w[4], padstr) + ' '
-                                    + f.rpad('Unidade', w[5], padstr)
-                                    , 27, 85)
+                                        f.lpad(' OC ', w[0], padstr) + ' '
+                                        + f.rpad('Tipo', w[1], padstr) + ' '
+                                        + f.lpad('Largura(mm)', w[2], padstr) + ' '
+                                        + f.lpad('Espessura(mm)', w[3], padstr) + ' '
+                                        + f.lpad('Quantidade', w[4], padstr) + ' '
+                                        + f.rpad('Unidade', w[5], padstr)
+                                        , 27, 85)
                                     .moveDown(md);
 
                             }
@@ -340,12 +340,12 @@ let main = {
                             doc
                                 .font('Courier')
                                 .text(
-                                f.lpad(results[i].id, w[0] - 1, padstr) + '  '
-                                + f.rpad(results[i].tipo, w[1], padstr) + ' '
-                                + f.lpad(application.formatters.fe.decimal(results[i].largura, 2), w[2], padstr) + ' '
-                                + f.lpad(application.formatters.fe.decimal(results[i].espessura, 4), w[3], padstr) + ' '
-                                + f.lpad(application.formatters.fe.decimal(results[i].qtd, 4), w[4], padstr) + ' '
-                                + f.rpad(results[i].unidade, w[5], padstr)
+                                    f.lpad(results[i].id, w[0] - 1, padstr) + '  '
+                                    + f.rpad(results[i].tipo, w[1], padstr) + ' '
+                                    + f.lpad(application.formatters.fe.decimal(results[i].largura, 2), w[2], padstr) + ' '
+                                    + f.lpad(application.formatters.fe.decimal(results[i].espessura, 4), w[3], padstr) + ' '
+                                    + f.lpad(application.formatters.fe.decimal(results[i].qtd, 4), w[4], padstr) + ' '
+                                    + f.rpad(results[i].unidade, w[5], padstr)
                                 )
                                 .moveDown(md);
                         }
@@ -1037,15 +1037,15 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    f.lpad('Tratamento', 15, padstr) +
-                                    f.lpad('Turno', 16, padstr) +
-                                    f.lpad('Nº da', 13, padstr) +
-                                    f.lpad('Operador', 14, padstr) +
-                                    f.lpad('Hora', 11, padstr) +
-                                    f.lpad('Hora', 13, padstr) +
-                                    f.lpad('Data', 10, padstr) +
-                                    f.lpad('Aprovado /', 15, padstr) +
-                                    f.lpad('Aprovado /', 14, padstr)
+                                        f.lpad('Tratamento', 15, padstr) +
+                                        f.lpad('Turno', 16, padstr) +
+                                        f.lpad('Nº da', 13, padstr) +
+                                        f.lpad('Operador', 14, padstr) +
+                                        f.lpad('Hora', 11, padstr) +
+                                        f.lpad('Hora', 13, padstr) +
+                                        f.lpad('Data', 10, padstr) +
+                                        f.lpad('Aprovado /', 15, padstr) +
+                                        f.lpad('Aprovado /', 14, padstr)
                                     )
                                     .moveDown(md);
 
@@ -1054,19 +1054,19 @@ let main = {
                                     .text(f.lpad('[ ]Interno [ ]Externo', 21, padstr), { continued: true })
                                     .fontSize(7.5)
                                     .text(
-                                    f.lpad('Máquina', 27, padstr) +
-                                    f.lpad('Inicial', 25, padstr) +
-                                    f.lpad('Final', 12, padstr) +
-                                    f.lpad('Reprovado', 24, padstr) +
-                                    f.lpad('Reprovado', 14, padstr)
+                                        f.lpad('Máquina', 27, padstr) +
+                                        f.lpad('Inicial', 25, padstr) +
+                                        f.lpad('Final', 12, padstr) +
+                                        f.lpad('Reprovado', 24, padstr) +
+                                        f.lpad('Reprovado', 14, padstr)
                                     )
                                     .moveDown(md);
 
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    f.lpad('Operador', 106, padstr) +
-                                    f.lpad('C/Q', 11, padstr)
+                                        f.lpad('Operador', 106, padstr) +
+                                        f.lpad('C/Q', 11, padstr)
                                     )
                                     .moveDown(md);
 
@@ -1101,50 +1101,50 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    f.lpad('Extrusão:', 14, padstr) +
-                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
-                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
-                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
-                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
-                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
-                                    f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
-                                    f.lpad('[ ] A [ ] R', 12, padstr) +
-                                    f.lpad('[ ] A [ ] R', 14, padstr)
+                                        f.lpad('Extrusão:', 14, padstr) +
+                                        f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
+                                        f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
+                                        f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
+                                        f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
+                                        f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                        f.lpad(etapa && [10].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
+                                        f.lpad('[ ] A [ ] R', 12, padstr) +
+                                        f.lpad('[ ] A [ ] R', 14, padstr)
                                     )
                                     .moveDown(md);
 
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    f.lpad('Impressão:', 14, padstr) +
-                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
-                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
-                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
-                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
-                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
-                                    f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
-                                    f.lpad('[ ] A [ ] R', 12, padstr) +
-                                    f.lpad('[ ] A [ ] R', 14, padstr)
+                                        f.lpad('Impressão:', 14, padstr) +
+                                        f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
+                                        f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
+                                        f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
+                                        f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
+                                        f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                        f.lpad(etapa && [20].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
+                                        f.lpad('[ ] A [ ] R', 12, padstr) +
+                                        f.lpad('[ ] A [ ] R', 14, padstr)
                                     )
                                     .moveDown(md);
 
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    f.lpad('Laminação:', 14, padstr) +
-                                    f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                                    f.lpad('[ ] A [ ] R', 72, padstr) +
-                                    f.lpad('[ ] A [ ] R', 14, padstr)
+                                        f.lpad('Laminação:', 14, padstr) +
+                                        f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                                        f.lpad('[ ] A [ ] R', 72, padstr) +
+                                        f.lpad('[ ] A [ ] R', 14, padstr)
                                     )
                                     .moveDown(md);
 
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    f.lpad('2ª Laminação:', 14, padstr) +
-                                    f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                                    f.lpad('[ ] A [ ] R', 72, padstr) +
-                                    f.lpad('[ ] A [ ] R', 14, padstr)
+                                        f.lpad('2ª Laminação:', 14, padstr) +
+                                        f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
+                                        f.lpad('[ ] A [ ] R', 72, padstr) +
+                                        f.lpad('[ ] A [ ] R', 14, padstr)
                                     )
                                     .moveDown(md);
 
@@ -1178,8 +1178,8 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    'Visto do Encarregado:' +
-                                    f.lpad('Visto do C/Q:', 66, padstr)
+                                        'Visto do Encarregado:' +
+                                        f.lpad('Visto do C/Q:', 66, padstr)
                                     )
                                     .moveDown(md);
 
@@ -1192,10 +1192,10 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .text(
-                                    'Fornecedor:' +
-                                    f.rpad(nfentrada ? nfentrada.razaosocial : '', 35, padstr) +
-                                    '  Código do Produto: ' +
-                                    f.rpad(versao.descricaocompleta, 55, padstr)
+                                        'Fornecedor:' +
+                                        f.rpad(nfentrada ? nfentrada.razaosocial : '', 35, padstr) +
+                                        '  Código do Produto: ' +
+                                        f.rpad(versao.descricaocompleta, 55, padstr)
                                     )
                                     .moveDown(md);
 
@@ -5000,6 +5000,85 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_montagemCliche: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.ids[0] } });
+                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 }, include: [{ all: true }] });
+
+                            if (etapa.pcp_tprecurso.codigo != 2) {
+                                return application.error(obj.res, { msg: "Só é permitido montagem de clichê para OPs de impressão" });
+                            }
+                            let checkCliche = await db.getModel('pcp_apcliche').find({ where: { idoprecurso: obj.ids[0] } });
+                            if (checkCliche) {
+                                return application.success(obj.res, { redirect: "/v/apontamento_cliche/" + checkCliche.id });
+                            }
+                            let body = '';
+                            body += application.components.html.hidden({
+                                name: 'idoprecurso'
+                                , value: obj.ids[0]
+                            });
+                            body += application.components.html.autocomplete({
+                                width: 12
+                                , label: 'Recurso*'
+                                , name: 'recurso'
+                                , model: 'pcp_recurso'
+                                , attribute: 'descricao'
+                                , where: 'idtprecurso = 32 and ativo = true'
+                            });
+                            body += application.components.html.decimal({
+                                width: 12
+                                , label: 'Passo*'
+                                , name: 'passo'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevtg'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['idoprecurso', 'recurso', 'passo']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let cliche = await db.getModel('pcp_apcliche').create({ datahora: moment(), idoprecurso: obj.req.body.idoprecurso, idrecurso: obj.req.body.recurso, passo: application.formatters.be.decimal(obj.req.body.passo) });
+                            if (!cliche) {
+                                return application.error(obj.res, { msg: "Não foi possível criar o clichê" });
+                            }
+                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.idoprecurso } });
+                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
+                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
+                            let versao = await db.getModel('pcp_versao').find({ where: { id: op ? op.idversao : 0 } });
+                            let composicao = await db.getModel('pcp_composicao').find({ where: { id: versao ? versao.idcomposicao : 0 } });
+                            let componentes = await db.getModel('pcp_componente').findAll({ where: { idcomposicao: composicao ? composicao.id : 0 }, include: [{ all: true }] });
+
+                            for (let i = 0; i < componentes.length; i++) {
+                                let item = await db.getModel('cad_item').find({ where: { id: componentes[i].pcp_versao.iditem }, include: [{ all: true }] });
+                                if (item.est_grupo.codigo == 533) {
+                                    await db.getModel('pcp_apclichemontagem').create({
+                                        idapcliche: cliche.id
+                                        , cor: item.descricao
+                                    });
+                                }
+                            }
+
+                            return application.success(obj.res, { redirect: "/v/apontamento_cliche/" + cliche.id });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , r_conferenciaAp: async function (obj) {
                 try {
@@ -5428,7 +5507,7 @@ let main = {
                                     }
 
                                     if (obj.register['s_possui_furos'] == 'Sim' && !obj.register['s_qtd_furo'] && !obj.register['s_tipo_furo']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_qtd_furo','s_tipo_furo'] });
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_qtd_furo', 's_tipo_furo'] });
                                     }
 
                                 } else if (obj.register.produto_tipo == 'Película') {
@@ -5459,7 +5538,7 @@ let main = {
                                     }
 
                                     if (obj.register['p_possui_sanfona'] == 'Sim' && !obj.register['p_sanfona_direita'] && !obj.register['p_sanfona_esquerda']) {
-                                        return application.error(obj.res, {msg: application.message.invalidFields, invalidfields: ['p_sanfona_esquerda', 'p_sanfona_direita'] });
+                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_sanfona_esquerda', 'p_sanfona_direita'] });
                                     }
 
                                 } else {
