@@ -487,6 +487,14 @@ var application = {
             }
         }
         , autocomplete: function ($obj) {
+            var resultTemplate = function (state) {
+                console.log('tpl ', state);
+                return $('<span>' + state.text + '</span>');
+            }
+            var resultSelection = function (state) {
+                console.log('selection ', state);
+                return $('<span>' + state.text + '</span>').text();
+            }
             $obj.each(function () {
                 var where = $(this).attr('data-where');
                 var needreplace = where && where.indexOf('$parent') >= 0;
@@ -548,6 +556,8 @@ var application = {
                         , placeholder: "Selecione"
                         , allowClear: true
                         , language: "pt-BR"
+                        , templateResult: resultTemplate
+                        , templateSelection: resultSelection
                     }).on('select2:close', function (evt) {
                         $(this).focus();
                     });
