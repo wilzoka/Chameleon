@@ -3214,7 +3214,7 @@ let main = {
                             left join pcp_oprecurso rec on (eta.id = rec.idopetapa)
                             left join pcp_apcliche cli on (rec.id = cli.idoprecurso) 
                             where cli.id = :idapcliche`
-                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: obj.id } }
+                            , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: obj.id } }
                         );
                         let ultimaMontagem = await db.sequelize.query(`
                             select cli.id
@@ -3227,11 +3227,11 @@ let main = {
                             and cli.datahora < :datahora
                             order by cli.datahora desc
                             limit 1`
-                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { apclichemontagem: item[0].id, datahora: item[0].datahora } }
+                            , { type: db.Sequelize.QueryTypes.SELECT, replacements: { apclichemontagem: item[0].id, datahora: item[0].datahora } }
                         );
                         if (ultimaMontagem.length <= 0) {
-                            return application.error(obj.res, { msg: 'Não possui montagens anteriores'});
-                        } 
+                            return application.error(obj.res, { msg: 'Não possui montagens anteriores' });
+                        }
                         let consumos = await db.sequelize.query(`
                             select mon.estacao, ite.descricao as cor, 'ID ' || cam.id || ' - ' || cam.descricao as camisa, 
                                 (select string_agg(df.descricao,' | ') from pcp_apclichemontconsumo com left join est_duplaface df on (com.idduplaface = df.id) where mon.id = com.idapclichemontagem) as duplaface
@@ -3241,7 +3241,7 @@ let main = {
                             left join cad_item ite on (ver.iditem = ite.id)
                             where idapcliche = :idapcliche
                             order by 1`
-                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: ultimaMontagem[0].id } }
+                            , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: ultimaMontagem[0].id } }
                         );
 
                         let body = `
@@ -5168,151 +5168,151 @@ let main = {
             }
             , r_conferenciaAp: async function (obj) {
                 try {
-
+    
                     let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idetapa', 'idrecurso']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
-
+    
                     let filterop = '';
                     if (obj.req.body.idop) {
                         filterop = ' and op.id = ' + obj.req.body.idop;
                     }
-
+    
                     let unions = [];
-
+    
                     if (obj.req.body.producao == 'true') {
                         unions.push(`
-                        with maximo as (
-                        select
-                            app.id
-                            , (select apt.id from pcp_approducaotempo apt where app.id = apt.idapproducao order by apt.datafim desc limit 1) as max
-                        from
-                            pcp_approducao app)
-                        select
-                            *
-                            , case when ultimaprod > 0 then (select sum(extract(epoch from apt.datafim - apt.dataini) / 60) from pcp_approducaotempo apt where apt.idapproducao = x.id) else null end as duracaototal
-                            , case when ultimaprod > 0 then (select sum(apv.pesoliquido) from pcp_approducaovolume apv where apv.idapproducao = x.id) else null end as peso
-                                , case when ultimaprod > 0 then (select sum(apv.qtd) from pcp_approducaovolume apv where apv.idapproducao = x.id) else null end as qtd
-                                , (select string_agg('ID ' || vol.id::text || ' - ' || i.codigo || '/' || v.codigo, ',') from pcp_approducaovolume apv left join est_volume vol on (apv.id = vol.idapproducaovolume) left join pcp_versao v on (vol.idversao = v.id) left join cad_item i on (v.iditem = i.id) where apv.idapproducao = x.id) as adicionais
-                        from
-                            (select
-                                'producao'::text as tipo
+                            with maximo as (
+                            select
+                                app.id
+                                , (select apt.id from pcp_approducaotempo apt where app.id = apt.idapproducao order by apt.datafim desc limit 1) as max
+                            from
+                                pcp_approducao app)
+                            select
+                                *
+                                , case when ultimaprod > 0 then (select sum(extract(epoch from apt.datafim - apt.dataini) / 60) from pcp_approducaotempo apt where apt.idapproducao = x.id) else null end as duracaototal
+                                , case when ultimaprod > 0 then (select sum(apv.pesoliquido) from pcp_approducaovolume apv where apv.idapproducao = x.id) else null end as peso
+                                    , case when ultimaprod > 0 then (select sum(apv.qtd) from pcp_approducaovolume apv where apv.idapproducao = x.id) else null end as qtd
+                                    , (select string_agg('ID ' || vol.id::text || ' - ' || i.codigo || '/' || v.codigo, ',') from pcp_approducaovolume apv left join est_volume vol on (apv.id = vol.idapproducaovolume) left join pcp_versao v on (vol.idversao = v.id) left join cad_item i on (v.iditem = i.id) where apv.idapproducao = x.id) as adicionais
+                            from
+                                (select
+                                    'producao'::text as tipo
+                                    , app.id
+                                    , op.codigo as op
+                                    , apt.dataini
+                                    , apt.datafim
+                                    , (select count(*) from maximo m where m.max = apt.id) as ultimaprod
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                left join pcp_op op on (ope.idop = op.id)
+                                inner join pcp_approducao app on (opr.id = app.idoprecurso)
+                                inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
+                                where
+                                    apt.dataini >= :v1 and apt.datafim <= :v2
+                                    and ope.idetapa = :v3
+                                    and opr.idrecurso = :v4 ` + filterop + `) as x
+                            `);
+                    }
+                    if (obj.req.body.perda == 'true') {
+                        unions.push(`
+                            select
+                                'perda'::text as tipo
                                 , app.id
                                 , op.codigo as op
-                                , apt.dataini
-                                , apt.datafim
-                                , (select count(*) from maximo m where m.max = apt.id) as ultimaprod
+                                , app.datahora as dataini
+                                , null as datafim
+                                , 0 as ultimaprod
+                                , 0 as duracaototal
+                                , app.peso 
+                                , 0 as qtd
+                                , tp.codigo || ' - ' || tp.descricao as adicionais
                             from
                                 pcp_oprecurso opr
                             left join pcp_opetapa ope on (opr.idopetapa = ope.id)
                             left join pcp_op op on (ope.idop = op.id)
-                            inner join pcp_approducao app on (opr.id = app.idoprecurso)
-                            inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
+                            inner join pcp_apperda app on (opr.id = app.idoprecurso)
+                            left join pcp_tipoperda tp on (app.idtipoperda = tp.id)
                             where
-                                apt.dataini >= :v1 and apt.datafim <= :v2
+                                app.datahora >= :v1 and app.datahora <= :v2
                                 and ope.idetapa = :v3
-                                and opr.idrecurso = :v4 ` + filterop + `) as x
-                        `);
-                    }
-                    if (obj.req.body.perda == 'true') {
-                        unions.push(`
-                        select
-                            'perda'::text as tipo
-                            , app.id
-                            , op.codigo as op
-                            , app.datahora as dataini
-                            , null as datafim
-                            , 0 as ultimaprod
-                            , 0 as duracaototal
-                            , app.peso 
-                            , 0 as qtd
-                            , tp.codigo || ' - ' || tp.descricao as adicionais
-                        from
-                            pcp_oprecurso opr
-                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                        left join pcp_op op on (ope.idop = op.id)
-                        inner join pcp_apperda app on (opr.id = app.idoprecurso)
-                        left join pcp_tipoperda tp on (app.idtipoperda = tp.id)
-                        where
-                            app.datahora >= :v1 and app.datahora <= :v2
-                            and ope.idetapa = :v3
-                            and opr.idrecurso = :v4 ` + filterop);
+                                and opr.idrecurso = :v4 ` + filterop);
                     }
                     if (obj.req.body.parada == 'true') {
                         unions.push(`
-                        select
-                            'parada'::text as tipo
-                            , app.id
-                            , op.codigo as op
-                            , app.dataini
-                            , app.datafim
-                            , 0 as ultimaprod
-                            , 0 as duracaototal
-                            , 0 as peso 
-                            , 0 as qtd
-                            , mp.codigo || ' - ' || mp.descricao as adicionais
-                        from
-                            pcp_oprecurso opr
-                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                        left join pcp_op op on (ope.idop = op.id)
-                        inner join pcp_apparada app on (opr.id = app.idoprecurso)
-                        left join pcp_motivoparada mp on (app.idmotivoparada = mp.id)
-                        where
-                            app.dataini >= :v1 and app.datafim <= :v2
-                            and ope.idetapa = :v3
-                            and opr.idrecurso = :v4 ` + filterop);
+                            select
+                                'parada'::text as tipo
+                                , app.id
+                                , op.codigo as op
+                                , app.dataini
+                                , app.datafim
+                                , 0 as ultimaprod
+                                , 0 as duracaototal
+                                , 0 as peso 
+                                , 0 as qtd
+                                , mp.codigo || ' - ' || mp.descricao as adicionais
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            inner join pcp_apparada app on (opr.id = app.idoprecurso)
+                            left join pcp_motivoparada mp on (app.idmotivoparada = mp.id)
+                            where
+                                app.dataini >= :v1 and app.datafim <= :v2
+                                and ope.idetapa = :v3
+                                and opr.idrecurso = :v4 ` + filterop);
                     }
                     if (obj.req.body.insumo == 'true') {
                         unions.push(`
-                        select
-                            'insumo'::text as tipo
-                            , api.id
-                            , op.codigo as op
-                            , api.datahora as dataini
-                            , null as datafim
-                            , 0 as ultimaprod
-                            , 0 as duracaototal
-                            , 0 as peso 
-                            , api.qtd as qtd
-                            , api.produto as adicionais
-                        from
-                            pcp_oprecurso opr
-                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                        left join pcp_op op on (ope.idop = op.id)
-                        inner join pcp_apinsumo api on (opr.id = api.idoprecurso)
-                        where
-                            api.datahora >= :v1 and api.datahora <= :v2
-                            and ope.idetapa = :v3
-                            and opr.idrecurso = :v4 ` + filterop);
+                            select
+                                'insumo'::text as tipo
+                                , api.id
+                                , op.codigo as op
+                                , api.datahora as dataini
+                                , null as datafim
+                                , 0 as ultimaprod
+                                , 0 as duracaototal
+                                , 0 as peso 
+                                , api.qtd as qtd
+                                , api.produto as adicionais
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            inner join pcp_apinsumo api on (opr.id = api.idoprecurso)
+                            where
+                                api.datahora >= :v1 and api.datahora <= :v2
+                                and ope.idetapa = :v3
+                                and opr.idrecurso = :v4 ` + filterop);
                     }
                     if (obj.req.body.sobra == 'true') {
                         unions.push(`
-                        select
-                            'sobra'::text as tipo
-                            , aps.id
-                            , op.codigo as op
-                            , aps.datahora as dataini
-                            , null as datafim
-                            , null as ultimaprod
-                            , null as duracaototal
-                            , null as peso 
-                            , aps.qtd as qtd
-                            , api.produto as adicionais
-                        from
-                            pcp_oprecurso opr
-                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                        left join pcp_op op on (ope.idop = op.id)
-                        inner join pcp_apsobra aps on (opr.id = aps.idoprecurso)
-                        left join pcp_apinsumo api on (aps.idapinsumo = api.id)
-                        where
-                            aps.datahora >= :v1 and aps.datahora <= :v2
-                            and ope.idetapa = :v3
-                            and opr.idrecurso = :v4 ` + filterop);
+                            select
+                                'sobra'::text as tipo
+                                , aps.id
+                                , op.codigo as op
+                                , aps.datahora as dataini
+                                , null as datafim
+                                , null as ultimaprod
+                                , null as duracaototal
+                                , null as peso 
+                                , aps.qtd as qtd
+                                , api.produto as adicionais
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            inner join pcp_apsobra aps on (opr.id = aps.idoprecurso)
+                            left join pcp_apinsumo api on (aps.idapinsumo = api.id)
+                            where
+                                aps.datahora >= :v1 and aps.datahora <= :v2
+                                and ope.idetapa = :v3
+                                and opr.idrecurso = :v4 ` + filterop);
                     }
-
+    
                     if (unions.length > 0) {
-
+    
                         let sql = await db.sequelize.query(
                             'select * from (' + unions.join(' union all ') + ') as x order by dataini'
                             ,
@@ -5325,7 +5325,7 @@ let main = {
                                     , v4: obj.req.body.idrecurso
                                 }
                             });
-
+    
                         let data = {
                             producao: {
                                 nro: 0
@@ -5357,11 +5357,11 @@ let main = {
                             }
                         };
                         data.table = [];
-
+    
                         let wdata = null;
-
+    
                         for (let i = 0; i < sql.length; i++) {
-
+    
                             if (sql[i].tipo == 'producao') {
                                 data.table.push({
                                     seq: i + 1
@@ -5374,7 +5374,7 @@ let main = {
                                     , adicionais: sql[i].adicionais
                                     , erro: ''
                                 });
-
+    
                                 if (sql[i].ultimaprod == 1) {
                                     data.producao.nro++;
                                     if (parseFloat(sql[i].peso)) {
@@ -5440,7 +5440,7 @@ let main = {
                                 data.sobra.nro++;
                                 data.sobra.qtd += parseFloat(sql[i].qtd);
                             }
-
+    
                             if (obj.req.body.parada == 'true' && obj.req.body.producao == 'true') {
                                 if (sql[i].tipo == 'producao' || sql[i].tipo == 'parada') {
                                     if (wdata == null) {
@@ -5456,15 +5456,15 @@ let main = {
                                     }
                                 }
                             }
-
+    
                         }
-
+    
                         if (data.producao.qtd > 0 && data.producao.tempo > 0) {
                             data.ind.velmedia = application.formatters.fe.decimal(data.producao.qtd / (data.producao.tempo + data.parada.tempo), 2);
                             data.ind.velefet = application.formatters.fe.decimal(data.producao.qtd / data.producao.tempo, 2);
                             data.ind.dif = application.formatters.fe.decimal(data.insumo.qtd - data.producao.pesoliquido - data.perda.qtd, 4);
                         }
-
+    
                         data.producao.pesoliquido = application.formatters.fe.decimal(data.producao.pesoliquido, 4);
                         data.producao.qtd = application.formatters.fe.decimal(data.producao.qtd, 4);
                         data.producao.tempo = application.formatters.fe.time(data.producao.tempo);
@@ -5472,13 +5472,13 @@ let main = {
                         data.parada.tempo = application.formatters.fe.time(data.parada.tempo);
                         data.insumo.qtd = application.formatters.fe.decimal(data.insumo.qtd, 4);
                         data.sobra.qtd = application.formatters.fe.decimal(data.sobra.qtd, 4);
-
+    
                         return application.success(obj.res, { data: data });
-
+    
                     } else {
                         return application.error(obj.res, { msg: 'Selecione um tipo de apontamento para visualizar' });
                     }
-
+    
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -5488,7 +5488,6 @@ let main = {
             proposta: {
                 onsave: async function (obj, next) {
                     try {
-
                         if (obj.register.id == 0) {
                             obj.register.datahora = moment();
                             obj.register.idusuario = obj.req.user.id;
@@ -5608,7 +5607,7 @@ let main = {
                                         , 'p_tipo_emenda'
                                         , 'p_aplicar_microfuros'
                                         , 'p_aplicar_ziper_facil'
-                                        , 'p_sentido_embobinamento'
+                                        , 'p_sentido_embob'
                                     ].concat(validar_produto_geral));
 
                                     if (obj.register['p_aplicar_microfuros'] == 'Sim' && !obj.register['p_quantidade_microfuros']) {
@@ -5640,8 +5639,6 @@ let main = {
                                     'entrega_quantidade'
                                     , 'entrega_unidade'
                                     , 'entrega_preco'
-                                    , 'entrega_ipi'
-                                    , 'entrega_icms'
                                     , 'entrega_tipo_reembalagem'
                                 ]);
                                 if (invalidfields.length > 0) {
@@ -5788,5 +5785,6 @@ let main = {
         }
     }
 }
+
 
 module.exports = main;
