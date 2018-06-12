@@ -562,19 +562,18 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , e_analitico: async function (obj) {
+                , e_analitico_c: async function (obj) {
                     try {
 
                         if (obj.req.method == 'GET') {
-                            let body = '';
-                            body += application.components.html.date({
+                            let body = application.components.html.date({
                                 width: '6'
-                                , label: 'Data Inicial*'
+                                , label: 'Data Vencimento Inicial*'
                                 , name: 'dataini'
                             });
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Final*'
+                                , label: 'Data Vencimento Final*'
                                 , name: 'datafim'
                             });
                             body += application.components.html.autocomplete({
@@ -583,7 +582,14 @@ let main = {
                                 , name: 'idcategoria'
                                 , model: 'fin_categoria'
                                 , attribute: 'descricaocompleta'
-                                , where: 'dc = 1'
+                                , where: 'dc = 2'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Correntista'
+                                , name: 'idcorr'
+                                , model: 'cad_corr'
+                                , attribute: 'nome'
                             });
                             return application.success(obj.res, {
                                 modal: {
@@ -604,23 +610,23 @@ let main = {
 
                             let sql = await db.sequelize.query(`
                                 select
-                                    mp.data
+                                    m.datavcto
                                     , coalesce(c.nome, '') as correntista
                                     , coalesce(m.parcela, '') as parcela
                                     , cat.descricaocompleta as categoria
                                     , coalesce(m.detalhes, '') as detalhes
-                                    , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) as valor
+                                    , m.valor
                                 from
                                     fin_mov m
-                                inner join fin_movparc mp on (m.id = mp.idmov)
                                 left join cad_corr c on (m.idcorr = c.id)
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
                                 where
-                                    cat.dc = 1
-                                    and mp.data >= :dataini
-                                    and mp.data <= :datafim
+                                    cat.dc in (2)
+                                    and m.datavcto >= :dataini
+                                    and m.datavcto <= :datafim
                                     ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
-                                order by 1,2                                  
+                                    ${obj.req.body.idcorr ? 'and m.idcorr = ' + obj.req.body.idcorr : ''}  
+                                order by m.datavcto, m.id
                             `, {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
@@ -632,12 +638,12 @@ let main = {
                             let total = 0;
                             let report = {};
                             let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
-                            report.__title = `Contas a Pagar Pagas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
+                            report.__title = `Contas a Receber em Aberto</br>Vencimento de ${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
-                                    <td style="text-align:center;"><strong>Data</strong></td>
+                                    <td style="text-align:center;"><strong>Vencimento</strong></td>
                                     <td style="text-align:center;"><strong>Correntista</strong></td>
                                     <td style="text-align:center;"><strong>Parcela</strong></td>
                                     <td style="text-align:center;"><strong>Categoria</strong></td>
@@ -648,7 +654,7 @@ let main = {
                             for (let i = 0; i < sql.length; i++) {
                                 report.__table += `
                                 <tr>
-                                    <td style="text-align:left;">${application.formatters.fe.date(sql[i]['data'])}</td>
+                                    <td style="text-align:left;">${application.formatters.fe.date(sql[i]['datavcto'])}</td>
                                     <td style="text-align:left;">${sql[i]['correntista']}</td>
                                     <td style="text-align:center;">${sql[i]['parcela']}</td>
                                     <td style="text-align:left;">${sql[i]['categoria']}</td>
@@ -667,6 +673,269 @@ let main = {
                                     <td></td>
                                     <td style="text-align:right;"><strong>${application.formatters.fe.decimal(total, 2)}</strong></td>
                                 </tr>
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 400px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_analitico_d: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            let body = application.components.html.date({
+                                width: '6'
+                                , label: 'Data Vencimento Inicial*'
+                                , name: 'dataini'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Vencimento Final*'
+                                , name: 'datafim'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Categoria'
+                                , name: 'idcategoria'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 1'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Correntista'
+                                , name: 'idcorr'
+                                , model: 'cad_corr'
+                                , attribute: 'nome'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let sql = await db.sequelize.query(`
+                                select
+                                    m.datavcto
+                                    , coalesce(c.nome, '') as correntista
+                                    , coalesce(m.parcela, '') as parcela
+                                    , cat.descricaocompleta as categoria
+                                    , coalesce(m.detalhes, '') as detalhes
+                                    , m.valor
+                                from
+                                    fin_mov m
+                                left join cad_corr c on (m.idcorr = c.id)
+                                left join fin_categoria cat on (m.idcategoria = cat.id)
+                                where
+                                    cat.dc in (1)
+                                    and m.datavcto >= :dataini
+                                    and m.datavcto <= :datafim
+                                    ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
+                                    ${obj.req.body.idcorr ? 'and m.idcorr = ' + obj.req.body.idcorr : ''}  
+                                order by m.datavcto, m.id
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: application.formatters.be.date(obj.req.body.dataini)
+                                        , datafim: application.formatters.be.date(obj.req.body.datafim)
+                                    }
+                                });
+
+                            let total = 0;
+                            let report = {};
+                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            report.__title = `Contas a Pagar em Aberto</br>Vencimento de ${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
+
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Vencimento</strong></td>
+                                    <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Parcela</strong></td>
+                                    <td style="text-align:center;"><strong>Categoria</strong></td>
+                                    <td style="text-align:center;"><strong>Detalhes</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:left;">${application.formatters.fe.date(sql[i]['datavcto'])}</td>
+                                    <td style="text-align:left;">${sql[i]['correntista']}</td>
+                                    <td style="text-align:center;">${sql[i]['parcela']}</td>
+                                    <td style="text-align:left;">${sql[i]['categoria']}</td>
+                                    <td style="text-align:left;">${sql[i]['detalhes']}</td>
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(sql[i]['valor'], 2)}</td>
+                                </tr>
+                                `;
+                                total += parseFloat(sql[i]['valor']);
+                            }
+                            report.__table += `
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="text-align:right;"><strong>${application.formatters.fe.decimal(total, 2)}</strong></td>
+                                </tr>
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 400px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_sintetico_d: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            let body = '';
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Vencimento Inicial*'
+                                , name: 'dataini'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Vencimento Final*'
+                                , name: 'datafim'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Categoria*'
+                                , name: 'idcategoria'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 1'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Correntista'
+                                , name: 'idcorr'
+                                , model: 'cad_corr'
+                                , attribute: 'nome'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idcategoria']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let sql = await db.sequelize.query(`
+                                select * from (select
+                                    c.codigo::text
+                                    , c.nome
+                                    , sum(m.valor) as valortotal
+                                from
+                                    fin_mov m
+                                left join cad_corr c on (m.idcorr = c.id)
+                                left join fin_categoria cat on (m.idcategoria = cat.id)
+                                where
+                                    m.quitado = false
+                                    and cat.dc = 1
+                                    and m.datavcto >= :dataini
+                                    and m.datavcto <= :datafim
+                                    and m.idcategoria = :idcategoria
+                                    ${obj.req.body.idcorr ? 'and m.idcorr = ' + obj.req.body.idcorr : ''}  
+                                group by 1,2
+                                order by 2) as x
+                                
+                                union all
+                                
+                                select
+                                    '<strong>Total</strong>' as codigo
+                                    , ''
+                                    , sum(m.valor)
+                                from
+                                    fin_mov m
+                                left join cad_corr c on (m.idcorr = c.id)
+                                left join fin_categoria cat on (m.idcategoria = cat.id)
+                                where
+                                    m.quitado = false
+                                    and cat.dc = 1
+                                    and m.datavcto >= :dataini
+                                    and m.datavcto <= :datafim
+                                    and m.idcategoria = :idcategoria
+                                    ${obj.req.body.idcorr ? 'and m.idcorr = ' + obj.req.body.idcorr : ''}  
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        dataini: application.formatters.be.date(obj.req.body.dataini)
+                                        , datafim: application.formatters.be.date(obj.req.body.datafim)
+                                        , idcategoria: obj.req.body.idcategoria
+                                    }
+                                });
+
+                            let report = {};
+                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            report.__title = `Contas a Pagar Abertas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>Categoria: ${categoria.descricaocompleta} `;
+
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Código</strong></td>
+                                    <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:left;"> ${sql[i]['codigo']}          </td>
+                                    <td style="text-align:left;">  ${sql[i]['nome']}           </td>
+                                    <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valortotal'], 2)}   </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `
                             </table>
                             `;
 
@@ -1225,7 +1494,7 @@ let main = {
                             report.faturamentoliquido = application.formatters.fe.decimal(application.formatters.be.decimal(report.faturamentoliquido_rs) + application.formatters.be.decimal(report.faturamentoliquido_ms), 2);
 
                             sql = await db.sequelize.query(`
-                                select c.nome, sum(x.valoraberto) as valoraberto from (
+                                select c.nome, sum(x.valoraberto) as valoraberto, coalesce(string_agg(x.observacao, ' / '), '') as observacao from (
                                     select
                                         *
                                         , a.valor - coalesce((select
@@ -1259,6 +1528,7 @@ let main = {
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
                                     <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Observação</strong></td>
                                     <td style="text-align:center;"><strong>Valor Disponível</strong></td>
                                 </tr>
                             `;
@@ -1266,6 +1536,7 @@ let main = {
                                 report.tableadiantamentocliente += `
                                 <tr>
                                     <td style="text-align:left;"> ${sql[i]['nome']}          </td>
+                                    <td style="text-align:left;"> ${sql[i]['observacao']}          </td>
                                     <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}   </td>
                                 </tr>
                                 `;
@@ -1275,7 +1546,7 @@ let main = {
                             `;
 
                             sql = await db.sequelize.query(`
-                                select c.nome, sum(x.valoraberto) as valoraberto from (
+                                select c.nome, sum(x.valoraberto) as valoraberto, coalesce(string_agg(x.observacao, ' / '), '') as observacao from (
                                     select
                                         *
                                         , a.valor - coalesce((select
@@ -1309,6 +1580,7 @@ let main = {
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
                                     <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Observação</strong></td>
                                     <td style="text-align:center;"><strong>Valor Disponível</strong></td>
                                 </tr>
                             `;
@@ -1316,6 +1588,7 @@ let main = {
                                 report.tableadiantamentofornecedor += `
                                 <tr>
                                     <td style="text-align:left;"> ${sql[i]['nome']}          </td>
+                                    <td style="text-align:left;"> ${sql[i]['observacao']}          </td>
                                     <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}   </td>
                                 </tr>
                                 `;
@@ -1474,28 +1747,46 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , e_report_correntista: async function (obj) {
+                , e_analitico: async function (obj) {
                     try {
 
                         if (obj.req.method == 'GET') {
                             let body = '';
+                            body += application.components.html.checkbox({
+                                width: '6'
+                                , label: 'Listar Créditos?'
+                                , name: 'credito'
+                                , checked: 'checked="checked"'
+                            });
+                            body += application.components.html.checkbox({
+                                width: '6'
+                                , label: 'Listar Débitos?'
+                                , name: 'debito'
+                                , checked: 'checked="checked"'
+                            });
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Vencimento Inicial*'
+                                , label: 'Data Inicial*'
                                 , name: 'dataini'
                             });
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Vencimento Final*'
+                                , label: 'Data Final*'
                                 , name: 'datafim'
                             });
                             body += application.components.html.autocomplete({
                                 width: '12'
-                                , label: 'Categoria*'
+                                , label: 'Categoria'
                                 , name: 'idcategoria'
                                 , model: 'fin_categoria'
                                 , attribute: 'descricaocompleta'
-                                , where: 'dc = 1'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Correntista'
+                                , name: 'idcorr'
+                                , model: 'cad_corr'
+                                , attribute: 'nome'
                             });
                             return application.success(obj.res, {
                                 modal: {
@@ -1509,76 +1800,81 @@ let main = {
                             });
                         } else {
 
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idcategoria']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
                             let sql = await db.sequelize.query(`
-                                select * from (select
-                                    c.codigo::text
-                                    , c.nome
-                                    , sum(m.valor) as valortotal
-                                from
-                                    fin_mov m
-                                left join cad_corr c on (m.idcorr = c.id)
-                                left join fin_categoria cat on (m.idcategoria = cat.id)
-                                where
-                                    m.quitado = false
-                                    and cat.dc = 1
-                                    and m.datavcto >= :dataini
-                                    and m.datavcto <= :datafim
-                                    and m.idcategoria = :idcategoria
-                                group by 1,2
-                                order by 2) as x
-                                
-                                union all
-                                
                                 select
-                                    '<strong>Total</strong>' as codigo
-                                    , ''
-                                    , sum(m.valor)
+                                    mp.data
+                                    , case when cat.dc = 1 then 'D' else 'C' end as dc
+                                    , coalesce(c.nome, '') as correntista
+                                    , coalesce(m.parcela, '') as parcela
+                                    , cat.descricaocompleta as categoria
+                                    , coalesce(m.detalhes, '') as detalhes
+                                    , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) as valor
                                 from
                                     fin_mov m
+                                inner join fin_movparc mp on (m.id = mp.idmov)
                                 left join cad_corr c on (m.idcorr = c.id)
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
                                 where
-                                    m.quitado = false
-                                    and cat.dc = 1
-                                    and m.datavcto >= :dataini
-                                    and m.datavcto <= :datafim
-                                    and m.idcategoria = :idcategoria
+                                    cat.dc in (${obj.req.body.debito ? '1' : '0'}, ${obj.req.body.credito ? '2' : '0'})
+                                    and mp.data >= :dataini
+                                    and mp.data <= :datafim
+                                    ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
+                                    ${obj.req.body.idcorr ? 'and m.idcorr = ' + obj.req.body.idcorr : ''}  
+                                order by mp.data, mp.id
                             `, {
                                     type: db.sequelize.QueryTypes.SELECT
                                     , replacements: {
                                         dataini: application.formatters.be.date(obj.req.body.dataini)
                                         , datafim: application.formatters.be.date(obj.req.body.datafim)
-                                        , idcategoria: obj.req.body.idcategoria
                                     }
                                 });
 
+                            let total = 0;
                             let report = {};
                             let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
-                            report.__title = `Contas a Pagar Abertas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>Categoria: ${categoria.descricaocompleta} `;
+                            report.__title = `Movimentações</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
-                                    <td style="text-align:center;"><strong>Código</strong></td>
+                                    <td style="text-align:center;"><strong>Data</strong></td>
+                                    <td style="text-align:center;"><strong>D/C</strong></td>
                                     <td style="text-align:center;"><strong>Correntista</strong></td>
+                                    <td style="text-align:center;"><strong>Parcela</strong></td>
+                                    <td style="text-align:center;"><strong>Categoria</strong></td>
+                                    <td style="text-align:center;"><strong>Detalhes</strong></td>
                                     <td style="text-align:center;"><strong>Valor</strong></td>
                                 </tr>
                             `;
                             for (let i = 0; i < sql.length; i++) {
                                 report.__table += `
                                 <tr>
-                                    <td style="text-align:left;"> ${sql[i]['codigo']}          </td>
-                                    <td style="text-align:left;">  ${sql[i]['nome']}           </td>
-                                    <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valortotal'], 2)}   </td>
+                                    <td style="text-align:left;">${application.formatters.fe.date(sql[i]['data'])}</td>
+                                    <td style="text-align:center;">${sql[i]['dc']}</td>
+                                    <td style="text-align:left;">${sql[i]['correntista']}</td>
+                                    <td style="text-align:center;">${sql[i]['parcela']}</td>
+                                    <td style="text-align:left;">${sql[i]['categoria']}</td>
+                                    <td style="text-align:left;">${sql[i]['detalhes']}</td>
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(sql[i]['valor'], 2)}</td>
                                 </tr>
                                 `;
+                                total += parseFloat(sql[i]['valor']);
                             }
                             report.__table += `
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="text-align:right;"><strong>${application.formatters.fe.decimal(total, 2)}</strong></td>
+                                </tr>
                             </table>
                             `;
 
