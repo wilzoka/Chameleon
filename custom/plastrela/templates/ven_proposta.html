@@ -96,6 +96,10 @@
         font-size: 20px;
         line-height: 19px;
     }
+
+    .checkbox {
+        margin: 3px 0px;
+    }
 </style>
 <div class="hidden">
     {{{hidden}}}
@@ -110,23 +114,33 @@
                         <div class="wizard-progress-line"></div>
                     </div>
                     <div class="wizard-step">
-                        <div class="wizard-step-icon"><i class="fa fa-user"></i></div>
+                        <div class="wizard-step-icon">
+                            <i class="fa fa-user"></i>
+                        </div>
                         <p>Cliente</p>
                     </div>
                     <div class="wizard-step">
-                        <div class="wizard-step-icon"><i class="fa fa-shopping-basket"></i></div>
+                        <div class="wizard-step-icon">
+                            <i class="fa fa-shopping-basket"></i>
+                        </div>
                         <p>Produto</p>
                     </div>
                     <div class="wizard-step">
-                        <div class="wizard-step-icon"><i class="fa fa-cubes"></i></div>
+                        <div class="wizard-step-icon">
+                            <i class="fa fa-cubes"></i>
+                        </div>
                         <p>Quantidades</p>
                     </div>
                     <div class="wizard-step">
-                        <div class="wizard-step-icon"><i class="fa fa-truck"></i></div>
+                        <div class="wizard-step-icon">
+                            <i class="fa fa-truck"></i>
+                        </div>
                         <p>Entregas</p>
                     </div>
                     <div class="wizard-step">
-                        <div class="wizard-step-icon"><i class="fa fa-money"></i></div>
+                        <div class="wizard-step-icon">
+                            <i class="fa fa-money"></i>
+                        </div>
                         <p>Pagamento</p>
                     </div>
 
@@ -156,7 +170,9 @@
                     </div>
 
                     <div class="wizard-buttons">
-                        <button type="button" class="btn btn-primary wizard-save">Próximo <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-primary wizard-save">Próximo
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
                     </div>
 
                 </fieldset>
@@ -197,8 +213,11 @@
                     </div>
 
                     <div class="wizard-buttons">
-                        <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
-                        <button type="button" class="btn btn-primary wizard-save">Próximo <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-primary wizard-previous">
+                            <i class="fa fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-primary wizard-save">Próximo
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
                     </div>
                 </fieldset>
 
@@ -206,10 +225,21 @@
                     <div class="row">
                         {{{quantidades}}}
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tipos de Reembalagem*</label>
+                                {{{reembalagem}}}
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="wizard-buttons">
-                        <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
-                        <button type="button" class="btn btn-primary wizard-save">Próximo <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-primary wizard-previous">
+                            <i class="fa fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-primary wizard-save">Próximo
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
                     </div>
                 </fieldset>
 
@@ -219,8 +249,11 @@
                     </div>
 
                     <div class="wizard-buttons">
-                        <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
-                        <button type="button" class="btn btn-primary wizard-save">Próximo <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-primary wizard-previous">
+                            <i class="fa fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-primary wizard-save">Próximo
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
                     </div>
                 </fieldset>
 
@@ -230,8 +263,11 @@
                     </div>
 
                     <div class="wizard-buttons">
-                        <button type="button" class="btn btn-primary wizard-previous"><i class="fa fa-arrow-left"></i> Anterior</button>
-                        <button type="button" class="btn btn-primary wizard-save">Finalizar <i class="fa fa-flag"></i></button>
+                        <button type="button" class="btn btn-primary wizard-previous">
+                            <i class="fa fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-primary wizard-save">Finalizar
+                            <i class="fa fa-flag"></i>
+                        </button>
                     </div>
                 </fieldset>
             </div>
