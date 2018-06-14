@@ -4990,6 +4990,12 @@ let main = {
                                 , 'Ajuste de cor'
                                 , 'Acerto de cor'
                                 , 'Reposição'
+                                , 'Reposição (Branco)'
+                                , 'Reposição (Amarelo)'
+                                , 'Reposição (Magenta)'
+                                , 'Reposição (Cyan)'
+                                , 'Reposição (Preto)'
+                                , 'Reposição (Verniz)'
                                 , 'Pré-Setup próximo pedido'
                                 , 'Colorista comparecer na máquina'
                             ]
