@@ -1061,6 +1061,7 @@
         "model": "template",
         "module": "Plataforma",
         "url": "template",
+        "fastsearch": "name",
         "_field": [
             {
                 "templatezone": "z1",

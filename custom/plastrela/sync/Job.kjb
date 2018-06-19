@@ -253,7 +253,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>32</xloc>
-      <yloc>182</yloc>
+      <yloc>201</yloc>
       </entry>
     <entry>
       <name>cadunidade</name>
@@ -289,7 +289,7 @@
       <yloc>134</yloc>
       </entry>
     <entry>
-      <name>correntista</name>
+      <name>cadcorr</name>
       <description/>
       <type>TRANS</type>
       <specification_method>filename</specification_method>
@@ -652,7 +652,7 @@
       <yloc>134</yloc>
       </entry>
     <entry>
-      <name>item</name>
+      <name>estitem</name>
       <description/>
       <type>TRANS</type>
       <specification_method>filename</specification_method>
@@ -685,7 +685,7 @@
       <yloc>134</yloc>
       </entry>
     <entry>
-      <name>itemversao</name>
+      <name>pcpversao</name>
       <description/>
       <type>TRANS</type>
       <specification_method>filename</specification_method>
@@ -978,7 +978,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1321</xloc>
+      <xloc>1323</xloc>
       <yloc>201</yloc>
       </entry>
     <entry>
@@ -1011,7 +1011,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1415</xloc>
+      <xloc>1497</xloc>
       <yloc>201</yloc>
       </entry>
     <entry>
@@ -1044,8 +1044,8 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1593</xloc>
-      <yloc>201</yloc>
+      <xloc>1041</xloc>
+      <yloc>277</yloc>
       </entry>
     <entry>
       <name>conn</name>
@@ -1078,7 +1078,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>124</xloc>
-      <yloc>181</yloc>
+      <yloc>201</yloc>
       </entry>
     <entry>
       <name>Success</name>
@@ -1088,7 +1088,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1593</xloc>
-      <yloc>132</yloc>
+      <yloc>277</yloc>
       </entry>
     <entry>
       <name>seqfila &#x3d; null</name>
@@ -1103,7 +1103,7 @@
       <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1508</xloc>
+      <xloc>1593</xloc>
       <yloc>201</yloc>
       </entry>
     <entry>
@@ -1138,6 +1138,138 @@
       <nr>0</nr>
       <xloc>1225</xloc>
       <yloc>71</yloc>
+      </entry>
+    <entry>
+      <name>pcpcomposicao</name>
+      <description/>
+      <type>TRANS</type>
+      <specification_method>filename</specification_method>
+      <trans_object_id/>
+      <filename>&#x24;&#x7b;Internal.Job.Filename.Directory&#x7d;&#x2f;pcpcomposicao.ktr</filename>
+      <transname/>
+      <arg_from_previous>N</arg_from_previous>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <cluster>N</cluster>
+      <slave_server_name/>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <follow_abort_remote>N</follow_abort_remote>
+      <create_parent_folder>N</create_parent_folder>
+      <logging_remote_work>N</logging_remote_work>
+      <parameters>        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>1136</xloc>
+      <yloc>277</yloc>
+      </entry>
+    <entry>
+      <name>pcpcomponente</name>
+      <description/>
+      <type>TRANS</type>
+      <specification_method>filename</specification_method>
+      <trans_object_id/>
+      <filename>&#x24;&#x7b;Internal.Job.Filename.Directory&#x7d;&#x2f;pcpcomponente.ktr</filename>
+      <transname/>
+      <arg_from_previous>N</arg_from_previous>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <cluster>N</cluster>
+      <slave_server_name/>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <follow_abort_remote>N</follow_abort_remote>
+      <create_parent_folder>N</create_parent_folder>
+      <logging_remote_work>N</logging_remote_work>
+      <parameters>        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>1225</xloc>
+      <yloc>277</yloc>
+      </entry>
+    <entry>
+      <name>fattpvenda</name>
+      <description/>
+      <type>TRANS</type>
+      <specification_method>filename</specification_method>
+      <trans_object_id/>
+      <filename>&#x24;&#x7b;Internal.Job.Filename.Directory&#x7d;&#x2f;fattpvenda.ktr</filename>
+      <transname/>
+      <arg_from_previous>N</arg_from_previous>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <cluster>N</cluster>
+      <slave_server_name/>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <follow_abort_remote>N</follow_abort_remote>
+      <create_parent_folder>N</create_parent_folder>
+      <logging_remote_work>N</logging_remote_work>
+      <parameters>        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>1323</xloc>
+      <yloc>277</yloc>
+      </entry>
+    <entry>
+      <name>pcpopmae</name>
+      <description/>
+      <type>TRANS</type>
+      <specification_method>filename</specification_method>
+      <trans_object_id/>
+      <filename>&#x24;&#x7b;Internal.Job.Filename.Directory&#x7d;&#x2f;pcpopmae.ktr</filename>
+      <transname/>
+      <arg_from_previous>N</arg_from_previous>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <cluster>N</cluster>
+      <slave_server_name/>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <follow_abort_remote>N</follow_abort_remote>
+      <create_parent_folder>N</create_parent_folder>
+      <logging_remote_work>N</logging_remote_work>
+      <parameters>        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>1409</xloc>
+      <yloc>201</yloc>
       </entry>
   </entries>
   <hops>
@@ -1178,8 +1310,8 @@
       <unconditional>Y</unconditional>
     </hop>
     <hop>
-      <from>item</from>
-      <to>itemversao</to>
+      <from>estitem</from>
+      <to>pcpversao</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
@@ -1215,7 +1347,7 @@
     </hop>
     <hop>
       <from>esttpitem</from>
-      <to>item</to>
+      <to>estitem</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
@@ -1250,15 +1382,6 @@
       <unconditional>Y</unconditional>
     </hop>
     <hop>
-      <from>pcpop</from>
-      <to>pcpopetapa</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>N</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
       <from>START</from>
       <to>conn</to>
       <from_nr>0</from_nr>
@@ -1277,7 +1400,7 @@
       <unconditional>Y</unconditional>
     </hop>
     <hop>
-      <from>correntista</from>
+      <from>cadcorr</from>
       <to>estgrupo</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
@@ -1350,7 +1473,7 @@
     </hop>
     <hop>
       <from>pcpetapacausaperda</from>
-      <to>correntista</to>
+      <to>cadcorr</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
@@ -1358,7 +1481,7 @@
       <unconditional>Y</unconditional>
     </hop>
     <hop>
-      <from>itemversao</from>
+      <from>pcpversao</from>
       <to>venpedido</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
@@ -1386,7 +1509,52 @@
     </hop>
     <hop>
       <from>pcpoprecurso</from>
+      <to>pcpcomposicao</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>pcpcomposicao</from>
+      <to>pcpcomponente</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>pcpcomponente</from>
+      <to>fattpvenda</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>fattpvenda</from>
       <to>Success</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>pcpop</from>
+      <to>pcpopmae</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>pcpopmae</from>
+      <to>pcpopetapa</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>

@@ -488,11 +488,9 @@ var application = {
         }
         , autocomplete: function ($obj) {
             var resultTemplate = function (state) {
-                console.log('tpl ', state);
                 return $('<span>' + state.text + '</span>');
             }
             var resultSelection = function (state) {
-                console.log('selection ', state);
                 return $('<span>' + state.text + '</span>').text();
             }
             $obj.each(function () {
@@ -568,20 +566,27 @@ var application = {
             $obj.each(function () {
                 var $this = $(this);
                 if ($this.attr('data-view')) {
-                    $.ajax({
-                        url: '/v/' + $this.attr('data-view') + '/config'
-                        , type: 'POST'
-                        , dataType: 'json'
-                        , data: {
-                            issubview: $this.attr('data-subview') || false
-                        }
-                        , success: function (response) {
-                            application.tables.create(response);
-                        }
-                        , error: function (response) {
-                            application.notify.error(response);
-                        }
-                    });
+                    var cacheconfig = localStorage.getItem('DTconfig_' + window.location.pathname + '_' + $this.attr('data-view'));
+                    if (cacheconfig) {
+                        application.tables.create(JSON.parse(cacheconfig));
+                    } else {
+                        $.ajax({
+                            url: '/v/' + $this.attr('data-view') + '/config'
+                            , type: 'POST'
+                            , dataType: 'json'
+                            , data: {
+                                issubview: $this.attr('data-subview') || false
+                            }
+                            , success: function (response) {
+                                //problema cache filtro
+                                //localStorage.setItem('DTconfig_' + window.location.pathname + '_' + $this.attr('data-view'), JSON.stringify(response));
+                                application.tables.create(response);
+                            }
+                            , error: function (response) {
+                                application.notify.error(response);
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -591,20 +596,22 @@ var application = {
 
             var createButtons = function (sTableId) {
                 var insertButton = '';
-                if ($('#' + sTableId).attr('data-insertable') == 'true') {
-                    insertButton = '<button id="' + sTableId + '_insert" type="button" class="btn btn-success btn-biggermobile" data-table="' + sTableId + '" title="Incluir"><i class="fa fa-plus"></i></button>';
+                if ($('#' + sTableId).attr('data-readonly') != 'true') {
+                    if ($('#' + sTableId).attr('data-insertable') == 'true') {
+                        insertButton = '<button id="' + sTableId + '_insert" type="button" class="btn btn-success btn-biggermobile" data-table="' + sTableId + '" title="Incluir"><i class="fa fa-plus"></i></button>';
+                    }
+                    var editButton = '';
+                    if ($('#' + sTableId).attr('data-editable') == 'true') {
+                        editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
+                    } else {
+                        editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
+                    }
+                    var deleteButton = '';
+                    if ($('#' + sTableId).attr('data-deletable') == 'true') {
+                        deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
+                    }
+                    $('#' + sTableId + '_buttons').append('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
                 }
-                var editButton = '';
-                if ($('#' + sTableId).attr('data-editable') == 'true') {
-                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
-                } else {
-                    editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
-                }
-                var deleteButton = '';
-                if ($('#' + sTableId).attr('data-deletable') == 'true') {
-                    deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
-                }
-                $('#' + sTableId + '_buttons').append('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
                 $('button#' + sTableId + '_insert').click(function () {
                     var tableid = $(this).attr('data-table');
                     var view = $('#' + tableid).attr('data-view');
@@ -757,6 +764,7 @@ var application = {
                         $('#' + settings.sInstance + '_info').find('a').remove();
                         $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
                     }
+                    tables[settings.sTableId].columns.adjust();
                 }
                 , initComplete: function (settings) {
                     var $table = $(settings.nTable);
@@ -818,10 +826,13 @@ var application = {
                 }
                 $this.attr('data-selected', selected);
             }).on('dblclick', 'tbody tr', function (e) {
+                var $table = $(e.delegateTarget);
+                var tableid = $table[0].id;
+                if ($('#' + tableid).attr('data-readonly') == 'true') {
+                    return;
+                }
                 if (application.functions.isMobile()) {
                 } else {
-                    var $table = $(e.delegateTarget);
-                    var tableid = $table[0].id;
                     var view = $('#' + tableid).attr('data-view');
                     var subview = $('#' + tableid).attr('data-subview');
                     var add = '';
@@ -1011,6 +1022,7 @@ var application = {
             }
 
             var $button = $('button.btnfilter[data-table="' + idtable + '"]');
+            console.log(cookie);
             if (cookie.length > 0) {
                 $button.removeClass('btn-default').addClass('btn-primary');
                 Cookies.set($modal[0].id, JSON.stringify(cookie));
@@ -1023,7 +1035,7 @@ var application = {
     }
     , functions: {
         getId: function () {
-            return $('#id').val() || '0';
+            return $('#id').val() || undefined;
         }
         , getUrlParameter: function (name) {
             url = window.location.href;

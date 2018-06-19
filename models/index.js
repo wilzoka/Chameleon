@@ -161,16 +161,16 @@ sequelize.query(`
     //Create References
     for (let i = 0; i < results.length; i++) {
       let j = application.modelattribute.parseTypeadd(results[i].typeadd);
+      let vas = j.as || j.model;
       switch (results[i].type) {
         case 'parent':
           models[results[i].model].belongsTo(models[j.model], {
-            as: j.model
+            as: vas
             , foreignKey: results[i].name
             , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
           });
           break;
         case 'autocomplete':
-          let vas = j.as || j.model;
           models[results[i].model].belongsTo(models[j.model], {
             as: vas
             , foreignKey: results[i].name

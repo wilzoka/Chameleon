@@ -23,6 +23,21 @@ let main = {
                 main.platform.kettle.f_runJob('plastrela/jobs/notificacaoReserva/Job.kjb');
             }
         }
+        , atividade: {
+            atividade: {
+                onsave: async (obj, next) => {
+                    try {
+                        if (obj.register.id == 0) {
+                            obj.register.datahora_criacao = moment();
+                            obj.register.iduser_criacao = obj.req.user.id;
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+        }
         , cadastro: {
             vinculacaolicenca: {
                 onsave: async (obj, next) => {
@@ -1840,7 +1855,8 @@ let main = {
                             }
 
                             let volumes = await db.getModel('est_volume').findAll({
-                                where: {
+                                include: [{ all: true }]
+                                , where: {
                                     id: { $in: obj.ids }
                                 }
                             });
@@ -1861,6 +1877,9 @@ let main = {
                                     if (!reservas[z].idop) {
                                         return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} possui uma reserva sem OP` });
                                     }
+                                }
+                                if (volumes[i].est_deposito.descricao != 'Almoxarifado') {
+                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} não está no Almoxarifado` });
                                 }
                             }
 
@@ -3280,6 +3299,80 @@ let main = {
 
 
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_definirAnilox: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.text({
+                                width: '12'
+                                , label: 'Anilox*'
+                                , name: 'anilox'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'anilox']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.req.body.id } });
+                            montagem.anilox = obj.req.body.anilox;
+                            await montagem.save({ iduser: obj.req.user.id });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_definirEstacao: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.integer({
+                                width: '12'
+                                , label: 'Estação*'
+                                , name: 'estacao'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'estacao']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.req.body.id } });
+                            montagem.estacao = obj.req.body.estacao;
+                            await montagem.save({ iduser: obj.req.user.id });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -4990,6 +5083,12 @@ let main = {
                                 , 'Ajuste de cor'
                                 , 'Acerto de cor'
                                 , 'Reposição'
+                                , 'Reposição (Branco)'
+                                , 'Reposição (Amarelo)'
+                                , 'Reposição (Magenta)'
+                                , 'Reposição (Cyan)'
+                                , 'Reposição (Preto)'
+                                , 'Reposição (Verniz)'
                                 , 'Pré-Setup próximo pedido'
                                 , 'Colorista comparecer na máquina'
                             ]
@@ -5165,22 +5264,96 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , js_listarInsumos: async (obj) => {
+                    try {
+                        if (!obj.data.idoprecurso) {
+                            return application.error(obj.res, { msg: 'OP Não informada' });
+                        }
+
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+
+                        let sql = await db.sequelize.query(`
+                        select
+                            v.id
+                            , i.descricao
+                            , v.qtdreal as qtd
+                            , vr.qtd as qtdreservada
+                            , d.descricao as deposito
+                            , case when v.consumido = true then 'Sim' else 'Não' end as consumido
+                        from
+                            est_volume v
+                        left join pcp_versao ver on (v.idversao = ver.id)
+                        left join cad_item i on (ver.iditem = i.id)
+                        left join est_deposito d on (v.iddeposito = d.id)
+                        inner join est_volumereserva vr on (v.id = vr.idvolume)
+                        where
+                            d.id = ${recurso.iddepositoprodutivo}
+                             and vr.idop = ${op.id}
+                        order by 1
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+
+                        let body = `
+                        <div class="col-md-12">
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>ID</strong></td>
+                                <td style="text-align:center;"><strong>Insumo</strong></td>
+                                <td style="text-align:center;"><strong>Qtd</strong></td>
+                                <td style="text-align:center;"><strong>Qtd para OP</strong></td>
+                                <td style="text-align:center;"><strong>Depósito</strong></td>
+                                <td style="text-align:center;"><strong>Consumido</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            body += `
+                            <tr>
+                                <td style="text-align:center;"> ${sql[i].id}   </td>
+                                <td style="text-align:left;">  ${sql[i].descricao}   </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.decimal(sql[i].qtd, 4)}   </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.decimal(sql[i].qtdreservada, 4)}   </td>
+                                <td style="text-align:center;">   ${sql[i].deposito}   </td>
+                                <td style="text-align:center;">   ${sql[i].consumido}   </td>
+                            </tr>
+                            `;
+                        }
+                        body += `
+                        </table>
+                        </div>
+                        `;
+
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevtg'
+                                , title: 'Insumos'
+                                , fullscreen: true
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>'
+                            }
+                        });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , r_conferenciaAp: async function (obj) {
                 try {
-    
+
                     let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idetapa', 'idrecurso']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
-    
+
                     let filterop = '';
                     if (obj.req.body.idop) {
                         filterop = ' and op.id = ' + obj.req.body.idop;
                     }
-    
+
                     let unions = [];
-    
+
                     if (obj.req.body.producao == 'true') {
                         unions.push(`
                             with maximo as (
@@ -5310,9 +5483,9 @@ let main = {
                                 and ope.idetapa = :v3
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
-    
+
                     if (unions.length > 0) {
-    
+
                         let sql = await db.sequelize.query(
                             'select * from (' + unions.join(' union all ') + ') as x order by dataini'
                             ,
@@ -5325,7 +5498,7 @@ let main = {
                                     , v4: obj.req.body.idrecurso
                                 }
                             });
-    
+
                         let data = {
                             producao: {
                                 nro: 0
@@ -5357,11 +5530,11 @@ let main = {
                             }
                         };
                         data.table = [];
-    
+
                         let wdata = null;
-    
+
                         for (let i = 0; i < sql.length; i++) {
-    
+
                             if (sql[i].tipo == 'producao') {
                                 data.table.push({
                                     seq: i + 1
@@ -5374,7 +5547,7 @@ let main = {
                                     , adicionais: sql[i].adicionais
                                     , erro: ''
                                 });
-    
+
                                 if (sql[i].ultimaprod == 1) {
                                     data.producao.nro++;
                                     if (parseFloat(sql[i].peso)) {
@@ -5440,7 +5613,7 @@ let main = {
                                 data.sobra.nro++;
                                 data.sobra.qtd += parseFloat(sql[i].qtd);
                             }
-    
+
                             if (obj.req.body.parada == 'true' && obj.req.body.producao == 'true') {
                                 if (sql[i].tipo == 'producao' || sql[i].tipo == 'parada') {
                                     if (wdata == null) {
@@ -5456,15 +5629,15 @@ let main = {
                                     }
                                 }
                             }
-    
+
                         }
-    
+
                         if (data.producao.qtd > 0 && data.producao.tempo > 0) {
                             data.ind.velmedia = application.formatters.fe.decimal(data.producao.qtd / (data.producao.tempo + data.parada.tempo), 2);
                             data.ind.velefet = application.formatters.fe.decimal(data.producao.qtd / data.producao.tempo, 2);
                             data.ind.dif = application.formatters.fe.decimal(data.insumo.qtd - data.producao.pesoliquido - data.perda.qtd, 4);
                         }
-    
+
                         data.producao.pesoliquido = application.formatters.fe.decimal(data.producao.pesoliquido, 4);
                         data.producao.qtd = application.formatters.fe.decimal(data.producao.qtd, 4);
                         data.producao.tempo = application.formatters.fe.time(data.producao.tempo);
@@ -5472,13 +5645,13 @@ let main = {
                         data.parada.tempo = application.formatters.fe.time(data.parada.tempo);
                         data.insumo.qtd = application.formatters.fe.decimal(data.insumo.qtd, 4);
                         data.sobra.qtd = application.formatters.fe.decimal(data.sobra.qtd, 4);
-    
+
                         return application.success(obj.res, { data: data });
-    
+
                     } else {
                         return application.error(obj.res, { msg: 'Selecione um tipo de apontamento para visualizar' });
                     }
-    
+
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -5497,6 +5670,7 @@ let main = {
                             }
                         }
                         let invalidfields = [];
+                        let alreadyinvalid = [];
 
                         function nextStep() {
                             obj._responseModifier = function (ret) {
@@ -5541,7 +5715,8 @@ let main = {
                                 break;
                             case '1'://Produto
                                 let validar_produto_geral = [
-                                    'produto_tipo_pedido'
+                                    'produto_nome'
+                                    , 'produto_tipo_pedido'
                                     , 'produto_pigmentado'
                                     , 'produto_laminado'
                                     , 'produto_liso_imp'
@@ -5557,7 +5732,7 @@ let main = {
                                 ];
 
                                 if (obj.register['produto_pigmentado'] == 'Sim' && !obj.register['produto_cor_pigmento']) {
-                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['produto_cor_pigmento'] });
+                                    alreadyinvalid = alreadyinvalid.concat(['produto_cor_pigmento']);
                                 }
 
                                 if (obj.register.produto_tipo == 'Saco') {
@@ -5576,23 +5751,23 @@ let main = {
                                     ].concat(validar_produto_geral));
 
                                     if (obj.register['s_pingo_solda'] == 'Sim' && !obj.register['s_qtd_pingo_solda']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_qtd_pingo_solda'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['s_qtd_pingo_solda']);
                                     }
 
                                     if (obj.register['s_pingo_solda'] == 'Sim' && !obj.register['s_localizacao_pingo_solda']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_localizacao_pingo_solda'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['s_localizacao_pingo_solda']);
                                     }
 
                                     if (obj.register['s_aplicar_valvula'] == 'Sim' && !obj.register['s_posicao_valvula']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_posicao_valvula'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['s_posicao_valvula']);
                                     }
 
                                     if (obj.register['s_aplicar_ziper_facil'] == 'Sim' && !obj.register['s_tamanho_ziper_facil']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_tamanho_ziper_facil'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['s_tamanho_ziper_facil']);
                                     }
 
                                     if (obj.register['s_possui_furos'] == 'Sim' && !obj.register['s_qtd_furo'] && !obj.register['s_tipo_furo']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['s_qtd_furo', 's_tipo_furo'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['s_qtd_furo', 's_tipo_furo']);
                                     }
 
                                 } else if (obj.register.produto_tipo == 'Película') {
@@ -5600,37 +5775,39 @@ let main = {
                                         'p_largura_final'
                                         , 'p_passo_fotocelula'
                                         , 'p_espessura_final'
-                                        , 'p_peso_maximo_bob'
-                                        , 'p_diametro_maximo_bob'
                                         , 'p_tipo_tubete'
                                         , 'p_diametro_tubete'
                                         , 'p_tipo_emenda'
                                         , 'p_aplicar_microfuros'
                                         , 'p_aplicar_ziper_facil'
-                                        , 'p_sentido_embob'
+                                        , 'p_sentidoembob'
                                     ].concat(validar_produto_geral));
 
+                                    if (!obj.register['p_diametro_maximo_bob'] && !obj.register['p_peso_maximo_bob']) {
+                                        alreadyinvalid = alreadyinvalid.concat(['p_diametro_maximo_bob', 'p_peso_maximo_bob']);
+                                    }
+
                                     if (obj.register['p_aplicar_microfuros'] == 'Sim' && !obj.register['p_quantidade_microfuros']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_quantidade_microfuros'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['p_quantidade_microfuros']);
                                     }
 
                                     if (obj.register['p_aplicar_microfuros'] == 'Sim' && !obj.register['p_posicao_microfuros']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_posicao_microfuros'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['p_posicao_microfuros']);
                                     }
 
                                     if (obj.register['p_aplicar_ziper_facil'] == 'Sim' && !obj.register['p_tamanho_zip_facil']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_tamanho_zip_facil'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['p_tamanho_zip_facil']);
                                     }
 
                                     if (obj.register['p_possui_sanfona'] == 'Sim' && !obj.register['p_sanfona_direita'] && !obj.register['p_sanfona_esquerda']) {
-                                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['p_sanfona_esquerda', 'p_sanfona_direita'] });
+                                        alreadyinvalid = alreadyinvalid.concat(['p_sanfona_esquerda', 'p_sanfona_direita']);
                                     }
 
                                 } else {
                                     invalidfields = ['produto_tipo'];
                                 }
-                                if (invalidfields.length > 0) {
-                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                                if (invalidfields.concat(alreadyinvalid).length > 0) {
+                                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields.concat(alreadyinvalid) });
                                 }
                                 nextStep();
                                 break;
@@ -5639,8 +5816,11 @@ let main = {
                                     'entrega_quantidade'
                                     , 'entrega_unidade'
                                     , 'entrega_preco'
-                                    , 'entrega_tipo_reembalagem'
+                                    , 'qtd_tpvenda'
                                 ]);
+                                if (!obj.register['entrega_tpreemb_caixa'] && !obj.register['entrega_tpreemb_cantoneira'] && !obj.register['entrega_tpreemb_pbolha'] && !obj.register['entrega_tpreemb_saco']) {
+                                    invalidfields = invalidfields.concat(['entrega_tpreemb_caixa', 'entrega_tpreemb_cantoneira', 'entrega_tpreemb_pbolha', 'entrega_tpreemb_saco']);
+                                }
                                 if (invalidfields.length > 0) {
                                     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                                 }
@@ -5759,6 +5939,9 @@ let main = {
                         let proposta = await db.getModel('ven_proposta').find({ where: { id: obj.register.idproposta } });
                         if (proposta.digitado) {
                             return application.error(obj.res, { msg: 'Não é possível editar uma proposta completamente digitada' });
+                        }
+                        if (obj.register['entrega_igual_faturamento'] == 'Não' && !obj.register['endereco_entrega']) {
+                            return application.error(obj.res, { msg: 'Informar o endereço de entrega', invalidfields: ['endereco_entrega'] });
                         }
 
                         await next(obj);

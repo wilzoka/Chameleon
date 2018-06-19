@@ -30,10 +30,9 @@ $(function () {
 
         $('.dataTables_filter').remove();
 
-        customTable(table);
-
         switch (table) {
             case 'tableviewapontamento_de_producao_-_insumo':// Insumo
+                customTable(table);
                 $('#' + table + '_events').find('button').remove();
                 $('button#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', {}, function (response) {
@@ -43,6 +42,7 @@ $(function () {
 
                 break;
             case 'tableviewapontamento_de_producao_-_producao':// Produção
+                customTable(table);
                 $('#' + table + '_events').find('button').remove();
                 $('#' + table + '_insert').unbind().click(function (e) {
                     application.jsfunction('plastrela.pcp.approducao.__adicionar', { idoprecurso: application.functions.getId() }, function (response) {
@@ -51,9 +51,11 @@ $(function () {
                 });
                 break;
             case 'tableviewapontamento_de_producao_-_perda':// Perda
+                customTable(table);
                 $('#' + table + '_events').find('button').remove();
                 break;
             case 'tableviewapontamento_de_producao_-_parada':// Parada
+                customTable(table);
                 $('#' + table + '_events').find('button').remove();
                 break;
         }
@@ -201,6 +203,14 @@ $(function () {
         });
     });
 
+    $('#listarInsumos').click(function () {
+        application.jsfunction('plastrela.pcp.oprecurso.js_listarInsumos', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            application.handlers.responseSuccess(response);
+        });
+    });
+
     if ($('input[name="etapa"]').val() == '20') {
         var $ul = $('#resumo').parent().parent();
         $ul.prepend('<li><a id="chamarColorista" href="javascript:void(0)"><i class="fa fa-paint-brush"></i> Chamar Colorista</a></li>');
@@ -209,6 +219,8 @@ $(function () {
                 application.handlers.responseSuccess(response);
             });
         });
+
+        $('#col-setup-impressao').removeClass('hidden');
     }
 
 });

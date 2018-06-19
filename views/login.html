@@ -68,6 +68,11 @@
     {{> parts/js }}
     <script type="text/javascript">
         application.index(false);
+        var cookies = Cookies.get();
+        for (var k in cookies) {
+            Cookies.remove(k);
+        }
+        localStorage.clear();
     </script>
 </body>
 

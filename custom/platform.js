@@ -318,16 +318,16 @@ let platform = {
                     if (results[i].typeadd) {
                         j = application.modelattribute.parseTypeadd(results[i].typeadd);
                     }
+                    let vas = j.as || j.model;
                     switch (results[i].type) {
                         case 'parent':
                             models[results[i].model].belongsTo(models[j.model], {
-                                as: j.model
+                                as: vas
                                 , foreignKey: results[i].name
                                 , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
                             });
                             break;
                         case 'autocomplete':
-                            let vas = j.as || j.model;
                             models[results[i].model].belongsTo(models[j.model], {
                                 as: vas
                                 , foreignKey: results[i].name
@@ -342,7 +342,7 @@ let platform = {
                 db.sequelize.sync({ alter: true }).then(() => {
                     return application.success(obj.res, { msg: application.message.success });
                 }).catch(err => {
-                    return application.fatal(obj.res, err);
+                    return application.error(obj.res, { msg: err });
                 });
 
             });
@@ -422,12 +422,7 @@ let platform = {
                             model.description = models[i].description;
                             model.onsave = models[i].onsave;
                             model.ondelete = models[i].ondelete;
-                            if (model.changed()) {
-                                await model.save();
-                                console.log('UPDATED');
-                            } else {
-                                console.log('OK');
-                            }
+                            await model.save();
                         } else {
                             model = await db.getModel('model').create({
                                 name: models[i].name
@@ -435,18 +430,17 @@ let platform = {
                                 , onsave: models[i].onsave
                                 , ondelete: models[i].ondelete
                             });
-                            console.log('CREATED');
                         }
+                        let attributes = [];
                         for (let z = 0; z < models[i]._attribute.length; z++) {
                             let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attribute[z].name } });
+                            attributes.push(models[i]._attribute[z].name);
                             if (attribute) {
                                 attribute.label = models[i]._attribute[z].label;
                                 attribute.type = models[i]._attribute[z].type;
                                 attribute.notnull = models[i]._attribute[z].notnull;
                                 attribute.typeadd = models[i]._attribute[z].typeadd;
-                                if (attribute.changed()) {
-                                    await attribute.save();
-                                }
+                                await attribute.save();
                             } else {
                                 await db.getModel('modelattribute').create({
                                     idmodel: model.id
@@ -458,6 +452,7 @@ let platform = {
                                 });
                             }
                         }
+                        await db.getModel('modelattribute').destroy({ iduser: obj.req.user.id, where: { idmodel: model.id, name: { $notIn: attributes } } });
                         if (i != models.length - 1) {
                             console.log('------------------------------');
                         }
@@ -466,7 +461,7 @@ let platform = {
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }
             } catch (err) {
-                return application.fatal(obj.res, err);
+                return application.error(obj.res, { msg: err });
             }
         }
         , find: function (modelname, options) {
@@ -1103,12 +1098,7 @@ let platform = {
                                 view.url = views[i].url;
                                 view.pagelength = views[i].pagelength;
                                 view.idfastsearch = fastsearch ? fastsearch.id : null;
-                                if (view.changed()) {
-                                    await view.save();
-                                    console.log('UPDATED');
-                                } else {
-                                    console.log('OK');
-                                }
+                                await view.save();
                             } else {
                                 view = await db.getModel('view').create({
                                     name: views[i].name
@@ -1124,8 +1114,8 @@ let platform = {
                                     , pagelength: views[i].pagelength
                                     , idfastsearch: fastsearch ? fastsearch.id : null
                                 });
-                                console.log('CREATED');
                             }
+                            let viewfields = []
                             for (let z = 0; z < views[i]._field.length; z++) {
                                 let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: template[0].id, name: views[i]._field[z].templatezone } });
                                 let modelattribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
@@ -1149,10 +1139,13 @@ let platform = {
                                             , disablefilter: views[i]._field[z].disablefilter
                                         });
                                     }
+                                    viewfields.push(viewfield.id);
                                 } else {
                                     console.error('ERROR: Model attribute "' + views[i]._field[z].modelattribute + '" not found');
                                 }
                             }
+                            await db.getModel('viewfield').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewfields } } });
+                            let viewtables = [];
                             for (let z = 0; z < views[i]._table.length; z++) {
                                 let modelattribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
                                 if (modelattribute) {
@@ -1175,10 +1168,13 @@ let platform = {
                                             , class: views[i]._table[z].class
                                         });
                                     }
+                                    viewtables.push(viewtable.id);
                                 } else {
                                     console.error('ERROR: Model attribute "' + views[i]._table[z].modelattribute + '" not found');
                                 }
                             }
+                            await db.getModel('viewtable').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewtables } } });
+                            let viewevents = [];
                             for (let z = 0; z < views[i]._event.length; z++) {
                                 let viewevent = await db.getModel('viewevent').find({ where: { idview: view.id, description: views[i]._event[z].description } });
                                 if (viewevent) {
@@ -1195,7 +1191,9 @@ let platform = {
                                         , parameters: views[i]._event[z].parameters
                                     });
                                 }
+                                viewevents.push(viewevent.id);
                             }
+                            await db.getModel('viewevent').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewevents } } });
                         } else {
                             views[i]._skipped = true;
                             console.log('SKIPPED');
@@ -1207,6 +1205,7 @@ let platform = {
                     for (let i = 0; i < views.length; i++) {
                         if (!views[i]._skipped) {
                             let view = await db.getModel('view').find({ include: [{ all: true }], where: { name: views[i].name } });
+                            let viewsubviews = [];
                             for (let z = 0; z < views[i]._subview.length; z++) {
                                 let viewsubview = await db.getModel('view').find({ where: { name: views[i]._subview[z].subview } });
                                 if (viewsubview) {
@@ -1224,17 +1223,19 @@ let platform = {
                                             , description: views[i]._subview[z].description
                                         });
                                     }
+                                    viewsubviews.push(subview.id);
                                 } else {
                                     console.error('ERROR: Subview "' + views[i]._subview[z].subview + '" not found');
                                 }
                             }
+                            await db.getModel('viewsubview').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewsubviews } } });
                         }
                     }
                     console.log('-----------FINISHED-----------');
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }
             } catch (err) {
-                return application.fatal(obj.res, err);
+                return application.error(obj.res, { msg: err });
             }
         }
         , f_getFilteredRegisters: function (obj) {

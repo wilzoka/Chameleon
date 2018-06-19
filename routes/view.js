@@ -762,7 +762,7 @@ module.exports = function (app) {
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
                             : decodeClass(viewtables[i].modelattribute.type))
-                        + (viewtables[i].class ? ' ' + viewtables[i].class : '')
+                            + (viewtables[i].class ? ' ' + viewtables[i].class : '')
                     });
                     if (viewtables[i].totalize) {
                         needfooter = true;
@@ -1008,7 +1008,7 @@ module.exports = function (app) {
                     , permissions: permissions
                     , filter: {
                         count: cookiefiltercount
-                        , html: filter
+                        , html: application.functions.singleSpace(filter)
                         , available: viewfields.length
                     }
                     , pageLength: view.pagelength || 10
@@ -1119,7 +1119,7 @@ module.exports = function (app) {
                 }
                 res.setHeader('Cache-Control', 'no-cache, no-store');
                 return application.render(res, __dirname + '/../views/templates/viewregister.html', {
-                    id: register ? register.id : ''
+                    id: register ? register.id : 0
                     , title: view.name
                     , template: getTemplate(view.template.name)(zoneobj)
                     , js: js

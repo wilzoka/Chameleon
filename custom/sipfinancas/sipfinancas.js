@@ -1783,6 +1783,13 @@ let main = {
                             });
                             body += application.components.html.autocomplete({
                                 width: '12'
+                                , label: 'Conta'
+                                , name: 'idconta'
+                                , model: 'fin_conta'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
                                 , label: 'Correntista'
                                 , name: 'idcorr'
                                 , model: 'cad_corr'
@@ -1825,6 +1832,7 @@ let main = {
                                     and mp.data <= :datafim
                                     ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
                                     ${obj.req.body.idcorr ? 'and m.idcorr = ' + obj.req.body.idcorr : ''}  
+                                    ${obj.req.body.idconta ? 'and mp.idconta = ' + obj.req.body.idconta : ''}  
                                 order by mp.data, mp.id
                             `, {
                                     type: db.sequelize.QueryTypes.SELECT
