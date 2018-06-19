@@ -276,20 +276,13 @@
     </attributes>
   </connection>
   <order>
+  <hop> <from>LK Item</from><to>Insert &#x2f; Update</to><enabled>Y</enabled> </hop>
   <hop> <from>String operations</from><to>LK Item</to><enabled>Y</enabled> </hop>
-  <hop> <from>iniflex</from><to>String operations</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Item</from><to>LK Composicao</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK Composicao</from><to>Select values</to><enabled>Y</enabled> </hop>
-  <hop> <from>Select values</from><to>Sort rows</to><enabled>Y</enabled> </hop>
-  <hop> <from>Sort rows</from><to>Merge Rows &#x28;diff&#x29;</to><enabled>Y</enabled> </hop>
-  <hop> <from>Table input</from><to>Select values 2</to><enabled>Y</enabled> </hop>
-  <hop> <from>Select values 2</from><to>Sort rows 2</to><enabled>Y</enabled> </hop>
-  <hop> <from>Sort rows 2</from><to>Merge Rows &#x28;diff&#x29;</to><enabled>Y</enabled> </hop>
-  <hop> <from>Merge Rows &#x28;diff&#x29;</from><to>Synchronize after merge</to><enabled>Y</enabled> </hop>
+  <hop> <from>Table input</from><to>String operations</to><enabled>Y</enabled> </hop>
   </order>
   <step>
-    <name>LK Composicao</name>
-    <type>DBLookup</type>
+    <name>Insert &#x2f; Update</name>
+    <type>InsertUpdate</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -299,31 +292,47 @@
            <schema_name/>
            </partitioning>
     <connection>SIPv2</connection>
-    <cache>Y</cache>
-    <cache_load_all>Y</cache_load_all>
-    <cache_size>0</cache_size>
+    <commit>100</commit>
+    <update_bypassed>N</update_bypassed>
     <lookup>
-      <schema/>
-      <table>pcp_composicao</table>
-      <orderby/>
-      <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
+      <schema>public</schema>
+      <table>pcp_versao</table>
       <key>
-        <name>COMPOSICAO</name>
+        <name>iditem</name>
+        <field>iditem</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+      </key>
+      <key>
+        <name>VERSAO</name>
         <field>codigo</field>
         <condition>&#x3d;</condition>
         <name2/>
       </key>
       <value>
-        <name>id</name>
-        <rename>idcomposicao</rename>
-        <default/>
-        <type>Integer</type>
+        <name>codigo</name>
+        <rename>VERSAO</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>iditem</name>
+        <rename>iditem</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>descricaocompleta</name>
+        <rename>FULLNAME</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>descricao</name>
+        <rename>DESCRICAO</rename>
+        <update>Y</update>
       </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>427</xloc>
+      <xloc>433</xloc>
       <yloc>39</yloc>
       <draw>Y</draw>
       </GUI>
@@ -341,8 +350,8 @@
            <schema_name/>
            </partitioning>
     <connection>SIPv2</connection>
-    <cache>Y</cache>
-    <cache_load_all>Y</cache_load_all>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
     <cache_size>0</cache_size>
     <lookup>
       <schema/>
@@ -432,72 +441,6 @@
     </step>
 
   <step>
-    <name>iniflex</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	v.produto&#xd;&#xa;	, v.versao&#xd;&#xa;	, v.detalhes as descricao&#xd;&#xa;	, v.produto &#x7c;&#x7c; &#x27;&#x2f;&#x27; &#x7c;&#x7c; v.versao &#x7c;&#x7c; &#x27; - &#x27; &#x7c;&#x7c; i.descricao &#x7c;&#x7c; &#x27; &#x28;&#x27; &#x7c;&#x7c; v.detalhes &#x7c;&#x7c; &#x27;&#x29;&#x27; as fullname&#xd;&#xa;	, v.composicao&#xd;&#xa;from&#xd;&#xa;	pcpversao v&#xd;&#xa;inner join estitem i on &#x28;v.empresa &#x3d; i.empresa and v.produto &#x3d; i.codigo&#x29;&#xd;&#xa;where&#xd;&#xa;	v.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;</sql>
-    <limit>0</limit>
-    <lookup/>
-    <execute_each_row>N</execute_each_row>
-    <variables_active>Y</variables_active>
-    <lazy_conversion_active>N</lazy_conversion_active>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>39</xloc>
-      <yloc>39</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Sort rows</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-      <directory>&#x25;&#x25;java.io.tmpdir&#x25;&#x25;</directory>
-      <prefix>out</prefix>
-      <sort_size>1000000</sort_size>
-      <free_memory/>
-      <compress>N</compress>
-      <compress_variable/>
-      <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>iditem</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <presorted>N</presorted>
-      </field>
-      <field>
-        <name>codigo</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>653</xloc>
-      <yloc>38</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
     <name>Table input</name>
     <type>TableInput</type>
     <description/>
@@ -508,390 +451,17 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>SIPv2</connection>
-    <sql>select &#x2a; from pcp_versao</sql>
+    <connection>Iniflex</connection>
+    <sql>select&#xd;&#xa;	v.produto&#xd;&#xa;	, v.versao&#xd;&#xa;	, v.detalhes as descricao&#xd;&#xa;	, v.produto &#x7c;&#x7c; &#x27;&#x2f;&#x27; &#x7c;&#x7c; v.versao &#x7c;&#x7c; &#x27; - &#x27; &#x7c;&#x7c; i.descricao &#x7c;&#x7c; &#x27; &#x28;&#x27; &#x7c;&#x7c; v.detalhes &#x7c;&#x7c; &#x27;&#x29;&#x27; as fullname&#xd;&#xa;from&#xd;&#xa;	pcpversao v&#xd;&#xa;inner join estitem i on &#x28;v.empresa &#x3d; i.empresa and v.produto &#x3d; i.codigo&#x29;&#xd;&#xa;where&#xd;&#xa;	v.empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and coalesce&#x28;v.data_alteracao, v.data_cadastro&#x29; &#x3e; sysdate - 1</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
-    <variables_active>N</variables_active>
+    <variables_active>Y</variables_active>
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
       <xloc>39</xloc>
-      <yloc>169</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Sort rows 2</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-      <directory>&#x25;&#x25;java.io.tmpdir&#x25;&#x25;</directory>
-      <prefix>out</prefix>
-      <sort_size>1000000</sort_size>
-      <free_memory/>
-      <compress>N</compress>
-      <compress_variable/>
-      <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>iditem</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <presorted>N</presorted>
-      </field>
-      <field>
-        <name>codigo</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>653</xloc>
-      <yloc>169</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Select values</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <fields>      <field>        <name>DESCRICAO</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>FULLNAME</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>iditem</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>idcomposicao</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>VERSAO</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>        <select_unspecified>N</select_unspecified>
-      <meta>        <name>DESCRICAO</name>
-        <rename>descricao</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>FULLNAME</name>
-        <rename>descricaocompleta</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>iditem</name>
-        <rename>iditem</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>idcomposicao</name>
-        <rename>idcomposicao</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>VERSAO</name>
-        <rename>codigo</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>    </fields>     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>530</xloc>
-      <yloc>40</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Merge Rows &#x28;diff&#x29;</name>
-    <type>MergeRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <keys>
-      <key>iditem</key>
-      <key>codigo</key>
-    </keys>
-    <values>
-      <value>descricao</value>
-      <value>descricaocompleta</value>
-      <value>idcomposicao</value>
-    </values>
-<flag_field>flagfield</flag_field>
-<reference>Sort rows 2</reference>
-<compare>Sort rows</compare>
-    <compare>
-    </compare>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>778</xloc>
-      <yloc>100</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Select values 2</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <fields>      <field>        <name>descricao</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>descricaocompleta</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>iditem</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>idcomposicao</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>      <field>        <name>codigo</name>
-        <rename/>
-        <length>-2</length>
-        <precision>-2</precision>
-      </field>        <select_unspecified>N</select_unspecified>
-      <meta>        <name>descricao</name>
-        <rename>descricao</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>descricaocompleta</name>
-        <rename>descricaocompleta</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>iditem</name>
-        <rename>iditem</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>idcomposicao</name>
-        <rename>idcomposicao</rename>
-        <type>Integer</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>      <meta>        <name>codigo</name>
-        <rename>codigo</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>    </fields>     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>530</xloc>
-      <yloc>169</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Synchronize after merge</name>
-    <type>SynchronizeAfterMerge</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <commit>100</commit>
-    <tablename_in_field>N</tablename_in_field>
-    <tablename_field/>
-    <use_batch>N</use_batch>
-    <perform_lookup>N</perform_lookup>
-    <operation_order_field>flagfield</operation_order_field>
-    <order_insert>new</order_insert>
-    <order_update>changed</order_update>
-    <order_delete>deleted</order_delete>
-    <lookup>
-      <schema/>
-      <table>pcp_versao</table>
-      <key>
-        <name>codigo</name>
-        <field>codigo</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <key>
-        <name>iditem</name>
-        <field>iditem</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>codigo</name>
-        <rename>codigo</rename>
-        <update>N</update>
-      </value>
-      <value>
-        <name>iditem</name>
-        <rename>iditem</rename>
-        <update>N</update>
-      </value>
-      <value>
-        <name>descricao</name>
-        <rename>descricao</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>descricaocompleta</name>
-        <rename>descricaocompleta</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>idcomposicao</name>
-        <rename>idcomposicao</rename>
-        <update>Y</update>
-      </value>
-    </lookup>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>913</xloc>
-      <yloc>100</yloc>
+      <yloc>39</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
