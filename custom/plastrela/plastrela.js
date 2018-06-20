@@ -3377,6 +3377,73 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_cadastrarCamisas: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+
+                            body += application.components.html.text({
+                                width: '12'
+                                , label: 'Descrição*'
+                                , name: 'descricao'
+                            });
+                            body += application.components.html.integer({
+                                width: '6'
+                                , label: 'Quantidade*'
+                                , name: 'qtd'
+                            });
+                            body += application.components.html.decimal({
+                                width: '6'
+                                , label: 'Fechamento*'
+                                , name: 'fechamento'
+                                , precision: 2
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, [
+                                'descricao'
+                                , 'qtd'
+                                , 'fechamento'
+                            ]);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            obj.req.body.fechamento = application.formatters.be.decimal(obj.req.body.fechamento, 2);
+
+                            if (obj.req.body.qtd <= 0 || obj.req.body.qtd > 50) {
+                                return application.error(obj.res, { msg: 'A quantidade deve ser entre 1 e 50', invalidfields: ['qtd'] });
+                            }
+                            
+                            for (let i = 0; i < obj.req.body.qtd; i++) {
+
+                                await db.getModel('est_camisa').create({
+                                    numero: i + 1
+                                    , descricao: obj.req.body.descricao
+                                    , fechamento: obj.req.body.fechamento
+                                    , ativa: true
+                                }, { iduser: obj.req.body.iduser });
+                            }
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , approducao: {
                 _recalcula: function (id) {
