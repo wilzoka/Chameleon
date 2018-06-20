@@ -3426,7 +3426,7 @@ let main = {
                             if (obj.req.body.qtd <= 0 || obj.req.body.qtd > 50) {
                                 return application.error(obj.res, { msg: 'A quantidade deve ser entre 1 e 50', invalidfields: ['qtd'] });
                             }
-                            
+
                             for (let i = 0; i < obj.req.body.qtd; i++) {
 
                                 await db.getModel('est_camisa').create({
@@ -3439,6 +3439,53 @@ let main = {
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , apclichemonttempo: {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.register.recolagem && !obj.register['idapclicherecolagemmotivo']) {
+                            return application.error(obj.res, { msg: 'Informe o motivo da recolagem', invalidfields: ['idapclicherecolagemmotivo'] });
+                        }
+                        await next(obj);
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_ultimoapontamento: async (obj) => {
+                    try {
+                        let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.data.idmontagem }, include: [{ all: true }] });
+
+                        let sql = await db.sequelize.query(`
+                                select
+                                    max(datahorafim) as max
+                                from
+                                    (select 
+                                        mt.datahoraini
+                                        , mt.datahorafim
+                                        , cl.idrecurso
+                                    from pcp_apclichemonttempo mt
+                                    left join pcp_apclichemontagem m on (mt.idapclichemontagem = m.id)
+                                    left join pcp_apcliche cl on (m.idapcliche = cl.id)
+                                    ) as x
+                                where
+                                    idrecurso = :v1
+                                `
+                            , {
+                                replacements: { v1: montagem['pcp_apcliche'].idrecurso }
+                                , type: db.sequelize.QueryTypes.SELECT
+                            }
+                        );
+
+                        application.success(obj.res, {
+                            datahoraini: sql[0].max ? moment(sql[0].max, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format(application.formatters.fe.datetime_format) : null
+                            , datahorafim: moment().format(application.formatters.fe.datetime_format)
+                        });
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
