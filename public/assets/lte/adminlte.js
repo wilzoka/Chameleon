@@ -115,7 +115,7 @@ if (typeof jQuery === 'undefined') {
     } else {
       var postSetHeight
 
-      if (windowHeight >= sidebarHeight) {
+      if (windowHeight >= (sidebarHeight + 75)) {
         $(Selector.contentWrapper).css('min-height', windowHeight - neg)
         postSetHeight = windowHeight - neg
       } else {
