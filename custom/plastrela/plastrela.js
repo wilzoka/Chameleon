@@ -8,6 +8,112 @@ const application = require('../../routes/application')
 
 let main = {
     platform: require('../platform.js')
+    , atividade: {
+        atividade: {
+            onsave: async (obj, next) => {
+                try {
+                    if (obj.register.id == 0) {
+                        obj.register.datahora_criacao = moment();
+                        obj.register.iduser_criacao = obj.req.user.id;
+                    }
+                    next(obj);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , e_definirTipo: async (obj) => {
+                try {
+                    if (obj.req.method == 'GET') {
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+                        let body = '';
+                        body += application.components.html.hidden({ name: 'idatividade', value: obj.ids[0] })
+                        body += application.components.html.autocomplete({
+                            width: '12'
+                            , label: 'Tipo'
+                            , name: 'idtipo'
+                            , model: 'atv_tipo'
+                            , attribute: 'descricaocompleta'
+                        });
+                        return application.success(obj.res, {
+                            modal: {
+                                form: true
+                                , action: '/event/' + obj.event.id
+                                , id: 'modalevt' + obj.event.id
+                                , title: obj.event.description
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
+                            }
+                        });
+                    } else {
+                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['idatividade', 'idtipo']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+
+                        }
+                        let tipo_status_inicial = await db.getModel('atv_tipo_status').find({ where: { idtipo: obj.req.body.idtipo, inicial: true } });
+                        if (!tipo_status_inicial) {
+                            return application.error(obj.res, { msg: 'Este tipo não possui Status Inicial configurado' });
+                        }
+                        let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.req.body.idatividade } });
+                        atividade.idtipo = tipo_status_inicial.idtipo;
+                        atividade.idstatus = tipo_status_inicial.idstatus;
+                        await atividade.save({ iduser: obj.req.user.id });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    }
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
+        , atividadenota: {
+            onsave: async (obj, next) => {
+                try {
+                    if (obj.register.id == 0) {
+                        obj.register.datahora = moment();
+                        obj.register.iduser = obj.req.user.id;
+                    }
+                    await next(obj);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
+        , tipo: {
+            onsave: async (obj, next) => {
+                try {
+                    await next(obj);
+                    main.atividade.tipo.f_treeAll();
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , f_treeAll: function () {
+                let getChildren = function (current, childs) {
+                    for (var i = 0; i < childs.length; i++) {
+                        if (current.idtipopai == childs[i].id) {
+                            if (childs[i].idtipopai) {
+                                return getChildren(childs[i], childs) + childs[i].descricao + ' - ';
+                            } else {
+                                return childs[i].descricao + ' - ';
+                            }
+                        }
+                    }
+                }
+                db.getModel('atv_tipo').findAll({ include: [{ all: true }] }).then(tipos => {
+                    tipos.map(tipo => {
+                        if (tipo.idtipopai) {
+                            tipo.descricaocompleta = tipo.atv_area.descricao + ' - ' + getChildren(tipo, tipos) + tipo.descricao;
+                        } else {
+                            tipo.descricaocompleta = tipo.atv_area.descricao + ' - ' + tipo.descricao;
+                        }
+                        tipo.save();
+                    });
+                });
+            }
+        }
+    }
     , plastrela: {
         sync: function () {
             main.platform.kettle.f_runJob('plastrela/sync/Job.kjb');
@@ -21,21 +127,6 @@ let main = {
             }
             , notificacaoReserva: function () {
                 main.platform.kettle.f_runJob('plastrela/jobs/notificacaoReserva/Job.kjb');
-            }
-        }
-        , atividade: {
-            atividade: {
-                onsave: async (obj, next) => {
-                    try {
-                        if (obj.register.id == 0) {
-                            obj.register.datahora_criacao = moment();
-                            obj.register.iduser_criacao = obj.req.user.id;
-                        }
-                        next(obj);
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
             }
         }
         , cadastro: {
@@ -3426,7 +3517,7 @@ let main = {
                             if (obj.req.body.qtd <= 0 || obj.req.body.qtd > 50) {
                                 return application.error(obj.res, { msg: 'A quantidade deve ser entre 1 e 50', invalidfields: ['qtd'] });
                             }
-                            
+
                             for (let i = 0; i < obj.req.body.qtd; i++) {
 
                                 await db.getModel('est_camisa').create({
@@ -5721,6 +5812,21 @@ let main = {
 
                 } catch (err) {
                     return application.fatal(obj.res, err);
+                }
+            }
+        }
+        , ti: {
+            equipamento: {
+                onsave: async (obj, next) => {
+                    try {
+                        let register = await db.getModel('cad_equipamento').find({ where: { id: { $ne: obj.id }, patrimonio: obj.register.patrimonio } })
+                        if (register) {
+                            return application.error(obj.res, { msg: 'Já existe um equipamento com este patrimônio' });
+                        }
+                        await next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
             }
         }

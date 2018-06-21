@@ -97,8 +97,7 @@ let application = {
 				<div class="col-md-${obj.width}">
 					<div class="form-group">
 						<label>${obj.label}</label>
-						<select name="${obj.name}" class="form-control select2" ${obj.disabled}
-							style="width:100%;"
+						<select name="${obj.name}" class="form-control select2" ${obj.disabled}	style="width:100%;"
 							data-type="autocomplete"
 							data-model="${obj.model}"
 							data-attribute="${obj.attribute}"
@@ -119,15 +118,15 @@ let application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
-					+ 'data-type="date" '
-					+ 'placeholder="dd/mm/aaaa" '
-					+ obj.disabled
-					+ '></div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" placeholder="dd/mm/aaaa" ${obj.disabled}
+							data-type="date"
+						>
+					</div>
+				</div>`;
 			}
 			, datetime: function (obj) {
 				obj = lodash.extend({
@@ -137,15 +136,16 @@ let application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
-					+ 'data-type="datetime" '
-					+ 'placeholder="dd/mm/aaaa hh:mm" '
-					+ obj.disabled
-					+ '></div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" ${obj.disabled}
+							data-type="datetime"
+							placeholder="dd/mm/aaaa hh:mm"
+						>
+					</div>
+				</div>`;
 			}
 			, time: function (obj) {
 				obj = lodash.extend({
@@ -155,15 +155,16 @@ let application = {
 					, value: ''
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<input name="' + obj.name + '" type="text" class="form-control" value="' + obj.value + '" '
-					+ 'data-type="time" '
-					+ 'placeholder="hh:mm" '
-					+ obj.disabled
-					+ '></div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" ${obj.disabled}
+							data-type="time"
+							placeholder="hh:mm"
+						>
+					</div>
+				</div>`;
 			}
 			, checkbox: function (obj) {
 				obj = lodash.extend({
@@ -173,15 +174,15 @@ let application = {
 					, label: ''
 					, disabled: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="checkbox"> '
-					+ '<label> '
-					+ '<input name="' + obj.name + '" type="checkbox" ' + obj.checked + ' '
-					+ obj.disabled
-					+ '> '
-					+ obj.label
-					+ '</label> '
-					+ '</div></div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="checkbox">
+						<label>
+							<input name="${obj.name}" type="checkbox" ${obj.checked} ${obj.disabled}>
+							${obj.label}
+						</label>
+					</div>
+				</div>`;
 			}
 			, file: function (obj) {
 				obj = lodash.extend({
@@ -192,14 +193,15 @@ let application = {
 					, maxfiles: ''
 					, acceptedfiles: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<div class="dropzone" data-type="file" data-maxfiles="' + obj.maxfiles + '" data-acceptedfiles="' + obj.acceptedfiles + '">'
-					+ '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">'
-					+ '</div>'
-					+ '</div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<div class="dropzone" data-type="file" data-maxfiles="${obj.maxfiles}" data-acceptedfiles="${obj.acceptedfiles}">
+							<input name="${obj.name}" type="hidden" value="${obj.value}">
+						</div>
+					</div>
+				</div>`;
 			}
 			, georeference: function (obj) {
 				obj = lodash.extend({
@@ -208,13 +210,14 @@ let application = {
 					, name: ''
 					, value: ''
 				}, obj);
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ '<input name="' + obj.name + '" type="hidden" value="' + obj.value + '">'
-					+ '<div data-type="georeference"></div>'
-					+ '</div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						<input name="${obj.name}" type="hidden" value="${obj.value}">
+						<div data-type="georeference"></div>
+					</div>
+				</div>`;
 			}
 			, radio: function (obj) {
 				obj = lodash.extend({
@@ -230,18 +233,19 @@ let application = {
 					options += `
 					<div class="radio">
 						<label>
-							<input type="radio" name="`+ obj.name + `" value="` + obj.options[i] + `" ` + (obj.options[i] == obj.value ? 'checked="checked"' : '') + ` ` + obj.disabled + ` />
-							`+ obj.options[i] + `
+							<input type="radio" name="${obj.name}" value="${obj.options[i]}" ${obj.options[i] == obj.value ? 'checked="checked"' : ''} ${obj.disabled}>
+							${obj.options[i]}
 						</label>
 					</div>
 					`;
 				}
-				return '<div class="col-md-' + obj.width + '">'
-					+ '<div class="form-group">'
-					+ '<label>' + obj.label + '</label>'
-					+ options
-					+ '</div>'
-					+ '</div>';
+				return `
+				<div class="col-md-${obj.width}">
+					<div class="form-group">
+						<label>${obj.label}</label>
+						${options}
+					</div>
+				</div>`;
 			}
 		}
 	}

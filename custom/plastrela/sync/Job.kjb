@@ -517,7 +517,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>463</xloc>
-      <yloc>277</yloc>
+      <yloc>273</yloc>
       </entry>
     <entry>
       <name>pcptpficha</name>
@@ -1045,7 +1045,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1041</xloc>
-      <yloc>277</yloc>
+      <yloc>273</yloc>
       </entry>
     <entry>
       <name>conn</name>
@@ -1088,7 +1088,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1593</xloc>
-      <yloc>277</yloc>
+      <yloc>273</yloc>
       </entry>
     <entry>
       <name>seqfila &#x3d; null</name>
@@ -1170,7 +1170,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1136</xloc>
-      <yloc>277</yloc>
+      <yloc>273</yloc>
       </entry>
     <entry>
       <name>pcpcomponente</name>
@@ -1203,7 +1203,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1225</xloc>
-      <yloc>277</yloc>
+      <yloc>273</yloc>
       </entry>
     <entry>
       <name>fattpvenda</name>
@@ -1236,7 +1236,7 @@
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>1323</xloc>
-      <yloc>277</yloc>
+      <yloc>273</yloc>
       </entry>
     <entry>
       <name>pcpopmae</name>
