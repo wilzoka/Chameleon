@@ -23,8 +23,12 @@
 <div class="col-md-12">
     <div class="nav-tabs-custom">
         <ul class="nav nav-tabs">
-            <li class="active"><a href="#tab_1" data-toggle="tab"> Bobinas Restantes</a></li>
-            <li><a href="#tab_2" data-toggle="tab"> Bobinas Encontradas</a></li>
+            <li class="active">
+                <a href="#tab_1" data-toggle="tab"> Bobinas Restantes</a>
+            </li>
+            <li>
+                <a href="#tab_2" data-toggle="tab"> Bobinas Encontradas</a>
+            </li>
         </ul>
         <div class="tab-content">
 
@@ -60,6 +64,7 @@
             , columns: [
                 { title: "ID", data: "id", name: "id", orderable: true }
                 , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
+                , { title: "Classe", data: "classe", name: "classe", orderable: true }
                 , { title: "Produto", data: "produto", name: "produto", orderable: true }
                 , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false, class: 'text-right' }
             ]
@@ -81,6 +86,7 @@
             , columns: [
                 { title: "ID", data: "id", name: "id", orderable: true }
                 , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
+                , { title: "Classe", data: "classe", name: "classe", orderable: true }
                 , { title: "Produto", data: "produto", name: "produto", orderable: true }
                 , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false, class: 'text-right' }
             ]

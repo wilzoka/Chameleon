@@ -2039,11 +2039,14 @@ let main = {
                                     v.id
                                     , de.descricao as depositoendereco
                                     , v.qtdreal
+                                    , cl.descricao as classe
                                     , ver.descricaocompleta as produto
                                 from
                                     est_volume v
                                 left join est_depositoendereco de on (v.iddepositoendereco = de.id)
                                 left join pcp_versao ver on (v.idversao = ver.id)
+                                left join cad_item i on (ver.iditem = i.id)
+                                left join est_classe cl on (i.idclasse = cl.id)
                                 where
                                     consumido = false
                                     and v.iddeposito = :v1
@@ -2061,12 +2064,15 @@ let main = {
                                     v.id
                                     , de.descricao as depositoendereco
                                     , v.qtdreal
+                                    , cl.descricao as classe
                                     , ver.descricaocompleta as produto
                                 from
                                     est_volumebalanco vb
                                 left join est_volume v on (vb.idvolume = v.id)
                                 left join est_depositoendereco de on (v.iddepositoendereco = de.id)
-                                left join pcp_versao ver on (v.idversao = ver.id)
+                                left join pcp_versao ver on (v.idversao = ver.id)                                
+                                left join cad_item i on (ver.iditem = i.id)
+                                left join est_classe cl on (i.idclasse = cl.id)
                                 where
                                     v.consumido = false
                                     and vb.iddeposito = :v1
