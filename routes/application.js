@@ -400,21 +400,27 @@ let application = {
 		createGroup: function (menu) {
 			let icon = menu.icon;
 			let description = menu.description;
-			return '<li class="treeview">'
-				+ '<a href="#">'
-				+ (icon ? '<i class="' + icon + '"></i> ' : '')
-				+ '<span>' + description + '</span>'
-				+ '<span class="pull-right-container">'
-				+ '<i class="fa fa-angle-left pull-right"></i>'
-				+ '</span>'
-				+ '</a>'
-				+ '<ul class="treeview-menu">'
-				;
+			return `
+			<li class="treeview">
+				<a href="#">
+					${icon ? '<i class="' + icon + '"></i> ' : ''}
+					<span>${description}</span>
+					<span class="pull-right-container">
+						<i class="fa fa-angle-left pull-right"></i>
+					</span>
+				</a>
+			<ul class="treeview-menu">`;
 		}
 		, createItem: function (menu) {
 			let description = menu.description;
 			let url = menu.url || '/v/' + menu['view.url'];
-			return '<li><a href="' + url + '"><i class="' + (menu.icon || 'fa fa-angle-right') + '"></i> <span>' + description + '</span> </a></li>';
+			return `
+			<li>
+				<a href="${url}">
+					<i class="${menu.icon || 'fa fa-angle-right'}"></i>
+					<span>${description}</span>
+				</a>
+			</li>`;
 		}
 		, closeGroup: function () {
 			return '</ul></li>';

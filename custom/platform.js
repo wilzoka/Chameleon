@@ -702,12 +702,12 @@ let platform = {
                             let html = `
                             <html>
                                 <head>
-                                <meta charset="utf8">
-                                <style>
-                                    html, body, table {
-                                        font-size: ${report.fontsize || 12}
-                                    }
-                                </style>
+                                    <meta charset="utf8">
+                                    <style>
+                                        html, body, table {
+                                            font-size: ${report.fontsize || 12}
+                                        }
+                                    </style>
                                 </head>
                                 <body>          
                                     ${report.html}
@@ -719,7 +719,7 @@ let platform = {
                             }
                             let options = {
                                 border: {
-                                    top: "1cm",            // default is 0, units: mm, cm, in, px
+                                    top: "1cm",
                                     right: "1cm",
                                     bottom: "1cm",
                                     left: "1cm"

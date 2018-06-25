@@ -314,16 +314,14 @@ const renderRadio = function (viewfield, register) {
 }
 
 const renderSubView = function (viewsubview) {
-    return '<div class="col-md-12">'
-        + '<h4 class="title_subview">' + viewsubview.description + '</h4>'
-        + '<table '
-        + 'id="tableview' + viewsubview.subview.url + '" '
-        + 'class="table table-bordered table-hover dataTable" '
-        + 'width="100%" '
-        + 'data-subview="true" '
-        + 'data-view="' + viewsubview.subview.url + '">'
-        + '</table>'
-        + '</div>';
+    return `
+    <div class="col-md-12">
+        <h4 class="title_subview">${viewsubview.description}</h4>
+        <table id="tableview${viewsubview.subview.url}" class="table table-bordered table-hover dataTable" width="100%"
+        data-subview="true"
+        data-view="${viewsubview.subview.url}">
+        </table>
+    </div>`;
 }
 
 const render = function (viewfield, register) {
@@ -971,31 +969,32 @@ module.exports = function (app) {
                             break;
                         case 'boolean':
                             filtername = viewfields[i].modelattribute.name + separator + viewfields[i].modelattribute.type + separator + 'r' + virtual;
-                            filter += '<div class="col-md-12">'
-                                + '<div class="form-group">'
-                                + '<label>' + viewfields[i].modelattribute.label + '</label>'
-                                + '<div class="row" style="text-align: center;">'
-                                + '<div class="col-xs-4">'
-                                + '<label>'
-                                + '<input type="radio" name="' + filtername + '" value="" ' + (getFilterValue(filtername, cookiefilter) == '' ? 'checked="checked"' : '') + '>'
-                                + ' Todos'
-                                + '</label>'
-                                + '</div>'
-                                + '<div class="col-xs-4">'
-                                + '<label>'
-                                + '<input type="radio" name="' + filtername + '" value="true" ' + (getFilterValue(filtername, cookiefilter) == 'true' ? 'checked="checked"' : '') + '>'
-                                + ' Sim'
-                                + '</label>'
-                                + '</div>'
-                                + '<div class="col-xs-4">'
-                                + '<label>'
-                                + '<input type="radio" name="' + filtername + '" value="false" ' + (getFilterValue(filtername, cookiefilter) == 'false' ? 'checked="checked"' : '') + '>'
-                                + ' Não'
-                                + '</label>'
-                                + '</div>'
-                                + '</div>'
-                                + '</div>'
-                                + '</div>';
+                            filter += `
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>${viewfields[i].modelattribute.label}</label>
+                                    <div class="row" style="text-align: center;">
+                                        <div class="col-xs-4">
+                                            <label>
+                                                <input type="radio" name="${filtername}" value="" ${getFilterValue(filtername, cookiefilter) == '' ? 'checked="checked"' : ''}>
+                                                Todos
+                                            </label>
+                                        </div>
+                                        <div class="col-xs-4">
+                                            <label>
+                                                <input type="radio" name="${filtername}" value="true" ${getFilterValue(filtername, cookiefilter) == 'true' ? 'checked="checked"' : ''}>
+                                                Sim
+                                            </label>
+                                        </div>
+                                        <div class="col-xs-4">
+                                            <label>
+                                                <input type="radio" name="${filtername}" value="false" ${getFilterValue(filtername, cookiefilter) == 'false' ? 'checked="checked"' : ''}>
+                                                Não
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
                             break;
                     }
                 }

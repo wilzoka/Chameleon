@@ -107,7 +107,41 @@ let main = {
                 }
             }
             , conta: {
-                js_saldoData: async function (obj) {
+                f_saldoData: async function (idconta, data) {
+                    return new Promise((resolve, reject) => {
+                        try {
+                            db.getModel('fin_conta').find({ where: { id: idconta } }).then(conta => {
+                                db.sequelize.query(`
+                                select
+                                    sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0)) * -1
+                                    else mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0) end) as soma
+                                from
+                                    fin_mov m
+                                left join fin_movparc mp on (m.id = mp.idmov)
+                                left join fin_categoria c on (m.idcategoria = c.id)
+                                where
+                                    mp.idconta = :conta
+                                    and mp.data <= :datafim
+                                    `, {
+                                        type: db.sequelize.QueryTypes.SELECT
+                                        , replacements: {
+                                            conta: idconta
+                                            , datafim: application.formatters.be.date(data)
+                                        }
+                                    }).then(sql => {
+                                        if (sql.length > 0 && sql[0].soma) {
+                                            resolve(parseFloat(sql[0].soma) + parseFloat(conta.saldoinicial || 0));
+                                        } else {
+                                            resolve(parseFloat(conta.saldoinicial || 0));
+                                        }
+                                    });
+                            });
+                        } catch (err) {
+                            reject(err);
+                        }
+                    });
+                }
+                , js_saldoData: async function (obj) {
                     try {
                         let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
                         let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
@@ -1812,6 +1846,26 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
+                            let report = {};
+                            let contas = await db.getModel('fin_conta').findAll({ order: [['descricao', 'asc']] });
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%;margin-bottom:5px;">
+                                <tr>
+                                    <td style="text-align:center;" colspan="${contas.length + 1}"><strong>Saldo Inicial</strong></td>
+                                </tr>
+                                <tr>
+                            `;
+                            for (let i = 0; i < contas.length; i++) {
+                                report.__table += `<td style="text-align:center;"><strong>${contas[i].descricao}</strong></td>`;
+                            }
+                            report.__table += `</tr><tr>`;
+                            for (let i = 0; i < contas.length; i++) {
+                                let sd = await main.sipfinancas.financeiro.conta.f_saldoData(contas[i].id, moment(obj.req.body.dataini, application.formatters.fe.date_format).subtract(1, 'days').format(application.formatters.fe.date_format));
+                                report.__table += `<td style="text-align:right;">${application.formatters.fe.decimal(sd, 2)}</td>`;
+                            }
+                            report.__table += `
+                            </tr></table>
+                            `;
                             let sql = await db.sequelize.query(`
                                 select
                                     mp.data
@@ -1819,6 +1873,7 @@ let main = {
                                     , coalesce(c.nome, '') as correntista
                                     , coalesce(m.parcela, '') as parcela
                                     , cat.descricaocompleta as categoria
+                                    , con.descricao as conta
                                     , coalesce(m.detalhes, '') as detalhes
                                     , mp.valor + coalesce(mp.juro, 0) - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) as valor
                                 from
@@ -1826,6 +1881,7 @@ let main = {
                                 inner join fin_movparc mp on (m.id = mp.idmov)
                                 left join cad_corr c on (m.idcorr = c.id)
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
+                                left join fin_conta con on (mp.idconta = con.id)
                                 where
                                     cat.dc in (${obj.req.body.debito ? '1' : '0'}, ${obj.req.body.credito ? '2' : '0'})
                                     and mp.data >= :dataini
@@ -1843,18 +1899,21 @@ let main = {
                                 });
 
                             let total = 0;
-                            let report = {};
                             let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Movimentações</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
-                            report.__table = `
-                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            report.__table += `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%;">
+                                <tr>
+                                    <td style="text-align:center;" colspan="8"><strong>Movimentações</strong></td>
+                                </tr>
                                 <tr>
                                     <td style="text-align:center;"><strong>Data</strong></td>
                                     <td style="text-align:center;"><strong>D/C</strong></td>
                                     <td style="text-align:center;"><strong>Correntista</strong></td>
                                     <td style="text-align:center;"><strong>Parcela</strong></td>
                                     <td style="text-align:center;"><strong>Categoria</strong></td>
+                                    <td style="text-align:center;"><strong>Conta</strong></td>
                                     <td style="text-align:center;"><strong>Detalhes</strong></td>
                                     <td style="text-align:center;"><strong>Valor</strong></td>
                                 </tr>
@@ -1867,6 +1926,7 @@ let main = {
                                     <td style="text-align:left;">${sql[i]['correntista']}</td>
                                     <td style="text-align:center;">${sql[i]['parcela']}</td>
                                     <td style="text-align:left;">${sql[i]['categoria']}</td>
+                                    <td style="text-align:left;">${sql[i]['conta']}</td>
                                     <td style="text-align:left;">${sql[i]['detalhes']}</td>
                                     <td style="text-align:right;">${application.formatters.fe.decimal(sql[i]['valor'], 2)}</td>
                                 </tr>
@@ -1881,11 +1941,29 @@ let main = {
                                     <td></td>
                                     <td></td>
                                     <td></td>
+                                    <td></td>
                                     <td style="text-align:right;"><strong>${application.formatters.fe.decimal(total, 2)}</strong></td>
                                 </tr>
                             </table>
                             `;
-
+                            report.__table += `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%;margin-top:5px;">
+                                <tr>
+                                    <td style="text-align:center;" colspan="${contas.length + 1}"><strong>Saldo Final</strong></td>
+                                </tr>
+                                <tr>
+                            `;
+                            for (let i = 0; i < contas.length; i++) {
+                                report.__table += `<td style="text-align:center;"><strong>${contas[i].descricao}</strong></td>`;
+                            }
+                            report.__table += `</tr><tr>`;
+                            for (let i = 0; i < contas.length; i++) {
+                                let sd = await main.sipfinancas.financeiro.conta.f_saldoData(contas[i].id, obj.req.body.datafim);
+                                report.__table += `<td style="text-align:right;">${application.formatters.fe.decimal(sd, 2)}</td>`;
+                            }
+                            report.__table += `
+                            </tr></table>
+                            `;
                             let file = await main.platform.report.f_generate('Geral - Listagem', report);
                             return application.success(obj.res, {
                                 modal: {

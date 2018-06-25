@@ -20,7 +20,7 @@ module.exports = function (app) {
             if (where.length > 0) {
                 wherestr = ' where ' + where.join(' and ');
             }
-            let query = 'SELECT id, ' + field + ' as text FROM ' + model + wherestr + ' ORDER BY ' + field + ' LIMIT 100';
+            let query = `SELECT id, ${field} as text FROM ${model + wherestr} ORDER BY ${field} LIMIT 100`;
             let results = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
             return application.success(res, { data: results });
         } catch (err) {
