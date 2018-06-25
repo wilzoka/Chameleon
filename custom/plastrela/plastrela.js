@@ -3535,6 +3535,86 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_cadastrarAnilox: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+
+                            body += application.components.html.date({
+                                width: '4'
+                                , label: 'Data compra*'
+                                , name: 'datacompra'
+                            });
+                            body += application.components.html.integer({
+                                width: '4'
+                                , label: 'Quantidade*'
+                                , name: 'qtd'
+                            });
+                            body += application.components.html.integer({
+                                width: '4'
+                                , label: 'BCM*'
+                                , name: 'bcm'
+                            });
+                            body += application.components.html.text({
+                                width: '12'
+                                , label: 'Descrição*'
+                                , name: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Fornecedor*'
+                                , name: 'fornecedor'
+                                , model: 'cad_corr'
+                                , attribute: 'nome'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, [
+                                'datacompra'
+                                , 'qtd'
+                                , 'descricao'
+                                , 'bcm'
+                                , 'fornecedor'
+                            ]);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            if (obj.req.body.qtd <= 0 || obj.req.body.qtd > 50) {
+                                return application.error(obj.res, { msg: 'A quantidade deve ser entre 1 e 50', invalidfields: ['qtd'] });
+                            }
+
+                            for (let i = 0; i < obj.req.body.qtd; i++) {
+
+                                await db.getModel('est_anilox').create({
+                                    //numero: i + 1
+                                    datacompra: application.formatters.be.date(obj.req.body.datacompra)
+                                    , descricao: obj.req.body.descricao
+                                    , bcm: obj.req.body.bcm
+                                    , idcadcorr: obj.req.body.fornecedor
+                                    , ativo: true
+                                }, { iduser: obj.req.body.iduser });
+                            }
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , apclichemonttempo: {
                 onsave: async function (obj, next) {
