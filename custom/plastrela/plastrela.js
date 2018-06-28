@@ -1692,7 +1692,6 @@ let main = {
 
 
                 }
-
                 , onsave: async function (obj, next) {
                     try {
 
@@ -2568,7 +2567,6 @@ let main = {
                     }
                 }
             }
-
             , est_mov: {
                 onsave: async function (obj, next) {
                     const f = main.plastrela.estoque;
@@ -2590,7 +2588,6 @@ let main = {
 
                 }
             }
-
             , est_depositoendereco: {
 
                 onsave: async function (obj, next) {
@@ -2704,7 +2701,6 @@ let main = {
                     }
                 }
             }
-
             , nfentradaitem: {
                 _imprimirEtiquetas: async function (obj) {
                     try {
@@ -3327,28 +3323,37 @@ let main = {
                             , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: obj.id } }
                         );
                         let ultimaMontagem = await db.sequelize.query(`
-                            select cli.id
+                            select cli.id, op.codigo as op
                             from pcp_apcliche cli
                             left join pcp_oprecurso rec on (cli.idoprecurso = rec.id)
                             left join pcp_opetapa eta on (rec.idopetapa = eta.id)
                             left join pcp_op op on (eta.idop = op.id)
                             left join pcp_versao ver on (op.idversao = ver.id)
-                            where ver.id = :apclichemontagem
+                            where ver.id = :idversao
                             and cli.datahora < :datahora
                             order by cli.datahora desc
                             limit 1`
-                            , { type: db.Sequelize.QueryTypes.SELECT, replacements: { apclichemontagem: item[0].id, datahora: item[0].datahora } }
+                            , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idversao: item[0].id, datahora: item[0].datahora } }
                         );
                         if (ultimaMontagem.length <= 0) {
-                            return application.error(obj.res, { msg: 'Não possui montagens anteriores' });
+                            return application.error(obj.res, { msg: 'Não possui produções anteriores' });
                         }
                         let consumos = await db.sequelize.query(`
-                            select mon.estacao, ite.descricao as cor, 'ID ' || cam.id || ' - ' || cam.descricao as camisa, 
-                                (select string_agg(df.descricao,' | ') from pcp_apclichemontconsumo com left join est_duplaface df on (com.idduplaface = df.id) where mon.id = com.idapclichemontagem) as duplaface
+                            select 
+                                mon.estacao
+                                , ite.descricao as cor
+                                , mon.viscosidade
+                                , ani.descricao as anilox
+                                , 'ID ' || cam.id || ' - ' || cam.descricao as camisa, 
+                                coalesce((select string_agg(df.descricao,' | ') 
+                                    from pcp_apclichemontconsumo com 
+                                    left join est_duplaface df on (com.idduplaface = df.id) 
+                                    where mon.id = com.idapclichemontagem),'') as duplaface
                             from pcp_apclichemontagem mon
                             left join est_camisa cam on (mon.idcamisa = cam.id) 
                             left join pcp_versao ver on (mon.idversao = ver.id)
                             left join cad_item ite on (ver.iditem = ite.id)
+                            left join est_anilox ani on (mon.idanilox = ani.id)
                             where idapcliche = :idapcliche
                             order by 1`
                             , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: ultimaMontagem[0].id } }
@@ -3356,12 +3361,15 @@ let main = {
 
                         let body = `
                         <div class="col-md-12">
+                        <h4> OP: ${ultimaMontagem[0].op} </h4>
                         <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                             <tr>
                                 <td style="text-align:center;"><strong>Estação</strong></td>
                                 <td style="text-align:center;"><strong>Cor</strong></td>
+                                <td style="text-align:center;"><strong>Viscosidade</strong></td>
                                 <td style="text-align:center;"><strong>Camisa</strong></td>
                                 <td style="text-align:center;"><strong>Dupla Face</strong></td>
+                                <td style="text-align:center;"><strong>Anilox</strong></td>
                             </tr>
                         `;
                         for (let i = 0; i < consumos.length; i++) {
@@ -3369,8 +3377,10 @@ let main = {
                             <tr>
                                 <td style="text-align:center;"> ${consumos[i].estacao}   </td>
                                 <td style="text-align:left;">  ${consumos[i].cor}   </td>
+                                <td style="text-align:left;">  ${consumos[i].viscosidade}   </td>
                                 <td style="text-align:left;">   ${consumos[i].camisa}   </td>
                                 <td style="text-align:left;">  ${consumos[i].duplaface}   </td>
+                                <td style="text-align:left;">  ${consumos[i].anilox}   </td>
                             </tr>
                             `;
                         }
@@ -3385,6 +3395,7 @@ let main = {
                                 , title: obj.event.description
                                 , body: body
                                 , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>'
+                                , fullscreen: true
                             }
                         });
 
@@ -3394,55 +3405,35 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , e_definirAnilox: async (obj) => {
+                , e_definicoes: async (obj) => {
                     try {
                         if (obj.req.method == 'GET') {
                             if (obj.ids.length != 1) {
                                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                             }
-                            let body = '';
-                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
-                            body += application.components.html.text({
-                                width: '12'
-                                , label: 'Anilox*'
-                                , name: 'anilox'
-                            });
-                            return application.success(obj.res, {
-                                modal: {
-                                    form: true
-                                    , action: '/event/' + obj.event.id
-                                    , id: 'modalevt' + obj.event.id
-                                    , title: obj.event.description
-                                    , body: body
-                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
-                                }
-                            });
-                        } else {
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'anilox']);
-                            if (invalidfields.length > 0) {
-                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                            }
-                            let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.req.body.id } });
-                            montagem.anilox = obj.req.body.anilox;
-                            await montagem.save({ iduser: obj.req.user.id });
-                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                        }
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , e_definirEstacao: async (obj) => {
-                    try {
-                        if (obj.req.method == 'GET') {
-                            if (obj.ids.length != 1) {
-                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
-                            }
+                            let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.ids[0] } });
                             let body = '';
                             body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
                             body += application.components.html.integer({
-                                width: '12'
+                                width: '3'
                                 , label: 'Estação*'
                                 , name: 'estacao'
+                                , value: montagem.estacao
+                            });
+                            body += application.components.html.integer({
+                                width: '3'
+                                , label: 'Viscosidade'
+                                , name: 'viscosidade'
+                                , value: montagem.viscosidade || ''
+                            });
+                            let anilox = await db.getModel('est_anilox').find({ where: { id: montagem.idanilox || 0 } });
+                            body += application.components.html.autocomplete({
+                                width: '6'
+                                , label: 'Anilox'
+                                , name: 'idanilox'
+                                , model: 'est_anilox'
+                                , option: anilox ? '<option value="' + montagem.idanilox + '" selected>' + anilox.descricao + '</option>' : ''
+                                , query: "'Nº ' || coalesce(est_anilox.id,'0') || ' - ' || est_anilox.descricao || ' - ' || est_anilox.bcmatual || ' BCM' || coalesce('<span style=color:red> ' || est_anilox.problema ||'</span>', '')"
                             });
                             return application.success(obj.res, {
                                 modal: {
@@ -3461,6 +3452,8 @@ let main = {
                             }
                             let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.req.body.id } });
                             montagem.estacao = obj.req.body.estacao;
+                            montagem.viscosidade = obj.req.body.viscosidade || null;
+                            montagem.idanilox = obj.req.body.idanilox || null;
                             await montagem.save({ iduser: obj.req.user.id });
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
@@ -3603,6 +3596,7 @@ let main = {
                                     datacompra: application.formatters.be.date(obj.req.body.datacompra)
                                     , descricao: obj.req.body.descricao
                                     , bcm: obj.req.body.bcm
+                                    , bcmatual: obj.req.body.bcm
                                     , idcadcorr: obj.req.body.fornecedor
                                     , ativo: true
                                 }, { iduser: obj.req.body.iduser });
@@ -5529,20 +5523,59 @@ let main = {
                             let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
                             let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
                             let versao = await db.getModel('pcp_versao').find({ where: { id: op ? op.idversao : 0 } });
-                            let composicao = await db.getModel('pcp_composicao').find({ where: { id: versao ? versao.idcomposicao : 0 } });
-                            let componentes = await db.getModel('pcp_componente').findAll({ where: { idcomposicao: composicao ? composicao.id : 0 }, include: [{ all: true }] });
 
-                            for (let i = 0; i < componentes.length; i++) {
-                                let item = await db.getModel('cad_item').find({ where: { id: componentes[i].pcp_versao.iditem }, include: [{ all: true }] });
-                                if (item.est_grupo.codigo == 533) { // Tintas
-                                    await db.getModel('pcp_apclichemontagem').create({
-                                        estacao: componentes[i].estacao
-                                        , idapcliche: cliche.id
-                                        , idversao: componentes[i].pcp_versao.id
+                            let ultimaMontagem = await db.sequelize.query(`
+                            select cli.id
+                            from pcp_apcliche cli
+                            left join pcp_oprecurso rec on (cli.idoprecurso = rec.id)
+                            left join pcp_opetapa eta on (rec.idopetapa = eta.id)
+                            left join pcp_op op on (eta.idop = op.id)
+                            left join pcp_versao ver on (op.idversao = ver.id)
+                            where ver.id = :idversao
+                            and cli.id != :idcliche
+                            order by cli.datahora desc
+                            limit 1`
+                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idversao: versao.id, idcliche: cliche.id } }
+                            );
+                            if (ultimaMontagem.length > 0) {
+
+                                let ultimaMontagemItens = await db.getModel('pcp_apclichemontagem').findAll({ where: { idapcliche: ultimaMontagem[0].id }, include: [{ all: true }] });
+                                for (let i = 0; i < ultimaMontagemItens.length; i++) {
+                                    let apmontagem = await db.getModel('pcp_apclichemontagem').create({
+                                        idapcliche: cliche.id
+                                        , estacao: ultimaMontagemItens[i].estacao
+                                        , idversao: ultimaMontagemItens[i].pcp_versao.id
+                                        , idanilox: ultimaMontagemItens[i].idanilox
+                                        , idcamisa: ultimaMontagemItens[i].idcamisa
+                                        , viscosidade: ultimaMontagemItens[i].viscosidade
                                     });
-                                }
-                            }
 
+                                    let consumosAnteriores = await db.getModel('pcp_apclichemontconsumo').findAll({ where: { idapclichemontagem: ultimaMontagemItens[i].id } })
+                                    for (let j = 0; j < consumosAnteriores.length; j++) {
+                                        await db.getModel('pcp_apclichemontconsumo').create({
+                                            idapclichemontagem: apmontagem.id
+                                            , idduplaface: consumosAnteriores[j].idduplaface
+                                            , reutilizada: consumosAnteriores[j].reutilizada
+                                        });
+                                    }
+                                }
+
+                            } else {
+                                let composicao = await db.getModel('pcp_composicao').find({ where: { id: versao ? versao.idcomposicao : 0 } });
+                                let componentes = await db.getModel('pcp_componente').findAll({ where: { idcomposicao: composicao ? composicao.id : 0 }, include: [{ all: true }] });
+
+                                for (let i = 0; i < componentes.length; i++) {
+                                    let item = await db.getModel('cad_item').find({ where: { id: componentes[i].pcp_versao.iditem }, include: [{ all: true }] });
+                                    if (item.est_grupo.codigo == 533) { // Tintas
+                                        await db.getModel('pcp_apclichemontagem').create({
+                                            estacao: componentes[i].estacao
+                                            , idapcliche: cliche.id
+                                            , idversao: componentes[i].pcp_versao.id
+                                        });
+                                    }
+                                }
+
+                            }
                             return application.success(obj.res, { redirect: "/v/apontamento_cliche/" + cliche.id });
                         }
                     } catch (err) {
@@ -5618,6 +5651,16 @@ let main = {
                                 , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>'
                             }
                         });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_listaUltimoSetupImp: async (obj) => {
+                    try {
+                        let apcliche = await db.getModel('pcp_apcliche').find({ where: { idoprecurso: obj.id } });
+                        obj.id = apcliche.id;
+                        main.plastrela.pcp.apclichemontagem.e_listaUltimaMontagem(obj);
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
