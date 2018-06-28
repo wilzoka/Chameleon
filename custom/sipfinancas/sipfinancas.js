@@ -1136,9 +1136,7 @@ let main = {
                 }
                 , e_apuracaoResultado: async function (obj) {
                     try {
-
                         if (obj.req.method == 'GET') {
-
                             let body = '';
                             body += application.components.html.integer({
                                 width: '6'
@@ -1150,7 +1148,6 @@ let main = {
                                 , label: 'Ano*'
                                 , name: 'ano'
                             });
-
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -1161,14 +1158,11 @@ let main = {
                                     , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
                                 }
                             });
-
                         } else {
-
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['mes', 'ano']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-
                             let dataini = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format);
                             let datafim = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format).endOf('month');
                             let contas = await db.getModel('fin_conta').findAll({ raw: true, order: [['descricao', 'asc']] });
@@ -1566,6 +1560,7 @@ let main = {
                                     <td style="text-align:center;"><strong>Valor Disponível</strong></td>
                                 </tr>
                             `;
+                            let totaladiantamento = 0;
                             for (let i = 0; i < sql.length; i++) {
                                 report.tableadiantamentocliente += `
                                 <tr>
@@ -1574,7 +1569,15 @@ let main = {
                                     <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}   </td>
                                 </tr>
                                 `;
+                                totaladiantamento += parseFloat(sql[i]['valoraberto']);
                             }
+                            report.tableadiantamentocliente += `
+                                <tr>
+                                    <td style="text-align:center;"><strong>Total</strong></td>
+                                    <td style="text-align:left;"></td>
+                                    <td style="text-align:right;">${application.formatters.fe.decimal(totaladiantamento, 2)}</td>
+                                </tr>
+                                `;
                             report.tableadiantamentocliente += `
                             </table>
                             `;
@@ -1610,6 +1613,7 @@ let main = {
                                     }
                                 }
                             );
+                            totaladiantamento = 0;
                             report.tableadiantamentofornecedor = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
@@ -1626,7 +1630,15 @@ let main = {
                                     <td style="text-align:right;">   ${application.formatters.fe.decimal(sql[i]['valoraberto'], 2)}   </td>
                                 </tr>
                                 `;
+                                totaladiantamento += parseFloat(sql[i]['valoraberto']);
                             }
+                            report.tableadiantamentofornecedor += `
+                            <tr>
+                                <td style="text-align:center;"><strong>Total</strong></td>
+                                <td style="text-align:left;"></td>
+                                <td style="text-align:right;">${application.formatters.fe.decimal(totaladiantamento, 2)}</td>
+                            </tr>
+                                `;
                             report.tableadiantamentofornecedor += `
                             </table>
                             `;
@@ -1714,6 +1726,11 @@ let main = {
                                 , name: 'valor'
                                 , precision: '2'
                             });
+                            body += application.components.html.text({
+                                width: '12'
+                                , label: 'Detalhes'
+                                , name: 'detalhes'
+                            });
 
                             return application.success(obj.res, {
                                 modal: {
@@ -1750,6 +1767,7 @@ let main = {
                                 , valor: valor
                                 , quitado: true
                                 , data: data
+                                , detalhes: obj.req.body.detalhes || null
                             });
                             let movparcd = await db.getModel('fin_movparc').create({
                                 valor: valor
@@ -1765,6 +1783,7 @@ let main = {
                                 , valor: valor
                                 , quitado: true
                                 , data: data
+                                , detalhes: obj.req.body.detalhes || null
                             });
                             let movparcc = await db.getModel('fin_movparc').create({
                                 valor: valor

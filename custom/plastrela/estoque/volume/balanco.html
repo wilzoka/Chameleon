@@ -14,6 +14,7 @@
                     <button id="salvar" type="button" class="btn btn-default btn-block"> Salvar</button>
                     <button id="reiniciar" type="button" class="btn btn-default btn-block"> Reiniciar</button>
                     <button id="imprimir" type="button" class="btn btn-default btn-block"> Imprimir</button>
+                    <button id="verificarAjustes" type="button" class="btn btn-default btn-block"> Aplicar Ajustes</button>
                 </div>
             </div>
         </div>
@@ -24,10 +25,10 @@
     <div class="nav-tabs-custom">
         <ul class="nav nav-tabs">
             <li class="active">
-                <a href="#tab_1" data-toggle="tab"> Bobinas Restantes</a>
+                <a href="#tab_1" data-toggle="tab"> Volumes Restantes</a>
             </li>
             <li>
-                <a href="#tab_2" data-toggle="tab"> Bobinas Encontradas</a>
+                <a href="#tab_2" data-toggle="tab"> Volumes Encontradas</a>
             </li>
         </ul>
         <div class="tab-content">
@@ -54,10 +55,65 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalverificarajustes">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Atenção</h4>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button id="aplicarAjustes" type="button" class="btn btn-primary">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalfound">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Atenção</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        Confirma?
+                        <h3 id="idvolh"></h3>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Quantidade Encontrada (Informe apenas se a quantidade encontrada for diferente do sistema)</label>
+                            <input name="qtdencontrada" type="text" class="form-control" data-type="decimal" data-precision="4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button id="foundconfirm" type="button" class="btn btn-primary">Sim</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(function ($) {
 
         var idsfound = [];
+        var data;
+        var $row;
+        var $qtdencontrada = $('input[name="qtdencontrada"]');
+        var ajustes = {};
 
         var tablefound = $('#tablefound').DataTable({
             dom: 'fti'
@@ -70,13 +126,14 @@
             ]
             , pageLength: -1
         }).on('click', 'tbody tr', function (e) {
-            var data = tablefound.row(this).data();
-            var $row = this;
+            data = tablefound.row(this).data();
+            $row = this;
             if (data) {
                 application.functions.confirmMessage('Retirar? <h3>ID ' + data.id + '</h2>', function () {
                     idsfound.splice(idsfound.indexOf(data.id), 1);
                     tablenotfound.row.add(data).draw();
                     tablefound.row($row).remove().draw();
+                    delete ajustes[data.id];
                 });
             }
         });
@@ -92,15 +149,21 @@
             ]
             , pageLength: -1
         }).on('click', 'tbody tr', function (e) {
-            var data = tablenotfound.row(this).data();
-            var $row = this;
-            if (data) {
-                application.functions.confirmMessage('Confirma? <h3>ID ' + data.id + '</h2>', function () {
-                    idsfound.push(data.id);
-                    tablefound.row.add(data).draw();
-                    tablenotfound.row($row).remove().draw();
-                });
+            data = tablenotfound.row(this).data();
+            $row = this;
+            $('#idvolh').text('ID ' + data.id);
+            $qtdencontrada.val('');
+            $('#modalfound').modal('show');
+        });
+
+        $('#foundconfirm').click(function () {
+            if ($qtdencontrada.val()) {
+                ajustes[data.id] = $qtdencontrada.val();
             }
+            idsfound.push(data.id);
+            tablefound.row.add(data).draw();
+            tablenotfound.row($row).remove().draw();
+            $('#modalfound').modal('hide');
         });
 
         $('select[name="iddeposito"]').on('select2:select', function (e) {
@@ -117,6 +180,7 @@
                     for (var i = 0; i < response.data.found.length; i++) {
                         idsfound.push(response.data.found[i].id)
                     }
+                    ajustes = {};
                 } else {
                     application.handlers.responseError(response);
                 }
@@ -142,6 +206,7 @@
                         tablefound.columns.adjust().draw();
 
                         idsfound = [];
+                        ajustes = {};
                     } else {
                         application.handlers.responseError(response);
                     }
@@ -152,6 +217,30 @@
         $('#imprimir').click(function () {
             application.route.handler({ function: 'imprimir', iddeposito: $('select[name="iddeposito"]').val(), idsfound: idsfound }, function (response) {
                 application.handlers.responseSuccess(response);
+            });
+        });
+
+        $('#verificarAjustes').click(function () {
+            var mb = $('#modalverificarajustes').find('.modal-body');
+            mb.children().remove();
+            var html = [];
+            for (var k in ajustes) {
+                html.push('<div class="row"> <div class="col-xs-6"><strong>ID ' + k + '</strong></div> <div class="col-xs-6">Peso Encontrado: ' + ajustes[k] + '</div>   </div>');
+            }
+            mb.append(html.join('<hr>'));
+            $('#modalverificarajustes').modal('show');
+        })
+
+
+        $('#aplicarAjustes').click(function () {
+            application.functions.confirmMessage('Confirma a aplicação dos ajustes?', function () {
+                application.route.handler({ function: 'ajustes', ajustes: ajustes }, function (response) {
+                    application.handlers.responseSuccess(response);
+                    if (response.success) {
+                        ajustes = {};
+                        $('#modalverificarajustes').modal('hide');
+                    }
+                });
             });
         });
 

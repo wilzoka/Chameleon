@@ -2032,7 +2032,7 @@ let main = {
                     try {
 
                         let f = {
-                            getAtual: async function (obj) {
+                            getAtual: async (obj) => {
 
                                 let notfound = await db.sequelize.query(`
                                 select
@@ -2093,7 +2093,7 @@ let main = {
                                         }
                                     });
                             }
-                            , salvar: async function (obj) {
+                            , salvar: async (obj) => {
                                 if (!obj.req.body.iddeposito) {
                                     return application.error(obj.res, { msg: 'Selecione um depósito' });
                                 }
@@ -2112,14 +2112,14 @@ let main = {
                                 await db.getModel('est_volumebalanco').bulkCreate(bulk);
                                 return application.success(obj.res, { msg: application.message.success });
                             }
-                            , reiniciar: async function (obj) {
+                            , reiniciar: async (obj) => {
                                 if (!obj.req.body.iddeposito) {
                                     return application.error(obj.res, { msg: 'Selecione um depósito' });
                                 }
                                 await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.req.body.iddeposito } });
                                 f.getAtual(obj);
                             }
-                            , imprimir: async function (obj) {
+                            , imprimir: async (obj) => {
                                 try {
 
                                     if (!obj.req.body.iddeposito) {
@@ -2333,6 +2333,41 @@ let main = {
                                     console.error(error);
                                 }
 
+                            }
+                            , ajustes: async (obj) => {
+                                try {
+                                    if (!obj.req.body.ajustes || Object.keys(obj.req.body.ajustes).length <= 0) {
+                                        return application.error(obj.res, { msg: 'Não possui ajustes a serem aplicados' });
+                                    }
+                                    for (let k in obj.req.body.ajustes) {
+                                        let qtd = application.formatters.be.decimal(obj.req.body.ajustes[k]);
+                                        if (qtd < 0) {
+                                            return application.error(obj.res, { msg: `Não é possível aplicar um ajuste negativo, ID ${k}` });
+                                        }
+                                    }
+                                    for (let k in obj.req.body.ajustes) {
+                                        let qtd = application.formatters.be.decimal(obj.req.body.ajustes[k]);
+                                        let volume = await db.getModel('est_volume').find({ where: { id: k } });
+                                        let dif = qtd - parseFloat(volume.qtdreal);
+                                        volume.qtdreal = qtd;
+                                        volume.consumido = false;
+                                        if (volume.qtdreal == 0) {
+                                            volume.consumido = true;
+                                        }
+                                        let va = await db.getModel('est_volumeajuste').create({
+                                            qtd: dif.toFixed(4)
+                                            , idvolume: k
+                                            , idvolumeajustemotivo: 4
+                                            , datahora: moment()
+                                        }, { iduser: obj.req.user.id });
+                                        if (va) {
+                                            volume.save({ iduser: obj.req.user.id });
+                                        }
+                                    }
+                                    return application.success(obj.res, { msg: application.message.success });
+                                } catch (err) {
+                                    return application.fatal(obj.res, err);
+                                }
                             }
                         }
 
