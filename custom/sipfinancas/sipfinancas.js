@@ -1054,7 +1054,7 @@ let main = {
                             , name: 'idcategoria'
                             , model: 'fin_categoria'
                             , attribute: 'descricaocompleta'
-                            , where: 'dc = 2'
+                            , where: 'idcategoriapai is not null and dc = 2'
                         });
                         body += application.components.html.integer({
                             width: '4'
