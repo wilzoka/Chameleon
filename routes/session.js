@@ -80,10 +80,11 @@ module.exports = function (app) {
 
             let redirect = '/home';
             if (req.user.idmenu) {
-                if (req.user.menu.url) {
-                    redirect = req.user.menu.url;
-                } else if (req.user.menu.idview) {
-                    redirect = '/v/' + (await db.getModel('view').find({ where: { id: req.user.menu.idview } })).url
+                let defaultmenu = await db.getModel('menu').find({ include: [{ all: true }], where: { id: req.user.idmenu } });
+                if (defaultmenu.url) {
+                    redirect = defaultmenu.url;
+                } else if (defaultmenu.idview) {
+                    redirect = '/v/' + defaultmenu.view.url;
                 }
             }
 
