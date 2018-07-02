@@ -17,7 +17,7 @@
                 "label": "Usuário",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
+                "typeadd": "{\"cascade\": true, \"model\": \"users\", \"attribute\": \"fullname\"}"
             },
             {
                 "name": "modelid",
@@ -45,7 +45,7 @@
                 "label": "Modelo",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\"model\": \"model\", \"attribute\": \"description\"}"
+                "typeadd": "{\"cascade\": true, \"model\": \"model\", \"attribute\": \"description\"}"
             }
         ]
     },

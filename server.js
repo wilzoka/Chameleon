@@ -52,7 +52,7 @@ if (cluster.isMaster) {
     app.use(appSession);
     //Middlewares
     app.use(cookieParser());
-    app.use(bodyParser.json());
+    app.use(bodyParser.json({ limit: '5mb' }));
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(passport.initialize());
     app.use(passport.session());

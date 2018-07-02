@@ -732,7 +732,7 @@ var application = {
             $('#tableview' + data.name).attr('data-deletable', data.permissions.deletable);
 
             var dom = '<"row no-margin"<"#tableview' + data.name + '_events.col-sm-6 no-padding"i><"col-sm-6 text-center no-padding"f>>'
-                + '<"hr">tr<"#tableview' + data.name + '_buttons.col-md-6 no-padding col-sm-center"><"col-md-6 no-padding"p>';
+                + '<"hr"><"row no-margin overflow-auto"t>r<"#tableview' + data.name + '_buttons.col-md-6 no-padding col-sm-center"><"col-md-6 no-padding"p>';
             // Datatable
             tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
                 ajax: function (data, callback, settings) {
@@ -783,7 +783,7 @@ var application = {
                 , ordering: data.permissions.orderable
                 , pageLength: data.pageLength
                 , paging: data.pageLength > 0
-                , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
+                , pagingType: 'simple'
                 , processing: true
                 , rowId: 'id'
                 , searchDelay: 250
@@ -880,7 +880,7 @@ var application = {
                         if (response.success) {
                             $this.html(response.data);
                         } else {
-                            $this.html('NaN');
+                            $this.html('?');
                         }
                     }
                     , error: function (response) {

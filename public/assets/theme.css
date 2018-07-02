@@ -133,7 +133,7 @@ h4.title_subview {
     border: 1px solid #ddd;
 }
 .dataTables_wrapper {
-    overflow-x: auto;
+    overflow: visible;
 }
 table.dataTable.compact thead th, table.dataTable.compact tbody td {
     padding: 4px;
@@ -229,4 +229,7 @@ a.btnevent i.fa {
 }
 .dt-width-datetime {
     width: 105px;
+}
+.overflow-auto {
+    overflow: auto;
 }

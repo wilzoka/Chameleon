@@ -67,6 +67,18 @@ let main = {
                 }
             }
         }
+        , atividadehora: {
+            onsave: async (obj, next) => {
+                try {
+                    if (obj.register.id == 0) {
+                        obj.register.iduser = obj.req.user.id;
+                    }
+                    await next(obj);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
         , atividadenota: {
             onsave: async (obj, next) => {
                 try {
@@ -155,6 +167,39 @@ let main = {
                             return application.error(obj.res, { msg: 'Esta peça já foi utilizada' });
                         }
                         next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , vinculacaosoftware: {
+                e_download: async (obj) => {
+                    try {
+
+                        let vincsoft = await db.getModel('cad_vinculacaosoftware').findAll({ include: [{ all: true }], where: { idequipamento: obj.id } });
+
+                        let arquivos = [];
+                        for (let i = 0; i < vincsoft.length; i++) {
+                            if (vincsoft[i].cad_software.arquivo) {
+                                arquivos = arquivos.concat(JSON.parse(vincsoft[i].cad_software.arquivo));
+                            }
+                        }
+                        let body = '';
+                        body += application.components.html.file({
+                            width: '12'
+                            , label: 'Quantidade'
+                            , name: 'qtd'
+                            , value: escape(JSON.stringify(arquivos))
+                        });
+
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , title: obj.event.description
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
+                            }
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
