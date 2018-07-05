@@ -775,7 +775,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	op as codigo&#xd;&#xa;	, quantidade &#xd;&#xa;	, peso&#xd;&#xa;	, produto&#xd;&#xa;	, versao&#xd;&#xa;	, op.op_principal&#xd;&#xa;from&#xd;&#xa;	pcpop op&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and op.op &#x3e; 280000</sql>
+    <sql>select&#xd;&#xa;	op as codigo&#xd;&#xa;	, quantidade &#xd;&#xa;	, peso&#xd;&#xa;	, produto&#xd;&#xa;	, versao&#xd;&#xa;	, op.op_principal&#xd;&#xa;from&#xd;&#xa;	pcpop op&#xd;&#xa;where&#xd;&#xa;	empresa &#x3d; &#x24;&#x7b;EMPRESA&#x7d;&#xd;&#xa;	and op.op &#x3e; case when &#x24;&#x7b;EMPRESA&#x7d; &#x3d; 1 then 280000 else 2000 end</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
