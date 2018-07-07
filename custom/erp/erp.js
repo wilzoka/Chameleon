@@ -58,20 +58,58 @@ let main = {
                                     obj.register.digitado = true;
                                     neednotification = true;
 
+                                    let somavenda = await db.sequelize.query(`select sum(vi.qtd * vi.valorunitario) as total from com_vendaitem vi where vi.idvenda = :idvenda`, { type: db.Sequelize.QueryTypes.SELECT, replacements: { idvenda: obj.register.id } });
+                                    let totalvenda = parseFloat(somavenda[0]['total']) - parseFloat(obj.register.desconto || 0) + parseFloat(obj.register.acrescimo || 0);
+                                    let somapagto = await db.sequelize.query(`select sum(vp.valor) as total from com_vendapagamento vp where vp.idvenda = :id`, { type: db.Sequelize.QueryTypes.SELECT, replacements: { id: obj.register.id } });
+                                    let totalpgto = parseFloat(somapagto[0]['total']) - parseFloat(obj.register.desconto || 0) + parseFloat(obj.register.acrescimo || 0);
+
                                     let tipovenda = await db.getModel('com_tipovenda').find({ where: { id: obj.register.idtipovenda } });
                                     if (!tipovenda.idcategoria) {
                                         return application.error(obj.res, { msg: `Tipo de venda "${tipovenda.description}" sem categoria definida` })
                                     }
-                                    let sql = await db.sequelize.query(`select sum(vi.qtd * vi.valorunitario) as total from com_vendaitem vi where vi.idvenda = :idvenda`, { type: db.Sequelize.QueryTypes.SELECT, replacements: { idvenda: obj.register.id } });
-                                    let total = parseFloat(sql[0]['total']) - parseFloat(obj.register.desconto || 0) + parseFloat(obj.register.acrescimo || 0);
+                                    let vendaformaspgto = await db.getModel('com_vendapagamento').findAll({ where: { idvenda: obj.register.id } });
+                                    let formaspgto = await db.getModel('fin_formapgto').findAll({ where: { disp_venda: true } });
+                                    let valortaxas = 0
+                                    let totalparcelas = 0
+
+                                    for (let i = 0; i < vendaformaspgto.length; i++) {
+                                        /* if (vendaformaspgto[i].parcelas != null) {
+                                            totalparcelas += vendaformaspgto[i].parcelas 
+                                        }*/
+                                        for (let j = 0; j < formaspgto.length; j++) {
+                                            if (vendaformaspgto[i].idformapgto == formaspgto[j].id && formaspgto[j].taxa != null) {
+                                                valortaxas += parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100)
+                                            }
+                                        }
+                                    }
                                     let mov = await db.getModel('fin_mov').create({
+                                        //datavcto: formaspgto.prazo == null ? moment() : moment().add(formaspgto.prazo, 'day')
                                         datavcto: moment()
                                         , idcategoria: tipovenda.idcategoria
-                                        , valor: total
-                                        , quitado: false
+                                        , valor: totalvenda - valortaxas
+                                        , parcela: totalparcelas
+                                        , quitado: (totalvenda - totalpgto) == 0 ? true : false
                                         , idpessoa: obj.register.idcliente
                                         , detalhe: `Venda ID ${obj.register.id}`
                                     })
+                                    valortaxas = 0
+                                    for (let i = 0; i < vendaformaspgto.length; i++) {
+                                        let conta = await db.getModel('users').find({ where: { id: obj.register.identregador } })
+                                        for (let j = 0; j < formaspgto.length; j++) {
+                                            if (vendaformaspgto[i].idformapgto == formaspgto[j].id && formaspgto[j].taxa != null) {
+                                                valortaxas += parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100)
+                                            }
+                                        }
+                                        let movparc = await db.getModel('fin_movparc').create({
+                                            /* datahora: formaspgto.prazo == null ? moment() : moment().add(formaspgto.prazo, 'day') */
+                                            datahora: moment()
+                                            , idmov: mov.id
+                                            , valor: vendaformaspgto[i].valor - valortaxas
+                                            , idformapgto: vendaformaspgto[i].idformapgto
+                                            , idconta: conta.idconta
+                                        })
+                                        valortaxas = 0
+                                    }
                                 }
                                 break;
                             default:
