@@ -60,8 +60,6 @@ let main = {
 
                                     let somavenda = await db.sequelize.query(`select sum(vi.qtd * vi.valorunitario) as total from com_vendaitem vi where vi.idvenda = :idvenda`, { type: db.Sequelize.QueryTypes.SELECT, replacements: { idvenda: obj.register.id } });
                                     let totalvenda = parseFloat(somavenda[0]['total']) - parseFloat(obj.register.desconto || 0) + parseFloat(obj.register.acrescimo || 0);
-                                    let somapagto = await db.sequelize.query(`select sum(vp.valor) as total from com_vendapagamento vp where vp.idvenda = :id`, { type: db.Sequelize.QueryTypes.SELECT, replacements: { id: obj.register.id } });
-                                    let totalpgto = parseFloat(somapagto[0]['total']) - parseFloat(obj.register.desconto || 0) + parseFloat(obj.register.acrescimo || 0);
                                     if (!obj.register.identregador) {
                                         return application.error(obj.res, { msg: `É obrigatório informar o entregador` })
                                     }
