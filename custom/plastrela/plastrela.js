@@ -3695,6 +3695,140 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_acompanhamento: async function (obj) {
+                    try {
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Inicio*'
+                                , name: 'datainicio'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Fim*'
+                                , name: 'datafim'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['datainicio', 'datafim']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let sql = await db.sequelize.query(`
+                            select * 
+                            from (select ped.codigo as pedido
+                               ,ite.codigo as produto
+                               ,(select count(*) 
+                                from pcp_apclichemontagem mon 
+                                left join pcp_apcliche              cli on (mon.idapcliche = cli.id)
+                                left join pcp_oprecurso             rec on (cli.idoprecurso = rec.id)
+                                left join pcp_opetapa               eta on (rec.idopetapa = eta.id)
+                                where eta.idop = op.id)             as total_cores
+                               ,(select min(datahoraini)
+                                from pcp_apclichemontagem mon 
+                                left join pcp_apclichemonttempo     tem on (mon.id = tem.idapclichemontagem) 
+                                left join pcp_apcliche              cli on (mon.idapcliche = cli.id)
+                                left join pcp_oprecurso             rec on (cli.idoprecurso = rec.id)
+                                left join pcp_opetapa               eta on (rec.idopetapa = eta.id)
+                                where eta.idop = op.id)             as datainicio
+                               ,(select max(datahorafim) 
+                                from pcp_apclichemontagem mon 
+                                left join pcp_apclichemonttempo     tem on (mon.id = tem.idapclichemontagem) 
+                                left join pcp_apcliche              cli on (mon.idapcliche = cli.id)
+                                left join pcp_oprecurso             rec on (cli.idoprecurso = rec.id)
+                                left join pcp_opetapa               eta on (rec.idopetapa = eta.id)
+                                where eta.idop = op.id)             as datafim
+                               ,(select use.fullname 
+                                from pcp_apclichemontagem mon 
+                                left join pcp_apclichemonttempo     tem on (mon.id = tem.idapclichemontagem) 
+                                left join pcp_apcliche              cli on (mon.idapcliche = cli.id)
+                                left join pcp_oprecurso             rec on (cli.idoprecurso = rec.id)
+                                left join pcp_opetapa               eta on (rec.idopetapa = eta.id)
+                                left join users                     use on (tem.iduser = use.id)
+                                where eta.idop = op.id limit 1)     as colaborador
+                               ,(select string_agg(mot.descricao, '<br>') 
+                                from pcp_apclichemontagem mon 
+                                left join pcp_apclichemonttempo     tem on (mon.id = tem.idapclichemontagem) 
+                                left join pcp_apcliche              cli on (mon.idapcliche = cli.id)
+                                left join pcp_oprecurso             rec on (cli.idoprecurso = rec.id)
+                                left join pcp_opetapa               eta on (rec.idopetapa = eta.id)
+                                left join users                     use on (tem.iduser = use.id)
+                                left join pcp_apclicherecolagemmotivo mot on (tem.idapclicherecolagemmotivo = mot.id)
+                                where eta.idop = op.id)             as motivo_recolagem
+                            from pcp_op op
+                            left join pcp_versao 	ver on (op.idversao = ver.id)
+                            left join cad_item 	    ite on (ver.iditem = ite.id)
+                            left join pcp_opep 	    opep on (op.id = opep.idop)
+                            left join ven_pedido 	ped on (opep.idpedido = ped.id)
+                            left join pcp_opetapa 	eta on (op.id = eta.idop)
+                            left join pcp_etapa 	e on (eta.idetapa = e.id) 
+                            left join pcp_tprecurso trec on (e.idtprecurso = trec.id)
+                            where trec.codigo = 2) as x
+                            where x.datainicio >= :datainicio
+                            and x.datafim <= :datafim
+                            order by x.datainicio asc`
+                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { datainicio: obj.req.body.datainicio, datafim: obj.req.body.datafim } }
+                            );
+                            let report = {};
+                            report.__title = obj.event.description;
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Pedido</strong></td>
+                                    <td style="text-align:center;"><strong>Produto</strong></td>
+                                    <td style="text-align:center;"><strong>Nº Cores</strong></td>
+                                    <td style="text-align:center;"><strong>Data/Hora Inicio</strong></td>
+                                    <td style="text-align:center;"><strong>Data/Hora Fim</strong></td>
+                                    <td style="text-align:center;"><strong>Colaborador</strong></td>
+                                    <td style="text-align:center;"><strong>Motivo Recolagem</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:center;"> ${sql[i]['pedido'] || ''} </td>
+                                    <td style="text-align:center;"> ${sql[i]['produto']} </td>
+                                    <td style="text-align:center;"> ${sql[i]['total_cores']} </td>
+                                    <td style="text-align:center;"> ${application.formatters.fe.datetime(sql[i]['datainicio'])} </td>
+                                    <td style="text-align:center;"> ${application.formatters.fe.datetime(sql[i]['datafim'])} </td>
+                                    <td style="text-align:left;"> ${sql[i]['colaborador']} </td>
+                                    <td style="text-align:left;"> ${sql[i]['motivo_recolagem'] || ''} </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , apclichemonttempo: {
                 onsave: async function (obj, next) {
