@@ -4754,7 +4754,7 @@ let main = {
                     });
 
                     let letters = ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-                    body += '<div class="col-md-6 no-padding">';
+                    body += '<div class="' + (obj.data.etapa != 10 ? 'hidden' : '') + '"><div class="col-md-6 no-padding">';
                     for (let i = 1; i <= 10; i++) {
                         if (i == 6) {
                             body += '</div><div class="col-md-6 no-padding">';
@@ -4770,7 +4770,7 @@ let main = {
                             , placeholder: '%'
                         });
                     }
-                    body += '</div>';
+                    body += '</div></div>';
 
                     body += application.components.html.text({
                         width: 12

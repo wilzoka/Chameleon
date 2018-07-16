@@ -35,7 +35,7 @@ $(function () {
                 customTable(table);
                 $('#' + table + '_events').find('button').remove();
                 $('button#' + table + '_insert').unbind().click(function (e) {
-                    application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', {}, function (response) {
+                    application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', { etapa: $('input[name="etapa"]').val() }, function (response) {
                         application.handlers.responseSuccess(response);
                     });
                 });
