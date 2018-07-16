@@ -70,12 +70,15 @@ let application = {
 					, value: ''
 					, precision: '2'
 					, disabled: ''
+					, placeholder: ''
 				}, obj);
 				return `
 				<div class="col-md-${obj.width}">
 					<div class="form-group">
 						<label>${obj.label}</label>
-						<input name="${ obj.name}" type="text" class="form-control" value="${obj.value}" data-type="decimal" data-precision="${obj.precision}" ${obj.disabled}>
+						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" placeholder="${obj.placeholder}" style="text-align:right;"
+							data-type="decimal"
+							data-precision="${obj.precision}" ${obj.disabled}>
 					</div>
 				</div>`;
 			}
@@ -159,7 +162,7 @@ let application = {
 				<div class="col-md-${obj.width}">
 					<div class="form-group">
 						<label>${obj.label}</label>
-						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" ${obj.disabled}
+						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" ${obj.disabled} style="text-align:right;"
 							data-type="time"
 							placeholder="hh:mm"
 						>
@@ -304,9 +307,6 @@ let application = {
 				let integer = parseInt(v);
 				let decimal = parseInt(Math.round((v - integer) * 60, 2));
 				let integerlength = integer.toString().length;
-				if (integerlength < 2) {
-					integerlength = 2;
-				}
 				return (isNegative ? '-' : '') + application.functions.lpad(integer, integerlength, '0') + ':' + application.functions.lpad(decimal, 2, '0');
 			}
 			, decimal: function (value, precision) {

@@ -45,15 +45,23 @@
                         <input name="qtd" type="text" class="form-control" value="" data-type="decimal" data-precision="4">
                     </div>
                 </div>
-
                 <div class="col-md-12">
-                    <button id="addmistura" type="button" class="btn btn-success btn-block"><i class="fa fa-plus"></i></button>
+                    <button id="addmistura" type="button" class="btn btn-success btn-block">
+                        <i class="fa fa-plus"></i>
+                    </button>
                 </div>
-
             </div>
             <hr>
             <div id="z2" class="row">
                 {{{z2}}}
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-12">
+                    <button id="finalizarmistura" type="button" class="btn btn-primary btn-block">
+                        Finalizar Mistura
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -117,6 +125,14 @@
                     $('input[name="qtd"]').val('');
                     $('input[name="codigodebarra"]').focus().val('');
                 }
+            });
+        });
+
+        $('button#finalizarmistura').click(function () {
+            application.jsfunction('plastrela.pcp.apmistura.js_finalizarMistura', {
+                idapmistura: application.functions.getId()
+            }, function (response) {
+                application.handlers.responseSuccess(response);
             });
         });
 

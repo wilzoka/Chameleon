@@ -958,7 +958,7 @@ let platform = {
     , view: {
         onsave: async function (obj, next) {
             try {
-                let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
+                let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: { $iLike: obj.register.name } } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
                 }

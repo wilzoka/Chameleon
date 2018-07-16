@@ -1318,7 +1318,7 @@ var application = {
         , info: function (message) {
             $.notify({
                 message: message
-            }, $.extend(application.notify.getOptions(), { type: 'warning', timer: message.length * 50 }));
+            }, $.extend(application.notify.getOptions(), { type: 'info', timer: message.length * 50 }));
         }
     }
     , route: {
