@@ -4939,7 +4939,7 @@ let main = {
                                 obj.data['perc' + i] = '';
                             }
                             obj.data['perc' + selects[0]] = '100.00';
-                        } else {
+                        } else if (selects.length > 1) {
                             for (let i = 1; i <= 10; i++) {
                                 if (obj.data['recipiente' + i] == 'true') {
                                     if (obj.data['perc' + i] == '') {
