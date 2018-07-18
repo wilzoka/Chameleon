@@ -3594,6 +3594,24 @@ let main = {
                         });
                     });
                 }
+                , f_solvente: function () {
+                    let http = require('http');
+                    let request = http.get('http://intranet.plastrela.com.br/SistemaH/content/Integracao/solvente205.php', function (res) {
+                        let data = '';
+                        res.on('data', function (chunk) {
+                            data += chunk;
+                        });
+                        res.on('end', function () {
+                            data = data.replace("{'Total de Solvente': ", '').replace('}', '');
+                            db.getModel('pcp_solvente').create({
+                                recurso: 205
+                                , datahora: moment()
+                                , valor: data
+                            });
+                        });
+                    });
+                    request.end();
+                }
             }
             , apclichemontagem: {
                 e_listaUltimaMontagem: async (obj) => {
@@ -3684,9 +3702,6 @@ let main = {
                                 , fullscreen: true
                             }
                         });
-
-
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5009,6 +5024,7 @@ let main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: apinsumos[0].idoprecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        
                         for (let i = 0; i < apinsumos.length; i++) {
                             if (apinsumos[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
@@ -5026,12 +5042,12 @@ let main = {
                             let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
                             let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
 
-                            if (volume.metragem) {
-                                volume.metragem = ((parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal).toFixed(2);
-                                if (isNaN(volume.metragem)) {
-                                    volume.metragem = null;
-                                }
-                            }
+                            // if (volume.metragem) {
+                            //     volume.metragem = ((parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal).toFixed(2);
+                            //     if (isNaN(volume.metragem) || isFinite(volume.metragem)) {
+                            //         volume.metragem = null;
+                            //     }
+                            // }
 
                             volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
                             volume.consumido = false;
@@ -5043,12 +5059,12 @@ let main = {
 
                         if (saved.success) {
                             for (let i = 0; i < volumes.length; i++) {
-                                volumes[i].save();
+                                await volumes[i].save();
                             }
                             for (let i = 0; i < volumesreservas.length; i++) {
                                 if (volumesreservas[i].idop = op.id) {
                                     volumesreservas[i].apontado = false;
-                                    volumesreservas[i].save();
+                                    await volumesreservas[i].save();
                                 }
                             }
                         }
@@ -5184,6 +5200,9 @@ let main = {
                         }
 
                         let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: obj.register.idapinsumo } });
+                        if (!apinsumo) {
+                            return application.error(obj.res, { msg: 'Este insumo não está mais apontado, verifique' });
+                        }
                         let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
 
                         if (volume.metragem) {

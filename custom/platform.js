@@ -91,6 +91,45 @@ let platform = {
             });
         }
     }
+    , maintenance: {
+        f_clearTemporaryFiles: function () {
+            fs.readdir(__dirname + '/../tmp', function (err, files) {
+                if (err) {
+                    return;
+                }
+                for (var i = 0; i < files.length; i++) {
+                    let file = __dirname + '/../tmp/' + files[i];
+                    fs.stat(file, function (err, stats) {
+                        if (err) {
+                            return;
+                        }
+                        let bt = moment(stats.birthtime);
+                        let diff = moment().diff(bt, 'days');
+                        if (diff > 0) {
+                            fs.unlink(file, (err) => { });
+                        }
+                    });
+                }
+            });
+        }
+        , f_clearUnboundFiles: function () {
+            db.sequelize.query(`
+                select
+                    *
+                from
+                    file 
+                where
+                    datetime < now()::date -1 and
+                    bounded = false`
+                , { type: db.Sequelize.QueryTypes.SELECT }).then(sql => {
+                    for (let i = 0; i < sql.length; i++) {
+                        let file = __dirname + '/../files/' + sql[i].id + '.' + sql[i].type;
+                        fs.unlink(file, (err) => { });
+                        db.getModel('file').destroy({ where: { id: sql[i].id } });
+                    }
+                });
+        }
+    }
     , menu: {
         onsave: async function (obj, next) {
             await next(obj);
