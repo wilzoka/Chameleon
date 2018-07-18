@@ -4953,7 +4953,7 @@ let main = {
                             for (let i = 1; i <= 10; i++) {
                                 obj.data['perc' + i] = '';
                             }
-                            obj.data['perc' + selects[0]] = '100.00';
+                            obj.data['perc' + selects[0]] = '100,00';
                         } else if (selects.length > 1) {
                             for (let i = 1; i <= 10; i++) {
                                 if (obj.data['recipiente' + i] == 'true') {
@@ -4975,7 +4975,7 @@ let main = {
                             volume.consumido = true;
                         }
                         volume.iddeposito = recurso.iddepositoprodutivo;
-
+                        
                         if (selects.length > 0) {
                             for (let i = 0; i < selects.length; i++) {
                                 await db.getModel('pcp_apinsumo').create({
@@ -4983,7 +4983,7 @@ let main = {
                                     , idvolume: obj.data.idvolume
                                     , idoprecurso: obj.data.idoprecurso
                                     , datahora: moment()
-                                    , qtd: (qtd * (parseFloat(obj.data['perc' + selects[i]]) / 100)).toFixed(4)
+                                    , qtd: (qtd * (application.formatters.be.decimal(obj.data['perc' + selects[i]]) / 100)).toFixed(4)
                                     , produto: obj.data.idvolume + ' - ' + (versao ? versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
                                     , recipiente: alpha[selects[i]]
                                 });
@@ -5024,7 +5024,7 @@ let main = {
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: apinsumos[0].idoprecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
-                        
+
                         for (let i = 0; i < apinsumos.length; i++) {
                             if (apinsumos[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
