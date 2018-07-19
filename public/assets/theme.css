@@ -217,12 +217,12 @@ div.dz-image img {
     left: 59%;
 }
 .dropzone .dz-preview .dz-image {    
-    border-radius: 5px;
+    border-radius: 0px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
 .dropzone .dz-preview.dz-file-preview .dz-image {    
-    border-radius: 5px;
+    border-radius: 0px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -234,6 +234,10 @@ div.dz-image img {
 }
 .dropzone .dz-preview.dz-error .dz-error-mark {
     color: red
+}
+.dropzone .dz-preview .dz-image {
+    border-radius: 0px;
+    height: 105px;
 }
 
 /* Custom */

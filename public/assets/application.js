@@ -353,7 +353,8 @@ var application = {
                 + '<div class="dz-error-mark">'
                 + '<i class="fa fa-3x fa-times"></i>'
                 + '</div>'
-                + '<button type="button" class="btn btn-xs btn-block btn-danger" data-dz-remove style="border-top-left-radius: 0; border-top-right-radius: 0;">Remover</button>'
+                + '<div class="col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-xs btn-block" title="Download"><i class="fa fa-download"></i></button></a></div>'
+                + '<div class="col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-trash"></i></button></a></div>'
                 + '</div>';
             $obj.each(function () {
                 var dz = new Dropzone(this, {
@@ -383,6 +384,7 @@ var application = {
                 });
                 dz.on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
+                    $(file.previewElement).find('a').attr('href', '/file/download/' + file.id);
                 });
                 dz.on('removedfile', function (file) {
                     if (file.accepted) {
@@ -412,19 +414,6 @@ var application = {
                     dz.emit("complete", mockFile);
                     dz.files.push(mockFile);
                 }
-                $(this).on('click', 'div.dz-preview', function () {
-                    $.ajax({
-                        url: '/file/preview/' + $(this).attr('data-id')
-                        , type: 'GET'
-                        , dataType: 'json'
-                        , success: function (response) {
-                            application.handlers.responseSuccess(response);
-                        }
-                        , error: function (response) {
-                            application.handlers.responseError(response);
-                        }
-                    });
-                });
             });
         }
         , georeference: function ($obj) {

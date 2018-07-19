@@ -62,13 +62,21 @@ module.exports = function (app) {
             let filename = file.id + '.' + file.type;
             let filepath = __dirname + '/../files/' + file.id + '.' + file.type;
             if (fs.existsSync(filepath)) {
-                if (file.mimetype == 'application/pdf') {
-                    let filecontent = fs.readFileSync(filepath);
-                    res.setHeader('Content-type', 'application/pdf');
-                    res.send(filecontent);
-                } else {
-                    res.download(filepath, file.filename);
+                let filestream = fs.createReadStream(filepath);
+                let attachment = 'attachment';
+                let previewTypes = [
+                    'application/pdf'
+                    , 'image/'
+                ];
+                for (let i = 0; i < previewTypes.length; i++) {
+                    if (file.mimetype.indexOf(previewTypes[i]) >= 0) {
+                        attachment = '';
+                        break;
+                    }
                 }
+                res.setHeader('Content-type', file.mimetype);
+                res.setHeader('Content-Disposition', attachment + ';filename=' + file.filename);
+                filestream.pipe(res);
             } else {
                 res.send('Arquivo inexistente');
             }
