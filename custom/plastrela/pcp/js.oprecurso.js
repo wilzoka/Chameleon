@@ -96,7 +96,10 @@ $(function () {
                                 $modal.find('input[name="idvolume"]').val(response.data.id);
                                 $modal.find('input[name="qtdreal"]').val(response.data.qtdreal);
                                 $modal.find('input[name="produto"]').val(response.data.produto);
-                                $modal.find('input[name="qtd"]').focus().val(response.data.qtdreal);
+                                if ($('input[name="etapa"]').val() != '10') {
+                                    $modal.find('input[name="qtd"]').val(response.data.qtdreal);
+                                }
+                                $modal.find('input[name="qtd"]').focus();
                             } else {
                                 $modal.find('input[name="idvolume"]').val('');
                                 $modal.find('input[name="qtdreal"]').val('');
@@ -149,6 +152,17 @@ $(function () {
 
                 break;
         }
+
+        $('#aplicarRateio').click(function () {
+            application.jsfunction('plastrela.pcp.oprecurso.js_aplicarRateio', {
+                idoprecurso: application.functions.getId()
+            }, function (response) {
+                application.handlers.responseSuccess(response);
+                if (response.success) {
+                    $('#modalevt').modal('hide');
+                }
+            });
+        });
 
     });
 
@@ -224,6 +238,14 @@ $(function () {
 
     $('#listarInsumos').click(function () {
         application.jsfunction('plastrela.pcp.oprecurso.js_listarInsumos', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            application.handlers.responseSuccess(response);
+        });
+    });
+
+    $('#ratearInsumos').click(function () {
+        application.jsfunction('plastrela.pcp.oprecurso.js_ratearInsumos', {
             idoprecurso: application.functions.getId()
         }, function (response) {
             application.handlers.responseSuccess(response);

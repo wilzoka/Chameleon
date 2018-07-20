@@ -2831,7 +2831,7 @@ let main = {
                             }
                         });
 
-                        if ((qtdreservada + parseFloat(obj.register.qtd)).toFixed(2) > parseFloat(volume.qtdreal)) {
+                        if ((qtdreservada + parseFloat(obj.register.qtd)).toFixed(4) > parseFloat(volume.qtdreal)) {
                             return application.error(obj.res, { msg: 'Este volume não possui essa quantidade para ser reservado' });
                         }
 
@@ -4975,7 +4975,7 @@ let main = {
                             volume.consumido = true;
                         }
                         volume.iddeposito = recurso.iddepositoprodutivo;
-                        
+
                         if (selects.length > 0) {
                             for (let i = 0; i < selects.length; i++) {
                                 await db.getModel('pcp_apinsumo').create({
@@ -6185,6 +6185,404 @@ let main = {
                         obj.id = apcliche.id;
                         main.plastrela.pcp.apclichemontagem.e_listaUltimaMontagem(obj);
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_ratearInsumos: async (obj) => {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        if (!oprecurso) {
+                            return application.error(obj.res, { msg: 'OP Não encontrada' });
+                        }
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+
+                        let sql = await db.sequelize.query(`
+                        with componente as (
+                            select vcom.id
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            left join pcp_versao v on (op.idversao = v.id)
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where
+                                opr.id = ${oprecurso.id}
+                            order by c.grupo
+                        )
+                        
+                        select
+                            api.produto
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join pcp_versao ver on (v.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao not in (select * from componente)
+                        
+                        union all
+                        
+                        select
+                            'MISTURA ID ' || v.id || ' - ' || ver.descricaocompleta
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join est_volumemistura vm on (vm.idvolume = v.id)
+                        left join est_volume vmv on (vm.idvmistura = vmv.id)
+                        left join pcp_versao ver on (vmv.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao is null
+                            and ver.id not in (select * from componente)
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+                        let produtosforadacomp = [];
+                        for (let i = 0; i < sql.length; i++) {
+                            produtosforadacomp.push(sql[i].produto);
+                        }
+                        if (sql.length > 0) {
+                            return application.error(obj.res, { msg: 'Os produtos a seguir não estão na composiçao:<br>' + produtosforadacomp.join('<br>') });
+                        }
+
+                        sql = await db.sequelize.query(`
+                        with percentuais as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , sum((c.quantidade_aplicada * perc_cobertura) / 100) as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            group by 1,2
+                            ), percentuaisindiv as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , c.grupo
+                                , (c.quantidade_aplicada * perc_cobertura) / 100 as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            )
+    
+                            select
+                                x.*
+                                , wp.perc
+                                , wpi.grupo
+                                , wpi.perc
+                                , x.qtd * (wpi.perc / wp.perc) as qtdrateada
+                            from
+                                ( select idversao, insumo, descricaocompleta, sum(qtd) as qtd from (select
+                                    op.idversao
+                                    , ver.id as insumo
+                                    , ver.descricaocompleta
+                                    , api.qtd as qtd
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                left join pcp_op op on (ope.idop = op.id)
+                                left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                left join est_volume v on (api.idvolume = v.id)
+                                inner join pcp_versao ver on (v.idversao = ver.id)
+                                where
+                                    opr.id = ${oprecurso.id}
+    
+                            union all
+    
+                            select
+                                            op.idversao
+                                            , ver.id as insumo
+                                            , ver.descricaocompleta
+                                            , round(api.qtd * (vm.qtd / v.qtd), 4) as qtd
+                                        from
+                                            pcp_oprecurso opr
+                                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                        left join pcp_op op on (ope.idop = op.id)
+                                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                        left join est_volume v on (api.idvolume = v.id)
+                            left join est_volumemistura vm on (vm.idvolume = v.id)
+                            left join est_volume vmv on (vm.idvmistura = vmv.id)
+                            left join pcp_versao ver on (vmv.idversao = ver.id)
+                                        where
+                            v.idversao is null
+                                            and opr.id = ${oprecurso.id}
+                                        ) as x  group by 1,2,3) as x
+                            left join percentuais wp on (x.insumo = wp.id)
+                            left join percentuaisindiv wpi on (x.insumo = wpi.id)
+                            order by wpi.grupo, x.descricaocompleta
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+
+                        let body = `
+                        <div class="col-md-12">
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>Recipiente</strong></td>
+                                <td style="text-align:center;"><strong>Insumo</strong></td>
+                                <td style="text-align:center;"><strong>Qtd</strong></td>
+                            </tr>
+                        `;
+                        let total = 0;
+                        for (let i = 0; i < sql.length; i++) {
+                            body += `
+                            <tr>
+                                <td style="text-align:center;"><strong> ${sql[i].grupo}</strong></td>
+                                <td style="text-align:left;">  ${sql[i].descricaocompleta}   </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.decimal(sql[i].qtdrateada, 4)}   </td>
+                            </tr>
+                            `;
+                            total += parseFloat(sql[i].qtdrateada);
+                        }
+                        body += `
+                            <tr>
+                                <td style="text-align:center;">  TOTAL  </td>
+                                <td style="text-align:left;">     </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.decimal(total, 4)}   </td>
+                            </tr>
+                        </table>
+                        </div>
+                        `;
+
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , title: 'Insumos'
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button><button id="aplicarRateio" type="button" class="btn btn-primary">Aplicar</button>'
+                            }
+                        });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_aplicarRateio: async (obj) => {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        if (!oprecurso) {
+                            return application.error(obj.res, { msg: 'OP Não encontrada' });
+                        }
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+
+                        let sql = await db.sequelize.query(`
+                        with componente as (
+                            select vcom.id
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            left join pcp_versao v on (op.idversao = v.id)
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where
+                                opr.id = ${oprecurso.id}
+                            order by c.grupo
+                        )
+                        
+                        select
+                            api.produto
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join pcp_versao ver on (v.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao not in (select * from componente)
+                        
+                        union all
+                        
+                        select
+                            'MISTURA ID ' || v.id || ' - ' || ver.descricaocompleta
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join est_volumemistura vm on (vm.idvolume = v.id)
+                        left join est_volume vmv on (vm.idvmistura = vmv.id)
+                        left join pcp_versao ver on (vmv.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao is null
+                            and ver.id not in (select * from componente)
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+                        let produtosforadacomp = [];
+                        for (let i = 0; i < sql.length; i++) {
+                            produtosforadacomp.push(sql[i].produto);
+                        }
+                        if (sql.length > 0) {
+                            return application.error(obj.res, { msg: 'Os produtos a seguir não estão na composiçao:<br>' + produtosforadacomp.join('<br>') });
+                        }
+
+                        sql = await db.sequelize.query(`
+                        with percentuais as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , sum((c.quantidade_aplicada * perc_cobertura) / 100) as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            group by 1,2
+                            ), percentuaisindiv as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , c.grupo
+                                , (c.quantidade_aplicada * perc_cobertura) / 100 as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            )
+    
+                            select
+                                x.*
+                                , wp.perc
+                                , wpi.grupo
+                                , wpi.perc
+                                , x.qtd * (wpi.perc / wp.perc) as qtdrateada
+                            from
+                                ( select idversao, insumo, descricaocompleta, sum(qtd) as qtd from (select
+                                    op.idversao
+                                    , ver.id as insumo
+                                    , ver.descricaocompleta
+                                    , api.qtd as qtd
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                left join pcp_op op on (ope.idop = op.id)
+                                left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                left join est_volume v on (api.idvolume = v.id)
+                                inner join pcp_versao ver on (v.idversao = ver.id)
+                                where
+                                    opr.id = ${oprecurso.id}
+    
+                            union all
+    
+                            select
+                                            op.idversao
+                                            , ver.id as insumo
+                                            , ver.descricaocompleta
+                                            , round(api.qtd * (vm.qtd / v.qtd), 4) as qtd
+                                        from
+                                            pcp_oprecurso opr
+                                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                        left join pcp_op op on (ope.idop = op.id)
+                                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                        left join est_volume v on (api.idvolume = v.id)
+                            left join est_volumemistura vm on (vm.idvolume = v.id)
+                            left join est_volume vmv on (vm.idvmistura = vmv.id)
+                            left join pcp_versao ver on (vmv.idversao = ver.id)
+                                        where
+                            v.idversao is null
+                                            and opr.id = ${oprecurso.id}
+                                        ) as x  group by 1,2,3) as x
+                            left join percentuais wp on (x.insumo = wp.id)
+                            left join percentuaisindiv wpi on (x.insumo = wpi.id)
+                            order by wpi.grupo, x.descricaocompleta
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+
+                        //desmembra as misturas, aponta e deleta as misturas nos insumos
+                        let misturas = await db.sequelize.query(`
+                        select
+                            vmv.id
+                            , ver.descricaocompleta
+                            , round(api.qtd * (vm.qtd / v.qtd), 4) as qtd
+                            , api.iduser
+                            , api.datahora
+                            , api.id as idapinsumo
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join est_volumemistura vm on (vm.idvolume = v.id)
+                        left join est_volume vmv on (vm.idvmistura = vmv.id)
+                        left join pcp_versao ver on (vmv.idversao = ver.id)
+                        where
+                            v.idversao is null
+                            and opr.id = ${oprecurso.id}
+                            `, { type: db.Sequelize.QueryTypes.SELECT });
+                        let misturasdelete = [];
+                        for (let i = 0; i < misturas.length; i++) {
+                            await db.getModel('pcp_apinsumo').create({
+                                iduser: misturas[i].iduser
+                                , idvolume: misturas[i].id
+                                , idoprecurso: oprecurso.id
+                                , datahora: misturas[i].datahora
+                                , qtd: misturas[i].qtd
+                                , produto: misturas[i].descricaocompleta
+                            });
+                            misturasdelete.push(misturas[i].idapinsumo);
+                        }
+                        await db.getModel('pcp_apinsumo').destroy({ where: { id: { $in: misturasdelete } } });
+
+                        let apinsumodeleted = [];
+                        for (let i = 0; i < sql.length; i++) {
+
+                            let restante = parseFloat((parseFloat(sql[i].qtdrateada).toFixed(4)));
+                            let insumos = await db.sequelize.query(`
+                            select api.* from pcp_apinsumo api left join est_volume v on (api.idvolume = v.id) where api.idoprecurso = ${oprecurso.id} and v.idversao = ${sql[i].insumo} and recipiente is null`
+                                , { type: db.Sequelize.QueryTypes.SELECT });
+
+                            for (let z = 0; z < insumos.length; z++) {
+                                let pesolancamento = 0;
+                                if (parseFloat(insumos[z].qtd) < restante) {
+                                    pesolancamento = parseFloat(insumos[z].qtd);
+                                    restante -= parseFloat(pesolancamento);
+                                } else {
+                                    pesolancamento = restante;
+                                    restante = 0;
+                                }
+
+                                let apinsumo = await db.getModel('pcp_apinsumo').find({
+                                    where: { id: insumos[z].id }
+                                });
+                                apinsumo.qtd = (parseFloat(apinsumo.qtd) - pesolancamento).toFixed(4);
+                                if (apinsumo.qtd > 0) {
+                                    await apinsumo.save();
+                                } else {
+                                    await apinsumo.destroy();
+                                }
+
+                                await db.getModel('pcp_apinsumo').create({
+                                    iduser: insumos[z].iduser
+                                    , idvolume: insumos[z].idvolume
+                                    , idoprecurso: insumos[z].idoprecurso
+                                    , datahora: insumos[z].datahora
+                                    , qtd: pesolancamento.toFixed(4)
+                                    , produto: insumos[z].produto
+                                    , recipiente: sql[i].grupo
+                                });
+
+                                if (restante == 0) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
