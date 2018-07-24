@@ -4321,7 +4321,7 @@ let main = {
                         let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where apv.id != ' + (obj.register.id || 0) + ' and ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
 
                         if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.pesoliquido)) < 0) {
-                            return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                            // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
 
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
@@ -4513,7 +4513,7 @@ let main = {
                             let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
 
                             if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + (parseFloat(pesoliquido) * obj.req.body.qtdvolumes)) < 0) {
-                                return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                                // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                             }
 
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
@@ -4589,7 +4589,7 @@ let main = {
                         let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
 
                         if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.peso)) < 0) {
-                            return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                            // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
 
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
