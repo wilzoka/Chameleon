@@ -5757,7 +5757,7 @@ let main = {
                             let sql2 = await db.sequelize.query(
                                 
                                     `
-                                select
+                                select descricao, qtd from (select
                                     coalesce(v.descricaocompleta, vol.observacao, 'Mistura') as descricao
                                     , sum(round(api.qtd * (volm.qtd / vol.qtd), 4)) as qtd
                                 from
@@ -5772,7 +5772,7 @@ let main = {
                                     and vol.idversao is null
                                     and api.recipiente = :recipiente
                                 group by 1
-                                order by 1
+                                
                                 
                                 union all
 
@@ -5789,6 +5789,7 @@ let main = {
                                     opr.id = :idoprecurso
                                     and api.recipiente = :recipiente
                                 group by 1
+                                ) as x
                                 order by 1
                                 `
                                 , {
