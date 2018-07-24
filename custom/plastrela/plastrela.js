@@ -5755,7 +5755,7 @@ let main = {
                                 `;
 
                             let sql2 = await db.sequelize.query(
-                                etapa.codigo == 10 ?
+                                
                                     `
                                 select
                                     coalesce(v.descricaocompleta, vol.observacao, 'Mistura') as descricao
@@ -5769,12 +5769,13 @@ let main = {
                                 left join pcp_versao v on (volmv.idversao = v.id)
                                 where
                                     opr.id = :idoprecurso
+                                    and vol.idversao is null
                                     and api.recipiente = :recipiente
                                 group by 1
                                 order by 1
-                                `
-                                    :
-                                    `
+                                
+                                union all
+
                                 select
                                     i.descricao
                                     , sum(api.qtd) as qtd
@@ -5782,7 +5783,7 @@ let main = {
                                     pcp_oprecurso opr
                                 left join pcp_apinsumo api on (api.idoprecurso = opr.id)
                                 left join est_volume vol on (api.idvolume = vol.id)
-                                left join pcp_versao v on (vol.idversao = v.id)
+                                inner join pcp_versao v on (vol.idversao = v.id)
                                 left join cad_item i on (v.iditem = i.id)
                                 where
                                     opr.id = :idoprecurso

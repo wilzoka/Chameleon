@@ -154,13 +154,15 @@ $(function () {
         }
 
         $('#aplicarRateio').click(function () {
-            application.jsfunction('plastrela.pcp.oprecurso.js_aplicarRateio', {
-                idoprecurso: application.functions.getId()
-            }, function (response) {
-                application.handlers.responseSuccess(response);
-                if (response.success) {
-                    $('#modalevt').modal('hide');
-                }
+            application.functions.confirmMessage('Confirma o rateio OP?', function () {
+                application.jsfunction('plastrela.pcp.oprecurso.js_aplicarRateio', {
+                    idoprecurso: application.functions.getId()
+                }, function (response) {
+                    application.handlers.responseSuccess(response);
+                    if (response.success) {
+                        $('#modalevt').modal('hide');
+                    }
+                });
             });
         });
 
