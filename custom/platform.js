@@ -737,7 +737,7 @@ let platform = {
                     }
                     db.getModel('report').find({ where: where }).then(report => {
                         if (!report) {
-                            return reject('Relatório não encontrado');
+                            return reject(`Relatório ${report} não encontrado`);
                         }
                         db.getModel('config').find({ raw: true }).then(config => {
                             replaces.__reportimage = '';

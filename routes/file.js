@@ -59,7 +59,13 @@ module.exports = function (app) {
 
     app.get('/file/download/:id', application.IsAuthenticated, async (req, res) => {
         try {
+            if (isNaN(req.params.id)) {
+                return res.send('Arquivo inválido');
+            }
             let file = await db.getModel('file').find({ where: { id: req.params.id } })
+            if (!file) {
+                return res.send('Arquivo inválido');
+            }
             let filepath = __dirname + '/../files/' + file.id + '.' + file.type;
             if (fs.existsSync(filepath)) {
                 let filestream = fs.createReadStream(filepath);
@@ -84,7 +90,7 @@ module.exports = function (app) {
                 res.send('Arquivo inexistente');
             }
         } catch (err) {
-            return application.fatal(obj.res, err);
+            return application.fatal(res, err);
         }
     });
 
@@ -118,7 +124,7 @@ module.exports = function (app) {
                 });
             });
         } catch (err) {
-            return application.fatal(obj.res, err);
+            return application.fatal(res, err);
         }
     });
 }

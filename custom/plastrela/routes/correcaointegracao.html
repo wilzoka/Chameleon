@@ -1,0 +1,142 @@
+<style>
+    thead {
+        display: none;
+    }
+</style>
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-body">
+            <table id="table" class="table table-hover dataTable" style="width: 100%;">
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <input type="hidden" id="fid" name="fid">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Texto</label>
+                            <input id="ftexto" name="ftexto" type="text" class="form-control" data-type="text">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
+                <button id="corrigir" type="button" class="btn btn-primary">Corrigir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function ($) {
+
+        var table = $('#table').DataTable({
+            dom: 'ftp'
+            , columnDefs: [
+                { targets: 0, orderable: false }
+                , { targets: 1, orderable: false, width: '500px' }
+                , { targets: 2, orderable: false, width: '500px' }
+                , {
+                    targets: 4, orderable: false, class: 'text-center', render: function (data) {
+                        return '<div class="action-buttons">\n\
+                                        <a class="red" href="javascript:void(0)" style="color:red;">\n\
+                                            <i class="ace-icon fa fa-trash-o bigger-130"></i>\n\
+                                        </a>\n\
+                                    </div>';
+                    }
+                }
+            ]
+            , pageLength: 20
+            , order: [[0, 'desc']]
+        }).on('click', 'tbody td:not(:first-child,:last-child)', function (e) {
+            if ($(this).hasClass('dataTables_empty'))
+                return;
+            var $row = $(this).closest('tr');
+            var data = table.row($row).data();
+            $('#fid').val(data[0]);
+            $('#ftexto').val(data[2]);
+            $('#modal').modal('show');
+        }).on('click', 'tbody td:last-child a.red', function (e) {
+            var $row = $(this).closest('tr');
+            var data = table.row($row).data();
+            application.functions.confirmMessage('Confirma a exclusão deste registro?', function () {
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php',
+                    data: {
+                        function: 'PLAIniflexSQL', param: JSON.stringify([
+                            "delete from integracao.integracaoiniflex2 where id = " + data[0]
+                        ])
+                    },
+                    success: function (response) {
+                        application.notify.success('Ação realizada com sucesso');
+                        reloadthistable();
+                    }
+                });
+            });
+        });
+
+        function reloadthistable() {
+
+            var where = ' ';
+            if (localStorage.getItem('descriptionmenumini') == 'RS') {
+                where += "and (to_char(x.texto_integ) like '10|1%' or to_char(x.texto_integ) like '11|1%' or to_char(x.texto_integ) like '20|1%' or to_char(x.texto_integ) like '30|1%' or to_char(x.texto_integ) like '40|1%')";
+            } else {
+                where += "and (to_char(x.texto_integ) like '10|2%' or to_char(x.texto_integ) like '11|2%' or to_char(x.texto_integ) like '20|2%' or to_char(x.texto_integ) like '30|2%' or to_char(x.texto_integ) like '40|2%')";
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php',
+                data: {
+                    function: 'PLAIniflexSQL', param: JSON.stringify([
+                        "select x.id, x.leiaute_integ, to_char(x.texto_integ) as texto_integ, to_char(x.informacao_erro) as informacao_erro from integracao.integracaoiniflex2 x where situacao_integ = 'E' " + where + " order by x.id"
+                    ])
+                },
+                success: function (response) {
+                    var obj = JSON.parse(response);
+                    table.clear().draw();
+                    for (var i = 0; i < obj.count; i++) {
+                        table.row.add([
+                            obj.data.ID[i]
+                            , obj.data.LEIAUTE_INTEG[i]
+                            , obj.data.TEXTO_INTEG[i]
+                            , obj.data.INFORMACAO_ERRO[i]
+                            , obj.data.ID[i]
+                        ]);
+                    }
+                    table.draw();
+                    table.columns.adjust();
+                }
+            });
+
+        }
+        reloadthistable();
+
+        $('#corrigir').click(function (e) {
+            $.ajax({
+                type: 'POST',
+                url: 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php',
+                data: {
+                    function: 'PLAIniflexSQL', param: JSON.stringify([
+                        "update integracao.integracaoiniflex2 set texto_integ = '" + $('#ftexto').val() + "' where id = " + $('#fid').val()
+                    ])
+                },
+                success: function (response) {
+                    application.notify.success('Ação realizada com sucesso');
+                    $('#modal').modal('hide');
+                    reloadthistable();
+                }
+            });
+        });
+    });
+
+</script>

@@ -353,8 +353,8 @@ var application = {
                 + '<div class="dz-error-mark">'
                 + '<i class="fa fa-3x fa-times"></i>'
                 + '</div>'
-                + '<div class="col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-xs btn-block" title="Download"><i class="fa fa-download"></i></button></a></div>'
-                + '<div class="col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-trash"></i></button></a></div>'
+                + '<div class="col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-xs btn-block" title="Download"><i class="fa fa-2x fa-download"></i></button></a></div>'
+                + '<div class="col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash"></i></button></a></div>'
                 + '</div>';
             $obj.each(function () {
                 var dz = new Dropzone(this, {
@@ -378,6 +378,7 @@ var application = {
                         });
                         $hidden.val(JSON.stringify(value));
                         $(file.previewElement).attr('data-id', response.data.id);
+                        $(file.previewElement).find('a').attr('href', '/file/download/' + response.data.id);
                     }
                     , parallelUploads: 1
                     , timeout: null
