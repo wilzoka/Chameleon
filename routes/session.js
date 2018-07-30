@@ -34,7 +34,11 @@ passport.use(new LocalStrategy(function (username, password, done) {
 module.exports = function (app) {
 
     app.get('/login', function (req, res) {
-        return application.render(res, __dirname + '/../views/login.html', {});
+        if (req.isAuthenticated()) {
+            return res.redirect('/home');
+        } else {
+            return application.render(res, __dirname + '/../views/login.html', {});
+        }
     });
 
     app.post('/login', passport.authenticate('local', {}), async (req, res) => {

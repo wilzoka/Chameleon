@@ -5755,8 +5755,8 @@ let main = {
                                 `;
 
                             let sql2 = await db.sequelize.query(
-                                
-                                    `
+
+                                `
                                 select descricao, qtd from (select
                                     coalesce(v.descricaocompleta, vol.observacao, 'Mistura') as descricao
                                     , sum(round(api.qtd * (volm.qtd / vol.qtd), 4)) as qtd
@@ -6184,6 +6184,9 @@ let main = {
                 , e_listaUltimoSetupImp: async (obj) => {
                     try {
                         let apcliche = await db.getModel('pcp_apcliche').find({ where: { idoprecurso: obj.id } });
+                        if (!apcliche) {
+                            return application.error(obj.res, { msg: 'APCliche não encontrado' });
+                        }
                         obj.id = apcliche.id;
                         main.plastrela.pcp.apclichemontagem.e_listaUltimaMontagem(obj);
 
