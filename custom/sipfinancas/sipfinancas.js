@@ -656,6 +656,7 @@ let main = {
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
                                 where
                                     cat.dc in (2)
+                                    and m.quitado = false
                                     and m.datavcto >= :dataini
                                     and m.datavcto <= :datafim
                                     ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
@@ -786,6 +787,7 @@ let main = {
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
                                 where
                                     cat.dc in (1)
+                                    and m.quitado = false
                                     and m.datavcto >= :dataini
                                     and m.datavcto <= :datafim
                                     ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
