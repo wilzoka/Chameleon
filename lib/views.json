@@ -943,6 +943,7 @@
         "model": "route",
         "module": "Plataforma",
         "url": "rota",
+        "fastsearch": "description",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1145,6 +1146,7 @@
         "model": "users",
         "module": "Plataforma",
         "url": "usuario",
+        "fastsearch": "fullname",
         "_field": [
             {
                 "templatezone": "z1",

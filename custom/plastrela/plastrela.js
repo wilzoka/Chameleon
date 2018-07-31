@@ -4448,7 +4448,7 @@ let main = {
                                 width: '4'
                                 , label: 'Quantidade*'
                                 , name: 'qtd'
-                                , precision: 4
+                                , precision: 2
                             });
                             body += application.components.html.decimal({
                                 width: '4'
@@ -4460,7 +4460,7 @@ let main = {
                                 width: '4'
                                 , label: 'Tara(Kg)*'
                                 , name: 'tara'
-                                , precision: 2
+                                , precision: 4
                             });
 
                             return application.success(obj.res, {
@@ -5576,6 +5576,13 @@ let main = {
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
 
+                        if (etapa.codigo == 10) {
+                            let api = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
+                            if (api.length > 0) {
+                                return application.error(obj.res, { msg: 'OPs na extrusão devem ser feito o rateio/apontadas na camada antes de serem encerradas' });
+                            }
+                        }
+
                         let sql = await db.sequelize.query(`
                         select
                             sum((select sum(apv.pesoliquido) from pcp_approducaovolume apv where ap.id = apv.idapproducao)) as sumprod
@@ -5590,6 +5597,14 @@ let main = {
                             });
                         if (sql.length <= 0 || parseFloat(sql[0].sumprod || 0) <= 0 || parseFloat(sql[0].qtdtempo || 0) <= 0) {
                             return application.error(obj.res, { msg: 'OP sem produção' });
+                        }
+
+                        let apps = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
+                        for (let i = 0; i < apps.length; i++) {
+                            let appt = await db.getModel('pcp_approducaotempo').find({ where: { idapproducao: apps[i].id } });
+                            if (!appt) {
+                                return application.error(obj.res, { msg: 'Existe uma produção sem tempo apontado, verifique' });
+                            }
                         }
 
                         let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
