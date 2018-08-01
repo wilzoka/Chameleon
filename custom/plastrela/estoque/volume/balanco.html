@@ -129,7 +129,7 @@
                 , { title: "Produto", data: "produto", name: "produto", orderable: true }
                 , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false, class: 'text-right' }
             ]
-            , pageLength: -1
+            , pageLength: 500
         }).on('click', 'tbody tr', function (e) {
             data = tablefound.row(this).data();
             $row = this;
