@@ -1012,7 +1012,6 @@ var application = {
             }
 
             var $button = $('button.btnfilter[data-table="' + idtable + '"]');
-            console.log(cookie);
             if (cookie.length > 0) {
                 $button.removeClass('btn-default').addClass('btn-primary');
                 Cookies.set($modal[0].id, JSON.stringify(cookie));
