@@ -121,7 +121,7 @@
         var ajustes = {};
 
         var tablefound = $('#tablefound').DataTable({
-            dom: 'fti'
+            dom: 'ftip'
             , columns: [
                 { title: "ID", data: "id", name: "id", orderable: true }
                 , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
@@ -130,6 +130,7 @@
                 , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false, class: 'text-right' }
             ]
             , pageLength: 500
+            , paging: true
         }).on('click', 'tbody tr', function (e) {
             data = tablefound.row(this).data();
             $row = this;
@@ -144,7 +145,7 @@
         });
 
         var tablenotfound = $('#tablenotfound').DataTable({
-            dom: 'fti'
+            dom: 'ftip'
             , columns: [
                 { title: "ID", data: "id", name: "id", orderable: true }
                 , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
@@ -152,7 +153,8 @@
                 , { title: "Produto", data: "produto", name: "produto", orderable: true }
                 , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false, class: 'text-right' }
             ]
-            , pageLength: -1
+            , pageLength: 500
+            , paging: true
         }).on('click', 'tbody tr', function (e) {
             data = tablenotfound.row(this).data();
             $row = this;
