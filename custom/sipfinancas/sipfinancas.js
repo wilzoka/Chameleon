@@ -656,6 +656,7 @@ let main = {
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
                                 where
                                     cat.dc in (2)
+                                    and m.quitado = false
                                     and m.datavcto >= :dataini
                                     and m.datavcto <= :datafim
                                     ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
@@ -786,6 +787,7 @@ let main = {
                                 left join fin_categoria cat on (m.idcategoria = cat.id)
                                 where
                                     cat.dc in (1)
+                                    and m.quitado = false
                                     and m.datavcto >= :dataini
                                     and m.datavcto <= :datafim
                                     ${obj.req.body.idcategoria ? 'and m.idcategoria = ' + obj.req.body.idcategoria : ''}  
@@ -993,7 +995,6 @@ let main = {
             , movparc: {
                 ondelete: async function (obj, next) {
                     try {
-
                         let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
                         let ids = [];
                         let mpc = [];
@@ -1026,19 +1027,21 @@ let main = {
                             await movaux.destroy();
                         }
 
-                        next(obj);
+                        await next(obj);
 
                         for (let i = 0; i < movs.length; i++) {
-                            movs[i].quitado = false;
-                            movs[i].save();
+                            if ([54, 55].indexOf(movs[i].idcategoria) >= 0) {//Transferência
+                                movs[i].destroy();
+                            } else {
+                                movs[i].quitado = false;
+                                movs[i].save();
+                            }
                         }
-                        ids = []
+                        ids = [];
                         for (let i = 0; i < listcheques.length; i++) {
                             ids.push(listcheques[i].idcheque);
                         }
-                        await db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
-
-
+                        db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

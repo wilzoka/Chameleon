@@ -578,6 +578,150 @@ where m.id = : v1
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_transferencia: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let categoriad = await db.getModel('fin_categoria').find({ where: { descricaocompleta: 'Transferência - Débito' } });
+                            let categoriac = await db.getModel('fin_categoria').find({ where: { descricaocompleta: 'Transferência - Crédito' } });
+
+                            let body = '';
+                            body += application.components.html.autocomplete({
+                                width: '5'
+                                , label: 'Categoria de Débito'
+                                , name: 'idcategoriad'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 1'
+                                , option: categoriad ? '<option value="' + categoriad.id + '" selected>' + categoriad.descricaocompleta + '</option>' : ''
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '4'
+                                , label: 'Conta de Débito'
+                                , name: 'idcontad'
+                                , model: 'fin_conta'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '3'
+                                , label: 'Forma Pgto'
+                                , name: 'idformapgtod'
+                                , model: 'fin_formapgto'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '5'
+                                , label: 'Categoria de Crédito'
+                                , name: 'idcategoriac'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricaocompleta'
+                                , where: 'dc = 2'
+                                , option: categoriac ? '<option value="' + categoriac.id + '" selected>' + categoriac.descricaocompleta + '</option>' : ''
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '4'
+                                , label: 'Conta de Crédito'
+                                , name: 'idcontac'
+                                , model: 'fin_conta'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '3'
+                                , label: 'Forma de Pgto'
+                                , name: 'idformapgtoc'
+                                , model: 'fin_formapgto'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.datetime({
+                                width: '5'
+                                , label: 'Data/Hora'
+                                , name: 'datahora'
+                                , value: moment().format(application.formatters.fe.datetime_format)
+                            });
+                            body += application.components.html.decimal({
+                                width: '7'
+                                , label: 'Valor'
+                                , name: 'valor'
+                                , precision: '2'
+                            });
+                            body += application.components.html.text({
+                                width: '12'
+                                , label: 'Detalhe'
+                                , name: 'detalhe'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , id: 'modalevt'
+                                    , action: '/event/' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Transferir</button>'
+                                }
+                            });
+
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['idcategoriad', 'idcontad', 'idformapgtod', 'idcategoriac', 'idcontac', 'idformapgtoc', 'datahora', 'valor']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let valor = application.formatters.be.decimal(obj.req.body.valor, 2);
+                            let datahora = application.formatters.be.datetime(obj.req.body.datahora);
+
+                            if (parseFloat(valor) <= 0) {
+                                return application.error(obj.res, { msg: 'O valor deve ser maior que 0', invalidfields: ['valor'] });
+                            }
+                            let fechamento = await db.getModel('fin_contasaldo').find({ include: [{ all: true }], where: { idconta: obj.req.body.idcontad, datahora: { $gte: application.formatters.be.datetime(obj.req.body.datahora) } } });
+                            if (fechamento) {
+                                return application.error(obj.res, { msg: `Conta ${fechamento.fin_conta.descricao} fechada para lançamento nesta data/hora` });
+                            }
+                            fechamento = await db.getModel('fin_contasaldo').find({ include: [{ all: true }], where: { idconta: obj.req.body.idcontac, datahora: { $gte: application.formatters.be.datetime(obj.req.body.datahora) } } });
+                            if (fechamento) {
+                                return application.error(obj.res, { msg: `Conta ${fechamento.fin_conta.descricao} fechada para lançamento nesta data/hora` });
+                            }
+
+                            let movd = await db.getModel('fin_mov').create({
+                                datavcto: datahora
+                                , idcategoria: obj.req.body.idcategoriad
+                                , valor: valor
+                                , quitado: true
+                                , detalhe: obj.req.body.detalhe || null
+                            });
+                            let movparcd = await db.getModel('fin_movparc').create({
+                                valor: valor
+                                , idmov: movd.id
+                                , idformapgto: obj.req.body.idformapgtod
+                                , idconta: obj.req.body.idcontad
+                                , datahora: datahora
+                            });
+
+                            let movc = await db.getModel('fin_mov').create({
+                                datavcto: datahora
+                                , idcategoria: obj.req.body.idcategoriac
+                                , valor: valor
+                                , quitado: true
+                                , detalhe: obj.req.body.detalhe || null
+                            });
+                            let movparcc = await db.getModel('fin_movparc').create({
+                                valor: valor
+                                , idmov: movc.id
+                                , idformapgto: obj.req.body.idformapgtoc
+                                , idconta: obj.req.body.idcontac
+                                , datahora: datahora
+                            });
+
+                            main.erp.financeiro.conta.f_recalculaSaldos();
+                            
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
         }
     }

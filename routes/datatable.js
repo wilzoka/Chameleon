@@ -41,7 +41,7 @@ const fixResults = function (registers, modelattributes, viewtables) {
                 break;
             case 'time':
                 for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][modelattributes[i].name]) {
+                    if (registers.rows[x][modelattributes[i].name] != null) {
                         registers.rows[x][modelattributes[i].name] = application.formatters.fe.time(registers.rows[x][modelattributes[i].name]);
                     }
                 }

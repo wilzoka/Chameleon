@@ -91,6 +91,53 @@ let platform = {
             });
         }
     }
+    , maintenance: {
+        f_clearTemporaryFiles: function () {
+            try {
+                fs.readdir(__dirname + '/../tmp', function (err, files) {
+                    if (err) {
+                        return;
+                    }
+                    for (var i = 0; i < files.length; i++) {
+                        let file = __dirname + '/../tmp/' + files[i];
+                        fs.stat(file, function (err, stats) {
+                            if (err) {
+                                return;
+                            }
+                            let bt = moment(stats.birthtime);
+                            let diff = moment().diff(bt, 'days');
+                            if (diff > 0) {
+                                fs.unlink(file, (err) => { });
+                            }
+                        });
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        , f_clearUnboundFiles: function () {
+            try {
+                db.sequelize.query(`
+                select
+                    *
+                from
+                    file 
+                where
+                    datetime < now()::date -1 and
+                    bounded = false`
+                    , { type: db.Sequelize.QueryTypes.SELECT }).then(sql => {
+                        for (let i = 0; i < sql.length; i++) {
+                            let file = __dirname + '/../files/' + sql[i].id + '.' + sql[i].type;
+                            fs.unlink(file, (err) => { });
+                            db.getModel('file').destroy({ where: { id: sql[i].id } });
+                        }
+                    });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
     , menu: {
         onsave: async function (obj, next) {
             await next(obj);
@@ -690,7 +737,7 @@ let platform = {
                     }
                     db.getModel('report').find({ where: where }).then(report => {
                         if (!report) {
-                            return reject('Relatório não encontrado');
+                            return reject(`Relatório ${report} não encontrado`);
                         }
                         db.getModel('config').find({ raw: true }).then(config => {
                             replaces.__reportimage = '';
@@ -958,7 +1005,7 @@ let platform = {
     , view: {
         onsave: async function (obj, next) {
             try {
-                let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
+                let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: { $iLike: obj.register.name } } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
                 }

@@ -15,53 +15,249 @@ let main = {
                     if (obj.register.id == 0) {
                         obj.register.datahora_criacao = moment();
                         obj.register.iduser_criacao = obj.req.user.id;
+
+                        let statusinicial = await db.getModel('atv_tipo_status').find({ where: { idtipo: obj.register.idtipo, inicial: true } });
+                        if (!statusinicial) {
+                            return application.error(obj.res, { msg: 'Status Inicial não configurado para este tipo' });
+                        }
+                        obj.register.idstatus = statusinicial.idstatus;
+                    } else {
+                        if (obj.register.encerrada) {
+                            return application.error(obj.res, { msg: 'Atividade está encerrada' });
+                        }
+                        //mantém o tipo inicial e remove da auditoria
+                        obj.register.idtipo = obj.register._previousDataValues.idtipo; delete obj.register._changed.idtipo;
+
+                        //Usuário é do setor responsável
+                        if (!await db.getModel('cad_setorusuario').find({ where: { idsetor: obj.register.atv_tipo.idsetor, idusuario: obj.req.user.id } })) {
+                            return application.error(obj.res, { msg: 'Edição é liberada apenas para usuários do setor responsável' });
+                        }
                     }
                     next(obj);
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
             }
-            , e_definirTipo: async (obj) => {
+            , e_finalizar: async (obj) => {
                 try {
-                    if (obj.req.method == 'GET') {
-                        if (obj.ids.length != 1) {
-                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
-                        }
-                        let body = '';
-                        body += application.components.html.hidden({ name: 'idatividade', value: obj.ids[0] })
-                        body += application.components.html.autocomplete({
-                            width: '12'
-                            , label: 'Tipo'
-                            , name: 'idtipo'
-                            , model: 'atv_tipo'
-                            , attribute: 'descricaocompleta'
-                        });
-                        return application.success(obj.res, {
-                            modal: {
-                                form: true
-                                , action: '/event/' + obj.event.id
-                                , id: 'modalevt' + obj.event.id
-                                , title: obj.event.description
-                                , body: body
-                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Imprimir</button>'
-                            }
-                        });
-                    } else {
-                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['idatividade', 'idtipo']);
-                        if (invalidfields.length > 0) {
-                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-
-                        }
-                        let tipo_status_inicial = await db.getModel('atv_tipo_status').find({ where: { idtipo: obj.req.body.idtipo, inicial: true } });
-                        if (!tipo_status_inicial) {
-                            return application.error(obj.res, { msg: 'Este tipo não possui Status Inicial configurado' });
-                        }
-                        let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.req.body.idatividade } });
-                        atividade.idtipo = tipo_status_inicial.idtipo;
-                        atividade.idstatus = tipo_status_inicial.idstatus;
-                        await atividade.save({ iduser: obj.req.user.id });
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                     }
+                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.ids[0] } });
+                    if (!atividade) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    if (atividade.encerrada) {
+                        return application.error(obj.res, { msg: 'Atividade já está encerrada' });
+                    }
+                    let statusfinal = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, final: true } });
+                    if (!statusfinal) {
+                        return application.error(obj.res, { msg: 'Status Final não configurado para este tipo' });
+                    }
+                    atividade.idstatus = statusfinal.idstatus;
+                    atividade.datahora_termino = moment();
+                    atividade.encerrada = true;
+                    await atividade.save({ iduser: obj.req.user.id });
+                    main.platform.notification.create([atividade.iduser_criacao], {
+                        title: `Atividade - ${atividade.assunto}`
+                        , description: `Sua solicitação foi ${statusfinal.atv_status.descricao}!`
+                        , link: '/v/minha_atividade/' + atividade.id
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , e_cancelar: async (obj) => {
+                try {
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                    }
+                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.ids[0] } });
+                    if (!atividade) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    if (atividade.encerrada) {
+                        return application.error(obj.res, { msg: 'Atividade já está encerrada' });
+                    }
+                    let statuscancelada = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, cancelada: true } });
+                    if (!statuscancelada) {
+                        return application.error(obj.res, { msg: 'Status Cancelada não configurado para este tipo' });
+                    }
+                    atividade.idstatus = statuscancelada.idstatus;
+                    atividade.datahora_termino = moment();
+                    atividade.encerrada = true;
+                    await atividade.save({ iduser: obj.req.user.id });
+                    main.platform.notification.create([atividade.iduser_criacao], {
+                        title: `Atividade - ${atividade.assunto}`
+                        , description: `Sua solicitação foi ${statuscancelada.atv_status.descricao}!`
+                        , link: '/v/minha_atividade/' + atividade.id
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , e_reabrir: async (obj) => {
+                try {
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                    }
+                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.ids[0] } });
+                    if (!atividade) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    if (!atividade.encerrada) {
+                        return application.error(obj.res, { msg: 'Atividade não está encerrada' });
+                    }
+                    let statusinicial = await db.getModel('atv_tipo_status').find({ where: { idtipo: atividade.idtipo, inicial: true } });
+                    if (!statusinicial) {
+                        return application.error(obj.res, { msg: 'Status Inicial não configurado para este tipo' });
+                    }
+                    atividade.idstatus = statusinicial.idstatus;
+                    atividade.datahora_termino = null;
+                    atividade.encerrada = false;
+                    await atividade.save({ iduser: obj.req.user.id });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_play: async (obj) => {
+                try {
+                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.data.id || 0 } });
+                    if (!atividade) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    if (atividade.encerrada) {
+                        return application.error(obj.res, { msg: 'Atividade está encerrada' });
+                    }
+                    let statusemandamento = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, andamento: true } });
+                    if (!statusemandamento) {
+                        return application.error(obj.res, { msg: 'Status Em Andamento não configurado para este tipo' });
+                    }
+                    await db.getModel('atv_atividadetempo').create({
+                        idatividade: atividade.id
+                        , iduser: obj.req.user.id
+                        , datahoraini: moment()
+                    });
+                    if (atividade.idstatus != statusemandamento.idstatus) {
+                        atividade.idstatus = statusemandamento.idstatus;
+                        await atividade.save({ iduser: obj.req.user.id });
+                    }
+                    return application.success(obj.res, { status: statusemandamento.atv_status });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_pause: async (obj) => {
+                try {
+                    let atividade = await db.getModel('atv_atividade').find({ include: [{ all: true }], where: { id: obj.data.id || 0 } });
+                    if (!atividade) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    let statuspausada = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, pausada: true } });
+                    if (!statuspausada) {
+                        return application.error(obj.res, { msg: 'Status Pausada não configurado para este tipo' });
+                    }
+                    let tempo = await db.getModel('atv_atividadetempo').find({
+                        where: {
+                            idatividade: atividade.id
+                            , iduser: obj.req.user.id
+                            , datahorafim: null
+                        }
+                    });
+                    if (!tempo) {
+                        return application.error(obj.res, { msg: 'Nenhum tempo ativo encontrado' });
+                    }
+                    tempo.datahorafim = moment();
+                    await tempo.save({ iduser: obj.req.user.id });
+
+                    let outrotrabalhando = await db.getModel('atv_atividadetempo').find({
+                        where: {
+                            idatividade: atividade.id
+                            , iduser: { $ne: obj.req.user.id }
+                            , datahorafim: null
+                        }
+                    });
+
+                    if (outrotrabalhando) {
+                        return application.success(obj.res, {});
+                    } else {
+                        atividade.idstatus = statuspausada.idstatus;
+                        await atividade.save({ iduser: obj.req.user.id });
+                        return application.success(obj.res, { status: statuspausada.atv_status });
+                    }
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_getTempo: async (obj) => {
+                try {
+                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.data.id || 0 } });
+                    if (!atividade) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    let total = 0;
+                    let isRunning = false;
+                    let tempos = await db.getModel('atv_atividadetempo').findAll({
+                        where: {
+                            idatividade: atividade.id
+                            , iduser: obj.req.user.id
+                        }
+                        , order: [['datahoraini', 'asc']]
+                    });
+                    for (let i = 0; i < tempos.length; i++) {
+                        if (tempos[i].datahorafim) {
+                            total += moment(tempos[i].datahorafim, application.formatters.be.datetime_format).diff(moment(tempos[i].datahoraini, application.formatters.be.datetime_format), 'minutes');
+                            isRunning = false;
+                        } else {
+                            total += moment().diff(moment(tempos[i].datahoraini, application.formatters.be.datetime_format), 'minutes');
+                            isRunning = true;
+                        }
+                    }
+                    return application.success(obj.res, { tempo: application.formatters.fe.time(total), rodando: isRunning });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_adicionarNota: async (obj) => {
+                try {
+                    let atividade = await db.getModel('atv_atividade').find({ include: [{ all: true }], where: { id: obj.data.id || 0 } });
+                    if (!atividade) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    if (atividade.encerrada) {
+                        return application.error(obj.res, { msg: 'Atividade está encerrada' });
+                    }
+                    let invalidfields = application.functions.getEmptyFields(obj.data, ['nota_descricao', 'nota_tempo']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    let privada = obj.data.nota_privada == 'true';
+                    await db.getModel('atv_atividadenota').create({
+                        idatividade: atividade.id
+                        , datahora: moment()
+                        , iduser: obj.req.user.id
+                        , descricao: obj.data.nota_descricao
+                        , tempo: obj.data.nota_tempo == '' ? null : application.formatters.be.time(obj.data.nota_tempo)
+                        , privada: privada
+                    });
+                    await db.getModel('atv_atividadetempo').destroy({
+                        iduser: obj.req.user.id
+                        , where: {
+                            idatividade: atividade.id
+                            , iduser: obj.req.user.id
+                        }
+                    });
+                    if (!privada) {
+                        main.platform.notification.create([atividade.iduser_criacao], {
+                            title: `Atividade - ${atividade.assunto}`
+                            , description: `Nota de ${obj.req.user.fullname} adicionada!`
+                            , link: '/v/minha_atividade/' + atividade.id
+                        });
+                    }
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -82,6 +278,10 @@ let main = {
         , atividadenota: {
             onsave: async (obj, next) => {
                 try {
+                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.register.idatividade } });
+                    if (atividade.encerrada) {
+                        return application.error(obj.res, { msg: 'Atividade está encerrada' });
+                    }
                     if (obj.register.id == 0) {
                         obj.register.datahora = moment();
                         obj.register.iduser = obj.req.user.id;
@@ -116,9 +316,9 @@ let main = {
                 db.getModel('atv_tipo').findAll({ include: [{ all: true }] }).then(tipos => {
                     tipos.map(tipo => {
                         if (tipo.idtipopai) {
-                            tipo.descricaocompleta = tipo.atv_area.descricao + ' - ' + getChildren(tipo, tipos) + tipo.descricao;
+                            tipo.descricaocompleta = tipo.cad_setor.descricao + ' - ' + getChildren(tipo, tipos) + tipo.descricao;
                         } else {
-                            tipo.descricaocompleta = tipo.atv_area.descricao + ' - ' + tipo.descricao;
+                            tipo.descricaocompleta = tipo.cad_setor.descricao + ' - ' + tipo.descricao;
                         }
                         tipo.save();
                     });
@@ -2631,7 +2831,7 @@ let main = {
                             }
                         });
 
-                        if ((qtdreservada + parseFloat(obj.register.qtd)).toFixed(2) > parseFloat(volume.qtdreal)) {
+                        if ((qtdreservada + parseFloat(obj.register.qtd)).toFixed(4) > parseFloat(volume.qtdreal)) {
                             return application.error(obj.res, { msg: 'Este volume não possui essa quantidade para ser reservado' });
                         }
 
@@ -3394,6 +3594,24 @@ let main = {
                         });
                     });
                 }
+                , f_solvente: function () {
+                    let http = require('http');
+                    let request = http.get('http://intranet.plastrela.com.br/SistemaH/content/Integracao/solvente205.php', function (res) {
+                        let data = '';
+                        res.on('data', function (chunk) {
+                            data += chunk;
+                        });
+                        res.on('end', function () {
+                            data = data.replace("{'Total de Solvente': ", '').replace('}', '');
+                            db.getModel('pcp_solvente').create({
+                                recurso: 205
+                                , datahora: moment()
+                                , valor: data
+                            });
+                        });
+                    });
+                    request.end();
+                }
             }
             , apclichemontagem: {
                 e_listaUltimaMontagem: async (obj) => {
@@ -3484,9 +3702,6 @@ let main = {
                                 , fullscreen: true
                             }
                         });
-
-
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -4106,7 +4321,7 @@ let main = {
                         let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where apv.id != ' + (obj.register.id || 0) + ' and ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
 
                         if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.pesoliquido)) < 0) {
-                            return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                            // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
 
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
@@ -4233,7 +4448,7 @@ let main = {
                                 width: '4'
                                 , label: 'Quantidade*'
                                 , name: 'qtd'
-                                , precision: 4
+                                , precision: 2
                             });
                             body += application.components.html.decimal({
                                 width: '4'
@@ -4245,7 +4460,7 @@ let main = {
                                 width: '4'
                                 , label: 'Tara(Kg)*'
                                 , name: 'tara'
-                                , precision: 2
+                                , precision: 4
                             });
 
                             return application.success(obj.res, {
@@ -4298,7 +4513,7 @@ let main = {
                             let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
 
                             if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + (parseFloat(pesoliquido) * obj.req.body.qtdvolumes)) < 0) {
-                                return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                                // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                             }
 
                             let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
@@ -4374,7 +4589,7 @@ let main = {
                         let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
 
                         if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.peso)) < 0) {
-                            return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                            // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         }
 
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
@@ -4553,12 +4768,24 @@ let main = {
                         , where: 'active and c_codigosenior is not null'
                     });
 
-                    body += application.components.html.autocomplete({
-                        width: 12
-                        , label: 'Camada/Estação'
-                        , name: 'recipiente'
-                        , options: ['', 'A/1', 'B/2', 'C/3', 'D/4', 'E/5', 'F/6', 'G/7', 'H/8', 'I/9', 'J/10']
-                    });
+                    let letters = ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+                    body += '<div class="' + (obj.data.etapa != 10 ? 'hidden' : '') + '"><div class="col-md-6 no-padding">';
+                    for (let i = 1; i <= 10; i++) {
+                        if (i == 6) {
+                            body += '</div><div class="col-md-6 no-padding">';
+                        }
+                        body += application.components.html.checkbox({
+                            width: '4'
+                            , name: 'recipiente' + i
+                            , label: letters[i] + '/' + i
+                        });
+                        body += application.components.html.decimal({
+                            width: '8'
+                            , name: 'perc' + i
+                            , placeholder: '%'
+                        });
+                    }
+                    body += '</div></div>';
 
                     body += application.components.html.text({
                         width: 12
@@ -4690,14 +4917,8 @@ let main = {
                         let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
                         let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
                         let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
-                        let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
+                        let qtd = application.formatters.be.decimal(obj.data.qtd);
                         let qtdreal = parseFloat(volume.qtdreal);
-                        let apinsumo = await db.getModel('pcp_apinsumo').find({
-                            where: {
-                                idvolume: obj.data.idvolume
-                                , idoprecurso: obj.data.idoprecurso
-                            }
-                        });
 
                         if (deposito && deposito.descricao == 'Almoxarifado') {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
@@ -4719,24 +4940,54 @@ let main = {
                         if (!user.c_codigosenior) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
-                        if ([10].indexOf(etapa.codigo) >= 0 && !obj.data.recipiente) {
-                            return application.error(obj.res, { msg: 'Camada/Estação obrigatória na Extrusão', invalidfields: ['recipiente'] });
+
+                        let alpha = ['', 'A/1', 'B/2', 'C/3', 'D/4', 'E/5', 'F/6', 'G/7', 'H/8', 'I/9', 'J/10'];
+                        let selects = [];
+                        let perc = 0.0;
+                        for (let i = 1; i <= 10; i++) {
+                            if (obj.data['recipiente' + i] == 'true') {
+                                selects.push(i);
+                            }
+                        }
+                        if (selects.length == 1) {
+                            for (let i = 1; i <= 10; i++) {
+                                obj.data['perc' + i] = '';
+                            }
+                            obj.data['perc' + selects[0]] = '100,00';
+                        } else if (selects.length > 1) {
+                            for (let i = 1; i <= 10; i++) {
+                                if (obj.data['recipiente' + i] == 'true') {
+                                    if (obj.data['perc' + i] == '') {
+                                        return application.error(obj.res, { msg: `A Camada/Estação ${i} não possui valor` });
+                                    }
+                                    perc += application.formatters.be.decimal(obj.data['perc' + i]);
+                                } else {
+                                    obj.data['perc' + i] = '';
+                                }
+                            }
+                            if (perc != 100) {
+                                return application.error(obj.res, { msg: `Os % não fecham 100% (${perc}%)` });
+                            }
                         }
 
-                        if (volume.metragem) {
-                            volume.metragem = (((qtdreal - qtd) * parseFloat(volume.metragem)) / qtdreal).toFixed(2);
-                        }
                         volume.qtdreal = (qtdreal - qtd).toFixed(4);
                         if (parseFloat(volume.qtdreal) == 0) {
                             volume.consumido = true;
                         }
                         volume.iddeposito = recurso.iddepositoprodutivo;
 
-                        if (apinsumo) {
-                            apinsumo.iduser = obj.data.iduser;
-                            apinsumo.datahora = moment();
-                            apinsumo.qtd = (parseFloat(apinsumo.qtd) + qtd).toFixed(4);
-                            await apinsumo.save();
+                        if (selects.length > 0) {
+                            for (let i = 0; i < selects.length; i++) {
+                                await db.getModel('pcp_apinsumo').create({
+                                    iduser: obj.data.iduser
+                                    , idvolume: obj.data.idvolume
+                                    , idoprecurso: obj.data.idoprecurso
+                                    , datahora: moment()
+                                    , qtd: (qtd * (application.formatters.be.decimal(obj.data['perc' + selects[i]]) / 100)).toFixed(4)
+                                    , produto: obj.data.idvolume + ' - ' + (versao ? versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                    , recipiente: alpha[selects[i]]
+                                });
+                            }
                         } else {
                             await db.getModel('pcp_apinsumo').create({
                                 iduser: obj.data.iduser
@@ -4745,7 +4996,6 @@ let main = {
                                 , datahora: moment()
                                 , qtd: qtd
                                 , produto: obj.data.idvolume + ' - ' + (versao ? versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
-                                , recipiente: obj.data.recipiente
                             });
                         }
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
@@ -4766,12 +5016,15 @@ let main = {
                 }
                 , ondelete: async function (obj, next) {
                     try {
-
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
                         let config = await db.getModel('pcp_config').find();
                         let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: apinsumos[0].idoprecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+
                         for (let i = 0; i < apinsumos.length; i++) {
                             if (apinsumos[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
@@ -4789,12 +5042,12 @@ let main = {
                             let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
                             let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
 
-                            if (volume.metragem) {
-                                volume.metragem = ((parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal).toFixed(2);
-                                if (isNaN(volume.metragem)) {
-                                    volume.metragem = null;
-                                }
-                            }
+                            // if (volume.metragem) {
+                            //     volume.metragem = ((parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)) * parseFloat(volume.metragem)) / parseFloat(volume.qtdreal).toFixed(2);
+                            //     if (isNaN(volume.metragem) || isFinite(volume.metragem)) {
+                            //         volume.metragem = null;
+                            //     }
+                            // }
 
                             volume.qtdreal = (parseFloat(volume.qtdreal) + parseFloat(apinsumo.qtd)).toFixed(4);
                             volume.consumido = false;
@@ -4806,12 +5059,12 @@ let main = {
 
                         if (saved.success) {
                             for (let i = 0; i < volumes.length; i++) {
-                                volumes[i].save();
+                                await volumes[i].save();
                             }
                             for (let i = 0; i < volumesreservas.length; i++) {
                                 if (volumesreservas[i].idop = op.id) {
                                     volumesreservas[i].apontado = false;
-                                    volumesreservas[i].save();
+                                    await volumesreservas[i].save();
                                 }
                             }
                         }
@@ -4947,6 +5200,9 @@ let main = {
                         }
 
                         let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: obj.register.idapinsumo } });
+                        if (!apinsumo) {
+                            return application.error(obj.res, { msg: 'Este insumo não está mais apontado, verifique' });
+                        }
                         let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
 
                         if (volume.metragem) {
@@ -5032,20 +5288,162 @@ let main = {
                 }
             }
             , apmistura: {
-                e_criarVolume: async function (obj) {
+                e_imprimirEtiqueta: async function (obj) {
+                    try {
+                        if (obj.ids.length == 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let ids = [];
+                        let misturas = await db.getModel('pcp_apmistura').findAll({ where: { id: { $in: obj.ids } } });
+
+                        for (let i = 0; i < misturas.length; i++) {
+                            if (!misturas[i].idvolume) {
+                                return application.error(obj.res, { msg: 'Selecione uma mistura com volume criado para imprimir etiquetas' });
+                            }
+                            ids.push(misturas[i].idvolume);
+                        }
+                        obj.ids = ids;
+                        main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , ondelete: async function (obj, next) {
                     try {
 
                         if (obj.ids.length != 1) {
-                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.id } });
-                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-
                         let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.ids[0] } });
+                        let volume = await db.getModel('est_volume').find({ where: { id: mistura.idvolume || 0 } });
+                        if (mistura.idvolume) {
+                            if (parseFloat(volume.qtd) - parseFloat(volume.qtdreal) != 0) {
+                                return application.error(obj.res, { msg: 'Esta mistura já se encontra utilizada' });
+                            }
+                        }
+
+                        let misturas = await db.getModel('pcp_apmisturavolume').findAll({ where: { idapmistura: mistura.id } });
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            if (volume) {
+                                volume.destroy();
+                                for (let i = 0; i < misturas.length; i++) {
+                                    let vol = await db.getModel('est_volume').find({ where: { id: misturas[i].idvolume } });
+                                    vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
+                                    vol.consumido = false;
+                                    await vol.save();
+                                }
+                            }
+                        }
+
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , onsave: async (obj, next) => {
+                    try {
+                        if (obj.register.idvolume) {
+                            return application.error(obj.res, { msg: 'Não é possível modificar uma mistura finalizada' });
+                        }
+                        let selects = [];
+                        let perc = 0.0;
+                        for (let i = 1; i <= 10; i++) {
+                            if (obj.register['recipiente' + i]) {
+                                selects.push(i);
+                            }
+                        }
+                        if (selects.length == 0) {
+                            return application.error(obj.res, { msg: 'Selecione pelo menos uma Camada/Estação' });
+                        }
+                        if (selects.length == 1) {
+                            for (let i = 1; i <= 10; i++) {
+                                obj.register['perc' + i] = null;
+                            }
+                            obj.register['perc' + selects[0]] = '100.00';
+                        } else {
+                            for (let i = 1; i <= 10; i++) {
+                                if (obj.register['recipiente' + i]) {
+                                    if (!obj.register['perc' + i]) {
+                                        return application.error(obj.res, { msg: `A Camada/Estação ${i} não possui valor` });
+                                    }
+                                    perc += parseFloat(obj.register['perc' + i]);
+                                } else {
+                                    obj.register['perc' + i] = null;
+                                }
+                            }
+                            if (perc != 100) {
+                                return application.error(obj.res, { msg: `Os % não fecham 100% (${perc}%)` });
+                            }
+                        }
+                        await next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_apontarMistura: async function (obj) {
+                    try {
+                        let invalidfields = application.functions.getEmptyFields(obj.data, ['idapmistura', 'idvolume', 'produto', 'qtd']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { invalidfields: invalidfields });
+                        }
+
+                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.data.idapmistura } });
                         if (!mistura) {
                             return application.error(obj.res, { msg: 'Mistura não encontrada' });
                         }
+                        if (mistura.idvolume) {
+                            return application.error(obj.res, { msg: 'Esta mistura já foi apontada, caso deseje alterar, apague o INSUMO e a MISTURA e aponte novamente' });
+                        }
+                        let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
+                        let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
+                        if (deposito && deposito.descricao == 'Almoxarifado') {
+                            return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
+                        }
+
+                        if (volume.idversao) {
+                            let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
+                            let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
+                            let grupo = await db.getModel('est_grupo').find({ where: { id: item.idgrupo } });
+                            if ([
+                                500 // Polietileno
+                                , 501 // Pigmentos e Aditivos
+                                , 506 // Peletizado
+                            ].indexOf(grupo.codigo) < 0) {
+                                return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
+                            }
+                        }
+
+                        let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
+                        if (qtd <= 0) {
+                            return application.error(obj.res, { msg: 'A quantidade apontada deve ser maior que 0', invalidfields: ['qtd'] });
+                        }
+
+                        await db.getModel('pcp_apmisturavolume').create({
+                            idapmistura: obj.data.idapmistura
+                            , idvolume: obj.data.idvolume
+                            , qtd: application.formatters.be.decimal(obj.data.qtd, 4)
+                            , produto: obj.data.produto
+                        });
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_finalizarMistura: async function (obj) {
+                    try {
+                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.data.idapmistura || 0 } });
+                        if (!mistura) {
+                            return application.error(obj.res, { msg: 'Mistura não encontrada' });
+                        }
+                        if (mistura.idvolume) {
+                            return application.error(obj.res, { msg: 'Mistura já finalizada' });
+                        }
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: mistura.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+
                         if (mistura.idvolume) {
                             return application.error(obj.res, { msg: 'Esta mistura já possui volume gerado' });
                         }
@@ -5100,122 +5498,27 @@ let main = {
                         mistura.idvolume = volume.id;
                         await mistura.save();
 
-                        await db.getModel('pcp_apinsumo').create({
-                            iduser: mistura.iduser
-                            , idvolume: volume.id
-                            , idoprecurso: obj.id
-                            , datahora: moment()
-                            , qtd: qtdtotal.toFixed(4)
-                            , produto: volume.id + ' - ' + volume.observacao
-                            , recipiente: mistura.recipiente
-                        });
-
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , e_imprimirEtiqueta: async function (obj) {
-                    try {
-                        if (obj.ids.length == 0) {
-                            return application.error(obj.res, { msg: application.message.selectOneEvent });
-                        }
-                        let ids = [];
-                        let misturas = await db.getModel('pcp_apmistura').findAll({ where: { id: { $in: obj.ids } } });
-
-                        for (let i = 0; i < misturas.length; i++) {
-                            if (!misturas[i].idvolume) {
-                                return application.error(obj.res, { msg: 'Selecione uma mistura com volume criado para imprimir etiquetas' });
-                            }
-                            ids.push(misturas[i].idvolume);
-                        }
-                        obj.ids = ids;
-                        main.plastrela.estoque.est_volume._imprimirEtiqueta(obj);
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , ondelete: async function (obj, next) {
-                    try {
-
-                        if (obj.ids.length != 1) {
-                            return application.error(obj.res, { msg: application.message.selectOneEvent });
-                        }
-
-                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.ids[0] } });
-                        let volume = await db.getModel('est_volume').find({ where: { id: mistura.idvolume || 0 } });
-                        if (mistura.idvolume) {
-                            if (parseFloat(volume.qtd) - parseFloat(volume.qtdreal) != 0) {
-                                return application.error(obj.res, { msg: 'Esta mistura já se encontra utilizada' });
+                        let selects = {};
+                        let alpha = ['', 'A/1', 'B/2', 'C/3', 'D/4', 'E/5', 'F/6', 'G/7', 'H/8', 'I/9', 'J/10'];
+                        for (let i = 1; i <= 10; i++) {
+                            if (mistura['recipiente' + i]) {
+                                selects[i] = mistura['perc' + i];
                             }
                         }
-
-                        let misturas = await db.getModel('pcp_apmisturavolume').findAll({ where: { idapmistura: mistura.id } });
-                        let deleted = await next(obj);
-                        if (deleted.success) {
-                            if (volume) {
-                                volume.destroy();
-                                for (let i = 0; i < misturas.length; i++) {
-                                    let vol = await db.getModel('est_volume').find({ where: { id: misturas[i].idvolume } });
-                                    vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
-                                    vol.consumido = false;
-                                    await vol.save();
-                                }
-                            }
+                        for (let k in selects) {
+                            await db.getModel('pcp_apinsumo').create({
+                                iduser: mistura.iduser
+                                , idvolume: volume.id
+                                , idoprecurso: oprecurso.id
+                                , datahora: moment()
+                                , qtd: (qtdtotal * (parseFloat(selects[k]) / 100)).toFixed(4)
+                                , produto: volume.id + ' - ' + volume.observacao
+                                , recipiente: alpha[k]
+                            });
                         }
 
+                        return application.success(obj.res, { msg: application.message.success, historyBack: true });
 
-                    } catch (err) {
-                        return application.fatal(obj.res, err);
-                    }
-                }
-                , js_apontarMistura: async function (obj) {
-                    try {
-                        let invalidfields = application.functions.getEmptyFields(obj.data, ['idapmistura', 'idvolume', 'produto', 'qtd']);
-                        if (invalidfields.length > 0) {
-                            return application.error(obj.res, { invalidfields: invalidfields });
-                        }
-
-                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.data.idapmistura } });
-                        if (!mistura) {
-                            return application.error(obj.res, { msg: 'Mistura não encontrada' });
-                        }
-                        if (mistura.idvolume) {
-                            return application.error(obj.res, { msg: 'Esta mistura já foi apontada, caso deseje alterar, apague o INSUMO e a MISTURA e aponte novamente' });
-                        }
-                        let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
-                        let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
-                        if (deposito && deposito.descricao == 'Almoxarifado') {
-                            return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
-                        }
-
-                        if (volume.idversao) {
-                            let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
-                            let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
-                            let grupo = await db.getModel('est_grupo').find({ where: { id: item.idgrupo } });
-                            if ([
-                                500 // Polietileno
-                                , 501 // Pigmentos e Aditivos
-                                , 506 // Peletizado
-                            ].indexOf(grupo.codigo) < 0) {
-                                return application.error(obj.res, { msg: 'Não é possível realizar uma mistura com este insumo' });
-                            }
-                        }
-
-                        let qtd = parseFloat(application.formatters.be.decimal(obj.data.qtd, 4));
-                        if (qtd <= 0) {
-                            return application.error(obj.res, { msg: 'A quantidade apontada deve ser maior que 0', invalidfields: ['qtd'] });
-                        }
-
-                        await db.getModel('pcp_apmisturavolume').create({
-                            idapmistura: obj.data.idapmistura
-                            , idvolume: obj.data.idvolume
-                            , qtd: application.formatters.be.decimal(obj.data.qtd, 4)
-                            , produto: obj.data.produto
-                        });
-
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5273,6 +5576,13 @@ let main = {
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
 
+                        if (etapa.codigo == 10) {
+                            let api = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
+                            if (api.length > 0) {
+                                return application.error(obj.res, { msg: 'OPs na extrusão devem ser feito o rateio/apontadas na camada antes de serem encerradas' });
+                            }
+                        }
+
                         let sql = await db.sequelize.query(`
                         select
                             sum((select sum(apv.pesoliquido) from pcp_approducaovolume apv where ap.id = apv.idapproducao)) as sumprod
@@ -5287,6 +5597,14 @@ let main = {
                             });
                         if (sql.length <= 0 || parseFloat(sql[0].sumprod || 0) <= 0 || parseFloat(sql[0].qtdtempo || 0) <= 0) {
                             return application.error(obj.res, { msg: 'OP sem produção' });
+                        }
+
+                        let apps = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
+                        for (let i = 0; i < apps.length; i++) {
+                            let appt = await db.getModel('pcp_approducaotempo').find({ where: { idapproducao: apps[i].id } });
+                            if (!appt) {
+                                return application.error(obj.res, { msg: 'Existe uma produção sem tempo apontado, verifique' });
+                            }
                         }
 
                         let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
@@ -5452,9 +5770,9 @@ let main = {
                                 `;
 
                             let sql2 = await db.sequelize.query(
-                                etapa.codigo == 10 ?
-                                    `
-                                select
+
+                                `
+                                select descricao, qtd from (select
                                     coalesce(v.descricaocompleta, vol.observacao, 'Mistura') as descricao
                                     , sum(round(api.qtd * (volm.qtd / vol.qtd), 4)) as qtd
                                 from
@@ -5466,12 +5784,13 @@ let main = {
                                 left join pcp_versao v on (volmv.idversao = v.id)
                                 where
                                     opr.id = :idoprecurso
+                                    and vol.idversao is null
                                     and api.recipiente = :recipiente
                                 group by 1
-                                order by 1
-                                `
-                                    :
-                                    `
+                                
+                                
+                                union all
+
                                 select
                                     i.descricao
                                     , sum(api.qtd) as qtd
@@ -5479,12 +5798,13 @@ let main = {
                                     pcp_oprecurso opr
                                 left join pcp_apinsumo api on (api.idoprecurso = opr.id)
                                 left join est_volume vol on (api.idvolume = vol.id)
-                                left join pcp_versao v on (vol.idversao = v.id)
+                                inner join pcp_versao v on (vol.idversao = v.id)
                                 left join cad_item i on (v.iditem = i.id)
                                 where
                                     opr.id = :idoprecurso
                                     and api.recipiente = :recipiente
                                 group by 1
+                                ) as x
                                 order by 1
                                 `
                                 , {
@@ -5879,9 +6199,410 @@ let main = {
                 , e_listaUltimoSetupImp: async (obj) => {
                     try {
                         let apcliche = await db.getModel('pcp_apcliche').find({ where: { idoprecurso: obj.id } });
+                        if (!apcliche) {
+                            return application.error(obj.res, { msg: 'APCliche não encontrado' });
+                        }
                         obj.id = apcliche.id;
                         main.plastrela.pcp.apclichemontagem.e_listaUltimaMontagem(obj);
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_ratearInsumos: async (obj) => {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        if (!oprecurso) {
+                            return application.error(obj.res, { msg: 'OP Não encontrada' });
+                        }
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+
+                        let sql = await db.sequelize.query(`
+                        with componente as (
+                            select vcom.id
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            left join pcp_versao v on (op.idversao = v.id)
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where
+                                opr.id = ${oprecurso.id}
+                            order by c.grupo
+                        )
+                        
+                        select
+                            api.produto
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join pcp_versao ver on (v.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao not in (select * from componente)
+                        
+                        union all
+                        
+                        select
+                            'MISTURA ID ' || v.id || ' - ' || ver.descricaocompleta
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join est_volumemistura vm on (vm.idvolume = v.id)
+                        left join est_volume vmv on (vm.idvmistura = vmv.id)
+                        left join pcp_versao ver on (vmv.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao is null
+                            and ver.id not in (select * from componente)
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+                        let produtosforadacomp = [];
+                        for (let i = 0; i < sql.length; i++) {
+                            produtosforadacomp.push(sql[i].produto);
+                        }
+                        if (sql.length > 0) {
+                            return application.error(obj.res, { msg: 'Os produtos a seguir não estão na composiçao:<br>' + produtosforadacomp.join('<br>') });
+                        }
+
+                        sql = await db.sequelize.query(`
+                        with percentuais as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , sum((c.quantidade_aplicada * perc_cobertura) / 100) as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            group by 1,2
+                            ), percentuaisindiv as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , c.grupo
+                                , (c.quantidade_aplicada * perc_cobertura) / 100 as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            )
+    
+                            select
+                                x.*
+                                , wp.perc
+                                , wpi.grupo
+                                , wpi.perc
+                                , x.qtd * (wpi.perc / wp.perc) as qtdrateada
+                            from
+                                ( select idversao, insumo, descricaocompleta, sum(qtd) as qtd from (select
+                                    op.idversao
+                                    , ver.id as insumo
+                                    , ver.descricaocompleta
+                                    , api.qtd as qtd
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                left join pcp_op op on (ope.idop = op.id)
+                                left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                left join est_volume v on (api.idvolume = v.id)
+                                inner join pcp_versao ver on (v.idversao = ver.id)
+                                where
+                                    opr.id = ${oprecurso.id}
+    
+                            union all
+    
+                            select
+                                            op.idversao
+                                            , ver.id as insumo
+                                            , ver.descricaocompleta
+                                            , round(api.qtd * (vm.qtd / v.qtd), 4) as qtd
+                                        from
+                                            pcp_oprecurso opr
+                                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                        left join pcp_op op on (ope.idop = op.id)
+                                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                        left join est_volume v on (api.idvolume = v.id)
+                            left join est_volumemistura vm on (vm.idvolume = v.id)
+                            left join est_volume vmv on (vm.idvmistura = vmv.id)
+                            left join pcp_versao ver on (vmv.idversao = ver.id)
+                                        where
+                            v.idversao is null
+                                            and opr.id = ${oprecurso.id}
+                                        ) as x  group by 1,2,3) as x
+                            left join percentuais wp on (x.insumo = wp.id)
+                            left join percentuaisindiv wpi on (x.insumo = wpi.id)
+                            order by wpi.grupo, x.descricaocompleta
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+
+                        let body = `
+                        <div class="col-md-12">
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>Recipiente</strong></td>
+                                <td style="text-align:center;"><strong>Insumo</strong></td>
+                                <td style="text-align:center;"><strong>Qtd</strong></td>
+                            </tr>
+                        `;
+                        let total = 0;
+                        for (let i = 0; i < sql.length; i++) {
+                            body += `
+                            <tr>
+                                <td style="text-align:center;"><strong> ${sql[i].grupo}</strong></td>
+                                <td style="text-align:left;">  ${sql[i].descricaocompleta}   </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.decimal(sql[i].qtdrateada, 4)}   </td>
+                            </tr>
+                            `;
+                            total += parseFloat(sql[i].qtdrateada);
+                        }
+                        body += `
+                            <tr>
+                                <td style="text-align:center;">  TOTAL  </td>
+                                <td style="text-align:left;">     </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.decimal(total, 4)}   </td>
+                            </tr>
+                        </table>
+                        </div>
+                        `;
+
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , title: 'Insumos'
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button><button id="aplicarRateio" type="button" class="btn btn-primary">Aplicar</button>'
+                            }
+                        });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_aplicarRateio: async (obj) => {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        if (!oprecurso) {
+                            return application.error(obj.res, { msg: 'OP Não encontrada' });
+                        }
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+
+                        let sql = await db.sequelize.query(`
+                        with componente as (
+                            select vcom.id
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            left join pcp_versao v on (op.idversao = v.id)
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where
+                                opr.id = ${oprecurso.id}
+                            order by c.grupo
+                        )
+                        
+                        select
+                            api.produto
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join pcp_versao ver on (v.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao not in (select * from componente)
+                        
+                        union all
+                        
+                        select
+                            'MISTURA ID ' || v.id || ' - ' || ver.descricaocompleta
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join est_volumemistura vm on (vm.idvolume = v.id)
+                        left join est_volume vmv on (vm.idvmistura = vmv.id)
+                        left join pcp_versao ver on (vmv.idversao = ver.id)
+                        where
+                            opr.id = ${oprecurso.id}
+                            and v.idversao is null
+                            and ver.id not in (select * from componente)
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+                        let produtosforadacomp = [];
+                        for (let i = 0; i < sql.length; i++) {
+                            produtosforadacomp.push(sql[i].produto);
+                        }
+                        if (sql.length > 0) {
+                            return application.error(obj.res, { msg: 'Os produtos a seguir não estão na composiçao:<br>' + produtosforadacomp.join('<br>') });
+                        }
+
+                        sql = await db.sequelize.query(`
+                        with percentuais as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , sum((c.quantidade_aplicada * perc_cobertura) / 100) as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            group by 1,2
+                            ), percentuaisindiv as (
+                            select
+                                vcom.id
+                                , vcom.descricaocompleta
+                                , c.grupo
+                                , (c.quantidade_aplicada * perc_cobertura) / 100 as perc
+                            from
+                                pcp_versao v
+                            left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                            left join pcp_versao vcom on (c.idversao = vcom.id)
+                            where v.id = ${op.idversao}
+                            )
+    
+                            select
+                                x.*
+                                , wp.perc
+                                , wpi.grupo
+                                , wpi.perc
+                                , x.qtd * (wpi.perc / wp.perc) as qtdrateada
+                            from
+                                ( select idversao, insumo, descricaocompleta, sum(qtd) as qtd from (select
+                                    op.idversao
+                                    , ver.id as insumo
+                                    , ver.descricaocompleta
+                                    , api.qtd as qtd
+                                from
+                                    pcp_oprecurso opr
+                                left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                left join pcp_op op on (ope.idop = op.id)
+                                left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                left join est_volume v on (api.idvolume = v.id)
+                                inner join pcp_versao ver on (v.idversao = ver.id)
+                                where
+                                    opr.id = ${oprecurso.id}
+    
+                            union all
+    
+                            select
+                                            op.idversao
+                                            , ver.id as insumo
+                                            , ver.descricaocompleta
+                                            , round(api.qtd * (vm.qtd / v.qtd), 4) as qtd
+                                        from
+                                            pcp_oprecurso opr
+                                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                        left join pcp_op op on (ope.idop = op.id)
+                                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                                        left join est_volume v on (api.idvolume = v.id)
+                            left join est_volumemistura vm on (vm.idvolume = v.id)
+                            left join est_volume vmv on (vm.idvmistura = vmv.id)
+                            left join pcp_versao ver on (vmv.idversao = ver.id)
+                                        where
+                            v.idversao is null
+                                            and opr.id = ${oprecurso.id}
+                                        ) as x  group by 1,2,3) as x
+                            left join percentuais wp on (x.insumo = wp.id)
+                            left join percentuaisindiv wpi on (x.insumo = wpi.id)
+                            order by wpi.grupo, x.descricaocompleta
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+
+                        //desmembra as misturas, aponta e deleta as misturas nos insumos
+                        let misturas = await db.sequelize.query(`
+                        select
+                            vmv.id
+                            , ver.descricaocompleta
+                            , round(api.qtd * (vm.qtd / v.qtd), 4) as qtd
+                            , api.iduser
+                            , api.datahora
+                            , api.id as idapinsumo
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_apinsumo api on (api.idoprecurso = opr.id)
+                        left join est_volume v on (api.idvolume = v.id)
+                        left join est_volumemistura vm on (vm.idvolume = v.id)
+                        left join est_volume vmv on (vm.idvmistura = vmv.id)
+                        left join pcp_versao ver on (vmv.idversao = ver.id)
+                        where
+                            v.idversao is null
+                            and opr.id = ${oprecurso.id}
+                            `, { type: db.Sequelize.QueryTypes.SELECT });
+                        let misturasdelete = [];
+                        for (let i = 0; i < misturas.length; i++) {
+                            await db.getModel('pcp_apinsumo').create({
+                                iduser: misturas[i].iduser
+                                , idvolume: misturas[i].id
+                                , idoprecurso: oprecurso.id
+                                , datahora: misturas[i].datahora
+                                , qtd: misturas[i].qtd
+                                , produto: misturas[i].descricaocompleta
+                            });
+                            misturasdelete.push(misturas[i].idapinsumo);
+                        }
+                        await db.getModel('pcp_apinsumo').destroy({ where: { id: { $in: misturasdelete } } });
+
+                        let apinsumodeleted = [];
+                        for (let i = 0; i < sql.length; i++) {
+
+                            let restante = parseFloat((parseFloat(sql[i].qtdrateada).toFixed(4)));
+                            let insumos = await db.sequelize.query(`
+                            select api.* from pcp_apinsumo api left join est_volume v on (api.idvolume = v.id) where api.idoprecurso = ${oprecurso.id} and v.idversao = ${sql[i].insumo} and recipiente is null`
+                                , { type: db.Sequelize.QueryTypes.SELECT });
+
+                            for (let z = 0; z < insumos.length; z++) {
+                                let pesolancamento = 0;
+                                if (parseFloat(insumos[z].qtd) < restante) {
+                                    pesolancamento = parseFloat(insumos[z].qtd);
+                                    restante -= parseFloat(pesolancamento);
+                                } else {
+                                    pesolancamento = restante;
+                                    restante = 0;
+                                }
+
+                                let apinsumo = await db.getModel('pcp_apinsumo').find({
+                                    where: { id: insumos[z].id }
+                                });
+                                apinsumo.qtd = (parseFloat(apinsumo.qtd) - pesolancamento).toFixed(4);
+                                if (apinsumo.qtd > 0) {
+                                    await apinsumo.save();
+                                } else {
+                                    await apinsumo.destroy();
+                                }
+
+                                await db.getModel('pcp_apinsumo').create({
+                                    iduser: insumos[z].iduser
+                                    , idvolume: insumos[z].idvolume
+                                    , idoprecurso: insumos[z].idoprecurso
+                                    , datahora: insumos[z].datahora
+                                    , qtd: pesolancamento.toFixed(4)
+                                    , produto: insumos[z].produto
+                                    , recipiente: sql[i].grupo
+                                });
+
+                                if (restante == 0) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -6214,6 +6935,109 @@ let main = {
                             return application.error(obj.res, { msg: 'Já existe um equipamento com este patrimônio' });
                         }
                         await next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_softwareSemLicenca: async (obj) => {
+                    try {
+
+                        let sql = await db.sequelize.query(`
+                        select
+                            coalesce(e.hostname, '') as hostname
+                            , u.fullname
+                            , s.descricao
+                        from
+                            cad_equipamento e
+                        left join cad_vinculacaosoftware vs on(e.id = vs.idequipamento)
+                        left join cad_software s on(vs.idsoftware = s.id)
+                        left join users u on(e.iduser = u.id)
+                        where
+                            (select count(*) from cad_vinculacaolicenca vl left join cad_licenca l on(vl.idlicenca = l.id) where vl.idequipamento = e.id and l.idsoftware = s.id) = 0
+                            and s.licenciado = true
+                            order by 1, 2, 3
+                        `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: { iddeposito: obj.req.body.iddeposito }
+                            });
+
+                        let report = {};
+                        report.__title = obj.event.description;
+                        report.__table = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>Hostname</strong></td>
+                                <td style="text-align:center;"><strong>Usuário</strong></td>
+                                <td style="text-align:center;"><strong>Software sem Licença</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            report.__table += `
+                            <tr>
+                                <td style="text-align:left;"> ${sql[i]['hostname']} </td>
+                                <td style="text-align:left;"> ${sql[i]['fullname']} </td>
+                                <td style="text-align:left;"> ${sql[i]['descricao']} </td>
+                            </tr>
+                            `;
+                        }
+                        report.__table += `
+                        </table>
+                        `;
+
+                        let qtd = 0;
+                        sql = await db.sequelize.query(`
+                        select
+                            s.descricao as software
+                            , count(*) as qtd
+                        from
+                            cad_equipamento e
+                        left join cad_vinculacaosoftware vs on(e.id = vs.idequipamento)
+                        left join cad_software s on(vs.idsoftware = s.id)
+                        left join users u on(e.iduser = u.id)
+                        where
+                            (select count(*) from cad_vinculacaolicenca vl left join cad_licenca l on(vl.idlicenca = l.id) where vl.idequipamento = e.id and l.idsoftware = s.id) = 0
+                            and s.licenciado = true
+                        group by 1
+                        order by 1
+                        `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                                , replacements: { iddeposito: obj.req.body.iddeposito }
+                            });
+
+                        report.__table += `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:50%;margin-top: 15px;">
+                            <tr>
+                                <td style="text-align:center;"><strong>Software</strong></td>
+                                <td style="text-align:center;"><strong>Qtd</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            report.__table += `
+                            <tr>
+                                <td style="text-align:left;"> ${sql[i]['software']} </td>
+                                <td style="text-align:right;"> ${sql[i]['qtd']} </td>
+                            </tr>
+                            `;
+                            qtd++;
+                        }
+                        report.__table += `
+                            <tr>
+                                <td><strong>Total</strong></td>
+                                <td style="text-align:right;"> ${qtd} </td>
+                            </tr>
+                        </table>
+                        `;
+
+                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            }
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

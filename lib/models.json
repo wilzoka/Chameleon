@@ -909,7 +909,7 @@
                 "name": "description",
                 "label": "Descrição",
                 "type": "text",
-                "notnull": true,
+                "notnull": false,
                 "typeadd": null
             }
         ]

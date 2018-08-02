@@ -208,7 +208,7 @@ const renderTime = function (viewfield, register) {
         disabled = 'disabled="disabled"';
     }
 
-    if (value) {
+    if (value != null) {
         value = application.formatters.fe.time(value);
     }
 
@@ -316,7 +316,7 @@ const renderRadio = function (viewfield, register) {
 const renderSubView = function (viewsubview) {
     return `
     <div class="col-md-12">
-        <h4 class="title_subview">${viewsubview.description}</h4>
+        <h4 class="title_subview">${viewsubview.description || ''}</h4>
         <table id="tableview${viewsubview.subview.url}" class="table table-bordered table-hover dataTable" width="100%"
         data-subview="true"
         data-view="${viewsubview.subview.url}">
@@ -355,7 +355,6 @@ const render = function (viewfield, register) {
             return renderGeoreference(viewfield, register);
         case 'radio':
             return renderRadio(viewfield, register);
-            break;
     }
 }
 

@@ -1,3 +1,8 @@
+<style>
+    .dataTables_filter>label {
+        display: inline-block;
+    }
+</style>
 <div class="col-md-12">
     <div class="box box-primary">
         <div class="box-body">
@@ -33,7 +38,7 @@
         </ul>
         <div class="tab-content">
 
-            <div class="tab-pane active" id="tab_1">
+            <div class="tab-pane active" id="tab_1" style="overflow: auto;">
                 <div class="row">
                     <div class="col-md-12">
                         <table id="tablenotfound" class="table table-bordered table-hover dataTable" width="100%">
@@ -42,7 +47,7 @@
                 </div>
             </div>
 
-            <div class="tab-pane" id="tab_2">
+            <div class="tab-pane" id="tab_2" style="overflow: auto;">
                 <div class="row">
                     <div class="col-md-12">
                         <table id="tablefound" class="table table-bordered table-hover dataTable" width="100%">
@@ -116,7 +121,7 @@
         var ajustes = {};
 
         var tablefound = $('#tablefound').DataTable({
-            dom: 'fti'
+            dom: 'ftip'
             , columns: [
                 { title: "ID", data: "id", name: "id", orderable: true }
                 , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
@@ -124,7 +129,8 @@
                 , { title: "Produto", data: "produto", name: "produto", orderable: true }
                 , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false, class: 'text-right' }
             ]
-            , pageLength: -1
+            , pageLength: 500
+            , paging: true
         }).on('click', 'tbody tr', function (e) {
             data = tablefound.row(this).data();
             $row = this;
@@ -139,7 +145,7 @@
         });
 
         var tablenotfound = $('#tablenotfound').DataTable({
-            dom: 'fti'
+            dom: 'ftip'
             , columns: [
                 { title: "ID", data: "id", name: "id", orderable: true }
                 , { title: "Endereço", data: "depositoendereco", name: "depositoendereco", orderable: true }
@@ -147,7 +153,8 @@
                 , { title: "Produto", data: "produto", name: "produto", orderable: true }
                 , { title: "Qtd", data: "qtdreal", name: "qtdreal", orderable: false, class: 'text-right' }
             ]
-            , pageLength: -1
+            , pageLength: 500
+            , paging: true
         }).on('click', 'tbody tr', function (e) {
             data = tablenotfound.row(this).data();
             $row = this;

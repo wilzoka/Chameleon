@@ -7,7 +7,7 @@
     "barcode-2-svg": "0.3.3",
     "body-parser": "1.18.3",
     "connect": "3.6.6",
-    "connect-session-sequelize": "5.2.1",
+    "connect-session-sequelize": "5.2.2",
     "cookie-parser": "1.4.3",
     "escape-html": "1.0.3",
     "express": "4.16.3",
@@ -31,6 +31,6 @@
     "sequelize": "4.38.0",
     "socket.io": "2.1.1",
     "svg-to-pdfkit": "0.1.7",
-    "xlsx": "0.13.1"
+    "xlsx": "0.13.2"
   }
 }

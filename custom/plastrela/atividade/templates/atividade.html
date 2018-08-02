@@ -2,7 +2,7 @@
     {{{hidden}}}
 </div>
 
-<div class="col-md-12">
+<div class="col-md-12" id="divcabecalho">
     <div class="box">
         <div class="box-body">
             <div class="row">
@@ -18,10 +18,10 @@
             <li class="active">
                 <a href="#tab_1" data-toggle="tab"> Geral</a>
             </li>
-            <li>
+            <li id="tabdetalhes">
                 <a href="#tab_2" data-toggle="tab"> Detalhes</a>
             </li>
-            <li>
+            <li id="tabnotas">
                 <a href="#tab_3" data-toggle="tab"> Notas</a>
             </li>
         </ul>
@@ -42,6 +42,42 @@
             </div>
             <div class="tab-pane" id="tab_3">
                 <div class="row">
+                    <div class="col-md-9">
+                        <div class="form-group">
+                            <div class="col-xs-6 no-padding">
+                                <label>Descrição</label>
+                            </div>
+                            <div class="col-xs-6 no-padding" style="text-align: right;">
+                                <label>
+                                    <input name="nota_privada" type="checkbox"> Privada?
+                                </label>
+                            </div>
+                            <textarea name="nota_descricao" rows="3" class="form-control" data-type="textarea"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Tempo</label>
+                            <input name="nota_tempo" type="text" class="form-control" data-type="time" placeholder="hh:mm" style="text-align:right;">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button id="playtempo" type="button" class="btn btn-default btn-block">
+                                    <i class="fa fa-play"></i>
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button id="pausetempo" type="button" class="btn btn-default btn-block">
+                                    <i class="fa fa-pause"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="margin-bottom: 5px;">
+                        <button id="adicionarNota" type="button" class="btn btn-success btn-block">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
                     <div class="col-md-12 no-padding">
                         {{{nota}}}
                     </div>
@@ -60,3 +96,123 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+    $(function () {
+
+        var playtempo;
+
+        var $idtipo = $('select[name="idtipo"]');
+        var $iduserresponsavel = $('select[name="iduser_responsavel"]');
+        var $nota_descricao = $('textarea[name="nota_descricao"]');
+        var $nota_privada = $('input[name="nota_privada"]');
+        var $nota_tempo = $('input[name="nota_tempo"]');
+
+        if (application.functions.getId() == 0) {
+            $('#divcabecalho').addClass('hidden');
+            $('#tabdetalhes').addClass('hidden');
+            $('#tabnotas').addClass('hidden');
+
+            $('select[name="iduser_responsavel"]').prop('disabled', true);
+        } else {
+            $('select[name="idtipo"]').prop('disabled', true);
+
+            application.jsfunction('atividade.atividade.js_getTempo', { id: application.functions.getId() }, function (response) {
+                if (response.success) {
+                    $nota_tempo.val(response.tempo);
+                    if (response.rodando) {
+                        runTime();
+                    }
+                }
+            });
+        }
+
+        function adjustAC() {
+            if ($idtipo.val()) {
+                $iduserresponsavel.prop('disabled', false);
+                $iduserresponsavel.attr('data-where', 'id in (select su.idusuario from atv_tipo t left join cad_setor s on (t.idsetor = s.id) left join cad_setorusuario su on (su.idsetor = s.id) where t.id = ' + $idtipo.val() + ')');
+            } else {
+                $iduserresponsavel.prop('disabled', true);
+            }
+        }
+        $('select[name="idtipo"]').change(function () {
+            $iduserresponsavel.val(null).trigger('change');
+            adjustAC();
+        });
+        adjustAC();
+
+        function runTime() {
+            playtempo = setInterval(function () {
+                var val = $nota_tempo.val();
+                var hora = 0;
+                var min = 0;
+                if (val) {
+                    var splited = val.split(':');
+                    hora = parseInt(splited[0]);
+                    min = parseInt(splited[1]);
+                    min++;
+                }
+                if (min == 60) {
+                    min = 0;
+                    hora++;
+                }
+                $nota_tempo.val((hora < 10 ? '0' : '') + hora + ':' + (min < 10 ? '0' : '') + min);
+            }, 60000);
+            $nota_tempo.prop('readonly', true);
+        }
+        $('#playtempo').click(function () {
+            if (playtempo) {
+                application.notify.info('Tempo já está rodando');
+                return;
+            }
+            if (!$nota_tempo.val()) {
+                $nota_tempo.val('00:00');
+            }
+            application.jsfunction('atividade.atividade.js_play', { id: application.functions.getId() }, function (response) {
+                application.handlers.responseSuccess(response);
+                if (response.success) {
+                    var newOption = new Option(response.status.descricao, response.status.id, false, true);
+                    $('select[name="idstatus"]').append(newOption).trigger('change');
+                    runTime();
+                }
+            });
+        });
+        $('#pausetempo').click(function () {
+            if (!playtempo) {
+                application.notify.info('Tempo já está pausado');
+                return;
+            }
+            application.jsfunction('atividade.atividade.js_pause', { id: application.functions.getId() }, function (response) {
+                application.handlers.responseSuccess(response);
+                if (response.success) {
+                    if (response.status) {
+                        var newOption = new Option(response.status.descricao, response.status.id, false, true);
+                        $('select[name="idstatus"]').append(newOption).trigger('change');
+                    }
+                    clearInterval(playtempo);
+                    playtempo = undefined;
+                    $nota_tempo.prop('readonly', false);
+                }
+            });
+        });
+        $('#adicionarNota').click(function () {
+            if (playtempo) {
+                $('#pausetempo').trigger('click');
+            }
+            application.jsfunction('atividade.atividade.js_adicionarNota', {
+                id: application.functions.getId()
+                , nota_descricao: $nota_descricao.val()
+                , nota_tempo: $nota_tempo.val()
+                , nota_privada: $nota_privada.is(':checked')
+            }, function (response) {
+                application.handlers.responseSuccess(response);
+                if (response.success) {
+                    $nota_descricao.val('');
+                    $nota_privada.prop('checked', false);
+                    $nota_tempo.val('00:00');
+                    $nota_descricao.parent().removeClass('has-error');
+                }
+            });
+        });
+    });
+</script>

@@ -428,6 +428,7 @@
         "model": "menu",
         "module": "Plataforma",
         "url": "menu",
+        "fastsearch": "tree",
         "_field": [
             {
                 "templatezone": "z1",
@@ -488,16 +489,8 @@
                 "class": null
             },
             {
-                "modelattribute": "idview",
-                "ordertable": 3,
-                "orderable": false,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
                 "modelattribute": "url",
-                "ordertable": 4,
+                "ordertable": 3,
                 "orderable": false,
                 "render": null,
                 "totalize": false,
@@ -950,6 +943,7 @@
         "model": "route",
         "module": "Plataforma",
         "url": "rota",
+        "fastsearch": "description",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1152,6 +1146,7 @@
         "model": "users",
         "module": "Plataforma",
         "url": "usuario",
+        "fastsearch": "fullname",
         "_field": [
             {
                 "templatezone": "z1",
