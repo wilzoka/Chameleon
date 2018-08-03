@@ -2216,6 +2216,9 @@ let main = {
                                 if (volumes[i].est_deposito.descricao != 'Almoxarifado') {
                                     return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} não está no Almoxarifado` });
                                 }
+                                if (volumes[i].iddepositoendereco && volumes[i].est_depositoendereco.retido) {
+                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} está retido no Almoxarifado` });
+                                }
                             }
 
                             let body = '';
