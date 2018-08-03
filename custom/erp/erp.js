@@ -30,6 +30,10 @@ let main = {
                         if (obj.register.id == 0) {
                             obj.register.idusuario = obj.req.user.id;
                             obj.register.datahora = moment();
+                        } else {
+                            if (obj.register.digitado) {
+                                return application.error(obj.res, { msg: 'Não é possível alterar uma venda concluída' });
+                            }
                         }
 
                         function nextStep() {
@@ -90,7 +94,7 @@ let main = {
                                                 , idcategoria: tipovenda.idcategoria
                                                 , valor: vendaformaspgto[i].valor - valortaxas
                                                 , parcela: totalparcelas == 0 ? null : totalparcelas
-                                                , quitado: true // Validar para todas formas de pagamento
+                                                , quitado: prazo != 0 ? false : true
                                                 , idpessoa: obj.register.idcliente
                                                 , detalhe: `Venda ID ${obj.register.id}`
                                             })
@@ -131,7 +135,7 @@ let main = {
                                         }
                                     } else { // Fiado
                                         let mov = await db.getModel('fin_mov').create({
-                                            datavcto: moment()
+                                            datavcto: obj.register.previsaopgto
                                             , idcategoria: tipovenda.idcategoria
                                             , valor: totalvenda
                                             , quitado: false
@@ -157,6 +161,54 @@ let main = {
                             });
                         }
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_historicoCompras: async function (obj) {
+                    try {
+                        let historico = await db.sequelize.query(
+                            `SELECT "com_venda"."datahora"
+                                , "cad_pessoa"."nome" AS "cliente"
+                                , (select sum(vi.qtd * vi.valorunitario) from com_vendaitem vi where vi.idvenda = com_venda.id) - coalesce(com_venda.desconto, 0) + coalesce(com_venda.acrescimo, 0)  AS "totalvenda"
+                            FROM "com_venda" AS "com_venda" 
+                            LEFT OUTER JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
+                            LEFT OUTER JOIN "com_tipovenda"     AS "com_tipovenda"  ON "com_venda"."idtipovenda" = "com_tipovenda"."id" 
+                            WHERE idcliente = :cliente
+                            ORDER BY com_venda.datahora DESC`
+                            , {
+                                type: db.Sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    cliente: obj.data.idcliente
+                                }
+                            });
+
+                        let body = `
+                            <div id="tablebody" class="col-md-12">
+                                <h4 align="center"> Histórico de Compras </h4>
+                                <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
+                                    <tr>
+                                        <td style="text-align:center;"><strong>Data/Hora</strong></td>
+                                        <td style="text-align:center;"><strong>Cliente</strong></td>
+                                        <td style="text-align:center;"><strong>Total Venda</strong></td>
+                                        <td style="text-align:center;"><strong>Pago</strong></td>
+                                    </tr>
+                                    `;
+                        for (let i = 0; i < historico.length; i++) {
+                            body += `
+                            <tr>
+                                <td style="text-align:center;"> ${application.formatters.fe.date(historico[i].datahora)}   </td>
+                                <td style="text-align:center;">  ${historico[i].cliente}   </td>
+                                <td style="text-align:right;">  ${historico[i].totalvenda}   </td>
+                                <td style="text-align:center;">   </td>
+                            </tr>
+                            `;
+                        }
+                        body += `
+                        </table>
+                        </div>`;
+
+                        return application.success(obj.res, { body });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -243,48 +295,43 @@ let main = {
                     }
                 }
                 , f_recalculaSaldos: function () {
-                    db.sequelize.query(`                    
-                    update fin_conta c set saldoatual = (
-                        with saldoanterior as (
-                        select
-                            c.*
+                    db.sequelize.query(`
+                        update fin_conta c set saldoatual = (
+                            with saldoanterior as (
+                            select c.*
                             , coalesce((select cs.valor from fin_contasaldo cs where cs.idconta = c.id order by datahora desc limit 1), 0) as saldoanterior
-                            , coalesce((select max(cs.datahora) from fin_contasaldo cs where cs.idconta = c.id), '1900-01-01'::timestamp ) as datahora
-                        from
-                            fin_conta c
-                        )
-                        select
-                            (
-                            coalesce(sum(mp.valor * case when cat.dc = 1 then -1 else 1 end), 0) 
-                            + coalesce(sum(mp.juro * case when cat.dc = 1 then -1 else 1 end), 0) 
+                            , coalesce((select max(cs.datahora) from fin_contasaldo cs where cs.idconta = c.id), '1900-01-01':: timestamp ) as datahora
+                        from fin_conta c)
+                        select (
+                            coalesce(sum(mp.valor * case when cat.dc = 1 then - 1 else 1 end), 0)
+                            + coalesce(sum(mp.juro * case when cat.dc = 1 then - 1 else 1 end), 0)
                             + coalesce(sum(mp.desconto * case when cat.dc = 1 then 1 else -1 end), 0)
-                            )::decimal(14,2)
+                            ):: decimal(14, 2)
                         from
-                            fin_movparc mp
-                        left join fin_mov m on (mp.idmov = m.id)
-                        left join fin_categoria cat on (m.idcategoria = cat.id)
+                        fin_movparc mp
+                        left join fin_mov m on(mp.idmov = m.id)
+                        left join fin_categoria cat on(m.idcategoria = cat.id)
                         where
-                            mp.idconta = c.id
-                            and mp.datahora > (select sa.datahora from saldoanterior sa where sa.id = mp.idconta)
-                    )
-                    `, { type: db.sequelize.QueryTypes.UPDATE });
+                        mp.idconta = c.id
+                        and mp.datahora > (select sa.datahora from saldoanterior sa where sa.id = mp.idconta)`
+                        , { type: db.sequelize.QueryTypes.UPDATE });
                 }
                 , js_saldoData: async function (obj) {
                     try {
                         let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
                         let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['datahora', 'desc']] });
                         let sql = await db.sequelize.query(`
-                        select
-                            sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
-                        from
+                            select
+                            sum(case when c.dc = 1 then(mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) + coalesce(mp.juro, 0) end) as soma
+                            from
                             fin_mov m
-                        left join fin_movparc mp on (m.id = mp.idmov)
-                        left join fin_categoria c on (m.idcategoria = c.id)
-                        where
-                            mp.idconta = :conta
-                            and mp.data > :dataini
-                            and mp.data <= :datafim
-                            `, {
+                            left join fin_movparc mp on(m.id = mp.idmov)
+                            left join fin_categoria c on(m.idcategoria = c.id)
+                            where
+                            mp.idconta = : conta
+                            and mp.data > : dataini
+                            and mp.data <= : datafim `
+                            , {
                                 type: db.sequelize.QueryTypes.SELECT
                                 , replacements: {
                                     conta: obj.data.idconta
@@ -354,16 +401,16 @@ let main = {
 
                                 let mov = await db.getModel('fin_mov').find({ where: { id: obj.ids[i] }, include: [{ all: true }] });
                                 let valoraberto = application.formatters.fe.decimal((await db.sequelize.query(`
-                                    select
-                                        m.valor - coalesce(
-                                            (select
+select
+m.valor - coalesce(
+    (select
                                             sum(mp.valor)
-                                            from fin_movparc mp where m.id = mp.idmov)                                        
-                                        , 0) as valoraberto
-                                    from
-                                        fin_mov m
-                                    where m.id = :v1
-                                    `
+                                            from fin_movparc mp where m.id = mp.idmov)
+    , 0) as valoraberto
+from
+fin_mov m
+where m.id = : v1
+    `
                                     , {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
@@ -477,16 +524,16 @@ let main = {
 
                             for (let i = 0; i < ids.length; i++) {
                                 let valoraberto = parseFloat((await db.sequelize.query(`
-                                select
-                                    m.valor - coalesce(
-                                        (select
+select
+m.valor - coalesce(
+    (select
                                         sum(mp.valor)
-                                        from fin_movparc mp where m.id = mp.idmov)                                        
-                                    , 0) as valoraberto
-                                from
-                                    fin_mov m
-                                where m.id = :v1
-                                `
+                                        from fin_movparc mp where m.id = mp.idmov)
+    , 0) as valoraberto
+from
+fin_mov m
+where m.id = : v1
+    `
                                     , {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {

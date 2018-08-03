@@ -138,6 +138,8 @@
                 <fieldset>
                     <div class="row">
                         {{{cliente}}}
+
+                        <div id="table"></div>
                     </div>
 
                     <div class="wizard-buttons">
@@ -212,6 +214,18 @@
         var currentStep = 0;
         var $wizardstep = $wizard.find('input[name="wizard-step"]');
         var wizardstepicons = $wizard.find('div.wizard-step-icon');
+
+        /* $('select[name="idcliente"]').change(function () {
+            
+        }); */
+
+        $('select[name="idcliente"]').change(function () {
+            application.jsfunction('erp.comercial.venda.js_historicoCompras', { idcliente: $('select[name="idcliente"]').val() }, function (response) {
+                $('#table').children().remove();
+                $('#table').append(response.body);
+            });
+        });
+
         for (var i = 0; i < wizardstepicons.length; i++) {
             $(wizardstepicons[i]).attr('data-step', i);
         }
@@ -287,9 +301,6 @@
             goStep(0);
         }
         Cookies.remove('wizard-step');
-
-        {
-        }
 
     });
 
