@@ -4054,6 +4054,16 @@ let main = {
                         if (obj.register.recolagem && !obj.register['idapclicherecolagemmotivo']) {
                             return application.error(obj.res, { msg: 'Informe o motivo da recolagem', invalidfields: ['idapclicherecolagemmotivo'] });
                         }
+                        let dataini = moment(obj.register.datahoraini);
+                        let datafim = moment(obj.register.datahorafim);
+                        let duracao = datafim.diff(dataini, 'm');
+                        let minutosafrente = datafim.diff(moment(), 'm');
+                        if (minutosafrente > 10) {
+                            return application.error(obj.res, { msg: 'Verifique o dia e a hora da data final' });
+                        }
+                        if (duracao <= 0) {
+                            return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
+                        }
                         await next(obj);
 
                     } catch (err) {
