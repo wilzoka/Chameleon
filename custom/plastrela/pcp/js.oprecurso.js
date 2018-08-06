@@ -266,4 +266,8 @@ $(function () {
         $('#col-setup-impressao').removeClass('hidden');
     }
 
+    if (localStorage.getItem('descriptionmenumini') == 'RS') {
+        $('#ratearInsumos').parent().addClass('hidden');
+    }
+
 });

@@ -3620,7 +3620,7 @@ let main = {
                 e_listaUltimaMontagem: async (obj) => {
                     try {
                         let item = await db.sequelize.query(`
-                            select ver.id, cli.datahora
+                            select ver.id, cli.datahora, rec.idrecurso
                             from pcp_versao ver
                             left join pcp_op op on (ver.id = op.idversao)
                             left join pcp_opetapa eta on (op.id = eta.idop)
@@ -3630,17 +3630,18 @@ let main = {
                             , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idapcliche: obj.id } }
                         );
                         let ultimaMontagem = await db.sequelize.query(`
-                            select cli.id, op.codigo as op
+                            select cli.id, op.codigo as op, datahora
                             from pcp_apcliche cli
                             left join pcp_oprecurso rec on (cli.idoprecurso = rec.id)
                             left join pcp_opetapa eta on (rec.idopetapa = eta.id)
                             left join pcp_op op on (eta.idop = op.id)
                             left join pcp_versao ver on (op.idversao = ver.id)
                             where ver.id = :idversao
+                            and rec.idrecurso = :idrecurso
                             and cli.datahora < :datahora
                             order by cli.datahora desc
                             limit 1`
-                            , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idversao: item[0].id, datahora: item[0].datahora } }
+                            , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idversao: item[0].id, datahora: item[0].datahora, idrecurso: item[0].idrecurso } }
                         );
                         if (ultimaMontagem.length <= 0) {
                             return application.error(obj.res, { msg: 'Não possui produções anteriores' });
@@ -3668,7 +3669,7 @@ let main = {
 
                         let body = `
                         <div class="col-md-12">
-                        <h4> OP: ${ultimaMontagem[0].op} </h4>
+                        <h4> OP: ${ultimaMontagem[0].op} - ${application.formatters.fe.datetime(ultimaMontagem[0].datahora)} </h4>
                         <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                             <tr>
                                 <td style="text-align:center;"><strong>Estação</strong></td>
@@ -3682,12 +3683,12 @@ let main = {
                         for (let i = 0; i < consumos.length; i++) {
                             body += `
                             <tr>
-                                <td style="text-align:center;"> ${consumos[i].estacao}   </td>
-                                <td style="text-align:left;">  ${consumos[i].cor}   </td>
-                                <td style="text-align:left;">  ${consumos[i].viscosidade}   </td>
-                                <td style="text-align:left;">   ${consumos[i].camisa}   </td>
-                                <td style="text-align:left;">  ${consumos[i].duplaface}   </td>
-                                <td style="text-align:left;">  ${consumos[i].anilox}   </td>
+                                <td style="text-align:center;"> ${consumos[i].estacao || ''}   </td>
+                                <td style="text-align:left;">  ${consumos[i].cor || ''}   </td>
+                                <td style="text-align:left;">  ${consumos[i].viscosidade || ''}   </td>
+                                <td style="text-align:left;">   ${consumos[i].camisa || ''}   </td>
+                                <td style="text-align:left;">  ${consumos[i].duplaface || ''}   </td>
+                                <td style="text-align:left;">  ${consumos[i].anilox || ''}   </td>
                             </tr>
                             `;
                         }
@@ -4921,6 +4922,7 @@ let main = {
 
                         let user = await db.getModel('users').find({ where: { id: obj.data.iduser } });
                         let config = await db.getModel('pcp_config').find();
+                        let gconfig = await db.getModel('config').find();
                         let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
@@ -4960,6 +4962,11 @@ let main = {
                         for (let i = 1; i <= 10; i++) {
                             if (obj.data['recipiente' + i] == 'true') {
                                 selects.push(i);
+                            }
+                        }
+                        if (gconfig.cnpj == '90816133000557') {//RS
+                            if (selects.length <= 0) {
+                                return application.error(obj.res, { msg: `Selecione uma Camada` });
                             }
                         }
                         if (selects.length == 1) {
@@ -6085,10 +6092,18 @@ let main = {
                             left join pcp_op op on (eta.idop = op.id)
                             left join pcp_versao ver on (op.idversao = ver.id)
                             where ver.id = :idversao
+                            and rec.idrecurso = :idrecurso
                             and cli.id != :idcliche
                             order by cli.datahora desc
                             limit 1`
-                                , { type: db.Sequelize.QueryTypes.SELECT, replacements: { idversao: versao.id, idcliche: cliche.id } }
+                                , {
+                                    type: db.Sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        idversao: versao.id
+                                        , idcliche: cliche.id
+                                        , idrecurso: oprecurso.idrecurso
+                                    }
+                                }
                             );
                             if (ultimaMontagem.length > 0) {
 
