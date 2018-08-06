@@ -4965,7 +4965,7 @@ let main = {
                             }
                         }
                         if (gconfig.cnpj == '90816133000557') {//RS
-                            if (selects.length <= 0) {
+                            if (etapa.codigo == 10 && selects.length <= 0) {
                                 return application.error(obj.res, { msg: `Selecione uma Camada` });
                             }
                         }
@@ -6631,6 +6631,31 @@ let main = {
                         }
 
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_buscaObservacao: async (obj) => {
+                    try {
+
+                        // if (obj.ids.length <= 0) {
+                        //     return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        // }
+
+                        // let config = await db.getModel('pcp_config').find();
+
+                        // await db.getModel('pcp_oprecurso').update({
+                        //     idestado: config.idestadoinicial
+                        // },
+                        //     {
+                        //         where: {
+                        //             id: { $in: obj.ids }
+                        //         }
+                        //         , iduser: obj.req.user.id
+                        //     });
+
+                        return application.success(obj.res, { data: '' });
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
