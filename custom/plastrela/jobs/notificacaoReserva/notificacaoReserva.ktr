@@ -284,7 +284,8 @@
   <hop> <from>Modified Java Script Value</from><to>LK Reserva</to><enabled>Y</enabled> </hop>
   <hop> <from>LK Reserva</from><to>LKVolumereal</to><enabled>Y</enabled> </hop>
   <hop> <from>LKVolumereal</from><to>Modified Java Script Value 2</to><enabled>Y</enabled> </hop>
-  <hop> <from>Modified Java Script Value 2</from><to>Table output</to><enabled>Y</enabled> </hop>
+  <hop> <from>Modified Java Script Value 2</from><to>Split field to rows</to><enabled>Y</enabled> </hop>
+  <hop> <from>Split field to rows</from><to>Table output</to><enabled>Y</enabled> </hop>
   </order>
   <step>
     <name>LK Item</name>
@@ -631,16 +632,16 @@
     <optimizationLevel>9</optimizationLevel>
     <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
         <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var notlink &#x3d; &#x27;&#x2f;v&#x2f;volume&#x2f;&#x27; &#x2b; idvolume&#x3b;&#xd;&#xa;var notiduser &#x3d; 2258&#x3b;&#xd;&#xa;var nottitle &#x3d; &#x27;Reserva Expirada&#x27;&#x3b;&#xd;&#xa;var notdescription &#x3d; &#x27;O pedido &#x27; &#x2b; PEDIDO &#x2b; &#x27; - &#x27; &#x2b; ITEM &#x2b; &#x27;&#x2f;&#x27; &#x2b; VERSAO &#x2b; &#x27; encontra-se finalizado&#x27;&#x3b;&#xd;&#xa;var notread &#x3d; false&#x3b;&#xd;&#xa;var notdatetime &#x3d; new Date&#x28;&#x29;&#x3b;</jsScript_script>
+        <jsScript_script>var notlink &#x3d; &#x27;&#x2f;v&#x2f;volume&#x2f;&#x27; &#x2b; idvolume&#x3b;&#xd;&#xa;var notidusers &#x3d; &#x27;2258&#x3b;2682&#x27;&#x3b;&#xd;&#xa;var nottitle &#x3d; &#x27;Reserva Expirada&#x27;&#x3b;&#xd;&#xa;var notdescription &#x3d; &#x27;O pedido &#x27; &#x2b; PEDIDO &#x2b; &#x27; - &#x27; &#x2b; ITEM &#x2b; &#x27;&#x2f;&#x27; &#x2b; VERSAO &#x2b; &#x27; encontra-se finalizado&#x27;&#x3b;&#xd;&#xa;var notread &#x3d; false&#x3b;&#xd;&#xa;var notdatetime &#x3d; new Date&#x28;&#x29;&#x3b;</jsScript_script>
       </jsScript>    </jsScripts>    <fields>      <field>        <name>notlink</name>
         <rename>notlink</rename>
         <type>String</type>
         <length>-1</length>
         <precision>-1</precision>
         <replace>N</replace>
-      </field>      <field>        <name>notiduser</name>
-        <rename>notiduser</rename>
-        <type>Integer</type>
+      </field>      <field>        <name>notidusers</name>
+        <rename>notidusers</rename>
+        <type>String</type>
         <length>-1</length>
         <precision>-1</precision>
         <replace>N</replace>
@@ -758,7 +759,33 @@
     </fields>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>1187</xloc>
+      <xloc>1343</xloc>
+      <yloc>41</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Split field to rows</name>
+    <type>SplitFieldToRows3</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+   <splitfield>notidusers</splitfield>
+   <delimiter>&#x3b;</delimiter>
+   <newfield>notiduser</newfield>
+   <rownum>N</rownum>
+   <rownum_field/>
+   <resetrownumber>Y</resetrownumber>
+   <delimiter_is_regex>N</delimiter_is_regex>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>1194</xloc>
       <yloc>41</yloc>
       <draw>Y</draw>
       </GUI>

@@ -270,4 +270,12 @@ $(function () {
         $('#ratearInsumos').parent().addClass('hidden');
     }
 
+    if ($('select[name="idestado"]').text().trim() == 'Em Fila de Produção') {
+        application.jsfunction('plastrela.pcp.oprecurso.js_buscaObservacao', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            $('input[name="observacao"]').val(response.data);
+        });
+    }
+
 });

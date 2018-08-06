@@ -6638,23 +6638,36 @@ let main = {
                 , js_buscaObservacao: async (obj) => {
                     try {
 
-                        // if (obj.ids.length <= 0) {
-                        //     return application.error(obj.res, { msg: application.message.selectOneEvent });
-                        // }
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        if (!oprecurso) {
+                            return application.error(obj.res, { msg: 'OP Não encontrada' });
+                        }
 
-                        // let config = await db.getModel('pcp_config').find();
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
 
-                        // await db.getModel('pcp_oprecurso').update({
-                        //     idestado: config.idestadoinicial
-                        // },
-                        //     {
-                        //         where: {
-                        //             id: { $in: obj.ids }
-                        //         }
-                        //         , iduser: obj.req.user.id
-                        //     });
-
-                        return application.success(obj.res, { data: '' });
+                        let ultimaObservacao = await db.sequelize.query(`
+                            select rec.observacao
+                            from pcp_oprecurso rec
+                            left join pcp_opetapa eta on (rec.idopetapa = eta.id)
+                            left join pcp_op op on (eta.idop = op.id)
+                            left join pcp_versao ver on (op.idversao = ver.id)
+                            inner join pcp_apinsumo api on (rec.id = api.idoprecurso)
+                            where ver.id = :idversao
+                            and rec.idrecurso = :idrecurso
+                            and rec.id != :idoprecurso
+                            order by api.datahora desc
+                            limit 1`
+                            , {
+                                type: db.Sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    idversao: op.idversao
+                                    , idoprecurso: oprecurso.id
+                                    , idrecurso: oprecurso.idrecurso
+                                }
+                            }
+                        );
+                        return application.success(obj.res, { data: ultimaObservacao.length > 0 ? ultimaObservacao[0].observacao || '' : '' });
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
