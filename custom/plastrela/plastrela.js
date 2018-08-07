@@ -5961,6 +5961,48 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , js_chamarCQModal: async (obj) => {
+                    try {
+                        let body = '';
+                        body += application.components.html.hidden({ name: 'name', value: 'plastrela.pcp.oprecurso.js_chamarCQ' });
+                        body += application.components.html.hidden({ name: 'idoprecurso', value: obj.data.idoprecurso });
+                        body += application.components.html.radio({
+                            width: '12'
+                            , label: 'Motivo'
+                            , name: 'motivo'
+                            , options: [
+                                'Comparecer em Máquina'
+                            ]
+                        });
+                        return application.success(obj.res, {
+                            modal: {
+                                form: true
+                                , action: '/jsfunction'
+                                , id: 'modaljs'
+                                , title: 'Chamar CQ'
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                            }
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_chamarCQ: async (obj) => {
+                    try {
+                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        main.platform.notification.create([2876], {
+                            title: obj.req.body.motivo
+                            , description: recurso.codigo + ' / ' + op.codigo
+                        });
+                        return application.success(obj.res, { msg: application.message.success });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
                 , e_conjugarOP: async (obj) => {
                     try {
                         if (obj.req.method == 'GET') {
@@ -7145,11 +7187,7 @@ let main = {
                                         , 'cliente_cep'
                                         , 'cliente_cnpj'
                                         , 'cliente_inscr_estadual'
-                                        , 'cliente_comprador_nome'
                                         , 'cliente_fone'
-                                        , 'cliente_email_comprador'
-                                        , 'cliente_email_qualidade'
-                                        , 'cliente_email_xml'
                                         , 'cliente_endereco_cobranca'
                                         , 'cliente_endereco_entrega'
                                         , 'cliente_hora_recebimento'
@@ -7161,6 +7199,13 @@ let main = {
                                 } else {
                                     invalidfields = ['cliente_selecao'];
                                 }
+                                invalidfields = invalidfields.concat(application.functions.getEmptyFields(obj.register, [
+                                    'cliente_comprador_nome'
+                                    , 'cliente_email_comprador'
+                                    , 'cliente_email_qualidade'
+                                    , 'cliente_email_xml'
+                                    , 'cliente_hora_recebimento'
+                                ]));
                                 if (invalidfields.length > 0) {
                                     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                                 }
@@ -7317,6 +7362,19 @@ let main = {
                                         , link: '/v/proposta/' + saved.register.id
                                     });
                                 }
+                                let file = await main.plastrela.venda.proposta.f_geraEspelho(saved.register.id);
+                                if (file.success) {
+                                    main.platform.mail.f_sendmail({
+                                        to: [saved.register.users.email]
+                                        , subject: `Proposta Número ${saved.register.id}`
+                                        , html: `Segue em anexo o espelho da proposta.`
+                                        , attachments: [
+                                            {
+                                                path: __dirname + '/../../tmp/' + file.file
+                                            }
+                                        ]
+                                    })
+                                }
                             }
                         }
 
@@ -7339,47 +7397,79 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , f_geraEspelho: (idproposta) => {
+                    return new Promise((resolve, reject) => {
+                        main.platform.model.find('ven_proposta', { include: [{ all: true }], where: { id: idproposta || 0 } }).then(proposta => {
+                            if (!proposta) {
+                                resolve({ success: false, msg: 'Proposta não encontrada' });
+                            }
+                            proposta = proposta.rows[0];
+                            main.platform.model.find('ven_propostaentrega', { where: { idproposta: proposta.id } }).then(entregas => {
+                                entregas = entregas.rows;
+                                proposta._entregas = `
+                                <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                    <tr>
+                                        <td style="text-align:center;"><strong>Entregas</strong></td>
+                                        <td style="text-align:center;"><strong>Quantidades</strong></td>
+                                        <td style="text-align:center;"><strong>Ordem de Compra</strong></td>
+                                        <td style="text-align:center;"><strong>Endereço</strong></td>
+                                    </tr>
+                                `;
+                                for (let i = 0; i < entregas.length; i++) {
+                                    proposta._entregas += `
+                                    <tr>
+                                        <td style="text-align:center;"> ${entregas[i]['data'] || ''}          </td>
+                                        <td style="text-align:right;">  ${entregas[i]['qtd'] || ''}           </td>
+                                        <td style="text-align:left;">   ${entregas[i]['ordemcompra'] || ''}   </td>
+                                        <td style="text-align:left;">   ${entregas[i]['endereco_entrega'] || ''}   </td>
+                                    </tr>
+                                `;
+                                }
+                                proposta._entregas += `
+                                </table>
+                                `;
+                                proposta._tipo_reembalagem = [];
+                                if (proposta.entrega_tpreemb_caixa) {
+                                    proposta._tipo_reembalagem.push('Caixa');
+                                }
+                                if (proposta.entrega_tpreemb_cantoneira) {
+                                    proposta._tipo_reembalagem.push('Cantoneira');
+                                }
+                                if (proposta.entrega_tpreemb_pbolha) {
+                                    proposta._tipo_reembalagem.push('Plástico Bolha');
+                                }
+                                if (proposta.entrega_tpreemb_saco) {
+                                    proposta._tipo_reembalagem.push('Saco');
+                                }
+                                proposta._tipo_reembalagem = proposta._tipo_reembalagem.join(', ');
+                                main.platform.report.f_generate('Comercial - Espelho Pedido - ' + proposta.produto_tipo, proposta).then(file => {
+                                    resolve({ success: true, file: file });
+                                });
+                            });
+                        });
+                    });
+                }
                 , e_imprimir: async function (obj) {
                     try {
-
                         if (obj.ids.length != 1) {
                             return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
-                        let proposta = (await main.platform.model.find('ven_proposta', { where: { id: obj.ids[0] } })).rows[0];
-                        let entregas = (await main.platform.model.find('ven_propostaentrega', { where: { idproposta: obj.ids[0] } })).rows;
-
-                        proposta._entregas = `
-                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
-                            <tr>
-                                <td style="text-align:center;"><strong>Entregas</strong></td>
-                                <td style="text-align:center;"><strong>Quantidades</strong></td>
-                                <td style="text-align:center;"><strong>Ordem de Compra</strong></td>
-                            </tr>
-                        `;
-                        for (let i = 0; i < entregas.length; i++) {
-                            proposta._entregas += `
-                            <tr>
-                                <td style="text-align:center;"> ${entregas[i]['data']}          </td>
-                                <td style="text-align:right;">  ${entregas[i]['qtd']}           </td>
-                                <td style="text-align:left;">   ${entregas[i]['ordemcompra']}   </td>
-                            </tr>
-                            `;
+                        let file = await main.plastrela.venda.proposta.f_geraEspelho(obj.ids[0]);
+                        if (file.success) {
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevt'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file.file + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file.file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
+                        } else {
+                            return application.error(obj.res, {
+                                msg: file.msg
+                            });
                         }
-                        proposta._entregas += `
-                        </table>
-                        `;
-
-                        let file = await main.platform.report.f_generate('Comercial - Espelho Pedido', proposta);
-                        return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                            }
-                        });
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

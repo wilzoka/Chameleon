@@ -283,8 +283,8 @@
   <hop> <from>Merge Rows &#x28;diff&#x29;</from><to>Synchronize after merge</to><enabled>Y</enabled> </hop>
   </order>
   <step>
-    <name>iniflex</name>
-    <type>TableInput</type>
+    <name>Merge Rows &#x28;diff&#x29;</name>
+    <type>MergeRows</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -293,43 +293,40 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	c.codigo&#xd;&#xa;	, cast&#x28;c.cnpj_cpf as varchar&#x28;255&#x29;&#x29; as cnpj_cpf&#xd;&#xa;	, c.nome&#xd;&#xa;	, c.fone&#xd;&#xa;	, c.fantasia&#xd;&#xa;	, c.loc_endereco&#xd;&#xa;	, c.loc_bairro&#xd;&#xa;	, c.insc_estadual&#xd;&#xa;	, c.loc_cep&#xd;&#xa;	, cid.cidade as loc_cidade&#xd;&#xa;	, cid.uf as loc_uf	&#xd;&#xa;from cadcorr c&#xd;&#xa;left join cadcidade cid on &#x28;c.loc_cidade &#x3d; cid.codigo&#x29;</sql>
-    <limit>0</limit>
-    <lookup/>
-    <execute_each_row>N</execute_each_row>
-    <variables_active>N</variables_active>
-    <lazy_conversion_active>N</lazy_conversion_active>
+    <keys>
+      <key>codigo</key>
+    </keys>
+    <values>
+      <value>cnpj_cpf</value>
+      <value>nome</value>
+      <value>fone</value>
+      <value>fantasia</value>
+      <value>loc_endereco</value>
+      <value>loc_bairro</value>
+      <value>insc_estadual</value>
+      <value>loc_cep</value>
+      <value>loc_cidade</value>
+      <value>loc_uf</value>
+      <value>ent_endereco</value>
+      <value>ent_bairro</value>
+      <value>ent_cep</value>
+      <value>ent_cidade</value>
+      <value>ent_uf</value>
+      <value>cob_endereco</value>
+      <value>cob_bairro</value>
+      <value>cob_cep</value>
+      <value>cob_cidade</value>
+      <value>cob_uf</value>
+    </values>
+<flag_field>flagfield</flag_field>
+<reference>Sort rows 2</reference>
+<compare>Sort rows</compare>
+    <compare>
+    </compare>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>72</xloc>
-      <yloc>43</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>sip</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <sql>SELECT&#xd;&#xa;	codigo&#xd;&#xa;	, cnpj_cpf&#xd;&#xa;	, nome&#xd;&#xa;	, fone&#xd;&#xa;	, fantasia&#xd;&#xa;	, loc_endereco&#xd;&#xa;	, loc_bairro&#xd;&#xa;	, insc_estadual&#xd;&#xa;	, loc_cep&#xd;&#xa;	, loc_cidade&#xd;&#xa;	, loc_uf	&#xd;&#xa;FROM cad_corr&#xd;&#xa;</sql>
-    <limit>0</limit>
-    <lookup/>
-    <execute_each_row>N</execute_each_row>
-    <variables_active>N</variables_active>
-    <lazy_conversion_active>N</lazy_conversion_active>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>72</xloc>
-      <yloc>171</yloc>
+      <xloc>309</xloc>
+      <yloc>104</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
@@ -487,6 +484,56 @@
         <rename>loc_uf</rename>
         <update>Y</update>
       </value>
+      <value>
+        <name>ent_endereco</name>
+        <rename>ent_endereco</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>ent_bairro</name>
+        <rename>ent_bairro</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>ent_cep</name>
+        <rename>ent_cep</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>ent_cidade</name>
+        <rename>ent_cidade</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>ent_uf</name>
+        <rename>ent_uf</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>cob_endereco</name>
+        <rename>cob_endereco</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>cob_bairro</name>
+        <rename>cob_bairro</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>cob_cep</name>
+        <rename>cob_cep</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>cob_cidade</name>
+        <rename>cob_cidade</rename>
+        <update>Y</update>
+      </value>
+      <value>
+        <name>cob_uf</name>
+        <rename>cob_uf</rename>
+        <update>Y</update>
+      </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
@@ -497,8 +544,8 @@
     </step>
 
   <step>
-    <name>Merge Rows &#x28;diff&#x29;</name>
-    <type>MergeRows</type>
+    <name>iniflex</name>
+    <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -507,30 +554,43 @@
            <method>none</method>
            <schema_name/>
            </partitioning>
-    <keys>
-      <key>codigo</key>
-    </keys>
-    <values>
-      <value>cnpj_cpf</value>
-      <value>nome</value>
-      <value>fone</value>
-      <value>fantasia</value>
-      <value>loc_endereco</value>
-      <value>loc_bairro</value>
-      <value>insc_estadual</value>
-      <value>loc_cep</value>
-      <value>loc_cidade</value>
-      <value>loc_uf</value>
-    </values>
-<flag_field>flagfield</flag_field>
-<reference>Sort rows 2</reference>
-<compare>Sort rows</compare>
-    <compare>
-    </compare>
+    <connection>Iniflex</connection>
+    <sql>select&#xd;&#xa;	c.codigo&#xd;&#xa;	, cast&#x28;c.cnpj_cpf as varchar&#x28;255&#x29;&#x29; as cnpj_cpf&#xd;&#xa;	, c.nome&#xd;&#xa;	, c.fone&#xd;&#xa;	, c.fantasia&#xd;&#xa;	, c.loc_endereco&#xd;&#xa;	, c.loc_bairro&#xd;&#xa;	, c.insc_estadual&#xd;&#xa;	, c.loc_cep&#xd;&#xa;	, cid.cidade as loc_cidade&#xd;&#xa;	, cid.uf as loc_uf	&#xd;&#xa;&#xd;&#xa;	, c.ent_endereco&#xd;&#xa;	, c.ent_bairro&#xd;&#xa;	, c.ent_cep&#xd;&#xa;	, entcid.cidade as ent_cidade&#xd;&#xa;	, entcid.uf as ent_uf&#xd;&#xa;&#xd;&#xa;	, c.cob_endereco&#xd;&#xa;	, c.cob_bairro&#xd;&#xa;	, c.cob_cep&#xd;&#xa;	, cobcid.cidade as cob_cidade&#xd;&#xa;	, cobcid.uf as cob_uf&#xd;&#xa;from cadcorr c&#xd;&#xa;left join cadcidade cid on &#x28;c.loc_cidade &#x3d; cid.codigo&#x29;&#xd;&#xa;left join cadcidade entcid on &#x28;c.ent_cidade &#x3d; entcid.codigo&#x29;&#xd;&#xa;left join cadcidade cobcid on &#x28;c.cob_cidade &#x3d; cobcid.codigo&#x29;</sql>
+    <limit>0</limit>
+    <lookup/>
+    <execute_each_row>N</execute_each_row>
+    <variables_active>N</variables_active>
+    <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>309</xloc>
-      <yloc>104</yloc>
+      <xloc>72</xloc>
+      <yloc>43</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>sip</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>SIPv2</connection>
+    <sql>SELECT&#xd;&#xa;	codigo&#xd;&#xa;	, cnpj_cpf&#xd;&#xa;	, nome&#xd;&#xa;	, fone&#xd;&#xa;	, fantasia&#xd;&#xa;	, loc_endereco&#xd;&#xa;	, loc_bairro&#xd;&#xa;	, insc_estadual&#xd;&#xa;	, loc_cep&#xd;&#xa;	, loc_cidade&#xd;&#xa;	, loc_uf&#xd;&#xa;&#xd;&#xa;	, ent_endereco&#xd;&#xa;	, ent_bairro&#xd;&#xa;	, ent_cep&#xd;&#xa;	, ent_cidade&#xd;&#xa;	, ent_uf&#xd;&#xa;&#xd;&#xa;	, cob_endereco&#xd;&#xa;	, cob_bairro&#xd;&#xa;	, cob_cep&#xd;&#xa;	, cob_cidade&#xd;&#xa;	, cob_uf	&#xd;&#xa;FROM cad_corr&#xd;&#xa;</sql>
+    <limit>0</limit>
+    <lookup/>
+    <execute_each_row>N</execute_each_row>
+    <variables_active>N</variables_active>
+    <lazy_conversion_active>N</lazy_conversion_active>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>72</xloc>
+      <yloc>171</yloc>
       <draw>Y</draw>
       </GUI>
     </step>

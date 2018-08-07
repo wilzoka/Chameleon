@@ -83,6 +83,7 @@ let platform = {
                 , to: obj.to.join(',')
                 , subject: obj.subject
                 , html: obj.html
+                , attachments: obj.attachments || []
             };
             transporter.sendMail(mailOptions, (err, info) => {
                 if (err) {
