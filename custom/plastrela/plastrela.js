@@ -5474,7 +5474,7 @@ let main = {
                         let qtdtotal = 0.0;
                         for (let i = 0; i < volumes.length; i++) {
                             let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
-                            if (parseFloat(vol.qtdreal) < parseFloat(volumes[i].qtd)) {
+                            if (parseFloat(parseFloat(vol.qtdreal).toFixed(4)) < parseFloat(parseFloat(volumes[i].qtd).toFixed(4))) {
                                 return application.error(obj.res, { msg: 'O volume ' + vol.id + ' possui apenas ' + application.formatters.fe.decimal(vol.qtdreal, 4) + ' - (apontado ' + application.formatters.fe.decimal(volumes[i].qtd, 4) + ')' });
                             }
                             qtdtotal += parseFloat(volumes[i].qtd);
@@ -7199,13 +7199,6 @@ let main = {
                                 } else {
                                     invalidfields = ['cliente_selecao'];
                                 }
-                                invalidfields = invalidfields.concat(application.functions.getEmptyFields(obj.register, [
-                                    'cliente_comprador_nome'
-                                    , 'cliente_email_comprador'
-                                    , 'cliente_email_qualidade'
-                                    , 'cliente_email_xml'
-                                    , 'cliente_hora_recebimento'
-                                ]));
                                 if (invalidfields.length > 0) {
                                     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                                 }
@@ -7222,15 +7215,15 @@ let main = {
                                     , 'produto_embalar'
                                     , 'produto_peso_envasar'
                                     , 'produto_peso_envasar_un'
-                                    , 'produto_aplicar_logo'
-                                    , 'produto_qtd_pasta_padrao'
                                     , 'produto_confec_pasta_padrao'
-                                    , 'produto_aprovacao_arte'
-                                    , 'produto_clicheria_cliente'
                                 ];
 
                                 if (obj.register['produto_pigmentado'] == 'Sim' && !obj.register['produto_cor_pigmento']) {
                                     alreadyinvalid = alreadyinvalid.concat(['produto_cor_pigmento']);
+                                }
+
+                                if (!obj.register['p_diametro_maximo_bob'] && !obj.register['p_peso_maximo_bob']) {
+                                    alreadyinvalid = alreadyinvalid.concat(['p_diametro_maximo_bob', 'p_peso_maximo_bob']);
                                 }
 
                                 if (obj.register.produto_tipo == 'Saco') {
@@ -7271,7 +7264,6 @@ let main = {
                                 } else if (obj.register.produto_tipo == 'Película') {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         'p_largura_final'
-                                        , 'p_passo_fotocelula'
                                         , 'p_espessura_final'
                                         , 'p_tipo_tubete'
                                         , 'p_diametro_tubete'
@@ -7281,8 +7273,15 @@ let main = {
                                         , 'p_sentidoembob'
                                     ].concat(validar_produto_geral));
 
-                                    if (!obj.register['p_diametro_maximo_bob'] && !obj.register['p_peso_maximo_bob']) {
-                                        alreadyinvalid = alreadyinvalid.concat(['p_diametro_maximo_bob', 'p_peso_maximo_bob']);
+                                    if (obj.register.produto_liso_imp == 'Impresso') {
+                                        invalidfields = application.functions.getEmptyFields(obj.register, [
+                                            'p_passo_fotocelula'
+                                            , 'produto_aplicar_logo'
+                                            , 'p_sentidoembob'
+                                            , 'produto_qtd_pasta_padrao'
+                                            , 'produto_aprovacao_arte'
+                                            , 'produto_clicheria_cliente'
+                                        ].concat(validar_produto_geral));
                                     }
 
                                     if (obj.register['p_aplicar_microfuros'] == 'Sim' && !obj.register['p_quantidade_microfuros']) {

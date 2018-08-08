@@ -169,7 +169,7 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="clientegeral hidden">
                         <div class="row">
                             {{{clientegeral}}}
                         </div>
@@ -381,6 +381,7 @@
                         $('.clienteexistente').removeClass('hidden');
                         break;
                 }
+                $('.clientegeral').removeClass('hidden');
             }
             var produto_selecao = function () {
                 switch ($('input[name="produto_tipo"]:checked').val()) {
