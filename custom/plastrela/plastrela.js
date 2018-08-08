@@ -1749,7 +1749,7 @@ let main = {
                         body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
                         body += application.components.html.integer({
                             width: 4
-                            , label: 'Volumes a serem Gerados'
+                            , label: 'Volumes a serem Gerados*'
                             , name: 'qtd'
                         });
                         body += application.components.html.decimal({
@@ -1757,16 +1757,16 @@ let main = {
                             , label: 'Quantidade por Volume'
                             , name: 'qtdvolume'
                             , precision: 4
-                        });
-                        body += application.components.html.text({
-                            width: 4
-                            , label: 'Lote'
-                            , name: 'lote'
-                        });
+                        });                        
                         body += application.components.html.date({
                             width: 4
                             , label: 'Data de Validade'
                             , name: 'datavalidade'
+                        });
+                        body += application.components.html.text({
+                            width: 12
+                            , label: 'Lote*'
+                            , name: 'lote'
                         });
 
                         return application.success(obj.res, {
@@ -1781,7 +1781,7 @@ let main = {
                         });
                     } else {
 
-                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'qtd']);
+                        let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'qtd', 'lote']);
                         if (invalidfields.length > 0) {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                         }
