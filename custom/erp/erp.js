@@ -401,16 +401,16 @@ let main = {
 
                                 let mov = await db.getModel('fin_mov').find({ where: { id: obj.ids[i] }, include: [{ all: true }] });
                                 let valoraberto = application.formatters.fe.decimal((await db.sequelize.query(`
-select
-m.valor - coalesce(
-    (select
-                                            sum(mp.valor)
-                                            from fin_movparc mp where m.id = mp.idmov)
-    , 0) as valoraberto
-from
-fin_mov m
-where m.id = : v1
-    `
+                                    select
+                                    m.valor - coalesce(
+                                        (select
+                                                                                sum(mp.valor)
+                                                                                from fin_movparc mp where m.id = mp.idmov)
+                                        , 0) as valoraberto
+                                    from
+                                    fin_mov m
+                                    where m.id = :v1
+                                    `
                                     , {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
@@ -433,7 +433,7 @@ where m.id = : v1
                                     width: '4'
                                     , label: 'Pessoa'
                                     , name: 'cliente' + obj.ids[i]
-                                    , value: mov.cad_pessoa.nome
+                                    , value: mov.cad_pessoa ? mov.cad_pessoa.nome : ''
                                     , disabled: 'disabled="disabled"'
                                 });
 
@@ -714,7 +714,7 @@ where m.id = : v1
                             });
 
                             main.erp.financeiro.conta.f_recalculaSaldos();
-                            
+
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
