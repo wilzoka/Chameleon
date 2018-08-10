@@ -74,58 +74,72 @@ let main = {
                                     let vendaformaspgto = await db.getModel('com_vendapagamento').findAll({ where: { idvenda: obj.register.id } });
                                     let formaspgto = await db.getModel('fin_formapgto').findAll({ where: { disp_venda: true } });
                                     let conta = await db.getModel('users').find({ where: { id: obj.register.identregador } })
-                                    let prazo = 0
-                                    let valortaxas = 0
-                                    let totalparcelas = 0
                                     let valorestante = totalvenda
 
                                     if (vendaformaspgto.length > 0) {
                                         for (let i = 0; i < vendaformaspgto.length; i++) {
+                                            let prazo = 0
+                                            let valortaxas = 0
+                                            let totalparcelas = 0
                                             for (let j = 0; j < formaspgto.length; j++) {
-                                                if (vendaformaspgto[i].idformapgto == formaspgto[j].id && formaspgto[j].taxa != null) {
-                                                    prazo += formaspgto[j].prazo
-                                                    valortaxas += parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100)
-                                                    totalparcelas += formaspgto[j].parcela == null ? 0 : formaspgto[j].parcela
+                                                if (vendaformaspgto[i].idformapgto == formaspgto[j].id) {
+                                                    if (formaspgto[j].formarecebimento == 'a Vista') {
+                                                        let mov = await db.getModel('fin_mov').create({
+                                                            datavcto: moment()
+                                                            , idcategoria: tipovenda.idcategoria
+                                                            , valor: vendaformaspgto[i].valor
+                                                            , parcela: null
+                                                            , quitado: true
+                                                            , idpessoa: obj.register.idcliente
+                                                            , detalhe: `Venda ID ${obj.register.id}`
+                                                        })
+                                                        let movparc = await db.getModel('fin_movparc').create({
+                                                            datahora: moment()
+                                                            , idmov: mov.id
+                                                            , valor: vendaformaspgto[i].valor
+                                                            , idformapgto: vendaformaspgto[i].idformapgto
+                                                            , idconta: conta.idconta
+                                                        })
+                                                    } else {
+                                                        prazo += formaspgto[j].prazo != null ? formaspgto[j].prazo : moment(vendaformaspgto[i].vencimento).diff(moment(), 'd') + 1
+                                                        valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0
+                                                        totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0
+                                                        let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas
+                                                        let datavenc = moment().add(prazo, 'day')
+                                                        if (totalparcelas > 0) {
+                                                            for (let l = 0; l < totalparcelas; l++) {
+                                                                let mov = await db.getModel('fin_mov').create({
+                                                                    datavcto: datavenc
+                                                                    , idcategoria: tipovenda.idcategoria
+                                                                    , valor: valorparcela
+                                                                    , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
+                                                                    , quitado: false
+                                                                    , preformapgto: vendaformaspgto[i].id
+                                                                    , idpessoa: obj.register.idcliente
+                                                                    , detalhe: `Venda ID ${obj.register.id}`
+                                                                })
+                                                                datavenc = datavenc.add(prazo, 'day')
+                                                            }
+                                                        } else {
+                                                            let mov = await db.getModel('fin_mov').create({
+                                                                datavcto: datavenc
+                                                                , idcategoria: tipovenda.idcategoria
+                                                                , valor: valorparcela
+                                                                , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
+                                                                , quitado: false
+                                                                , preformapgto: vendaformaspgto[i].id
+                                                                , idpessoa: obj.register.idcliente
+                                                                , detalhe: `Venda ID ${obj.register.id}`
+                                                            })
+                                                        }
+                                                    }
+                                                    valorestante -= vendaformaspgto[i].valor
                                                 }
                                             }
-                                            let datavenc = prazo != null ? moment().add(prazo, 'day') : vendaformaspgto[i].previsaopgto != null ? vendaformaspgto[i].previsaopgto : moment()
-                                            let mov = await db.getModel('fin_mov').create({
-                                                datavcto: datavenc
-                                                , idcategoria: tipovenda.idcategoria
-                                                , valor: vendaformaspgto[i].valor - valortaxas
-                                                , parcela: totalparcelas == 0 ? null : totalparcelas
-                                                , quitado: prazo != 0 ? false : true
-                                                , idpessoa: obj.register.idcliente
-                                                , detalhe: `Venda ID ${obj.register.id}`
-                                            })
-                                            valorestante -= vendaformaspgto[i].valor
-                                            if (totalparcelas > 0) {
-                                                let valorparcela = (vendaformaspgto[i].valor - valortaxas) / totalparcelas
-                                                for (let l = 0; l < totalparcelas.length; l++) {
-                                                    let movparc = await db.getModel('fin_movparc').create({
-                                                        datahora: datavenc.add(30, 'day')
-                                                        , idmov: mov.id
-                                                        , valor: valorparcela
-                                                        , idformapgto: vendaformaspgto[i].idformapgto
-                                                        , idconta: conta.idconta
-                                                    })
-                                                }
-                                            } else {
-                                                let movparc = await db.getModel('fin_movparc').create({
-                                                    datahora: datavenc
-                                                    , idmov: mov.id
-                                                    , valor: vendaformaspgto[i].valor - valortaxas
-                                                    , idformapgto: vendaformaspgto[i].idformapgto
-                                                    , idconta: conta.idconta
-                                                })
-                                            }
-                                            valortaxas = 0
-                                            prazo = 0
-                                            totalparcelas = 0
                                         }
                                         if (valorestante > 0) {
                                             let mov = await db.getModel('fin_mov').create({
-                                                datavcto: moment()
+                                                datavcto: moment().add(7, 'day')
                                                 , idcategoria: tipovenda.idcategoria
                                                 , valor: valorestante
                                                 , quitado: false
@@ -133,9 +147,9 @@ let main = {
                                                 , detalhe: `Venda ID ${obj.register.id}`
                                             })
                                         }
-                                    } else { // Fiado
+                                    } else {
                                         let mov = await db.getModel('fin_mov').create({
-                                            datavcto: obj.register.previsaopgto
+                                            datavcto: moment().add(30, 'day')
                                             , idcategoria: tipovenda.idcategoria
                                             , valor: totalvenda
                                             , quitado: false
@@ -235,6 +249,19 @@ let main = {
                             return application.error(obj.res, { msg: 'Preço não encontrado' });
                         }
                         return application.success(obj.res, { data: application.formatters.fe.decimal(item.precovenda, 2) });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , vendapagamento: {
+                onsave: async function (obj, next) {
+                    try {
+                        let formareceb = await db.getModel('fin_formapgto').find({ where: { id: obj.register.idformapgto } })
+                        if (formareceb.formarecebimento == 'a Prazo' && formareceb.prazo == null && obj.register.vencimento == null) {
+                            return application.error(obj.res, { msg: `Venda a prazo. Informe o vencimento` })
+                        }
+                        next(obj)
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -370,7 +397,6 @@ let main = {
                             if (obj.ids.length <= 0) {
                                 return application.error(obj.res, { msg: application.message.selectOneEvent });
                             }
-
                             let body = '';
                             body += '<div class="row no-margin">';
                             body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
@@ -409,7 +435,7 @@ m.valor - coalesce(
     , 0) as valoraberto
 from
 fin_mov m
-where m.id = : v1
+where m.id = :v1
     `
                                     , {
                                         type: db.sequelize.QueryTypes.SELECT
@@ -532,7 +558,7 @@ m.valor - coalesce(
     , 0) as valoraberto
 from
 fin_mov m
-where m.id = : v1
+where m.id = :v1
     `
                                     , {
                                         type: db.sequelize.QueryTypes.SELECT
@@ -714,7 +740,7 @@ where m.id = : v1
                             });
 
                             main.erp.financeiro.conta.f_recalculaSaldos();
-                            
+
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
