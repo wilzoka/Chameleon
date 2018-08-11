@@ -114,7 +114,7 @@ let main = {
                                                                     , valor: valorparcela
                                                                     , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
                                                                     , quitado: false
-                                                                    , preformapgto: vendaformaspgto[i].id
+                                                                    , preformapgto: vendaformaspgto[i].idformapgto
                                                                     , idpessoa: obj.register.idcliente
                                                                     , detalhe: `Venda ID ${obj.register.id}`
                                                                 })
@@ -127,7 +127,7 @@ let main = {
                                                                 , valor: valorparcela
                                                                 , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
                                                                 , quitado: false
-                                                                , preformapgto: vendaformaspgto[i].id
+                                                                , preformapgto: vendaformaspgto[i].idformapgto
                                                                 , idpessoa: obj.register.idcliente
                                                                 , detalhe: `Venda ID ${obj.register.id}`
                                                             })
@@ -139,7 +139,7 @@ let main = {
                                         }
                                         if (valorestante > 0) {
                                             let mov = await db.getModel('fin_mov').create({
-                                                datavcto: moment().add(7, 'day')
+                                                datavcto: moment().add(30, 'day')
                                                 , idcategoria: tipovenda.idcategoria
                                                 , valor: valorestante
                                                 , quitado: false
@@ -397,6 +397,25 @@ let main = {
                             if (obj.ids.length <= 0) {
                                 return application.error(obj.res, { msg: application.message.selectOneEvent });
                             }
+                            let count = 0
+                            let formapgto = null
+                            let aux = null
+                            if (obj.ids.length > 1) {
+                                for (let i = 0; i < obj.ids.length; i++) {
+                                    aux = await db.getModel('fin_mov').find({ where: { id: obj.ids[i] } });
+                                    if (aux.preformapgto != null) {
+                                        count++;
+                                    }
+                                }
+                                if (count > 1) {
+                                    return application.error(obj.res, { msg: 'Existem títulos com forma de pagamento pré definidas. Esses devem ser baixados individualmente.' });
+                                }
+                            } else {
+                                aux = await db.getModel('fin_mov').find({ where: { id: obj.ids[0] } });
+                                if (aux.preformapgto) {
+                                    formapgto = await db.getModel('fin_formapgto').find({ where: { id: aux.preformapgto } });
+                                }
+                            }
                             let body = '';
                             body += '<div class="row no-margin">';
                             body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
@@ -419,6 +438,7 @@ let main = {
                                 , name: 'idformapgto'
                                 , model: 'fin_formapgto'
                                 , attribute: 'descricao'
+                                , option: formapgto ? '<option value="' + formapgto + '" selected>' + formapgto.descricao + '</option>' : ''
                             });
                             body += '</div><hr>';
 
