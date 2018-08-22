@@ -215,10 +215,6 @@
         var $wizardstep = $wizard.find('input[name="wizard-step"]');
         var wizardstepicons = $wizard.find('div.wizard-step-icon');
 
-        /* $('select[name="idcliente"]').change(function () {
-            
-        }); */
-
         $('select[name="idcliente"]').change(function () {
             application.jsfunction('erp.comercial.venda.js_historicoCompras', { idcliente: $('select[name="idcliente"]').val() }, function (response) {
                 $('#table').children().remove();
