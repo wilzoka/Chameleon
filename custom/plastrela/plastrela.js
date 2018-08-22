@@ -1757,7 +1757,7 @@ let main = {
                             , label: 'Quantidade por Volume'
                             , name: 'qtdvolume'
                             , precision: 4
-                        });                        
+                        });
                         body += application.components.html.date({
                             width: 4
                             , label: 'Data de Validade'

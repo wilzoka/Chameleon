@@ -322,7 +322,7 @@ let main = {
                                     width: '3'
                                     , label: 'Correntista ' + (parseFloat(valoradiantamento[0].soma) > 0 ? `<span style="color:red;"> - Adiant. ${application.formatters.fe.decimal(valoradiantamento[0].soma, 2)}</span>` : '')
                                     , name: 'cliente' + obj.ids[i]
-                                    , value: mov.cad_corr.nome
+                                    , value: mov.cad_corr ? mov.cad_corr.nome : ''
                                     , disabled: 'disabled="disabled"'
                                 });
 
