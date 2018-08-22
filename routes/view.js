@@ -556,7 +556,6 @@ const save = function (obj) {
                 }
             }
         }
-        let id = obj.register.id;
         obj.register._iduser = obj.req.user.id;
         obj.register.save().then(register => {
             boundFiles(lodash.extend(obj, { register: register }));
