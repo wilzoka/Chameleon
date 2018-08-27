@@ -15,6 +15,13 @@ let main = {
                         } else if (obj.view.name == "Fornecedor") {
                             obj.register.fornecedor = true;
                         }
+
+                        let saved = await db.sequelize.query("update cad_pessoa p set nomecompleto = coalesce(p.fantasia,'') || ' - ' || coalesce(p.bairro,'') || ' - ' || coalesce(p.logradouro,'') || ' - ' || p.numero where id = :idcliente;"
+                            , {
+                                type: db.sequelize.QueryTypes.UPDATE
+                                , replacements: { idcliente: obj.register.id }
+                            });
+
                         next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -91,6 +98,7 @@ let main = {
                                                             , parcela: null
                                                             , quitado: true
                                                             , idpessoa: obj.register.idcliente
+                                                            , idvenda: obj.register.id
                                                             , detalhe: `Venda ID ${obj.register.id}`
                                                         })
                                                         let movparc = await db.getModel('fin_movparc').create({
@@ -100,7 +108,7 @@ let main = {
                                                             , idformapgto: vendaformaspgto[i].idformapgto
                                                             , idconta: conta.idconta
                                                         })
-                                                    } else {
+                                                    } else if (formaspgto[j].formarecebimento == 'a Prazo') {
                                                         prazo += formaspgto[j].prazo != null ? formaspgto[j].prazo : moment(vendaformaspgto[i].vencimento).diff(moment(), 'd') + 1
                                                         valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0
@@ -116,6 +124,7 @@ let main = {
                                                                     , quitado: false
                                                                     , preformapgto: vendaformaspgto[i].idformapgto
                                                                     , idpessoa: obj.register.idcliente
+                                                                    , idvenda: obj.register.id
                                                                     , detalhe: `Venda ID ${obj.register.id}`
                                                                 })
                                                                 datavenc = datavenc.add(prazo, 'day')
@@ -129,9 +138,17 @@ let main = {
                                                                 , quitado: false
                                                                 , preformapgto: vendaformaspgto[i].idformapgto
                                                                 , idpessoa: obj.register.idcliente
+                                                                , idvenda: obj.register.id
                                                                 , detalhe: `Venda ID ${obj.register.id}`
                                                             })
                                                         }
+                                                    } else if (formaspgto[j].formarecebimento == 'Vale') {
+                                                        let retorno = await main.erp.comercial.venda.f_atualizarValeColetado(formaspgto[j]);
+                                                        if (!retorno) {
+                                                            return application.error(obj.res, { msg: `Vale não cadastrado. Solicitar cadastro` })
+                                                        }
+                                                    } else {
+                                                        main.erp.suprimentos.estoque.f_atualizarSaldoItemTroca(formaspgto[j]);
                                                     }
                                                     valorestante -= vendaformaspgto[i].valor
                                                 }
@@ -144,6 +161,7 @@ let main = {
                                                 , valor: valorestante
                                                 , quitado: false
                                                 , idpessoa: obj.register.idcliente
+                                                , idvenda: obj.register.id
                                                 , detalhe: `Venda ID ${obj.register.id}`
                                             })
                                         }
@@ -154,8 +172,14 @@ let main = {
                                             , valor: totalvenda
                                             , quitado: false
                                             , idpessoa: obj.register.idcliente
+                                            , idvenda: obj.register.id
                                             , detalhe: `Venda ID ${obj.register.id}`
                                         })
+                                    }
+
+                                    if (atualizarEstoques) {
+                                        let vendaitens = await db.getModel('com_vendaitem').findAll({ where: { idvenda: obj.register.id } });
+                                        f_atualizarEstoque(vendaitens);
                                     }
                                 }
                                 break;
@@ -168,9 +192,9 @@ let main = {
 
                         if (saved.success && saved.register.identregador && neednotification) {
                             let cliente = await db.getModel('cad_pessoa').find({ where: { id: saved.register.idcliente } })
-                            main.platform.notification.create([saved.register.identregador], {
+                            main.platform.notification.create([4], {
                                 title: 'Nova Venda'
-                                , description: cliente.cidade
+                                , description: cliente.fantasia
                                 , link: '/v/venda/' + saved.register.id
                             });
                         }
@@ -185,10 +209,10 @@ let main = {
                             `SELECT "com_venda"."datahora"
                                 , "cad_pessoa"."nome" AS "cliente"
                                 , (select sum(vi.qtd * vi.valorunitario) from com_vendaitem vi where vi.idvenda = com_venda.id) - coalesce(com_venda.desconto, 0) + coalesce(com_venda.acrescimo, 0)  AS "totalvenda"
+                                , (select sum(valor) from fin_mov where idvenda = com_venda.id) AS "totalpendente"
                             FROM "com_venda" AS "com_venda" 
                             LEFT OUTER JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
-                            LEFT OUTER JOIN "com_tipovenda"     AS "com_tipovenda"  ON "com_venda"."idtipovenda" = "com_tipovenda"."id" 
-                            WHERE idcliente = :cliente
+                            WHERE com_venda.idcliente = :cliente
                             ORDER BY com_venda.datahora DESC`
                             , {
                                 type: db.Sequelize.QueryTypes.SELECT
@@ -199,13 +223,13 @@ let main = {
 
                         let body = `
                             <div id="tablebody" class="col-md-12">
-                                <h4 align="center"> Histórico de Compras </h4>
+                                <h4 align="center"> Pendências Financeiras </h4>
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
                                     <tr>
                                         <td style="text-align:center;"><strong>Data/Hora</strong></td>
                                         <td style="text-align:center;"><strong>Cliente</strong></td>
                                         <td style="text-align:center;"><strong>Total Venda</strong></td>
-                                        <td style="text-align:center;"><strong>Pago</strong></td>
+                                        <td style="text-align:center;"><strong>Total Pendente</strong></td>
                                     </tr>
                                     `;
                         for (let i = 0; i < historico.length; i++) {
@@ -214,7 +238,7 @@ let main = {
                                 <td style="text-align:center;"> ${application.formatters.fe.date(historico[i].datahora)}   </td>
                                 <td style="text-align:center;">  ${historico[i].cliente}   </td>
                                 <td style="text-align:right;">  ${historico[i].totalvenda}   </td>
-                                <td style="text-align:center;">   </td>
+                                <td style="text-align:right;">  ${historico[i].totalpendente}   </td>
                             </tr>
                             `;
                         }
@@ -223,6 +247,107 @@ let main = {
                         </div>`;
 
                         return application.success(obj.res, { body });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_cadastrarvales: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let vales = await db.getModel('fin_formapgto').findAll();
+                            let itens = await db.getModel('cad_item').findAll();
+                            let pessoas = await db.getModel('cad_pessoa').findAll();
+
+                            let body = '';
+                            body += application.components.html.date({
+                                width: '4'
+                                , label: 'Data'
+                                , name: 'data'
+                                , value: moment().format(application.formatters.fe.date_format)
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '4'
+                                , label: 'Vale'
+                                , name: 'idformapgto'
+                                , model: 'fin_formapgto'
+                                , attribute: 'descricao'
+                                , where: `formarecebimento = 'Vale'`
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '4'
+                                , label: 'Item'
+                                , name: 'iditem'
+                                , model: 'cad_item'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '4'
+                                , label: 'Pessoa'
+                                , name: 'idpessoa'
+                                , model: 'cad_pessoa'
+                                , attribute: 'nome'
+                            });
+                            body += application.components.html.integer({
+                                width: '4'
+                                , label: 'Quantidade'
+                                , name: 'qtd'
+                            });
+                            body += application.components.html.decimal({
+                                width: '4'
+                                , label: 'Valor Entrega'
+                                , name: 'valorentrega'
+                                , precision: '2'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , id: 'modalevt'
+                                    , action: '/event/' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Cadastrar</button>'
+                                }
+                            });
+
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['data', 'idformapgto', 'iditem', 'qtd']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            if (obj.req.body.qtd <= 0) {
+                                return application.error(obj.res, { msg: 'A quantidade deve ser maior que 0', invalidfields: ['qtd'] });
+                            }
+
+                            for (let i = 0; i < obj.req.body.qtd; i++) {
+                                let vale = await db.getModel('com_vale').create({
+                                    data: application.formatters.be.date(obj.req.body.data)
+                                    , idformapgto: obj.req.body.idformapgto
+                                    , iditem: obj.req.body.iditem
+                                    , idpessoa: typeof obj.req.body.idpessoa == 'undefined' ? null : obj.req.body.idpessoa
+                                    , valorentrega: obj.req.body.valorentrega == '' ? null : application.formatters.be.decimal(obj.req.body.valorentrega)
+                                });
+                            }
+                        }
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , f_atualizarValeColetado: async function (obj) {
+                    try {
+                        let vale = await db.getModel('com_vale').find({ where: { idformapgto: obj.id, coletado: false }, order: [['data', 'asc']] });
+                        if (vale) {
+                            vale.coletado = true;
+                            await vale.save()
+                            return true;
+                        } else {
+                            return false;
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -382,6 +507,18 @@ let main = {
                         let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, datahora: { $gt: obj.register.datahora } } });
                         if (count > 0) {
                             return application.error(obj.res, { msg: 'Existe um fechamento de caixa maior que desta data' });
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , formapgto: {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.register.formarecebimento = 'Vale' && obj.register.iditem == null) {
+                            return application.error(obj.res, { msg: 'É obrigatório informar o item de troca.' });
                         }
                         next(obj);
                     } catch (err) {
@@ -764,6 +901,18 @@ where m.id = :v1
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+        }
+        , suprimentos: {
+            estoque: {
+                f_atualizarSaldoItemTroca: async function (obj, next) {
+                    try {
+                        let item = await db.getModel('cad_item').find({ where: { id: obj.iditem } });
+                        db.getModel('cad_item').update({ estoqueatual: item.estoqueatual + 1, estoqueproprio: item.estoqueproprio + 1 }, { where: { id: obj.iditem } });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
