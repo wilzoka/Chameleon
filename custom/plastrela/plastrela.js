@@ -7153,7 +7153,284 @@ let main = {
             }
         }
         , venda: {
-            proposta: {
+            embarque: {
+                e_sincronizar: async (obj) => {
+                    try {
+                        main.platform.kettle.f_runJob('plastrela/sync/JobEmbarque.kjb');
+                        return application.success(obj.res, { msg: application.message.success });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_solicitarPCP: async (obj) => {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (embarques[i].solicitadapcp) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já solicitada, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ solicitadapcp: true }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                        let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_pcp' } });
+                        if (notificacao) {
+                            notificacao = JSON.parse(notificacao.value);
+                            main.platform.notification.create(notificacao, {
+                                title: 'Confirmação Pendente'
+                                , description: `Foi solicitado ${obj.ids.length} confirmações`
+                                , link: '/v/entrega'
+                            });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_desfazerSolicitarPCP: async (obj) => {
+                    try {
+                        try {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                            if (!param) {
+                                return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                            }
+                            param = JSON.parse(param.value);
+                            if (param.indexOf(obj.req.user.id)) {
+                                return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
+                            }
+                            let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embarques.length; i++) {
+                                if (!embarques[i].solicitadapcp) {
+                                    return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
+                                }
+                            }
+                            await db.getModel('ven_embarque').update({ solicitadapcp: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        } catch (err) {
+                            return application.fatal(obj.res, err);
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_confirmarPCP: async (obj) => {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_pcp' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor PCP pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (embarques[i].confirmadapcp) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já solicitada, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ confirmadapcp: true }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                        let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        if (notificacao) {
+                            notificacao = JSON.parse(notificacao.value);
+                            main.platform.notification.create(notificacao, {
+                                title: 'Confirmação Realizada'
+                                , description: `Foi confirmada ${obj.ids.length} entregas`
+                                , link: '/v/entrega'
+                            });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_desfazerConfirmarPCP: async (obj) => {
+                    try {
+                        try {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                            if (!param) {
+                                return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                            }
+                            param = JSON.parse(param.value);
+                            if (param.indexOf(obj.req.user.id)) {
+                                return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
+                            }
+                            let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embarques.length; i++) {
+                                if (!embarques[i].confirmadapcp) {
+                                    return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
+                                }
+                            }
+                            await db.getModel('ven_embarque').update({ confirmadapcp: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        } catch (err) {
+                            return application.fatal(obj.res, err);
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_confirmarComercial: async (obj) => {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (embarques[i].confirmadacomercial) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já solicitada, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ confirmadacomercial: true }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                        let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        if (notificacao) {
+                            notificacao = JSON.parse(notificacao.value);
+                            main.platform.notification.create(notificacao, {
+                                title: 'Confirmação Entrega'
+                                , description: `Foi confirmado ${obj.ids.length} entregas`
+                                , link: '/v/entrega'
+                            });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_desfazerConfirmarComercial: async (obj) => {
+                    try {
+                        try {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                            if (!param) {
+                                return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                            }
+                            param = JSON.parse(param.value);
+                            if (param.indexOf(obj.req.user.id)) {
+                                return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
+                            }
+                            let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embarques.length; i++) {
+                                if (!embarques[i].confirmadacomercial) {
+                                    return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
+                                }
+                            }
+                            await db.getModel('ven_embarque').update({ confirmadacomercial: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        } catch (err) {
+                            return application.fatal(obj.res, err);
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_sugerirDataEntrega: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+
+                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_motivoalteracaoentrega' } });
+                            if (!param) {
+                                return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                            }
+                            param = JSON.parse(param.value);
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.date({
+                                width: '12'
+                                , label: 'Data Sugerida*'
+                                , name: 'data'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Motivo*'
+                                , name: 'motivo'
+                                , options: param.join(',')
+                            });
+                            body += application.components.html.textarea({
+                                width: '12'
+                                , label: 'Observação'
+                                , name: 'observacao'
+                                , rows: '3'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'data', 'motivo']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            await db.getModel('ven_embarquealteracao').create({
+                                idembarque: obj.req.body.id
+                                , iduser: obj.req.user.id
+                                , data: application.formatters.be.date(obj.req.body.data)
+                                , motivo: obj.req.body.motivo
+                                , observacao: obj.req.body.observacao || null
+                                , lido: false
+                            }, { iduser: obj.req.user.id });
+
+                            application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                            let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                            if (notificacao) {
+                                notificacao = JSON.parse(notificacao.value);
+                                main.platform.notification.create(notificacao, {
+                                    title: 'Solicitação de Alteração da data de Entrega'
+                                    , description: `Foi solicitada a alteração da entrega ${obj.req.body.id}`
+                                    , link: '/v/entrega/' + obj.req.body.id
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , proposta: {
                 onsave: async function (obj, next) {
                     try {
                         if (obj.register.id == 0) {
@@ -7215,7 +7492,6 @@ let main = {
                                     , 'produto_embalar'
                                     , 'produto_peso_envasar'
                                     , 'produto_peso_envasar_un'
-                                    , 'produto_confec_pasta_padrao'
                                 ];
 
                                 if (obj.register['produto_pigmentado'] == 'Sim' && !obj.register['produto_cor_pigmento']) {
@@ -7270,7 +7546,6 @@ let main = {
                                         , 'p_tipo_emenda'
                                         , 'p_aplicar_microfuros'
                                         , 'p_aplicar_ziper_facil'
-                                        , 'p_sentidoembob'
                                     ].concat(validar_produto_geral));
 
                                     if (obj.register.produto_liso_imp == 'Impresso') {
