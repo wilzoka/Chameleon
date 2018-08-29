@@ -282,11 +282,12 @@
   <hop> <from>LK item</from><to>LK versao</to><enabled>Y</enabled> </hop>
   <hop> <from>LK versao</from><to>LK pedido</to><enabled>Y</enabled> </hop>
   <hop> <from>LK pedido</from><to>LK op</to><enabled>Y</enabled> </hop>
-  <hop> <from>LK op</from><to>Select values</to><enabled>Y</enabled> </hop>
   <hop> <from>Select values</from><to>Sort rows</to><enabled>Y</enabled> </hop>
   <hop> <from>Sort rows</from><to>Merge Rows &#x28;diff&#x29;</to><enabled>Y</enabled> </hop>
   <hop> <from>Sort rows 2</from><to>Merge Rows &#x28;diff&#x29;</to><enabled>Y</enabled> </hop>
   <hop> <from>Merge Rows &#x28;diff&#x29;</from><to>Synchronize after merge</to><enabled>Y</enabled> </hop>
+  <hop> <from>LK op</from><to>Modified Java Script Value</to><enabled>Y</enabled> </hop>
+  <hop> <from>Modified Java Script Value</from><to>Select values</to><enabled>Y</enabled> </hop>
   </order>
   <step>
     <name>LK item</name>
@@ -500,8 +501,50 @@
     </compare>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>848</xloc>
+      <xloc>979</xloc>
       <yloc>76</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Modified Java Script Value</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <compatible>N</compatible>
+    <optimizationLevel>9</optimizationLevel>
+    <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>var solicitadapcp &#x3d; false&#x3b;&#xd;&#xa;var confirmadapcp &#x3d; false&#x3b;&#xd;&#xa;var confirmadacomercial &#x3d; false&#x3b;</jsScript_script>
+      </jsScript>    </jsScripts>    <fields>      <field>        <name>solicitadapcp</name>
+        <rename>solicitadapcp</rename>
+        <type>Boolean</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>confirmadapcp</name>
+        <rename>confirmadapcp</rename>
+        <type>Boolean</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>confirmadacomercial</name>
+        <rename>confirmadacomercial</rename>
+        <type>Boolean</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>626</xloc>
+      <yloc>20</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
@@ -578,6 +621,18 @@
         <length>-2</length>
         <precision>-2</precision>
       </field>      <field>        <name>OP_SITUACAO</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>solicitadapcp</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>confirmadapcp</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>confirmadacomercial</name>
         <rename/>
         <length>-2</length>
         <precision>-2</precision>
@@ -822,9 +877,54 @@
         <grouping_symbol/>
         <currency_symbol/>
         <storage_type/>
+      </meta>      <meta>        <name>solicitadapcp</name>
+        <rename>solicitadapcp</rename>
+        <type>Boolean</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>      <meta>        <name>confirmadapcp</name>
+        <rename>confirmadapcp</rename>
+        <type>Boolean</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>      <meta>        <name>confirmadacomercial</name>
+        <rename>confirmadacomercial</rename>
+        <type>Boolean</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
       </meta>    </fields>     <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>625</xloc>
+      <xloc>756</xloc>
       <yloc>20</yloc>
       <draw>Y</draw>
       </GUI>
@@ -1148,7 +1248,7 @@
         <storage_type/>
       </meta>    </fields>     <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>625</xloc>
+      <xloc>756</xloc>
       <yloc>141</yloc>
       <draw>Y</draw>
       </GUI>
@@ -1200,7 +1300,7 @@
     </fields>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>751</xloc>
+      <xloc>882</xloc>
       <yloc>20</yloc>
       <draw>Y</draw>
       </GUI>
@@ -1252,7 +1352,7 @@
     </fields>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>751</xloc>
+      <xloc>882</xloc>
       <yloc>141</yloc>
       <draw>Y</draw>
       </GUI>
@@ -1391,10 +1491,25 @@
         <rename>op_situacao</rename>
         <update>Y</update>
       </value>
+      <value>
+        <name>solicitadapcp</name>
+        <rename>solicitadapcp</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>confirmadapcp</name>
+        <rename>confirmadapcp</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>confirmadacomercial</name>
+        <rename>confirmadacomercial</rename>
+        <update>N</update>
+      </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>982</xloc>
+      <xloc>1113</xloc>
       <yloc>76</yloc>
       <draw>Y</draw>
       </GUI>
