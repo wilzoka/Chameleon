@@ -168,7 +168,7 @@ const getFilter = function (cookie, modelattributes) {
                             if (f && f.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k].val));
                             } else {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
+                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + " in ('" + cookie[i][k].val.join("','") + "')");
                             }
                         }
                     }

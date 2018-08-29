@@ -7187,11 +7187,14 @@ let main = {
                         let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_pcp' } });
                         if (notificacao) {
                             notificacao = JSON.parse(notificacao.value);
-                            main.platform.notification.create(notificacao, {
-                                title: 'Confirmação Pendente'
-                                , description: `Foi solicitado ${obj.ids.length} confirmações`
-                                , link: '/v/entrega'
-                            });
+                            let embs = await main.platform.model.find('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embs.count; i++) {
+                                main.platform.notification.create(notificacao, {
+                                    title: 'Confirmação Pendente'
+                                    , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
+                                    , link: '/v/entrega/' + embs.rows[i].id
+                                });
+                            }
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -7199,29 +7202,25 @@ let main = {
                 }
                 , e_desfazerSolicitarPCP: async (obj) => {
                     try {
-                        try {
-                            if (obj.ids.length <= 0) {
-                                return application.error(obj.res, { msg: application.message.selectOneEvent });
-                            }
-                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
-                            if (!param) {
-                                return application.error(obj.res, { msg: 'Parâmetro não configurado' });
-                            }
-                            param = JSON.parse(param.value);
-                            if (param.indexOf(obj.req.user.id)) {
-                                return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
-                            }
-                            let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
-                            for (let i = 0; i < embarques.length; i++) {
-                                if (!embarques[i].solicitadapcp) {
-                                    return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
-                                }
-                            }
-                            await db.getModel('ven_embarque').update({ solicitadapcp: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
-                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                        } catch (err) {
-                            return application.fatal(obj.res, err);
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (!embarques[i].solicitadapcp) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ solicitadapcp: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -7251,11 +7250,14 @@ let main = {
                         let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
                         if (notificacao) {
                             notificacao = JSON.parse(notificacao.value);
-                            main.platform.notification.create(notificacao, {
-                                title: 'Confirmação Realizada'
-                                , description: `Foi confirmada ${obj.ids.length} entregas`
-                                , link: '/v/entrega'
-                            });
+                            let embs = await main.platform.model.find('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embs.count; i++) {
+                                main.platform.notification.create(notificacao, {
+                                    title: 'Confirmação Realizada'
+                                    , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
+                                    , link: '/v/entrega/' + embs.rows[i].id
+                                });
+                            }
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -7263,29 +7265,25 @@ let main = {
                 }
                 , e_desfazerConfirmarPCP: async (obj) => {
                     try {
-                        try {
-                            if (obj.ids.length <= 0) {
-                                return application.error(obj.res, { msg: application.message.selectOneEvent });
-                            }
-                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
-                            if (!param) {
-                                return application.error(obj.res, { msg: 'Parâmetro não configurado' });
-                            }
-                            param = JSON.parse(param.value);
-                            if (param.indexOf(obj.req.user.id)) {
-                                return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
-                            }
-                            let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
-                            for (let i = 0; i < embarques.length; i++) {
-                                if (!embarques[i].confirmadapcp) {
-                                    return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
-                                }
-                            }
-                            await db.getModel('ven_embarque').update({ confirmadapcp: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
-                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                        } catch (err) {
-                            return application.fatal(obj.res, err);
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (!embarques[i].confirmadapcp) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ confirmadapcp: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -7315,11 +7313,14 @@ let main = {
                         let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
                         if (notificacao) {
                             notificacao = JSON.parse(notificacao.value);
-                            main.platform.notification.create(notificacao, {
-                                title: 'Confirmação Entrega'
-                                , description: `Foi confirmado ${obj.ids.length} entregas`
-                                , link: '/v/entrega'
-                            });
+                            let embs = await main.platform.model.find('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embs.count; i++) {
+                                main.platform.notification.create(notificacao, {
+                                    title: moment().format(application.formatters.fe.date_format) == embs.rows[i].previsaodata ? 'EMBARQUE IMEDIATO' : 'Confirmação Entrega'
+                                    , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
+                                    , link: '/v/entrega/' + embs.rows[i].id
+                                });
+                            }
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -7327,29 +7328,25 @@ let main = {
                 }
                 , e_desfazerConfirmarComercial: async (obj) => {
                     try {
-                        try {
-                            if (obj.ids.length <= 0) {
-                                return application.error(obj.res, { msg: application.message.selectOneEvent });
-                            }
-                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
-                            if (!param) {
-                                return application.error(obj.res, { msg: 'Parâmetro não configurado' });
-                            }
-                            param = JSON.parse(param.value);
-                            if (param.indexOf(obj.req.user.id)) {
-                                return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
-                            }
-                            let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
-                            for (let i = 0; i < embarques.length; i++) {
-                                if (!embarques[i].confirmadacomercial) {
-                                    return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
-                                }
-                            }
-                            await db.getModel('ven_embarque').update({ confirmadacomercial: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
-                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                        } catch (err) {
-                            return application.fatal(obj.res, err);
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (!embarques[i].confirmadacomercial) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já desfeita, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ confirmadacomercial: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
