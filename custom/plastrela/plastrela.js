@@ -7415,11 +7415,14 @@ let main = {
                             let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
                             if (notificacao) {
                                 notificacao = JSON.parse(notificacao.value);
-                                main.platform.notification.create(notificacao, {
-                                    title: 'Solicitação de Alteração da data de Entrega'
-                                    , description: `Foi solicitada a alteração da entrega ${obj.req.body.id}`
-                                    , link: '/v/entrega/' + obj.req.body.id
-                                });
+                                let embs = await main.platform.model.find('ven_embarque', { where: { id: obj.req.body.id } });
+                                for (let i = 0; i < embs.count; i++) {
+                                    main.platform.notification.create(notificacao, {
+                                        title: 'Alteração de Entrega'
+                                        , description: `De ${embs.rows[i].previsaodata} para ${obj.req.body.data} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
+                                        , link: '/v/entrega/' + embs.rows[i].id
+                                    });
+                                }                               
                             }
                         }
                     } catch (err) {
