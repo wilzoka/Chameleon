@@ -7156,8 +7156,8 @@ let main = {
             embarque: {
                 e_sincronizar: async (obj) => {
                     try {
-                        main.platform.kettle.f_runJob('plastrela/sync/JobEmbarque.kjb');
-                        return application.success(obj.res, { msg: application.message.success });
+                        await main.platform.kettle.f_runJob('plastrela/sync/JobEmbarque.kjb');
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

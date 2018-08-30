@@ -33,36 +33,39 @@ let platform = {
             });
         }
         , f_runJob: function (filepath) {
-            db.getModel('config').find().then(config => {
-                let nrc = require('node-run-cmd');
-                if (application.functions.isWindows()) {
-                    nrc.run('Kitchen.bat /file:' + __dirname + '/' + filepath
-                        , {
-                            cwd: config.kettlepath
-                            , onData: function (data) {
-                                console.log('data', data);
-                            }
-                            , onDone: function (data) {
-                                console.log('done', data);
-                            }
-                            , onError: function (data) {
-                                console.log('err', data);
-                            }
-                        });
-                } else {
-                    nrc.run(config.kettlepath + '/kitchen.sh -file=' + __dirname + '/' + filepath
-                        , {
-                            onData: function (data) {
-                                console.log('data', data);
-                            }
-                            , onDone: function (data) {
-                                console.log('done', data);
-                            }
-                            , onError: function (data) {
-                                console.log('err', data);
-                            }
-                        });
-                }
+            return new Promise((resolve) => {
+                db.getModel('config').find().then(config => {
+                    let nrc = require('node-run-cmd');
+                    if (application.functions.isWindows()) {
+                        nrc.run('Kitchen.bat /file:' + __dirname + '/' + filepath
+                            , {
+                                cwd: config.kettlepath
+                                , onData: function (data) {
+                                    console.log('data', data);
+                                }
+                                , onDone: function (data) {
+                                    console.log('done', data);
+                                    resolve();
+                                }
+                                , onError: function (data) {
+                                    console.log('err', data);
+                                }
+                            });
+                    } else {
+                        nrc.run(config.kettlepath + '/kitchen.sh -file=' + __dirname + '/' + filepath
+                            , {
+                                onData: function (data) {
+                                    console.log('data', data);
+                                }
+                                , onDone: function (data) {
+                                    console.log('done', data);
+                                }
+                                , onError: function (data) {
+                                    console.log('err', data);
+                                }
+                            });
+                    }
+                });
             });
         }
     }
