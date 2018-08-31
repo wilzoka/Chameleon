@@ -2820,6 +2820,73 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_xlsAlmox: async (obj) => {
+                    try {
+                        let sql = await db.sequelize.query(`
+                        SELECT 
+                            "est_volume"."id"
+                            , to_char("est_volume"."datahora", 'dd/MM/YYYY') as datahora
+                            , "pcp_versao"."descricaocompleta" AS "produto"
+                            , "est_deposito"."descricao" AS "deposito"
+                            , "est_depositoendereco"."descricao" AS "endereco"
+                            , "est_volume"."qtdreal" as "qtdemestoque"
+                            , est_volume.qtdreal - coalesce((select sum(vr.qtd) from est_volumereserva vr where vr.apontado = false and vr.idvolume = est_volume.id),0) AS "qtddisponivel"
+                            , (select cad_unidade.unidade from cad_unidade where cad_unidade.id = (select cad_item.idunidade from cad_item where cad_item.id = pcp_versao.iditem)) AS "unidade"
+                            , case when "est_volume"."consumido" = true then 'SIM' else 'NAO' end as consumido
+                            , "est_volume"."lote"
+                            , to_char("est_volume"."datavalidade", 'dd/MM/YYYY') as datavalidade
+                            , case when "est_volume"."fotos" is null then 'NAO' else 'SIM' end as possuifoto
+                            , c.descricao as estrutura
+                            , nv.chave
+                            , nv.razaosocial as fornecedor
+                            , nv.datainclusao as dataentrada
+                            , nv.documento
+                        FROM "est_volume" AS "est_volume"
+                        LEFT OUTER JOIN "pcp_apretorno" AS "pcp_apretorno" ON "est_volume"."idapretorno" = "pcp_apretorno"."id"
+                        LEFT OUTER JOIN "est_deposito" AS "est_deposito" ON "est_volume"."iddeposito" = "est_deposito"."id"
+                        LEFT OUTER JOIN "est_nfentradaitem" AS "est_nfentradaitem" ON "est_volume"."idnfentradaitem" = "est_nfentradaitem"."id"
+                        LEFT OUTER JOIN "pcp_versao" AS "pcp_versao" ON "est_volume"."idversao" = "pcp_versao"."id"
+                        LEFT OUTER JOIN "users" AS "users" ON "est_volume"."iduser" = "users"."id"
+                        LEFT OUTER JOIN "est_depositoendereco" AS "est_depositoendereco" ON "est_volume"."iddepositoendereco" = "est_depositoendereco"."id"
+                        LEFT OUTER JOIN "pcp_approducaovolume" AS "pcp_approducaovolume" ON "est_volume"."idapproducaovolume" = "pcp_approducaovolume"."id"
+                        LEFT OUTER JOIN cad_item i on ("pcp_versao".iditem = i.id)
+                        LEFT OUTER JOIN est_classe c on (i.idclasse = c.id)
+                        left join est_nfentradaitem nvi on ("est_volume".idnfentradaitem = nvi.id)
+                        left join est_nfentrada nv on (nvi.idnfentrada = nv.id)
+                        WHERE ("est_volume"."consumido" = 'false' AND "est_volume"."iddeposito" IN ('1'))
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+                        let XLSX = require('xlsx');
+                        let wb = XLSX.utils.book_new();
+                        wb.SheetNames.push('Sheet1');
+                        let ws = XLSX.utils.json_to_sheet(sql, {
+                            header: [
+                                'id'
+                                , 'datahora'
+                                , 'produto'
+                                , 'deposito'
+                                , 'endereco'
+                                , 'qtdemestoque'
+                                , 'qtddisponivel'
+                                , 'unidade'
+                                , 'consumido'
+                                , 'lote'
+                                , 'datavalidade'
+                                , 'possuifoto'
+                                , 'estrutura'
+                                , 'chave'
+                                , 'fornecedor'
+                                , 'dataentrada'
+                                , 'documento'
+                            ], cellDates: true
+                        });
+                        let filename = process.hrtime()[1] + '.xls';
+                        wb.Sheets['Sheet1'] = ws;
+                        XLSX.writeFile(wb, __dirname + '/../../tmp/' + filename);
+                        return application.success(obj.res, { openurl: '/download/' + filename });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , volumereserva: {
                 onsave: async function (obj, next) {
@@ -7422,7 +7489,7 @@ let main = {
                                         , description: `De ${embs.rows[i].previsaodata} para ${obj.req.body.data} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
                                         , link: '/v/entrega/' + embs.rows[i].id
                                     });
-                                }                               
+                                }
                             }
                         }
                     } catch (err) {

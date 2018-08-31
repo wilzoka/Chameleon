@@ -17,8 +17,7 @@ const cluster = require('cluster')
             createWorker();
         });
         workers.push(worker);
-    }
-    ;
+    };
 let workers = [];
 if (cluster.isMaster) {
     for (let i = 0; i < (1 || os.cpus().length); i++) {
@@ -53,7 +52,7 @@ if (cluster.isMaster) {
     //Middlewares
     app.use(cookieParser());
     app.use(bodyParser.json({ limit: '5mb' }));
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 100000 }));
     app.use(passport.initialize());
     app.use(passport.session());
     //Socket
