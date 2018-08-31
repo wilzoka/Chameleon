@@ -6061,7 +6061,7 @@ let main = {
                         let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
                         let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
                         let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
-                        main.platform.notification.create([2876], {
+                        main.platform.notification.create([2750], {
                             title: obj.req.body.motivo
                             , description: recurso.codigo + ' / ' + op.codigo
                         });
@@ -7540,6 +7540,10 @@ let main = {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         'idcorrentista'
                                     ]);
+                                    let cliente = await db.getModel('cad_corr').find({ where: { id: obj.register.idcorrentista } });
+                                    if (cliente) {
+                                        obj.register.condicao_pgto = cliente.condicaopgto;
+                                    }
                                 } else {
                                     invalidfields = ['cliente_selecao'];
                                 }
@@ -7565,17 +7569,12 @@ let main = {
                                     alreadyinvalid = alreadyinvalid.concat(['produto_cor_pigmento']);
                                 }
 
-                                if (!obj.register['p_diametro_maximo_bob'] && !obj.register['p_peso_maximo_bob']) {
-                                    alreadyinvalid = alreadyinvalid.concat(['p_diametro_maximo_bob', 'p_peso_maximo_bob']);
-                                }
-
                                 if (obj.register.produto_tipo == 'Saco') {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         's_largura_final'
                                         , 's_altura_final'
                                         , 's_espessura_final'
                                         , 's_tipo_solda'
-                                        , 's_localizacao_furos'
                                         , 's_pingo_solda'
                                         , 's_facilitador'
                                         , 's_aplicar_valvula'
@@ -7600,11 +7599,16 @@ let main = {
                                         alreadyinvalid = alreadyinvalid.concat(['s_tamanho_ziper_facil']);
                                     }
 
-                                    if (obj.register['s_possui_furos'] == 'Sim' && !obj.register['s_qtd_furo'] && !obj.register['s_tipo_furo']) {
+                                    if (obj.register['s_possui_furos'] == 'Sim' && !obj.register['s_qtd_furo'] && !obj.register['s_tipo_furo'] && !obj.register['s_localizacao_furos']) {
                                         alreadyinvalid = alreadyinvalid.concat(['s_qtd_furo', 's_tipo_furo']);
                                     }
 
                                 } else if (obj.register.produto_tipo == 'Película') {
+
+                                    if (!obj.register['p_diametro_maximo_bob'] && !obj.register['p_peso_maximo_bob']) {
+                                        alreadyinvalid = alreadyinvalid.concat(['p_diametro_maximo_bob', 'p_peso_maximo_bob']);
+                                    }
+
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         'p_largura_final'
                                         , 'p_espessura_final'
