@@ -6160,7 +6160,7 @@ let main = {
                                 , name: 'recurso'
                                 , model: 'pcp_recurso'
                                 , attribute: 'descricao'
-                                , where: 'idtprecurso = 32 and ativo = true'
+                                , where: '(select tp.codigo from pcp_tprecurso tp where pcp_recurso.idtprecurso = tp.id) = 11 and ativo = true'
                             });
                             body += application.components.html.decimal({
                                 width: 12
@@ -7491,6 +7491,124 @@ let main = {
                                     });
                                 }
                             }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_imprimir: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Prevista Inicial*'
+                                , name: 'dataini'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Data Prevista Final*'
+                                , name: 'datafim'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Situação'
+                                , name: 'situacao'
+                                , multiple: 'multiple="multiple"'
+                                , options: 'Ativo,Encerrado,Finalizado,Cancelado'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Cliente'
+                                , name: 'idcliente'
+                                , multiple: 'multiple="multiple"'
+                                , model: 'cad_corr'
+                                , query: `codigo || ' - ' || nome`
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let where = {
+                                previsaodata: {
+                                    $gte: application.formatters.be.date(obj.req.body.dataini)
+                                    , $lte: application.formatters.be.date(obj.req.body.datafim)
+                                }
+                            };
+                            if (obj.req.body.situacao) {
+                                where.situacao = { $in: obj.req.body.situacao };
+                            }
+                            if (obj.req.body.idcliente) {
+                                where.$col = `ven_pedido.idcliente in (${obj.req.body.idcliente})`
+                            }
+
+                            let embarques = await main.platform.model.find('ven_embarque', { where: where, order: [['previsaodata', 'asc'], ['uf', 'asc']] });
+
+                            let report = {};
+                            report.__title = 'Lista de Embarques';
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Data Prevista</strong></td>
+                                    <td style="text-align:center;"><strong>Pedido</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>UN</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Atendido</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Produzido</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Estoque</strong></td>
+                                    <td style="text-align:center;"><strong>Cidade</strong></td>
+                                    <td style="text-align:center;"><strong>UF</strong></td>
+                                    <td style="text-align:center;"><strong>Situação</strong></td>
+                                    
+                                </tr>
+                            `;
+                            for (let i = 0; i < embarques.count; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:center;"> ${embarques.rows[i]['previsaodata']} </td>
+                                    <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 70)} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdestoque'] || ''} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['cidade']} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['uf']} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['situacao']} </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevtp'
+                                    , fullscreen: true
+                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                                }
+                            });
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
