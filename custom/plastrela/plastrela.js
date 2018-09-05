@@ -7503,12 +7503,12 @@ let main = {
                             let body = '';
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Prevista Inicial*'
+                                , label: 'Previsão Entrega Inicial*'
                                 , name: 'dataini'
                             });
                             body += application.components.html.date({
                                 width: '6'
-                                , label: 'Data Prevista Final*'
+                                , label: 'Previsão Entrega Final*'
                                 , name: 'datafim'
                             });
                             body += application.components.html.autocomplete({
@@ -7520,11 +7520,10 @@ let main = {
                             });
                             body += application.components.html.autocomplete({
                                 width: '12'
-                                , label: 'Cliente'
-                                , name: 'idcliente'
+                                , label: 'UF'
+                                , name: 'uf'
                                 , multiple: 'multiple="multiple"'
-                                , model: 'cad_corr'
-                                , query: `codigo || ' - ' || nome`
+                                , options: 'AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO'
                             });
 
                             return application.success(obj.res, {
@@ -7550,22 +7549,42 @@ let main = {
                                     , $lte: application.formatters.be.date(obj.req.body.datafim)
                                 }
                             };
+                            if (obj.req.body.situacao && typeof obj.req.body.situacao == 'string') {
+                                obj.req.body.situacao = [obj.req.body.situacao];
+                            }
+                            if (obj.req.body.uf && typeof obj.req.body.uf == 'string') {
+                                obj.req.body.uf = [obj.req.body.uf];
+                            }
+
+                            let arr = [];
                             if (obj.req.body.situacao) {
                                 where.situacao = { $in: obj.req.body.situacao };
                             }
-                            if (obj.req.body.idcliente) {
-                                where.$col = `ven_pedido.idcliente in (${obj.req.body.idcliente})`
+                            if (obj.req.body.uf) {
+                                where.uf = { $in: obj.req.body.uf };
                             }
 
-                            let embarques = await main.platform.model.find('ven_embarque', { where: where, order: [['previsaodata', 'asc'], ['uf', 'asc']] });
+                            if (arr.length > 0) {
+                                where.$col = db.Sequelize.literal(arr.join(' and '));
+                            }
+                            let embarques = await main.platform.model.find('ven_embarque', {
+                                where: where
+                                , order: [
+                                    ['previsaodata', 'asc']
+                                    , ['uf', 'asc']
+                                    , [db.Sequelize.literal('ven_pedido.idcliente'), 'asc']
+                                ]
+                            });
 
                             let report = {};
                             report.__title = 'Lista de Embarques';
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
-                                    <td style="text-align:center;"><strong>Data Prevista</strong></td>
+                                    <td style="text-align:center;"><strong>Previsão Entrega</strong></td>
                                     <td style="text-align:center;"><strong>Pedido</strong></td>
+                                    <td style="text-align:center;"><strong>Cliente</strong></td>
+                                    <td style="text-align:center;"><strong>OP</strong></td>
                                     <td style="text-align:center;"><strong>Item</strong></td>
                                     <td style="text-align:center;"><strong>UN</strong></td>
                                     <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
@@ -7575,7 +7594,6 @@ let main = {
                                     <td style="text-align:center;"><strong>Cidade</strong></td>
                                     <td style="text-align:center;"><strong>UF</strong></td>
                                     <td style="text-align:center;"><strong>Situação</strong></td>
-                                    
                                 </tr>
                             `;
                             for (let i = 0; i < embarques.count; i++) {
@@ -7583,7 +7601,9 @@ let main = {
                                 <tr>
                                     <td style="text-align:center;"> ${embarques.rows[i]['previsaodata']} </td>
                                     <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 70)} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['cliente'].substring(0, 30)} </td>
+                                    <td style="text-align:center;"> ${embarques.rows[i]['idop'] || ''} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 40)} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
@@ -7601,13 +7621,7 @@ let main = {
 
                             let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
                             return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevtp'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
+                                openurl: '/download/' + file
                             });
                         }
                     } catch (err) {

@@ -317,6 +317,7 @@
       <value>cob_cep</value>
       <value>cob_cidade</value>
       <value>cob_uf</value>
+      <value>condicaopgto</value>
     </values>
 <flag_field>flagfield</flag_field>
 <reference>Sort rows 2</reference>
@@ -534,6 +535,11 @@
         <rename>cob_uf</rename>
         <update>Y</update>
       </value>
+      <value>
+        <name>condicaopgto</name>
+        <rename>condicaopgto</rename>
+        <update>Y</update>
+      </value>
     </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
@@ -555,7 +561,7 @@
            <schema_name/>
            </partitioning>
     <connection>Iniflex</connection>
-    <sql>select&#xd;&#xa;	c.codigo&#xd;&#xa;	, cast&#x28;c.cnpj_cpf as varchar&#x28;255&#x29;&#x29; as cnpj_cpf&#xd;&#xa;	, c.nome&#xd;&#xa;	, c.fone&#xd;&#xa;	, c.fantasia&#xd;&#xa;	, c.loc_endereco&#xd;&#xa;	, c.loc_bairro&#xd;&#xa;	, c.insc_estadual&#xd;&#xa;	, c.loc_cep&#xd;&#xa;	, cid.cidade as loc_cidade&#xd;&#xa;	, cid.uf as loc_uf	&#xd;&#xa;&#xd;&#xa;	, c.ent_endereco&#xd;&#xa;	, c.ent_bairro&#xd;&#xa;	, c.ent_cep&#xd;&#xa;	, entcid.cidade as ent_cidade&#xd;&#xa;	, entcid.uf as ent_uf&#xd;&#xa;&#xd;&#xa;	, c.cob_endereco&#xd;&#xa;	, c.cob_bairro&#xd;&#xa;	, c.cob_cep&#xd;&#xa;	, cobcid.cidade as cob_cidade&#xd;&#xa;	, cobcid.uf as cob_uf&#xd;&#xa;from cadcorr c&#xd;&#xa;left join cadcidade cid on &#x28;c.loc_cidade &#x3d; cid.codigo&#x29;&#xd;&#xa;left join cadcidade entcid on &#x28;c.ent_cidade &#x3d; entcid.codigo&#x29;&#xd;&#xa;left join cadcidade cobcid on &#x28;c.cob_cidade &#x3d; cobcid.codigo&#x29;</sql>
+    <sql>select&#xd;&#xa;	c.codigo&#xd;&#xa;	, cast&#x28;c.cnpj_cpf as varchar&#x28;255&#x29;&#x29; as cnpj_cpf&#xd;&#xa;	, c.nome&#xd;&#xa;	, c.fone&#xd;&#xa;	, c.fantasia&#xd;&#xa;	, c.loc_endereco&#xd;&#xa;	, c.loc_bairro&#xd;&#xa;	, c.insc_estadual&#xd;&#xa;	, c.loc_cep&#xd;&#xa;	, cid.cidade as loc_cidade&#xd;&#xa;	, cid.uf as loc_uf	&#xd;&#xa;&#xd;&#xa;	, c.ent_endereco&#xd;&#xa;	, c.ent_bairro&#xd;&#xa;	, c.ent_cep&#xd;&#xa;	, entcid.cidade as ent_cidade&#xd;&#xa;	, entcid.uf as ent_uf&#xd;&#xa;&#xd;&#xa;	, c.cob_endereco&#xd;&#xa;	, c.cob_bairro&#xd;&#xa;	, c.cob_cep&#xd;&#xa;	, cobcid.cidade as cob_cidade&#xd;&#xa;	, cobcid.uf as cob_uf&#xd;&#xa;	, &#x28;select LISTAGG&#x28;f.dias, &#x27; &#x2f; &#x27;&#x29; WITHIN GROUP &#x28;ORDER BY f.dias&#x29; from finvenctos f where f.correntista &#x3d; c.codigo&#x29; as condicaopgto&#xd;&#xa;from cadcorr c&#xd;&#xa;left join cadcidade cid on &#x28;c.loc_cidade &#x3d; cid.codigo&#x29;&#xd;&#xa;left join cadcidade entcid on &#x28;c.ent_cidade &#x3d; entcid.codigo&#x29;&#xd;&#xa;left join cadcidade cobcid on &#x28;c.cob_cidade &#x3d; cobcid.codigo&#x29;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -581,7 +587,7 @@
            <schema_name/>
            </partitioning>
     <connection>SIPv2</connection>
-    <sql>SELECT&#xd;&#xa;	codigo&#xd;&#xa;	, cnpj_cpf&#xd;&#xa;	, nome&#xd;&#xa;	, fone&#xd;&#xa;	, fantasia&#xd;&#xa;	, loc_endereco&#xd;&#xa;	, loc_bairro&#xd;&#xa;	, insc_estadual&#xd;&#xa;	, loc_cep&#xd;&#xa;	, loc_cidade&#xd;&#xa;	, loc_uf&#xd;&#xa;&#xd;&#xa;	, ent_endereco&#xd;&#xa;	, ent_bairro&#xd;&#xa;	, ent_cep&#xd;&#xa;	, ent_cidade&#xd;&#xa;	, ent_uf&#xd;&#xa;&#xd;&#xa;	, cob_endereco&#xd;&#xa;	, cob_bairro&#xd;&#xa;	, cob_cep&#xd;&#xa;	, cob_cidade&#xd;&#xa;	, cob_uf	&#xd;&#xa;FROM cad_corr&#xd;&#xa;</sql>
+    <sql>SELECT&#xd;&#xa;	codigo&#xd;&#xa;	, cnpj_cpf&#xd;&#xa;	, nome&#xd;&#xa;	, fone&#xd;&#xa;	, fantasia&#xd;&#xa;	, loc_endereco&#xd;&#xa;	, loc_bairro&#xd;&#xa;	, insc_estadual&#xd;&#xa;	, loc_cep&#xd;&#xa;	, loc_cidade&#xd;&#xa;	, loc_uf&#xd;&#xa;&#xd;&#xa;	, ent_endereco&#xd;&#xa;	, ent_bairro&#xd;&#xa;	, ent_cep&#xd;&#xa;	, ent_cidade&#xd;&#xa;	, ent_uf&#xd;&#xa;&#xd;&#xa;	, cob_endereco&#xd;&#xa;	, cob_bairro&#xd;&#xa;	, cob_cep&#xd;&#xa;	, cob_cidade&#xd;&#xa;	, cob_uf&#xd;&#xa;	&#xd;&#xa;	, condicaopgto&#xd;&#xa;FROM cad_corr&#xd;&#xa;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
