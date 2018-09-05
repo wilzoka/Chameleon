@@ -59,6 +59,7 @@ let platform = {
                                 }
                                 , onDone: function (data) {
                                     console.log('done', data);
+                                    resolve();
                                 }
                                 , onError: function (data) {
                                     console.log('err', data);
