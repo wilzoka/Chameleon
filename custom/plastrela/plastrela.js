@@ -7592,8 +7592,7 @@ let main = {
                                     <td style="text-align:center;"><strong>Qtd Produzido</strong></td>
                                     <td style="text-align:center;"><strong>Qtd Estoque</strong></td>
                                     <td style="text-align:center;"><strong>Cidade</strong></td>
-                                    <td style="text-align:center;"><strong>UF</strong></td>
-                                    <td style="text-align:center;"><strong>Situação</strong></td>
+                                    <td style="text-align:center;"><strong>Representante</strong></td>
                                 </tr>
                             `;
                             for (let i = 0; i < embarques.count; i++) {
@@ -7609,9 +7608,8 @@ let main = {
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdestoque'] || ''} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['cidade']} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['uf']} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['situacao']} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['cidade'] + ' - ' + embarques.rows[i]['uf']} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['representante'].substring(0, 20)} </td>
                                 </tr>
                                 `;
                             }
