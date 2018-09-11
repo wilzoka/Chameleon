@@ -7526,6 +7526,26 @@ let main = {
                                 , options: 'AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO'
                             });
 
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Solic PCP?</label>
+                                <div class="row" style="text-align: center;">
+                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="" checked="checked"> Todos </label> </div>
+                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="true"> Sim </label> </div>
+                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="false"> Não </label> </div>
+                                </div> </div> </div>`;
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Conf PCP?</label>
+                                <div class="row" style="text-align: center;">
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="" checked="checked"> Todos </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="true"> Sim </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="false"> Não </label> </div> 
+                                </div> </div> </div>`;
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Conf Comercial?</label> 
+                                <div class="row" style="text-align: center;"> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="" checked="checked"> Todos </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="true"> Sim </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="false"> Não </label> </div> 
+                                </div> </div> </div>`;
+
+
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -7562,6 +7582,15 @@ let main = {
                             }
                             if (obj.req.body.uf) {
                                 where.uf = { $in: obj.req.body.uf };
+                            }
+                            if (obj.req.body.solicitadapcp) {
+                                where.solicitadapcp = { $eq: obj.req.body.solicitadapcp }
+                            }
+                            if (obj.req.body.confirmadapcp) {
+                                where.confirmadapcp = { $eq: obj.req.body.confirmadapcp }
+                            }
+                            if (obj.req.body.confirmadacomercial) {
+                                where.confirmadacomercial = { $eq: obj.req.body.confirmadacomercial }
                             }
 
                             if (arr.length > 0) {
