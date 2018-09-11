@@ -7582,8 +7582,8 @@ let main = {
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
                                     <td style="text-align:center;"><strong>Previsão Entrega</strong></td>
-                                    <td style="text-align:center;"><strong>Pedido</strong></td>
                                     <td style="text-align:center;"><strong>Cliente</strong></td>
+                                    <td style="text-align:center;"><strong>Pedido</strong></td>
                                     <td style="text-align:center;"><strong>OP</strong></td>
                                     <td style="text-align:center;"><strong>Item</strong></td>
                                     <td style="text-align:center;"><strong>UN</strong></td>
@@ -7600,8 +7600,8 @@ let main = {
                                 report.__table += `
                                 <tr>
                                     <td style="text-align:center;"> ${embarques.rows[i]['previsaodata']} </td>
-                                    <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['cliente'].substring(0, 30)} </td>
+                                    <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
                                     <td style="text-align:center;"> ${embarques.rows[i]['idop'] || ''} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 40)} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
