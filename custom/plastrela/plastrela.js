@@ -7418,6 +7418,56 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_aprovarRetirada: async (obj) => {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (embarques[i].aprovadoretirada) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já aprovada, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ aprovadoretirada: true }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_desfazerAprovarRetirada: async (obj) => {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id)) {
+                            return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
+                        }
+                        let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
+                        for (let i = 0; i < embarques.length; i++) {
+                            if (!embarques[i].aprovadoretirada) {
+                                return application.error(obj.res, { msg: 'Na seleção existe uma entrega já aprovada, verifique' });
+                            }
+                        }
+                        await db.getModel('ven_embarque').update({ aprovadoretirada: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
                 , e_sugerirDataEntrega: async (obj) => {
                     try {
                         if (obj.req.method == 'GET') {
@@ -7544,6 +7594,12 @@ let main = {
                                     <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="true"> Sim </label> </div> 
                                     <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="false"> Não </label> </div> 
                                 </div> </div> </div>`;
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Aprovado Retirada?</label> 
+                                <div class="row" style="text-align: center;"> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="" checked="checked"> Todos </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="true"> Sim </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="false"> Não </label> </div> 
+                                </div> </div> </div>`;
 
 
                             return application.success(obj.res, {
@@ -7591,6 +7647,9 @@ let main = {
                             }
                             if (obj.req.body.confirmadacomercial) {
                                 where.confirmadacomercial = { $eq: obj.req.body.confirmadacomercial }
+                            }
+                            if (obj.req.body.aprovadoretirada) {
+                                where.aprovadoretirada = { $eq: obj.req.body.aprovadoretirada }
                             }
 
                             if (arr.length > 0) {

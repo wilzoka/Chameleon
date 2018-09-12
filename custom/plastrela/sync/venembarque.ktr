@@ -524,7 +524,7 @@
     <optimizationLevel>9</optimizationLevel>
     <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
         <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var solicitadapcp &#x3d; false&#x3b;&#xd;&#xa;var confirmadapcp &#x3d; false&#x3b;&#xd;&#xa;var confirmadacomercial &#x3d; false&#x3b;</jsScript_script>
+        <jsScript_script>var solicitadapcp &#x3d; false&#x3b;&#xd;&#xa;var confirmadapcp &#x3d; false&#x3b;&#xd;&#xa;var confirmadacomercial &#x3d; false&#x3b;&#xd;&#xa;var aprovadoretirada &#x3d; false&#x3b;</jsScript_script>
       </jsScript>    </jsScripts>    <fields>      <field>        <name>solicitadapcp</name>
         <rename>solicitadapcp</rename>
         <type>Boolean</type>
@@ -539,6 +539,12 @@
         <replace>N</replace>
       </field>      <field>        <name>confirmadacomercial</name>
         <rename>confirmadacomercial</rename>
+        <type>Boolean</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>aprovadoretirada</name>
+        <rename>aprovadoretirada</rename>
         <type>Boolean</type>
         <length>-1</length>
         <precision>-1</precision>
@@ -635,6 +641,10 @@
         <length>-2</length>
         <precision>-2</precision>
       </field>      <field>        <name>confirmadacomercial</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>aprovadoretirada</name>
         <rename/>
         <length>-2</length>
         <precision>-2</precision>
@@ -932,6 +942,21 @@
         <grouping_symbol/>
         <currency_symbol/>
         <storage_type/>
+      </meta>      <meta>        <name>aprovadoretirada</name>
+        <rename>aprovadoretirada</rename>
+        <type>Boolean</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
       </meta>      <meta>        <name>QTDESTOQUE</name>
         <rename>qtdestoque</rename>
         <type>Number</type>
@@ -1054,6 +1079,10 @@
         <length>-2</length>
         <precision>-2</precision>
       </field>      <field>        <name>confirmadacomercial</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>aprovadoretirada</name>
         <rename/>
         <length>-2</length>
         <precision>-2</precision>
@@ -1338,6 +1367,21 @@
         <storage_type/>
       </meta>      <meta>        <name>confirmadacomercial</name>
         <rename>confirmadacomercial</rename>
+        <type>None</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>      <meta>        <name>aprovadoretirada</name>
+        <rename>aprovadoretirada</rename>
         <type>None</type>
         <length>-2</length>
         <precision>-2</precision>
@@ -1639,6 +1683,11 @@
       <value>
         <name>confirmadacomercial</name>
         <rename>confirmadacomercial</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>aprovadoretirada</name>
+        <rename>aprovadoretirada</rename>
         <update>N</update>
       </value>
       <value>
