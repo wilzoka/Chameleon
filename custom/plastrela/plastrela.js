@@ -7239,7 +7239,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7277,7 +7277,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7302,7 +7302,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor PCP pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7340,7 +7340,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7365,7 +7365,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor Comercial pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7403,7 +7403,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7428,7 +7428,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7453,7 +7453,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
                         param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id)) {
+                        if (param.indexOf(obj.req.user.id) < 0) {
                             return application.error(obj.res, { msg: 'Apenas o setor Expedição pode realizar esta ação' });
                         }
                         let embarques = await db.getModel('ven_embarque').findAll({ where: { id: { $in: obj.ids } } });
@@ -7575,7 +7575,6 @@ let main = {
                                 , multiple: 'multiple="multiple"'
                                 , options: 'AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO'
                             });
-
                             body += `<div class="col-md-12"> <div class="form-group"> <label>Solic PCP?</label>
                                 <div class="row" style="text-align: center;">
                                     <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="" checked="checked"> Todos </label> </div>
@@ -7600,7 +7599,11 @@ let main = {
                                     <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="true"> Sim </label> </div> 
                                     <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="false"> Não </label> </div> 
                                 </div> </div> </div>`;
-
+                            // body += application.components.html.checkbox({
+                            //     width: '12'
+                            //     , name: 'apenasestoque'
+                            //     , label: 'Apenas com Estoque'
+                            // });
 
                             return application.success(obj.res, {
                                 modal: {
@@ -7651,6 +7654,9 @@ let main = {
                             if (obj.req.body.aprovadoretirada) {
                                 where.aprovadoretirada = { $eq: obj.req.body.aprovadoretirada }
                             }
+                            if (obj.req.body.apenasestoque) {
+                                where.qtdestoque = { $gt: 0 }
+                            }
 
                             if (arr.length > 0) {
                                 where.$col = db.Sequelize.literal(arr.join(' and '));
@@ -7678,7 +7684,8 @@ let main = {
                                     <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
                                     <td style="text-align:center;"><strong>Qtd Atendido</strong></td>
                                     <td style="text-align:center;"><strong>Qtd Produzido</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Estoque</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Est. OP</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Est. Total</strong></td>
                                     <td style="text-align:center;"><strong>Cidade</strong></td>
                                     <td style="text-align:center;"><strong>Representante</strong></td>
                                 </tr>
@@ -7687,15 +7694,16 @@ let main = {
                                 report.__table += `
                                 <tr>
                                     <td style="text-align:center;"> ${embarques.rows[i]['previsaodata']} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['cliente'].substring(0, 30)} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['cliente'].substring(0, 25)} </td>
                                     <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
                                     <td style="text-align:center;"> ${embarques.rows[i]['idop'] || ''} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 40)} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 35)} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdestoque'] || ''} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdestoquetotal'] || ''} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['cidade'] + ' - ' + embarques.rows[i]['uf']} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['representante'].substring(0, 20)} </td>
                                 </tr>
