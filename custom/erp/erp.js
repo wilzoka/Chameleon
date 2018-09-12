@@ -57,7 +57,6 @@ let main = {
                             case '0'://Cliente
                                 nextStep();
                                 break;
-
                             case '1'://Produto
                                 nextStep();
                                 break;
@@ -177,10 +176,10 @@ let main = {
                                         })
                                     }
 
-                                    if (atualizarEstoques) {
+                                    /* if (atualizarEstoques) {
                                         let vendaitens = await db.getModel('com_vendaitem').findAll({ where: { idvenda: obj.register.id } });
                                         f_atualizarEstoque(vendaitens);
-                                    }
+                                    } */
                                 }
                                 break;
                             default:
