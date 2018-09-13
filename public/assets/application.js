@@ -518,6 +518,12 @@ var application = {
                         , language: "pt-BR"
                     }).on('select2:close', function (evt) {
                         $(this).focus();
+                    }).on('select2:open', function (e) {
+                        if (application.functions.isMobile()) {
+                            setTimeout(function () {
+                                $(document.activeElement).blur();
+                            }, 10);
+                        }
                     });
                 } else {
                     $(this).select2({
@@ -548,6 +554,12 @@ var application = {
                         , templateSelection: resultSelection
                     }).on('select2:close', function (evt) {
                         $(this).focus();
+                    }).on('select2:open', function (e) {
+                        if (application.functions.isMobile()) {
+                            setTimeout(function () {
+                                $(document.activeElement).blur();
+                            }, 10);
+                        }
                     });
                 }
             });

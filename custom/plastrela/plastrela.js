@@ -7683,10 +7683,10 @@ let main = {
                                     <td style="text-align:center;"><strong>UN</strong></td>
                                     <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
                                     <td style="text-align:center;"><strong>Qtd Atendido</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Produzido</strong></td>
                                     <td style="text-align:center;"><strong>Qtd Est. OP</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Est. Total</strong></td>
-                                    <td style="text-align:center;"><strong>Cidade</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Est. Item</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Prod. OP</strong></td>
+                                    <td style="text-align:center;"><strong>Cidade - UF</strong></td>
                                     <td style="text-align:center;"><strong>Representante</strong></td>
                                 </tr>
                             `;
@@ -7701,9 +7701,9 @@ let main = {
                                     <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
-                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdestoque'] || ''} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdestoquetotal'] || ''} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['cidade'] + ' - ' + embarques.rows[i]['uf']} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['representante'].substring(0, 20)} </td>
                                 </tr>

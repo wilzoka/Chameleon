@@ -362,7 +362,7 @@ let main = {
                             body += '<div class="row no-margin">';
                             body += application.components.html.autocomplete({
                                 width: '10'
-                                , label: 'Cheques <a target="_blank" href="/view/90/0"><button style="padding: 0px 5px;" type="button" class="btn btn-success"><i class="fa fa-plus"></i></button></a>'
+                                , label: 'Cheques <a target="_blank" href="/v/cheque/0"><button style="padding: 0px 5px;" type="button" class="btn btn-success"><i class="fa fa-plus"></i></button></a>'
                                 , name: 'idcheques'
                                 , model: 'fin_cheque'
                                 , attribute: 'descricaocompleta'
