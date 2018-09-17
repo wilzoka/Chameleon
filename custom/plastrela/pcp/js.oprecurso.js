@@ -263,9 +263,9 @@ $(function () {
     });
 
     function frnc() {
-        let produto = $('input[name="produto"]').val().trim().split(' - ')[0].split('/');
-        let item = produto[0];
-        let versao = produto[1];
+        var produto = $('input[name="produto"]').val().trim().split(' - ')[0].split('/');
+        var item = produto[0];
+        var versao = produto[1];
         $.ajax({
             type: 'POST',
             url: 'http://172.10.30.18/Sistema/scripts/socket/scripts2socket.php',
