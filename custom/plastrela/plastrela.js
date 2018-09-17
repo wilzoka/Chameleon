@@ -7671,11 +7671,11 @@ let main = {
                             });
 
                             let report = {};
-                            report.__title = 'Lista de Embarques';
+                            report.__title = `Lista de Embarques (${embarques.count})`;
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
-                                    <td style="text-align:center;"><strong>Previsão Entrega</strong></td>
+                                    <td style="text-align:center;"><strong>Prev. Entrega</strong></td>
                                     <td style="text-align:center;"><strong>Cliente</strong></td>
                                     <td style="text-align:center;"><strong>Pedido</strong></td>
                                     <td style="text-align:center;"><strong>OP</strong></td>

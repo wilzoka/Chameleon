@@ -12,19 +12,27 @@ $(function () {
     }
 
     var aux = 0;
-
+    var tabletocount = [
+        'tableviewapontamento_de_producao_-_insumo'
+        , 'tableviewapontamento_de_producao_-_producao'
+        , 'tableviewapontamento_de_producao_-_perda'
+        , 'tableviewapontamento_de_producao_-_parada'
+    ]
     $(document).on('app-datatable', function (e, table) {
 
-        aux++;
-        if (aux == 7) {
-            for (var k in tables) {
-                if (tables[k].rows().count() == 0) {
+        if (tabletocount.indexOf(table) >= 0) {
+            aux++;
+        }
+        if (aux == 4) {
+            for (var i = 0; i < tabletocount.length; i++) {
+                if (tables[tabletocount[i]].rows().count() == 0) {
                     aux--;
                 }
             }
             if (aux == 0) {
                 application.functions.confirmMessage('Favor verificar se o recurso informado na OP está correto.', function () {
                 });
+                frnc();
             }
         }
 
@@ -252,6 +260,52 @@ $(function () {
         }, function (response) {
             application.handlers.responseSuccess(response);
         });
+    });
+
+    function frnc() {
+        let produto = $('input[name="produto"]').val().trim().split(' - ')[0].split('/');
+        let item = produto[0];
+        let versao = produto[1];
+        $.ajax({
+            type: 'POST',
+            url: 'http://172.10.30.18/Sistema/scripts/socket/scripts2socket.php',
+            data: {
+                function: 'PLAIniflexSQL', param: JSON.stringify([
+                    "select rnc_data, motivo_descricao, rnc_descricao, recurso_codigo, etapa_codigo"
+                    + " from vw_rnc a where rnc_empresa_codigo = " + ($('.logo-mini').text() == 'MS' ? '2' : '1') + " and rnc_produto = " + produto[0] + " and rnc_versao = " + produto[1]
+                    + " and etapa_codigo = " + $('input[name="etapa"]').val() + " order by rnc_data desc"
+                ])
+            },
+            success: function (response) {
+                var j = JSON.parse(response);
+                var html = '<div class="col-md-12"> <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">';
+                html += '<tr>';
+                html += '<td style="text-align:center;"><strong>Data</strong></td>';
+                html += '<td style="text-align:center;"><strong>Motivo</strong></td>';
+                html += '<td style="text-align:center;"><strong>Descrição</strong></td>';
+                html += '<td style="text-align:center;"><strong>Recurso</strong></td>';
+                html += '</tr>';
+                for (var i = 0; i < j.count; i++) {
+                    html += '<tr>';
+                    html += '<td>' + j.data.RNC_DATA[i] + '</td>';
+                    html += '<td>' + j.data.MOTIVO_DESCRICAO[i] + '</td>';
+                    html += '<td>' + j.data.RNC_DESCRICAO[i] + '</td>';
+                    html += '<td>' + j.data.RECURSO_CODIGO[i] + '</td>';
+                    html += '</tr>';
+                }
+                html += '</div></table>';
+                $('body').append(application.modal.create({
+                    id: 'modalrnc'
+                    , title: 'RNCs'
+                    , body: html
+                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>'
+                }));
+                $('#modalrnc').modal('show');
+            }
+        });
+    }
+    $('#verificarRncs').click(function () {
+        frnc();
     });
 
     if ($('input[name="etapa"]').val() == '20') {
