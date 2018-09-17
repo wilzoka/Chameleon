@@ -7385,7 +7385,7 @@ let main = {
                                 main.platform.notification.create(notificacao, {
                                     title: moment().format(application.formatters.fe.date_format) == embs.rows[i].previsaodata ? 'EMBARQUE IMEDIATO' : 'Confirmação Entrega'
                                     , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
-                                    , link: '/v/entrega/' + embs.rows[i].id
+                                    , link: '/v/entrega_expedicao/' + embs.rows[i].id
                                 });
                             }
                         }
