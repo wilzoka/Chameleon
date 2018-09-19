@@ -33,6 +33,13 @@ let main = {
                             return application.error(obj.res, { msg: 'Edição é liberada apenas para usuários do setor responsável' });
                         }
                     }
+
+                    //campos dinâmicos
+                    let cds = await db.getModel('atv_tipo_cd').find({ where: { idtipo: obj.register.idtipo } });
+                    for (let i = 0; i < cds.length; i++) {
+
+                    }
+
                     next(obj);
                 } catch (err) {
                     return application.fatal(obj.res, err);
@@ -258,6 +265,48 @@ let main = {
                         });
                     }
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_obterCamposDinamicos: async (obj) => {
+                try {
+                    if (!obj.data.idtipo) {
+                        return application.error(obj.res, { msg: 'Tipo não informado' });
+                    }
+
+                    let sql = await db.sequelize.query(`
+                    `, { type: db.Sequelize.QueryTypes.SELECT });
+                    let campos = await db.getModel('atv_tipo_cd').findAll({ include: [{ all: true }], where: { idtipo: obj.data.idtipo }, order: [['ordem', 'asc']] });
+                    let html = '';
+                    for (let i = 0; i < campos.length; i++) {
+                        switch (campos[i].atv_campodinamico.tipo) {
+                            case 'Texto':
+                                html += application.components.html.text({
+                                    width: campos[i].largura
+                                    , label: campos[i].atv_campodinamico.descricao
+                                    , name: 'cd' + campos[i].atv_campodinamico.id
+                                });
+                                break;
+                            case 'Inteiro':
+                                html += application.components.html.integer({
+                                    width: campos[i].largura
+                                    , label: campos[i].atv_campodinamico.descricao
+                                    , name: 'cd' + campos[i].atv_campodinamico.id
+                                });
+                                break;
+                            case 'Decimal':
+                                html += application.components.html.decimal({
+                                    width: campos[i].largura
+                                    , label: campos[i].atv_campodinamico.descricao
+                                    , name: 'cd' + campos[i].atv_campodinamico.id
+                                });
+                                break;
+                        }
+                    }
+
+                    return application.success(obj.res, { data: html });
+
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -7385,7 +7434,6 @@ let main = {
                                 main.platform.notification.create(notificacao, {
                                     title: moment().format(application.formatters.fe.date_format) == embs.rows[i].previsaodata ? 'EMBARQUE IMEDIATO' : 'Confirmação Entrega'
                                     , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
-                                    , link: '/v/entrega_expedicao/' + embs.rows[i].id
                                 });
                             }
                         }
