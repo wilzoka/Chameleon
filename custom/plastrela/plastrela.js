@@ -35,12 +35,38 @@ let main = {
                     }
 
                     //campos dinâmicos
-                    let cds = await db.getModel('atv_tipo_cd').find({ where: { idtipo: obj.register.idtipo } });
+                    let invalidfields = [];
+                    let cds = await db.getModel('atv_tipo_cd').findAll({ include: [{ all: true }], where: { idtipo: obj.register.idtipo } });
                     for (let i = 0; i < cds.length; i++) {
-
+                        if (cds[i].obrigatorioc && !obj.req.body['cd' + cds[i].idcampodinamico]) {
+                            invalidfields.push('cd' + cds[i].idcampodinamico);
+                        }
                     }
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    let saved = await next(obj);
 
-                    next(obj);
+                    for (let i = 0; i < cds.length; i++) {
+                        let atvcd = (await db.getModel('atv_atividade_cd').findOrCreate({ include: [{ all: true }], where: { idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } }))[0];
+                        if (obj.req.body['cd' + cds[i].idcampodinamico]) {
+                            switch (atvcd.atv_campodinamico.tipo) {
+                                case 'Data':
+                                    atvcd.valor = application.formatters.be.date(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                    break;
+                                case 'Data/Hora':
+                                    atvcd.valor = application.formatters.be.datetime(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                    break;
+                                case 'Decimal':
+                                    atvcd.valor = application.formatters.be.decimal(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                    break;
+                                default:
+                                    atvcd.valor = obj.req.body['cd' + cds[i].idcampodinamico];
+                                    break;
+                            }
+                            atvcd.save({ iduser: obj.req.user.id });
+                        }
+                    }
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -274,39 +300,79 @@ let main = {
                     if (!obj.data.idtipo) {
                         return application.error(obj.res, { msg: 'Tipo não informado' });
                     }
-
                     let sql = await db.sequelize.query(`
+                    select
+                        cd.id
+                        , case when tcd.obrigatorioc = true then cd.descricao || '*'
+                          when ${obj.data.idatividade} > 0 and tcd.obrigatoriof = true then cd.descricao || '*'
+                          else cd.descricao
+                        end as descricao
+                        , tcd.largura
+                        , cd.tipo
+                        , cd.add
+                        , (select acd.valor from atv_atividade_cd acd where acd.idcampodinamico = cd.id and acd.idatividade = ${obj.data.idatividade}) as valor
+                    from
+                        atv_tipo_cd tcd
+                    left join atv_campodinamico cd on (tcd.idcampodinamico = cd.id)
+                    where
+                        tcd.idtipo = ${obj.data.idtipo}
+                    order by tcd.ordem asc
                     `, { type: db.Sequelize.QueryTypes.SELECT });
-                    let campos = await db.getModel('atv_tipo_cd').findAll({ include: [{ all: true }], where: { idtipo: obj.data.idtipo }, order: [['ordem', 'asc']] });
                     let html = '';
-                    for (let i = 0; i < campos.length; i++) {
-                        switch (campos[i].atv_campodinamico.tipo) {
+                    for (let i = 0; i < sql.length; i++) {
+                        switch (sql[i].tipo) {
                             case 'Texto':
                                 html += application.components.html.text({
-                                    width: campos[i].largura
-                                    , label: campos[i].atv_campodinamico.descricao
-                                    , name: 'cd' + campos[i].atv_campodinamico.id
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor || ''
                                 });
                                 break;
                             case 'Inteiro':
                                 html += application.components.html.integer({
-                                    width: campos[i].largura
-                                    , label: campos[i].atv_campodinamico.descricao
-                                    , name: 'cd' + campos[i].atv_campodinamico.id
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor || ''
                                 });
                                 break;
                             case 'Decimal':
                                 html += application.components.html.decimal({
-                                    width: campos[i].largura
-                                    , label: campos[i].atv_campodinamico.descricao
-                                    , name: 'cd' + campos[i].atv_campodinamico.id
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor ? application.formatters.fe.decimal(sql[i].valor, 2) : ''
+                                });
+                                break;
+                            case 'Data':
+                                html += application.components.html.date({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor ? application.formatters.fe.date(sql[i].valor) : ''
+                                });
+                                break;
+                            case 'Data/Hora':
+                                html += application.components.html.datetime({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor ? application.formatters.fe.datetime(sql[i].valor) : ''
+                                });
+                                break;
+                            case 'Combo':
+                                html += application.components.html.autocomplete({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , option: sql[i].valor ? `<option selected>${sql[i].valor}</option>` : '<option></option>'
+                                    , options: sql[i].add
                                 });
                                 break;
                         }
                     }
-
                     return application.success(obj.res, { data: html });
-
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -1532,8 +1598,13 @@ let main = {
                                     .font('Courier-Bold')
                                     .text(
                                         f.lpad('Laminação:', 14, padstr) +
-                                        f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                                        f.lpad('[ ] A [ ] R', 72, padstr) +
+                                        f.lpad(etapa && [30].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
+                                        f.lpad(etapa && [30].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
+                                        f.lpad(etapa && [30].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
+                                        f.lpad(etapa && [30].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
+                                        f.lpad(etapa && [30].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                        f.lpad(etapa && [30].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
+                                        f.lpad('[ ] A [ ] R', 12, padstr) +
                                         f.lpad('[ ] A [ ] R', 14, padstr)
                                     )
                                     .moveDown(md);
@@ -5738,6 +5809,14 @@ let main = {
                         let apps = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
                         for (let i = 0; i < apps.length; i++) {
                             let appt = await db.getModel('pcp_approducaotempo').find({ where: { idapproducao: apps[i].id } });
+                            let appv = await db.getModel('pcp_approducaovolume').find({ where: { idapproducao: apps[i].id } });
+                            if (!appt && !appv) {
+                                await apps[i].destroy();
+                            }
+                        }
+                        for (let i = 0; i < apps.length; i++) {
+                            let appt = await db.getModel('pcp_approducaotempo').find({ where: { idapproducao: apps[i].id } });
+                            let appv = await db.getModel('pcp_approducaovolume').find({ where: { idapproducao: apps[i].id } });
                             if (!appt) {
                                 return application.error(obj.res, { msg: 'Existe uma produção sem tempo apontado, verifique' });
                             }
@@ -7754,6 +7833,172 @@ let main = {
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['cidade'] + ' - ' + embarques.rows[i]['uf']} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['representante'].substring(0, 20)} </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `
+                            </table>
+                            `;
+
+                            let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
+                            return application.success(obj.res, {
+                                openurl: '/download/' + file
+                            });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_imprimirPCP: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Previsão Entrega Inicial*'
+                                , name: 'dataini'
+                            });
+                            body += application.components.html.date({
+                                width: '6'
+                                , label: 'Previsão Entrega Final*'
+                                , name: 'datafim'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Situação'
+                                , name: 'situacao'
+                                , multiple: 'multiple="multiple"'
+                                , options: 'Ativo,Encerrado,Finalizado,Cancelado'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'UF'
+                                , name: 'uf'
+                                , multiple: 'multiple="multiple"'
+                                , options: 'AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO'
+                            });
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Solic PCP?</label>
+                                <div class="row" style="text-align: center;">
+                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="" checked="checked"> Todos </label> </div>
+                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="true"> Sim </label> </div>
+                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="false"> Não </label> </div>
+                                </div> </div> </div>`;
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Conf PCP?</label>
+                                <div class="row" style="text-align: center;">
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="" checked="checked"> Todos </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="true"> Sim </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="false"> Não </label> </div> 
+                                </div> </div> </div>`;
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Conf Comercial?</label> 
+                                <div class="row" style="text-align: center;"> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="" checked="checked"> Todos </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="true"> Sim </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="false"> Não </label> </div> 
+                                </div> </div> </div>`;
+                            body += `<div class="col-md-12"> <div class="form-group"> <label>Aprovado Retirada?</label> 
+                                <div class="row" style="text-align: center;"> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="" checked="checked"> Todos </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="true"> Sim </label> </div> 
+                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="false"> Não </label> </div> 
+                                </div> </div> </div>`;
+                            // body += application.components.html.checkbox({
+                            //     width: '12'
+                            //     , name: 'apenasestoque'
+                            //     , label: 'Apenas com Estoque'
+                            // });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let where = {
+                                previsaodata: {
+                                    $gte: application.formatters.be.date(obj.req.body.dataini)
+                                    , $lte: application.formatters.be.date(obj.req.body.datafim)
+                                }
+                            };
+                            if (obj.req.body.situacao && typeof obj.req.body.situacao == 'string') {
+                                obj.req.body.situacao = [obj.req.body.situacao];
+                            }
+                            if (obj.req.body.uf && typeof obj.req.body.uf == 'string') {
+                                obj.req.body.uf = [obj.req.body.uf];
+                            }
+
+                            let arr = [];
+                            if (obj.req.body.situacao) {
+                                where.situacao = { $in: obj.req.body.situacao };
+                            }
+                            if (obj.req.body.uf) {
+                                where.uf = { $in: obj.req.body.uf };
+                            }
+                            if (obj.req.body.solicitadapcp) {
+                                where.solicitadapcp = { $eq: obj.req.body.solicitadapcp }
+                            }
+                            if (obj.req.body.confirmadapcp) {
+                                where.confirmadapcp = { $eq: obj.req.body.confirmadapcp }
+                            }
+                            if (obj.req.body.confirmadacomercial) {
+                                where.confirmadacomercial = { $eq: obj.req.body.confirmadacomercial }
+                            }
+                            if (obj.req.body.aprovadoretirada) {
+                                where.aprovadoretirada = { $eq: obj.req.body.aprovadoretirada }
+                            }
+                            if (obj.req.body.apenasestoque) {
+                                where.qtdestoque = { $gt: 0 }
+                            }
+
+                            if (arr.length > 0) {
+                                where.$col = db.Sequelize.literal(arr.join(' and '));
+                            }
+                            let embarques = await main.platform.model.find('ven_embarque', {
+                                where: where
+                                , order: [
+                                    ['previsaodata', 'asc']
+                                    , ['uf', 'asc']
+                                    , [db.Sequelize.literal('ven_pedido.idcliente'), 'asc']
+                                ]
+                            });
+
+                            let report = {};
+                            report.__title = `Lista de Embarques (${embarques.count})`;
+                            report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Prev. Entrega</strong></td>
+                                    <td style="text-align:center;"><strong>Pedido</strong></td>
+                                    <td style="text-align:center;"><strong>OP</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>UN</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Est. Item</strong></td>
+                                    <td style="text-align:center;"><strong>Cidade - UF</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < embarques.count; i++) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:center;"> ${embarques.rows[i]['previsaodata']} </td>
+                                    <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
+                                    <td style="text-align:center;"> ${embarques.rows[i]['idop'] || ''} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao']} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
+                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdestoquetotal'] || ''} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['cidade'] + ' - ' + embarques.rows[i]['uf']} </td>
                                 </tr>
                                 `;
                             }
