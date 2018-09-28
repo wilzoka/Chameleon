@@ -1712,7 +1712,7 @@ let main = {
 
                                 doc
                                     .font('Courier')
-                                    .text(f.rpad(str.join(', ') + (volume.observacao || ''), 700), 131, 342, { width: 450, height: 70, underline: true });
+                                    .text(f.rpad(str.join(', ') + (' ' + (volume.observacao || '')), 700), 131, 342, { width: 450, height: 70, underline: true });
 
                                 doc
                                     .font('Courier-Bold')
@@ -6094,6 +6094,7 @@ let main = {
                             let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.id } });
                             let opnova = oprecurso.dataValues;
                             delete opnova['id'];
+                            opnova.integrado = null;
                             opnova.idestado = 1;
                             opnova.idrecurso = obj.req.body.idrecurso;
                             await db.getModel('pcp_oprecurso').create(opnova);
