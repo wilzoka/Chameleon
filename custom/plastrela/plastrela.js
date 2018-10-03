@@ -4687,6 +4687,10 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
+                            if (obj.req.body.qtdvolumes > 20) {
+                                return application.error(obj.res, { msg: 'Não é possível gerar mais que 20 volumes de uma vez só' });
+                            }
+
                             obj.req.body.qtd = application.formatters.be.decimal(obj.req.body.qtd, 4);
                             obj.req.body.pesobruto = application.formatters.be.decimal(obj.req.body.pesobruto, 4)
                             obj.req.body.tara = application.formatters.be.decimal(obj.req.body.tara, 4);
