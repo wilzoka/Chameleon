@@ -1369,6 +1369,7 @@ let main = {
                                     (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15046, 175, 150029, 150039, 20))::decimal
                                 end as largura
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22))::decimal as espessura
+                                , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (1176))::decimal as espessuralam
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (23)) as implargura
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (1190)) as impespessura
                             from
@@ -1445,7 +1446,10 @@ let main = {
 
                                 doc
                                     .font('Courier-Bold').text(f.lpad('Formato: ', width1, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(formato.length > 0 ? etapa && etapa.codigo == 20 ? formato[0].implargura + ' x ' + formato[0].impespessura : formato[0].largura + ' x ' + formato[0].espessura : '', width1val, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(formato.length > 0 ? etapa && etapa.codigo == 20 ? formato[0].implargura + ' x ' + formato[0].impespessura :
+                                        etapa && (etapa.codigo == 30 || etapa.codigo == 35) ?
+                                            formato[0].largura + ' x ' + formato[0].espessuralam : '' : ''
+                                        , width1val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
