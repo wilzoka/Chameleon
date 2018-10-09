@@ -1384,6 +1384,23 @@ let main = {
                                     , replacements: { v1: volume.id }
                                 });
 
+                            let sequenciaProducao = await db.sequelize.query(`
+                            select
+                                count(case when v.id >= va.id then 1 else null end) as seq
+                            from
+                                est_volume v
+                            left join pcp_approducaovolume apv on (v.idapproducaovolume = apv.id)
+                            left join pcp_approducao ap on (apv.idapproducao = ap.id)
+                            left join pcp_approducao apa on (ap.idoprecurso = apa.idoprecurso)
+                            left join pcp_approducaovolume apav on (apa.id = apav.idapproducao)
+                            left join est_volume va on (apav.id = va.idapproducaovolume)
+                            where
+                                v.id = :v1
+                            `, {
+                                    type: db.sequelize.QueryTypes.SELECT
+                                    , replacements: { v1: volume.id }
+                                });
+
                             doc.addPage({ margin: 30 });
 
                             let width1 = 27;
@@ -1665,7 +1682,7 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .text('Observações:')
-                                    .moveDown(md).text(' ')
+                                    .moveDown(md).text(sequenciaProducao && sequenciaProducao.length > 0 ? ` SEQUENCIAL DA BOBINA: ${sequenciaProducao[0]['seq']} ` : '')
                                     .moveDown(md);
 
                                 doc
@@ -7243,6 +7260,22 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
+            , r_pcp112: async (obj) => {
+                try {
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['datahoraini', 'datahorafim']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+
+
+                    if (obj.req.body.idetapa) {
+
+                    }
+                    console.log(obj.req.body);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
         }
         , ti: {
             equipamento: {
@@ -7839,7 +7872,7 @@ let main = {
                                     <td style="text-align:left;"> ${embarques.rows[i]['cliente'].substring(0, 25)} </td>
                                     <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
                                     <td style="text-align:center;"> ${embarques.rows[i]['idop'] || ''} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 35)} </td>
+                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 50)} </td>
                                     <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
                                     <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
