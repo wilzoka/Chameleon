@@ -1638,8 +1638,13 @@ let main = {
                                     .font('Courier-Bold')
                                     .text(
                                         f.lpad('2ª Laminação:', 14, padstr) +
-                                        f.lpad('[ ]A [ ]B [ ]C', 21, padstr) +
-                                        f.lpad('[ ] A [ ] R', 72, padstr) +
+                                        f.lpad(etapa && [35].indexOf(etapa.codigo) >= 0 ? str : '[ ]A [ ]B [ ]C', 21, padstr) +
+                                        f.lpad(etapa && [35].indexOf(etapa.codigo) >= 0 && oprecurso_recurso ? oprecurso_recurso.codigo : '', 8, padstr) +
+                                        f.lpad(etapa && [35].indexOf(etapa.codigo) >= 0 ? '     ' + (operador.length >= 3 ? operador[2] : '') : '', 16, padstr) +
+                                        f.lpad(etapa && [35].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[0].dataini, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 10, padstr) +
+                                        f.lpad(etapa && [35].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('HH:mm') : '', 13, padstr) +
+                                        f.lpad(etapa && [35].indexOf(etapa.codigo) >= 0 && approducaotempos.length > 0 ? moment(approducaotempos[approducaotempos.length - 1].datafim, 'YYYY-MM-DD HH:mm').format('DD/MM/YY') : '', 13, padstr) +
+                                        f.lpad('[ ] A [ ] R', 12, padstr) +
                                         f.lpad('[ ] A [ ] R', 14, padstr)
                                     )
                                     .moveDown(md);
