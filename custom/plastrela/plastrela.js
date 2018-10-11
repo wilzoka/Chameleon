@@ -1682,7 +1682,7 @@ let main = {
                                 doc
                                     .font('Courier-Bold')
                                     .text('Observações:')
-                                    .moveDown(md).text(sequenciaProducao && sequenciaProducao.length > 0 ? ` SEQUENCIAL DA BOBINA: ${sequenciaProducao[0]['seq']} ` : '')
+                                    .moveDown(md).text(sequenciaProducao && sequenciaProducao.length > 0 && sequenciaProducao[0]['seq'] > 0 ? (approducao ? `GRUPO ${approducao.id}  / ` : '') + ` SEQUENCIAL DO VOLUME: ${sequenciaProducao[0]['seq']}` : ' ')
                                     .moveDown(md);
 
                                 doc
@@ -5843,11 +5843,12 @@ let main = {
                                 await apps[i].destroy();
                             }
                         }
+                        apps = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
                         for (let i = 0; i < apps.length; i++) {
                             let appt = await db.getModel('pcp_approducaotempo').find({ where: { idapproducao: apps[i].id } });
                             let appv = await db.getModel('pcp_approducaovolume').find({ where: { idapproducao: apps[i].id } });
-                            if (!appt) {
-                                return application.error(obj.res, { msg: 'Existe uma produção sem tempo apontado, verifique' });
+                            if (!appt || !appv) {
+                                return application.error(obj.res, { msg: 'Existe uma produção sem tempo ou volume apontado, verifique' });
                             }
                         }
 
