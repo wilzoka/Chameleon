@@ -6950,7 +6950,7 @@ let main = {
             , r_conferenciaAp: async function (obj) {
                 try {
 
-                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idetapa', 'idrecurso']);
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idrecurso']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
@@ -6994,7 +6994,6 @@ let main = {
                                 inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
                                 where
                                     apt.dataini >= :v1 and apt.datafim <= :v2
-                                    and ope.idetapa = :v3
                                     and opr.idrecurso = :v4 ` + filterop + `) as x
                             `);
                     }
@@ -7019,7 +7018,6 @@ let main = {
                             left join pcp_tipoperda tp on (app.idtipoperda = tp.id)
                             where
                                 app.datahora >= :v1 and app.datahora <= :v2
-                                and ope.idetapa = :v3
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
                     if (obj.req.body.parada == 'true') {
@@ -7043,7 +7041,6 @@ let main = {
                             left join pcp_motivoparada mp on (app.idmotivoparada = mp.id)
                             where
                                 app.dataini >= :v1 and app.datafim <= :v2
-                                and ope.idetapa = :v3
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
                     if (obj.req.body.insumo == 'true') {
@@ -7066,7 +7063,6 @@ let main = {
                             inner join pcp_apinsumo api on (opr.id = api.idoprecurso)
                             where
                                 api.datahora >= :v1 and api.datahora <= :v2
-                                and ope.idetapa = :v3
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
                     if (obj.req.body.sobra == 'true') {
@@ -7090,7 +7086,6 @@ let main = {
                             left join pcp_apinsumo api on (aps.idapinsumo = api.id)
                             where
                                 aps.datahora >= :v1 and aps.datahora <= :v2
-                                and ope.idetapa = :v3
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
 
@@ -7104,7 +7099,6 @@ let main = {
                                 , replacements: {
                                     v1: application.formatters.be.datetime(obj.req.body.dataini)
                                     , v2: application.formatters.be.datetime(obj.req.body.datafim)
-                                    , v3: obj.req.body.idetapa
                                     , v4: obj.req.body.idrecurso
                                 }
                             });

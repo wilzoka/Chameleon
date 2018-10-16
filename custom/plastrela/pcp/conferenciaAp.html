@@ -19,15 +19,7 @@
                         <input name="datafim" type="text" class="form-control" value="" data-type="datetime" placeholder="dd/mm/aaaa hh:mm" />
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>Etapa*</label>
-                        <select name="idetapa" class="form-control select2" style="width: 100%;" data-type="autocomplete" data-model="pcp_etapa"
-                            data-attribute="codigo" data-where="">
-                            </select>
-                    </div>
-                </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label>Recurso*</label>
                         <select name="idrecurso" class="form-control select2" style="width: 100%;" data-type="autocomplete" data-model="pcp_recurso" data-where="ativo"
@@ -35,7 +27,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label>OP</label>
                         <select name="idop" class="form-control select2" style="width: 100%;" data-type="autocomplete" data-model="pcp_op" data-attribute="codigo"
@@ -321,7 +313,6 @@
                 , perda: $('input[name="perda"]').is(':checked')
                 , insumo: $('input[name="insumo"]').is(':checked')
                 , sobra: $('input[name="sobra"]').is(':checked')
-                , idetapa: $('select[name="idetapa"]').val()
                 , idrecurso: $('select[name="idrecurso"]').val()
                 , idop: $('select[name="idop"]').val()
             }, function (response) {
