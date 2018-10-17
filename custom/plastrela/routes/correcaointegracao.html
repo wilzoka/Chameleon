@@ -2,6 +2,10 @@
     thead {
         display: none;
     }
+
+    .dataTables_filter>label {
+        display: inline-block;
+    }
 </style>
 
 <div class="col-md-12">
@@ -39,7 +43,7 @@
     $(function ($) {
 
         var table = $('#table').DataTable({
-            dom: 'ftp'
+            dom: "ftp"
             , columnDefs: [
                 { targets: 0, orderable: false }
                 , { targets: 1, orderable: false, width: '500px' }
