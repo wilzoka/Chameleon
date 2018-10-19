@@ -7267,11 +7267,181 @@ let main = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
 
+                    let needle = require('needle');
+                    let query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                        function: 'PLAIniflexSQL', param: JSON.stringify([`
+                        with ops as (
+                                select empresa, etapa, recurso, op from pcpapproducao where empresa = 1 and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                union
+                                select empresa, etapa, recurso, op from pcpapparada where empresa = 1 and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                union
+                                select empresa, etapa, recurso, op from pcpapperda where empresa = 1 and data_hora between cast('${obj.req.body.datahoraini}:00' as timestamp) and cast('${obj.req.body.datahorafim}:00' as timestamp)
+                        )
+                        select
+                                x.*
+                                , case when x.tipo_recurso = 1 then 
+                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.peso / ((x.tempoprod - x.parada - x.acerto)/60), 2) end
+                                    else
+                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.qtd / (x.tempoprod - x.parada - x.acerto), 2) end
+                                end as produtividade
+                                , case when x.tipo_recurso = 1 then 
+                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.peso / ((x.tempoprod)/60), 2) end
+                                    else
+                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.qtd / (x.tempoprod), 2) end
+                                end as produtividademedia
+                                , round(case when x.peso + x.perda = 0 then 0 else x.perda / (x.peso + x.perda) end,4) * 100 as percperdido
+                        from
+                                (select
+                                        r.tipo_recurso
+                                        , ops.recurso
+                                        , ops.op
+                                        , i.descricao as produto
+                                        , coalesce(round((select sum(ap.quantidade) from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as qtd
+                                        , coalesce(round((select sum(ap.peso - ap.peso_tara) from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as peso
+                                        , coalesce(round((select sum(ap.data_hora_fim - ap.data_hora_ini) * 24 * 60 from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),1),0) as tempoprod
+                                        , coalesce(round((select sum(ap.peso) from pcpapperda ap where ap.data_hora >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as perda
+                                        , coalesce(round((select sum(ap.data_hora_fim - ap.data_hora_ini) * 24 * 60 from pcpapparada ap
+                                                where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso 
+                                                and ap.motivo_parada not in (select mp.codigo from pcpmotivoparada mp where mp.acerto_maquina = 'S')),1),0) as parada
+                                        , coalesce(round((select sum(ap.data_hora_fim - ap.data_hora_ini) * 24 * 60 from pcpapparada ap
+                                                where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso 
+                                                and ap.motivo_parada in (select mp.codigo from pcpmotivoparada mp where mp.acerto_maquina = 'S')),1),0) as acerto
+                                from
+                                        ops
+                                left join pcpop op on (ops.empresa = op.empresa and ops.op = op.op)
+                                left join pcprecurso r on (ops.empresa = r.empresa and ops.recurso = r.codigo)
+                                left join estitem i on (op.empresa = i.empresa and op.produto = i.codigo)
+                                where recurso like '2%'
+                                ) x
+                        order by recurso, op`
+                        ])
+                    });
 
-                    if (obj.req.body.idetapa) {
+                    query = JSON.parse(query.body);
 
+                    let fd = function (val) {
+                        return parseFloat(val.replace(',', '.'));
                     }
-                    console.log(obj.req.body);
+
+                    let report = {};
+                    report.__title = `Resumo de Produção por Recurso<br>${obj.req.body.datahoraini} - ${obj.req.body.datahorafim}`;
+                    report.__table = '';
+
+                    let ultimorecurso = '';
+                    let soma = {
+                        count: 0
+                        , qtd: 0
+                        , peso: 0
+                        , tempoprod: 0
+                        , perda: 0
+                        , parada: 0
+                        , cprodutividade: 0
+                        , produtividade: 0
+                        , produtividademedia: 0
+                        , cacerto: 0
+                        , acerto: 0
+                        , qtditem: 0
+                    };
+                    function resetasoma() {
+                        soma.count = 0;
+                        soma.qtd = 0;
+                        soma.peso = 0;
+                        soma.tempoprod = 0;
+                        soma.perda = 0;
+                        soma.parada = 0;
+                        soma.cprodutividade = 0;
+                        soma.produtividade = 0;
+                        soma.produtividademedia = 0;
+                        soma.cacerto = 0;
+                        soma.acerto = 0;
+                        soma.qtditem = 0;
+                    }
+                    function mostrasoma() {
+                        report.__table += `
+                        <tr style="font-weight: bold;">
+                            <td style="text-align:center;"> TOTAL </td>
+                            <td style="text-align:right;">  ${soma.count} Registros com ${soma.qtditem} Itens Produzidos</td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.qtd, 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.peso, 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.tempoprod, 2)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.perda, 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal((soma.perda / (soma.peso + soma.perda)) * 100, 2)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.parada, 2)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividade / soma.cprodutividade, 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividademedia / soma.cprodutividade, 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.time(soma.acerto / soma.cprodutividade)} / ${application.formatters.fe.time(soma.acerto / soma.cacerto)} </td>
+                        </tr>
+                        `;
+                    }
+                    for (let i = 0; i < query.count; i++) {
+                        if (ultimorecurso != query.data['RECURSO'][i]) {
+                            if (i > 0) {
+                                mostrasoma();
+                                report.__table += `</table><br><div style="page-break-after:always;"></div>`;
+                            }
+                            resetasoma();
+                            report.__table += `
+                            <h2>Recurso: ${query.data['RECURSO'][i]}</h2>
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>OP</strong></td>
+                                    <td style="text-align:center;"><strong>Produto</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd</strong></td>
+                                    <td style="text-align:center;"><strong>Peso</strong></td>
+                                    <td style="text-align:center;"><strong>Prod.(min)</strong></td>
+                                    <td style="text-align:center;"><strong>Peso Perdido</strong></td>
+                                    <td style="text-align:center;"><strong>% Perdido</strong></td>
+                                    <td style="text-align:center;"><strong>Parada(min)</strong></td>
+                                    <td style="text-align:center;"><strong>Produtividade</strong></td>
+                                    <td style="text-align:center;"><strong>Produtividade Média</strong></td>
+                                    <td style="text-align:center;"><strong>Acerto</strong></td>
+                                </tr>
+                            `;
+                            ultimorecurso = query.data['RECURSO'][i];
+                        }
+                        report.__table += `
+                        <tr>
+                            <td style="text-align:center;"> ${query.data['OP'][i]} </td>
+                            <td style="text-align:left;"> ${query.data['PRODUTO'][i]} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(fd(query.data['QTD'][i]), 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(fd(query.data['PESO'][i]), 3)} </td>
+                            <td style="text-align:right;"> ${fd(query.data['TEMPOPROD'][i])} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(fd(query.data['PERDA'][i]), 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(fd(query.data['PERCPERDIDO'][i]), 2)} </td>
+                            <td style="text-align:right;"> ${fd(query.data['PARADA'][i])} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(fd(query.data['PRODUTIVIDADE'][i]), 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.decimal(fd(query.data['PRODUTIVIDADEMEDIA'][i]), 3)} </td>
+                            <td style="text-align:right;"> ${application.formatters.fe.time(fd(query.data['ACERTO'][i]))} </td>
+                        </tr>
+                        `;
+                        soma.count++;
+                        soma.qtd += fd(query.data['QTD'][i]);
+                        soma.peso += fd(query.data['PESO'][i]);
+                        soma.tempoprod += fd(query.data['TEMPOPROD'][i]);
+                        soma.perda += fd(query.data['PERDA'][i]);
+                        soma.parada += fd(query.data['PARADA'][i]);
+                        soma.cprodutividade += fd(query.data['PRODUTIVIDADE'][i]) > 0 ? 1 : 0;
+                        soma.produtividade += fd(query.data['PRODUTIVIDADE'][i]);
+                        soma.produtividademedia += fd(query.data['PRODUTIVIDADEMEDIA'][i]);
+                        soma.cacerto += fd(query.data['ACERTO'][i]) > 0 ? 1 : 0;
+                        soma.acerto += fd(query.data['ACERTO'][i]);
+                        soma.qtditem += fd(query.data['TEMPOPROD'][i]) + fd(query.data['PARADA'][i]) > 0 ? 1 : 0
+                    }
+                    mostrasoma();
+                    report.__table += `
+                        </table>
+                    `;
+
+                    let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
+                    return application.success(obj.res, {
+                        modal: {
+                            id: 'modalevt'
+                            , fullscreen: true
+                            , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                            , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                            , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                        }
+                    });
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
