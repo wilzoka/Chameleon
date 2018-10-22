@@ -16,7 +16,7 @@ let main = {
                         obj.register.datahora_criacao = moment();
                         obj.register.iduser_criacao = obj.req.user.id;
 
-                        let statusinicial = await db.getModel('atv_tipo_status').find({ where: { idtipo: obj.register.idtipo, inicial: true } });
+                        let statusinicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: obj.register.idtipo, inicial: true } });
                         if (!statusinicial) {
                             return application.error(obj.res, { msg: 'Status Inicial não configurado para este tipo' });
                         }
@@ -29,7 +29,7 @@ let main = {
                         obj.register.idtipo = obj.register._previousDataValues.idtipo; delete obj.register._changed.idtipo;
 
                         //Usuário é do setor responsável
-                        if (!await db.getModel('cad_setorusuario').find({ where: { idsetor: obj.register.atv_tipo.idsetor, idusuario: obj.req.user.id } })) {
+                        if (!await db.getModel('cad_setorusuario').findOne({ where: { idsetor: obj.register.atv_tipo.idsetor, idusuario: obj.req.user.id } })) {
                             return application.error(obj.res, { msg: 'Edição é liberada apenas para usuários do setor responsável' });
                         }
                     }
@@ -76,14 +76,14 @@ let main = {
                     if (obj.ids.length != 1) {
                         return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                     }
-                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.ids[0] } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ where: { id: obj.ids[0] } });
                     if (!atividade) {
                         return application.error(obj.res, { msg: 'Atividade não encontrada' });
                     }
                     if (atividade.encerrada) {
                         return application.error(obj.res, { msg: 'Atividade já está encerrada' });
                     }
-                    let statusfinal = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, final: true } });
+                    let statusfinal = await db.getModel('atv_tipo_status').findOne({ include: [{ all: true }], where: { idtipo: atividade.idtipo, final: true } });
                     if (!statusfinal) {
                         return application.error(obj.res, { msg: 'Status Final não configurado para este tipo' });
                     }
@@ -106,14 +106,14 @@ let main = {
                     if (obj.ids.length != 1) {
                         return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                     }
-                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.ids[0] } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ where: { id: obj.ids[0] } });
                     if (!atividade) {
                         return application.error(obj.res, { msg: 'Atividade não encontrada' });
                     }
                     if (atividade.encerrada) {
                         return application.error(obj.res, { msg: 'Atividade já está encerrada' });
                     }
-                    let statuscancelada = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, cancelada: true } });
+                    let statuscancelada = await db.getModel('atv_tipo_status').findOne({ include: [{ all: true }], where: { idtipo: atividade.idtipo, cancelada: true } });
                     if (!statuscancelada) {
                         return application.error(obj.res, { msg: 'Status Cancelada não configurado para este tipo' });
                     }
@@ -136,14 +136,14 @@ let main = {
                     if (obj.ids.length != 1) {
                         return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                     }
-                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.ids[0] } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ where: { id: obj.ids[0] } });
                     if (!atividade) {
                         return application.error(obj.res, { msg: 'Atividade não encontrada' });
                     }
                     if (!atividade.encerrada) {
                         return application.error(obj.res, { msg: 'Atividade não está encerrada' });
                     }
-                    let statusinicial = await db.getModel('atv_tipo_status').find({ where: { idtipo: atividade.idtipo, inicial: true } });
+                    let statusinicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: atividade.idtipo, inicial: true } });
                     if (!statusinicial) {
                         return application.error(obj.res, { msg: 'Status Inicial não configurado para este tipo' });
                     }
@@ -158,14 +158,14 @@ let main = {
             }
             , js_play: async (obj) => {
                 try {
-                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.data.id || 0 } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ where: { id: obj.data.id || 0 } });
                     if (!atividade) {
                         return application.error(obj.res, { msg: 'Atividade não encontrada' });
                     }
                     if (atividade.encerrada) {
                         return application.error(obj.res, { msg: 'Atividade está encerrada' });
                     }
-                    let statusemandamento = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, andamento: true } });
+                    let statusemandamento = await db.getModel('atv_tipo_status').findOne({ include: [{ all: true }], where: { idtipo: atividade.idtipo, andamento: true } });
                     if (!statusemandamento) {
                         return application.error(obj.res, { msg: 'Status Em Andamento não configurado para este tipo' });
                     }
@@ -185,15 +185,15 @@ let main = {
             }
             , js_pause: async (obj) => {
                 try {
-                    let atividade = await db.getModel('atv_atividade').find({ include: [{ all: true }], where: { id: obj.data.id || 0 } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ include: [{ all: true }], where: { id: obj.data.id || 0 } });
                     if (!atividade) {
                         return application.error(obj.res, { msg: 'Atividade não encontrada' });
                     }
-                    let statuspausada = await db.getModel('atv_tipo_status').find({ include: [{ all: true }], where: { idtipo: atividade.idtipo, pausada: true } });
+                    let statuspausada = await db.getModel('atv_tipo_status').findOne({ include: [{ all: true }], where: { idtipo: atividade.idtipo, pausada: true } });
                     if (!statuspausada) {
                         return application.error(obj.res, { msg: 'Status Pausada não configurado para este tipo' });
                     }
-                    let tempo = await db.getModel('atv_atividadetempo').find({
+                    let tempo = await db.getModel('atv_atividadetempo').findOne({
                         where: {
                             idatividade: atividade.id
                             , iduser: obj.req.user.id
@@ -206,7 +206,7 @@ let main = {
                     tempo.datahorafim = moment();
                     await tempo.save({ iduser: obj.req.user.id });
 
-                    let outrotrabalhando = await db.getModel('atv_atividadetempo').find({
+                    let outrotrabalhando = await db.getModel('atv_atividadetempo').findOne({
                         where: {
                             idatividade: atividade.id
                             , iduser: { $ne: obj.req.user.id }
@@ -227,7 +227,7 @@ let main = {
             }
             , js_getTempo: async (obj) => {
                 try {
-                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.data.id || 0 } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ where: { id: obj.data.id || 0 } });
                     if (!atividade) {
                         return application.error(obj.res, { msg: 'Atividade não encontrada' });
                     }
@@ -256,7 +256,7 @@ let main = {
             }
             , js_adicionarNota: async (obj) => {
                 try {
-                    let atividade = await db.getModel('atv_atividade').find({ include: [{ all: true }], where: { id: obj.data.id || 0 } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ include: [{ all: true }], where: { id: obj.data.id || 0 } });
                     if (!atividade) {
                         return application.error(obj.res, { msg: 'Atividade não encontrada' });
                     }
@@ -393,7 +393,7 @@ let main = {
         , atividadenota: {
             onsave: async (obj, next) => {
                 try {
-                    let atividade = await db.getModel('atv_atividade').find({ where: { id: obj.register.idatividade } });
+                    let atividade = await db.getModel('atv_atividade').findOne({ where: { id: obj.register.idatividade } });
                     if (atividade.encerrada) {
                         return application.error(obj.res, { msg: 'Atividade está encerrada' });
                     }
@@ -460,7 +460,7 @@ let main = {
             vinculacaolicenca: {
                 onsave: async (obj, next) => {
                     try {
-                        let licenca = await db.getModel('cad_licenca').find({ where: { id: obj.register.idlicenca || 0 } });
+                        let licenca = await db.getModel('cad_licenca').findOne({ where: { id: obj.register.idlicenca || 0 } });
                         if (!licenca) {
                             return application.error(obj.res, { msg: 'Licença não encontrada' });
                         }
@@ -526,7 +526,7 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('cmp_config').find();
+                        let config = await db.getModel('cmp_config').findOne();
 
                         if (obj.id == 0) {
                             obj.register.iduser = obj.req.user.id;
@@ -577,8 +577,8 @@ let main = {
 
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'qtd']);
                             let qtd = parseFloat(application.formatters.be.decimal(obj.req.body.qtd, 4));
-                            let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').find({ where: { id: obj.req.body.id } });
-                            let config = await db.getModel('cmp_config').find();
+                            let solicitacaoitem = await db.getModel('cmp_solicitacaoitem').findOne({ where: { id: obj.req.body.id } });
+                            let config = await db.getModel('cmp_config').findOne();
 
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
@@ -645,7 +645,7 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                            let config = await db.getModel('cmp_config').find();
+                            let config = await db.getModel('cmp_config').findOne();
                             let sql = await db.getModel('cmp_solicitacaoitem').findAll({
                                 where: {
                                     id: { $in: obj.req.body.ids.split(',') }
@@ -679,7 +679,7 @@ let main = {
                             autoFirstPage: false
                         });
 
-                        let config = await db.getModel('config').find({ raw: true });
+                        let config = await db.getModel('config').findOne({ raw: true });
                         let image = JSON.parse(config.reportimage)[0];
                         let filename = process.hrtime()[1] + '.pdf';
                         let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
@@ -875,7 +875,7 @@ let main = {
             , movimentacao: {
                 onsave: async function (obj, next) {
                     try {
-                        let peca = await db.getModel('man_peca').find({ where: { id: obj.register.idmanpeca } });
+                        let peca = await db.getModel('man_peca').findOne({ where: { id: obj.register.idmanpeca } });
 
                         if (obj.register.qtd <= 0) {
                             return application.error(obj.res, { msg: 'A Quantidade deve ser maior que 0', invalidfields: ['qtd'] });
@@ -916,7 +916,7 @@ let main = {
                         let deleted = await next(obj);
                         if (deleted.success) {
                             for (let i = 0; i < movimentacoes.length; i++) {
-                                let peca = await db.getModel('man_peca').find({ where: { id: movimentacoes[i].idmanpeca } });
+                                let peca = await db.getModel('man_peca').findOne({ where: { id: movimentacoes[i].idmanpeca } });
                                 if (movimentacoes[i].tipo == 'Entrada') {
                                     peca.estoque = parseFloat(peca.estoque) - parseFloat(movimentacoes[i].qtd);
                                 } else {
@@ -932,7 +932,7 @@ let main = {
             }
             , os: {
                 save: function (json, next) {
-                    db.getModel('man_config').find().then(config => {
+                    db.getModel('man_config').findOne().then(config => {
 
                         // Prioridades
                         if (config.idprioridadeurgente == json.data.idprioridade && !json.data.idmotivo) {
@@ -1006,7 +1006,7 @@ let main = {
 
                     try {
 
-                        let spednf = await db.getModel('sped_nfentrada').find({
+                        let spednf = await db.getModel('sped_nfentrada').findOne({
                             where: {
                                 chave_nfe: obj.req.body.chave
                             }
@@ -1085,12 +1085,12 @@ let main = {
                         return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                     }
 
-                    let nfentrada = await db.getModel('est_nfentrada').find({ where: { id: obj.ids[0] } });
+                    let nfentrada = await db.getModel('est_nfentrada').findOne({ where: { id: obj.ids[0] } });
                     if (nfentrada.finalizado) {
                         return application.error(obj.res, { msg: 'Não é possível finalizar uma nota já finalizada' });
                     }
 
-                    let est_config = await db.getModel('est_config').find();
+                    let est_config = await db.getModel('est_config').findOne();
 
                     let results = await db.sequelize.query(`
                     select * from (select
@@ -1113,7 +1113,7 @@ let main = {
                         }
                     }
 
-                    let config = await db.getModel('cmp_config').find();
+                    let config = await db.getModel('cmp_config').findOne();
                     let nfentradaitens = await db.getModel('est_nfentradaitem').findAll({ include: [{ all: true }], where: { idnfentrada: nfentrada.id } });
                     let reservascriadas = [];
                     let solicitacoesfinalizadas = [];
@@ -1331,7 +1331,7 @@ let main = {
                             autoFirstPage: false
                         });
 
-                        let config = await db.getModel('config').find({ raw: true });
+                        let config = await db.getModel('config').findOne({ raw: true });
                         let image = JSON.parse(config.reportimage)[0];
                         let filename = process.hrtime()[1] + '.pdf';
                         let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
@@ -1339,27 +1339,27 @@ let main = {
                         let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }], raw: true });
                         for (let i = 0; i < volumes.length; i++) {
                             let volume = volumes[i];
-                            let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
-                            let item = await db.getModel('cad_item').find({ where: { id: versao ? versao.iditem : 0 } });
-                            let grupo = await db.getModel('est_grupo').find({ where: { id: item ? item.idgrupo : 0 } });
+                            let versao = await db.getModel('pcp_versao').findOne({ where: { id: volume.idversao } });
+                            let item = await db.getModel('cad_item').findOne({ where: { id: versao ? versao.iditem : 0 } });
+                            let grupo = await db.getModel('est_grupo').findOne({ where: { id: item ? item.idgrupo : 0 } });
 
-                            let nfentradaitem = await db.getModel('est_nfentradaitem').find({ where: { id: volume.idnfentradaitem } });
-                            let nfentrada = await db.getModel('est_nfentrada').find({ where: { id: nfentradaitem ? nfentradaitem.idnfentrada : 0 } });
-                            let approducaovolume = await db.getModel('pcp_approducaovolume').find({ where: { id: volume.idapproducaovolume } });
-                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: approducaovolume ? approducaovolume.idapproducao : 0 } });
+                            let nfentradaitem = await db.getModel('est_nfentradaitem').findOne({ where: { id: volume.idnfentradaitem } });
+                            let nfentrada = await db.getModel('est_nfentrada').findOne({ where: { id: nfentradaitem ? nfentradaitem.idnfentrada : 0 } });
+                            let approducaovolume = await db.getModel('pcp_approducaovolume').findOne({ where: { id: volume.idapproducaovolume } });
+                            let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: approducaovolume ? approducaovolume.idapproducao : 0 } });
                             let approducaotempos = await db.getModel('pcp_approducaotempo').findAll({ where: { idapproducao: approducao ? approducao.id : 0 }, order: [['dataini', 'asc']] });
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducaovolume && approducaovolume.idopreferente ? approducaovolume.idopreferente : approducao ? approducao.idoprecurso : 0 } });
-                            let oprecurso_recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso ? oprecurso.idrecurso : 0 } });
-                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
-                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
-                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
-                            let opmae = await db.getModel('pcp_op').find({ include: [{ all: true }], where: { id: op && op.idopmae ? op.idopmae : 0 } });
-                            let opep = await db.getModel('pcp_opep').find({ where: { idop: op ? op.id : 0 } });
-                            let opmaeopep = await db.getModel('pcp_opep').find({ where: { idop: opmae ? opmae.id : 0 } });
-                            let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
-                            let opmaepedido = await db.getModel('ven_pedido').find({ where: { id: opmaeopep ? opmaeopep.idpedido : 0 } });
-                            let opmaepedidoitem = await db.getModel('ven_pedidoitem').find({ include: [{ all: true }], where: { idpedido: opmaepedido ? opmaepedido.id : 0 } });
-                            let cliente = await db.getModel('cad_corr').find({ where: { id: pedido ? pedido.idcliente : opmaepedido ? opmaepedido.idcliente : 0 } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducaovolume && approducaovolume.idopreferente ? approducaovolume.idopreferente : approducao ? approducao.idoprecurso : 0 } });
+                            let oprecurso_recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso ? oprecurso.idrecurso : 0 } });
+                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa ? opetapa.idetapa : 0 } });
+                            let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa ? opetapa.idop : 0 } });
+                            let opmae = await db.getModel('pcp_op').findOne({ include: [{ all: true }], where: { id: op && op.idopmae ? op.idopmae : 0 } });
+                            let opep = await db.getModel('pcp_opep').findOne({ where: { idop: op ? op.id : 0 } });
+                            let opmaeopep = await db.getModel('pcp_opep').findOne({ where: { idop: opmae ? opmae.id : 0 } });
+                            let pedido = await db.getModel('ven_pedido').findOne({ where: { id: opep ? opep.idpedido : 0 } });
+                            let opmaepedido = await db.getModel('ven_pedido').findOne({ where: { id: opmaeopep ? opmaeopep.idpedido : 0 } });
+                            let opmaepedidoitem = await db.getModel('ven_pedidoitem').findOne({ include: [{ all: true }], where: { idpedido: opmaepedido ? opmaepedido.id : 0 } });
+                            let cliente = await db.getModel('cad_corr').findOne({ where: { id: pedido ? pedido.idcliente : opmaepedido ? opmaepedido.idcliente : 0 } });
 
                             let formato = await db.sequelize.query(`
                             select
@@ -1939,12 +1939,12 @@ let main = {
                         try {
 
                             let bulkvolume = [];
-                            let nfitem = await db.getModel('est_nfentradaitem').find({
+                            let nfitem = await db.getModel('est_nfentradaitem').findOne({
                                 where: {
                                     id: obj.req.body.ids
                                 }
                             });
-                            let nf = await db.getModel('est_nfentrada').find({
+                            let nf = await db.getModel('est_nfentrada').findOne({
                                 where: {
                                     id: nfitem.idnfentrada
                                 }
@@ -2034,13 +2034,13 @@ let main = {
                             }
                         });
 
-                        let nfitem = await db.getModel('est_nfentradaitem').find({
+                        let nfitem = await db.getModel('est_nfentradaitem').findOne({
                             where: {
                                 id: volumes[0].idnfentradaitem
                             }
                         });
 
-                        let nf = await db.getModel('est_nfentrada').find({
+                        let nf = await db.getModel('est_nfentrada').findOne({
                             where: {
                                 id: nfitem.idnfentrada
                             }
@@ -2091,9 +2091,9 @@ let main = {
                     try {
 
                         if (obj.view.id == 66) { // Geração de Volume - Item - Volume
-                            let volume = await db.getModel('est_volume').find({ where: { id: obj.id } });
-                            let nfitem = await db.getModel('est_nfentradaitem').find({ where: { id: volume.idnfentradaitem } });
-                            let nf = await db.getModel('est_nfentrada').find({ where: { id: nfitem.idnfentrada } });
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: obj.id } });
+                            let nfitem = await db.getModel('est_nfentradaitem').findOne({ where: { id: volume.idnfentradaitem } });
+                            let nf = await db.getModel('est_nfentrada').findOne({ where: { id: nfitem.idnfentrada } });
                             if (nf.finalizado) {
                                 return application.error(obj.res, { msg: 'Não é possível alterar volumes de uma nota finalizada' });
                             }
@@ -2209,11 +2209,11 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                             }
 
-                            let volume = await db.getModel('est_volume').find({ where: { id: { $in: obj.ids } } });
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: { $in: obj.ids } } });
                             if (!volume.consumido) {
                                 return application.error(obj.res, { msg: 'Não é possível estornar um volume que não foi consumido' });
                             }
-                            let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { idvolume: volume.id } });
+                            let apinsumo = await db.getModel('pcp_apinsumo').findOne({ where: { idvolume: volume.id } });
                             if (apinsumo) {
                                 return application.error(obj.res, { msg: 'Não é possível estornar um volume que foi consumido por um apontamento' });
                             }
@@ -2243,7 +2243,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
-                            let volume = await db.getModel('est_volume').find({ where: { id: obj.req.body.id } });
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: obj.req.body.id } });
                             volume.consumido = false;
                             volume.qtdreal = application.formatters.be.decimal(obj.req.body.qtd, 4);
 
@@ -2293,9 +2293,9 @@ let main = {
                             let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.req.body.ids.split(',') } } });
                             for (let i = 0; i < volumes.length; i++) {
                                 let reservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volumes[i].id } });
-                                let op = await db.getModel('pcp_op').find({ where: { id: obj.req.body.idop } });
-                                let pcp_opep = await db.getModel('pcp_opep').find({ where: { idop: op.id } });
-                                let ven_pedidoitem = await db.getModel('ven_pedidoitem').find({ where: { idpedido: pcp_opep ? pcp_opep.idpedido : 0, idversao: op.idversao } });
+                                let op = await db.getModel('pcp_op').findOne({ where: { id: obj.req.body.idop } });
+                                let pcp_opep = await db.getModel('pcp_opep').findOne({ where: { idop: op.id } });
+                                let ven_pedidoitem = await db.getModel('ven_pedidoitem').findOne({ where: { idpedido: pcp_opep ? pcp_opep.idpedido : 0, idversao: op.idversao } });
                                 if (!ven_pedidoitem) {
                                     return application.error(obj.res, { msg: 'Não foi encontrado nenhum vínculo de pedido/item com a OP informada' });
                                 }
@@ -2350,7 +2350,7 @@ let main = {
                                 if (volumes[i].consumido) {
                                     return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} está consumido` });
                                 }
-                                let requisicao = await db.getModel('est_requisicaovolume').find({ where: { idvolume: volumes[i].id, datahoraatendido: null } });
+                                let requisicao = await db.getModel('est_requisicaovolume').findOne({ where: { idvolume: volumes[i].id, datahoraatendido: null } });
                                 if (requisicao) {
                                     return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} já possui uma requisição em aberto` });
                                 }
@@ -2744,7 +2744,7 @@ let main = {
                                     }
                                     for (let k in obj.req.body.ajustes) {
                                         let qtd = application.formatters.be.decimal(obj.req.body.ajustes[k]);
-                                        let volume = await db.getModel('est_volume').find({ where: { id: k } });
+                                        let volume = await db.getModel('est_volume').findOne({ where: { id: k } });
                                         let dif = qtd - parseFloat(volume.qtdreal);
                                         volume.qtdreal = qtd;
                                         volume.consumido = false;
@@ -3042,7 +3042,7 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let volume = await db.getModel('est_volume').find({ where: { id: obj.register.idvolume } });
+                        let volume = await db.getModel('est_volume').findOne({ where: { id: obj.register.idvolume } });
                         let qtdreservada = await db.getModel('est_volumereserva').sum('qtd', {
                             where: {
                                 id: { $ne: obj.register.id }
@@ -3167,7 +3167,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
-                            let deposito = await db.getModel('est_deposito').find({ where: { id: obj.req.body.iddeposito } })
+                            let deposito = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } })
                             let inicial = parseInt(obj.req.body.inicial);
                             let final = parseInt(obj.req.body.final);
                             let bulkEndereco = [];
@@ -3243,7 +3243,7 @@ let main = {
                         for (let i = 0; i < requisicoes.length; i++) {
                             requisicoes[i].datahoraatendido = moment();
                             requisicoes[i].iduseratendimento = obj.req.user.id;
-                            let volume = await db.getModel('est_volume').find({ where: { id: requisicoes[i].idvolume } });
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: requisicoes[i].idvolume } });
                             requisicoes[i].iddepositoorigem = volume.iddeposito;
                             requisicoes[i].iddepositoenderecoorigem = volume.iddepositoendereco;
                             requisicoes[i].qtd = volume.qtdreal;
@@ -3276,7 +3276,7 @@ let main = {
                             requisicoes[i].datahoraatendido = null;
                             requisicoes[i].iduseratendimento = null;
                             requisicoes[i].qtd = null;
-                            let volume = await db.getModel('est_volume').find({ where: { id: requisicoes[i].idvolume } });
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: requisicoes[i].idvolume } });
                             volume.iddeposito = requisicoes[i].iddepositoorigem;
                             volume.iddepositoendereco = requisicoes[i].iddepositoenderecoorigem;
                             requisicoes[i].iddepositoorigem = null;
@@ -3414,7 +3414,7 @@ let main = {
                         }
                         obj.register.datahora = moment();
 
-                        let volume = await db.getModel('est_volume').find({ where: { id: obj.register.idvolume || 0 } });
+                        let volume = await db.getModel('est_volume').findOne({ where: { id: obj.register.idvolume || 0 } });
                         if (!volume) {
                             return application.error(obj.res, { msg: 'Volume não encontrado' });
                         }
@@ -3468,7 +3468,7 @@ let main = {
 
                                 let codigodebarra = obj.req.body.codbar.split('-');
                                 codigodebarra = parseInt(codigodebarra[codigodebarra.length - 1]);
-                                let volume = await db.getModel('est_volume').find({ include: [{ all: true }], where: { id: codigodebarra || 0 } });
+                                let volume = await db.getModel('est_volume').findOne({ include: [{ all: true }], where: { id: codigodebarra || 0 } });
                                 if (!volume) {
                                     return application.error(obj.res, { msg: 'Volume não encontrado' });
                                 }
@@ -3502,7 +3502,7 @@ let main = {
                                     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                                 }
 
-                                let volume = await db.getModel('est_volume').find({ include: [{ all: true }], where: { id: obj.req.body.idvolume || 0 } });
+                                let volume = await db.getModel('est_volume').findOne({ include: [{ all: true }], where: { id: obj.req.body.idvolume || 0 } });
                                 if (!volume) {
                                     return application.error(obj.res, { msg: 'Volume não encontrado' });
                                 }
@@ -3535,7 +3535,7 @@ let main = {
             ap: {
                 f_dataUltimoAp: function (idoprecurso) {
                     return new Promise((resolve) => {
-                        db.getModel('pcp_oprecurso').find({ where: { id: idoprecurso } }).then(oprecurso => {
+                        db.getModel('pcp_oprecurso').findOne({ where: { id: idoprecurso } }).then(oprecurso => {
                             db.sequelize.query(`
                                 select
                                     max(datafim) as max
@@ -3574,7 +3574,7 @@ let main = {
                 }
                 , f_usuarioUltimoAp: function (idoprecurso) {
                     return new Promise((resolve) => {
-                        db.getModel('pcp_oprecurso').find({ where: { id: idoprecurso } }).then(oprecurso => {
+                        db.getModel('pcp_oprecurso').findOne({ where: { id: idoprecurso } }).then(oprecurso => {
                             db.sequelize.query(`
                                 select
                                     x.*
@@ -3634,10 +3634,10 @@ let main = {
 
                         let oprecurso = null;
                         if ('idoprecurso' in obj.data) {
-                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                            oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
                         } else if ('idapproducao' in obj.data) {
-                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } });
-                            oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                            let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.data.idapproducao } });
+                            oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
                         } else {
                             return application.error(obj.res, { msg: 'sem id' });
                         }
@@ -3700,7 +3700,7 @@ let main = {
                 }
                 , js_recipienteUltimoAp: async function (obj) {
                     try {
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
                         let sql = await db.sequelize.query(`
                             select
                                 datahora, recipiente
@@ -3727,7 +3727,7 @@ let main = {
                 , js_dataUltimoAp: async function (obj) {
                     try {
 
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
 
                         let results = await db.sequelize.query(`
                             select
@@ -3775,8 +3775,8 @@ let main = {
                 }
                 , f_corrigeEstadoOps: function (idoprecurso) {
                     return new Promise((resolve) => {
-                        db.getModel('pcp_config').find().then(config => {
-                            db.getModel('pcp_oprecurso').find({ where: { id: idoprecurso } }).then(oprecurso => {
+                        db.getModel('pcp_config').findOne().then(config => {
+                            db.getModel('pcp_oprecurso').findOne({ where: { id: idoprecurso } }).then(oprecurso => {
 
                                 db.getModel('pcp_oprecurso').update({
                                     idestado: config.idestadoproducao
@@ -3933,7 +3933,7 @@ let main = {
                             if (obj.ids.length != 1) {
                                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                             }
-                            let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.ids[0] } });
+                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.ids[0] } });
                             let body = '';
                             body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
                             body += application.components.html.integer({
@@ -3948,7 +3948,7 @@ let main = {
                                 , name: 'viscosidade'
                                 , value: montagem.viscosidade || ''
                             });
-                            let anilox = await db.getModel('est_anilox').find({ where: { id: montagem.idanilox || 0 } });
+                            let anilox = await db.getModel('est_anilox').findOne({ where: { id: montagem.idanilox || 0 } });
                             body += application.components.html.autocomplete({
                                 width: '6'
                                 , label: 'Anilox'
@@ -3972,7 +3972,7 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                            let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.req.body.id } });
+                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.req.body.id } });
                             montagem.estacao = obj.req.body.estacao;
                             montagem.viscosidade = obj.req.body.viscosidade || null;
                             montagem.idanilox = obj.req.body.idanilox || null;
@@ -4290,7 +4290,7 @@ let main = {
                 }
                 , js_ultimoapontamento: async (obj) => {
                     try {
-                        let montagem = await db.getModel('pcp_apclichemontagem').find({ where: { id: obj.data.idmontagem }, include: [{ all: true }] });
+                        let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.data.idmontagem }, include: [{ all: true }] });
 
                         let sql = await db.sequelize.query(`
                                 select
@@ -4326,7 +4326,7 @@ let main = {
             , approducao: {
                 _recalcula: function (id) {
                     return new Promise((resolve, reject) => {
-                        db.getModel('pcp_approducao').find({ where: { id: id } }).then(approducao => {
+                        db.getModel('pcp_approducao').findOne({ where: { id: id } }).then(approducao => {
 
                             db.getModel('pcp_approducaovolume').findAll({
                                 where: { idapproducao: approducao.id }
@@ -4366,8 +4366,8 @@ let main = {
                 , __adicionar: async function (obj) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
 
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
@@ -4406,15 +4406,15 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
-                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } })
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.register.idapproducao } })
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                         }
-                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: oprecurso.id } });
                         if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
-                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
 
@@ -4485,10 +4485,10 @@ let main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
                         let tempos = await db.getModel('pcp_approducaotempo').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
                         for (let i = 0; i < tempos.length; i++) {
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: tempos[i].pcp_approducao.idoprecurso } })
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: tempos[i].pcp_approducao.idoprecurso } })
                             if (oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
                             }
@@ -4502,7 +4502,7 @@ let main = {
                 , js_dataUltimoAp: async function (obj) {
                     try {
 
-                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.data.idapproducao } });
+                        let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.data.idapproducao } });
                         let dataUltimoAp = await main.plastrela.pcp.ap.f_dataUltimoAp(approducao.idoprecurso);
 
                         if (dataUltimoAp) {
@@ -4520,16 +4520,16 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
-                        let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.register.idapproducao } });
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
-                        let user = await db.getModel('users').find({ where: { id: obj.register.iduser } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.register.idapproducao } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
+                        let user = await db.getModel('users').findOne({ where: { id: obj.register.iduser } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                         }
-                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: oprecurso.id } });
                         if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
-                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
                         if (!user.c_codigosenior) {
@@ -4559,13 +4559,13 @@ let main = {
                         let saved = await next(obj);
 
                         if (saved.success) {
-                            let opr = await db.getModel('pcp_oprecurso').find({ where: { id: saved.register.idopreferente || oprecurso.id } });
-                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: opr.idopetapa } });
-                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
-                            let tprecurso = await db.getModel('pcp_tprecurso').find({ where: { id: etapa.idtprecurso } });
-                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
-                            let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-                            let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
+                            let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: saved.register.idopreferente || oprecurso.id } });
+                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: opr.idopetapa } });
+                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                            let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
+                            let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
+                            let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
+                            let deposito = await db.getModel('est_deposito').findOne({ where: { id: recurso.iddepositoprodutivo } });
 
                             let qtd = saved.register.qtd;
                             let metragem = null;
@@ -4574,7 +4574,7 @@ let main = {
                                 metragem = saved.register.qtd;
                             }
 
-                            let volume = await db.getModel('est_volume').find({
+                            let volume = await db.getModel('est_volume').findOne({
                                 where: { idapproducaovolume: saved.register.id }
                             });
                             if (volume) {
@@ -4610,11 +4610,11 @@ let main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
                         let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids } }, include: [{ all: true }] });
 
                         for (let i = 0; i < volumes.length; i++) {
-                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: volumes[i].pcp_approducaovolume.idapproducao }, include: [{ all: true }] })
+                            let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: volumes[i].pcp_approducaovolume.idapproducao }, include: [{ all: true }] })
                             if (approducao.pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
                             }
@@ -4658,7 +4658,7 @@ let main = {
                                 , value: obj.id
                             });
 
-                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.id } });
+                            let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.id } });
                             let usuarioultimoap = await main.plastrela.pcp.ap.f_usuarioUltimoAp(approducao.idoprecurso);
 
                             body += application.components.html.autocomplete({
@@ -4725,9 +4725,9 @@ let main = {
                             obj.req.body.pesobruto = application.formatters.be.decimal(obj.req.body.pesobruto, 4)
                             obj.req.body.tara = application.formatters.be.decimal(obj.req.body.tara, 4);
 
-                            let config = await db.getModel('pcp_config').find();
-                            let approducao = await db.getModel('pcp_approducao').find({ where: { id: obj.req.body.idapproducao } });
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: approducao.idoprecurso } });
+                            let config = await db.getModel('pcp_config').findOne();
+                            let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.req.body.idapproducao } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
                             if (oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                             }
@@ -4751,12 +4751,12 @@ let main = {
                                 // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                             }
 
-                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
-                            let tprecurso = await db.getModel('pcp_tprecurso').find({ where: { id: etapa.idtprecurso } });
-                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
-                            let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-                            let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
+                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                            let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
+                            let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
+                            let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
+                            let deposito = await db.getModel('est_deposito').findOne({ where: { id: recurso.iddepositoprodutivo } });
 
                             let qtd = obj.req.body.qtd;
                             let metragem = null;
@@ -4801,20 +4801,20 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
-                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: oprecurso.id } });
                         if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
-                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
                         if (obj.register.peso <= 0) {
                             return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['peso'] });
                         }
-                        let tipoperda = await db.getModel('pcp_tipoperda').find({ where: { id: obj.register.idtipoperda } });
+                        let tipoperda = await db.getModel('pcp_tipoperda').findOne({ where: { id: obj.register.idtipoperda } });
 
                         if (tipoperda && [300, 322].indexOf(tipoperda.codigo) >= 0) {
                             return next(obj);
@@ -4837,7 +4837,7 @@ let main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
                         let apperdas = await db.getModel('pcp_apperda').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
                         for (let i = 0; i < apperdas.length; i++) {
                             if (apperdas[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
@@ -4855,14 +4855,14 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
-                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: oprecurso.id } });
                         if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
-                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
 
@@ -4975,7 +4975,7 @@ let main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
                         let apparadas = await db.getModel('pcp_apparada').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
                         for (let i = 0; i < apparadas.length; i++) {
                             if (apparadas[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
@@ -5078,7 +5078,7 @@ let main = {
                                 let codigodebarra = obj.data.codigodebarra.split('-');
                                 codigodebarra = parseInt(codigodebarra[codigodebarra.length - 1]);
 
-                                let volume = await db.getModel('est_volume').find({ include: [{ all: true }], where: { id: codigodebarra } });
+                                let volume = await db.getModel('est_volume').findOne({ include: [{ all: true }], where: { id: codigodebarra } });
                                 if (volume) {
                                     if (volume.consumido) {
                                         return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
@@ -5098,11 +5098,11 @@ let main = {
 
                             case 'b':
                                 let bc = obj.data.codigodebarra.substring(1, obj.data.codigodebarra.length).split('-');
-                                let item = await db.getModel('cad_item').find({ where: { codigo: bc[0].split('/')[0] } })
+                                let item = await db.getModel('cad_item').findOne({ where: { codigo: bc[0].split('/')[0] } })
                                 if (!item) {
                                     return application.error(obj.res, { msg: 'Código de produto não encontrado' });
                                 }
-                                let versao = await db.getModel('pcp_versao').find({ where: { iditem: item.id, codigo: bc[0].split('/')[1] } });
+                                let versao = await db.getModel('pcp_versao').findOne({ where: { iditem: item.id, codigo: bc[0].split('/')[1] } });
                                 if (!versao) {
                                     return application.error(obj.res, { msg: 'Versão de produto não encontrado' });
                                 }
@@ -5141,18 +5141,18 @@ let main = {
                             return application.error(obj.res, { invalidfields: invalidfields });
                         }
 
-                        let user = await db.getModel('users').find({ where: { id: obj.data.iduser } });
-                        let config = await db.getModel('pcp_config').find();
-                        let gconfig = await db.getModel('config').find();
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
-                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-                        let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
-                        let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
+                        let user = await db.getModel('users').findOne({ where: { id: obj.data.iduser } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let gconfig = await db.getModel('config').findOne();
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
+                        let volume = await db.getModel('est_volume').findOne({ where: { id: obj.data.idvolume } });
+                        let versao = await db.getModel('pcp_versao').findOne({ where: { id: volume.idversao } });
                         let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
-                        let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
+                        let deposito = await db.getModel('est_deposito').findOne({ where: { id: volume.iddeposito } });
                         let qtd = application.formatters.be.decimal(obj.data.qtd);
                         let qtdreal = parseFloat(volume.qtdreal);
 
@@ -5162,9 +5162,9 @@ let main = {
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
-                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: oprecurso.id } });
                         if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
-                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
                         if (qtd <= 0) {
@@ -5260,17 +5260,17 @@ let main = {
                         if (obj.ids.length != 1) {
                             return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
                         let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: apinsumos[0].idoprecurso } });
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: apinsumos[0].idoprecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
                         for (let i = 0; i < apinsumos.length; i++) {
                             if (apinsumos[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
                             }
-                            let apretorno = await db.getModel('pcp_apretorno').find({ where: { idoprecurso: apinsumos[i].idoprecurso, estacao: apinsumos[i].recipiente } });
+                            let apretorno = await db.getModel('pcp_apretorno').findOne({ where: { idoprecurso: apinsumos[i].idoprecurso, estacao: apinsumos[i].recipiente } });
                             if (apretorno) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar insumos com retornos gerados sobre este recipiente' });
                             }
@@ -5280,7 +5280,7 @@ let main = {
                         let volumesreservas = [];
                         for (let i = 0; i < apinsumos.length; i++) {
                             let apinsumo = apinsumos[i];
-                            let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: apinsumo.idvolume } });
                             let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
 
                             // if (volume.metragem) {
@@ -5350,9 +5350,9 @@ let main = {
 
                             let saved = await next(obj);
 
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
-                            let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-                            let deposito = await db.getModel('est_deposito').find({ where: { id: recurso.iddepositoprodutivo } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idoprecurso } });
+                            let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
+                            let deposito = await db.getModel('est_deposito').findOne({ where: { id: recurso.iddepositoprodutivo } });
 
                             db.getModel('est_volume').create({
                                 idapretorno: saved.register.id
@@ -5379,17 +5379,17 @@ let main = {
                             return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
 
-                        let apretorno = await db.getModel('pcp_apretorno').find({ where: { id: obj.ids[0] } });
+                        let apretorno = await db.getModel('pcp_apretorno').findOne({ where: { id: obj.ids[0] } });
 
                         let info = JSON.parse(apretorno.info);
 
                         for (let i = 0; i < info.length; i++) {
-                            let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: info[i].idinsumo } });
+                            let apinsumo = await db.getModel('pcp_apinsumo').findOne({ where: { id: info[i].idinsumo } });
                             apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(info[i].qtd)).toFixed(4);
                             await apinsumo.save();
                         }
 
-                        let volume = await db.getModel('est_volume').find({ where: { idapretorno: obj.ids[0] } });
+                        let volume = await db.getModel('est_volume').findOne({ where: { idapretorno: obj.ids[0] } });
                         await volume.destroy();
 
                         next(obj);
@@ -5425,14 +5425,14 @@ let main = {
                         }
                         obj.register.datahora = moment();
 
-                        let config = await db.getModel('pcp_config').find();
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.register.idoprecurso } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos em OP encerrada' });
                         }
-                        let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: oprecurso.id } });
+                        let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: oprecurso.id } });
                         if (opconjugada && opconjugada.idopprincipal != oprecurso.id) {
-                            let opr = await main.platform.model.find('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
+                            let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
 
@@ -5440,11 +5440,11 @@ let main = {
                             return application.error(obj.res, { msg: 'A quantidade apontada deve ser maior que 0', invalidfields: ['qtd'] });
                         }
 
-                        let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: obj.register.idapinsumo } });
+                        let apinsumo = await db.getModel('pcp_apinsumo').findOne({ where: { id: obj.register.idapinsumo } });
                         if (!apinsumo) {
                             return application.error(obj.res, { msg: 'Este insumo não está mais apontado, verifique' });
                         }
-                        let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+                        let volume = await db.getModel('est_volume').findOne({ where: { id: apinsumo.idvolume } });
 
                         if (volume.metragem) {
                             volume.metragem = (((parseFloat(volume.qtdreal) + parseFloat(obj.register.qtd)) * parseFloat(volume.metragem)) / parseFloat(apinsumo.qtd)).toFixed(2);
@@ -5477,7 +5477,7 @@ let main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
                         let apsobras = await db.getModel('pcp_apsobra').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
 
                         for (let i = 0; i < apsobras.length; i++) {
@@ -5487,11 +5487,11 @@ let main = {
                         }
 
                         for (let i = 0; i < apsobras.length; i++) {
-                            let apinsumo = await db.getModel('pcp_apinsumo').find({ where: { id: apsobras[i].idapinsumo } });
+                            let apinsumo = await db.getModel('pcp_apinsumo').findOne({ where: { id: apsobras[i].idapinsumo } });
                             apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(apsobras[i].qtd)).toFixed(4);
                             apinsumo.save();
 
-                            let volume = await db.getModel('est_volume').find({ where: { id: apinsumo.idvolume } });
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: apinsumo.idvolume } });
 
                             if (volume.metragem) {
                                 volume.metragem = (((parseFloat(apinsumo.qtd)) * parseFloat(volume.metragem)) / parseFloat(apsobras[i].qtd)).toFixed(2);
@@ -5556,8 +5556,8 @@ let main = {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.ids[0] } });
-                        let volume = await db.getModel('est_volume').find({ where: { id: mistura.idvolume || 0 } });
+                        let mistura = await db.getModel('pcp_apmistura').findOne({ where: { id: obj.ids[0] } });
+                        let volume = await db.getModel('est_volume').findOne({ where: { id: mistura.idvolume || 0 } });
                         if (mistura.idvolume) {
                             if (parseFloat(volume.qtd) - parseFloat(volume.qtdreal) != 0) {
                                 return application.error(obj.res, { msg: 'Esta mistura já se encontra utilizada' });
@@ -5570,7 +5570,7 @@ let main = {
                             if (volume) {
                                 volume.destroy();
                                 for (let i = 0; i < misturas.length; i++) {
-                                    let vol = await db.getModel('est_volume').find({ where: { id: misturas[i].idvolume } });
+                                    let vol = await db.getModel('est_volume').findOne({ where: { id: misturas[i].idvolume } });
                                     vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
                                     vol.consumido = false;
                                     await vol.save();
@@ -5630,23 +5630,23 @@ let main = {
                             return application.error(obj.res, { invalidfields: invalidfields });
                         }
 
-                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.data.idapmistura } });
+                        let mistura = await db.getModel('pcp_apmistura').findOne({ where: { id: obj.data.idapmistura } });
                         if (!mistura) {
                             return application.error(obj.res, { msg: 'Mistura não encontrada' });
                         }
                         if (mistura.idvolume) {
                             return application.error(obj.res, { msg: 'Esta mistura já foi apontada, caso deseje alterar, apague o INSUMO e a MISTURA e aponte novamente' });
                         }
-                        let volume = await db.getModel('est_volume').find({ where: { id: obj.data.idvolume } });
-                        let deposito = await db.getModel('est_deposito').find({ where: { id: volume.iddeposito } });
+                        let volume = await db.getModel('est_volume').findOne({ where: { id: obj.data.idvolume } });
+                        let deposito = await db.getModel('est_deposito').findOne({ where: { id: volume.iddeposito } });
                         if (deposito && deposito.descricao == 'Almoxarifado') {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
                         }
 
                         if (volume.idversao) {
-                            let versao = await db.getModel('pcp_versao').find({ where: { id: volume.idversao } });
-                            let item = await db.getModel('cad_item').find({ where: { id: versao.iditem } });
-                            let grupo = await db.getModel('est_grupo').find({ where: { id: item.idgrupo } });
+                            let versao = await db.getModel('pcp_versao').findOne({ where: { id: volume.idversao } });
+                            let item = await db.getModel('cad_item').findOne({ where: { id: versao.iditem } });
+                            let grupo = await db.getModel('est_grupo').findOne({ where: { id: item.idgrupo } });
                             if ([
                                 500 // Polietileno
                                 , 501 // Pigmentos e Aditivos
@@ -5675,15 +5675,15 @@ let main = {
                 }
                 , js_finalizarMistura: async function (obj) {
                     try {
-                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: obj.data.idapmistura || 0 } });
+                        let mistura = await db.getModel('pcp_apmistura').findOne({ where: { id: obj.data.idapmistura || 0 } });
                         if (!mistura) {
                             return application.error(obj.res, { msg: 'Mistura não encontrada' });
                         }
                         if (mistura.idvolume) {
                             return application.error(obj.res, { msg: 'Mistura já finalizada' });
                         }
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: mistura.idoprecurso } });
-                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: mistura.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
 
                         if (mistura.idvolume) {
                             return application.error(obj.res, { msg: 'Esta mistura já possui volume gerado' });
@@ -5694,7 +5694,7 @@ let main = {
                         }
                         let qtdtotal = 0.0;
                         for (let i = 0; i < volumes.length; i++) {
-                            let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
+                            let vol = await db.getModel('est_volume').findOne({ where: { id: volumes[i].idvolume } });
                             if (parseFloat(parseFloat(vol.qtdreal).toFixed(4)) < parseFloat(parseFloat(volumes[i].qtd).toFixed(4))) {
                                 return application.error(obj.res, { msg: 'O volume ' + vol.id + ' possui apenas ' + application.formatters.fe.decimal(vol.qtdreal, 4) + ' - (apontado ' + application.formatters.fe.decimal(volumes[i].qtd, 4) + ')' });
                             }
@@ -5728,7 +5728,7 @@ let main = {
                                     });
                                 }
                             }
-                            let vol = await db.getModel('est_volume').find({ where: { id: volumes[i].idvolume } });
+                            let vol = await db.getModel('est_volume').findOne({ where: { id: volumes[i].idvolume } });
                             vol.qtdreal = (parseFloat(vol.qtdreal) - parseFloat(volumes[i].qtd)).toFixed(4);
                             if (parseFloat(vol.qtdreal) == 0) {
                                 vol.consumido = true;
@@ -5773,8 +5773,8 @@ let main = {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        let misturavolume = await db.getModel('pcp_apmisturavolume').find({ where: { id: obj.ids[0] } });
-                        let mistura = await db.getModel('pcp_apmistura').find({ where: { id: misturavolume.idapmistura } });
+                        let misturavolume = await db.getModel('pcp_apmisturavolume').findOne({ where: { id: obj.ids[0] } });
+                        let mistura = await db.getModel('pcp_apmistura').findOne({ where: { id: misturavolume.idapmistura } });
                         if (mistura.idvolume) {
                             return application.error(obj.res, { msg: 'Esta mistura já foi finalizada' });
                         }
@@ -5789,7 +5789,7 @@ let main = {
             , oprecurso: {
                 onsave: async function (obj, next) {
                     if (obj.id == 0) {
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
                         if (config && config.idestadoinicial) {
                             obj.register.idestado = config.idestadoinicial;
                             next(obj);
@@ -5798,7 +5798,7 @@ let main = {
                         }
                     } else {
 
-                        let apparada = await db.getModel('pcp_apparada').find({ where: { idoprecurso: obj.register.id } });
+                        let apparada = await db.getModel('pcp_apparada').findOne({ where: { idoprecurso: obj.register.id } });
                         if (obj.register.idrecurso != obj.register._previousDataValues.idrecurso && apparada) {
                             return application.error(obj.res, { msg: 'Não é possível alterar a máquina de uma OP com apontamentos' });
                         }
@@ -5809,13 +5809,13 @@ let main = {
                 , js_encerrar: async function (obj) {
                     try {
 
-                        let config = await db.getModel('pcp_config').find();
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
+                        let config = await db.getModel('pcp_config').findOne();
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'OP já se encontra encerrada' });
                         }
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
 
                         if (etapa.codigo == 10) {
                             let api = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
@@ -5842,16 +5842,16 @@ let main = {
 
                         let apps = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
                         for (let i = 0; i < apps.length; i++) {
-                            let appt = await db.getModel('pcp_approducaotempo').find({ where: { idapproducao: apps[i].id } });
-                            let appv = await db.getModel('pcp_approducaovolume').find({ where: { idapproducao: apps[i].id } });
+                            let appt = await db.getModel('pcp_approducaotempo').findOne({ where: { idapproducao: apps[i].id } });
+                            let appv = await db.getModel('pcp_approducaovolume').findOne({ where: { idapproducao: apps[i].id } });
                             if (!appt && !appv) {
                                 await apps[i].destroy();
                             }
                         }
                         apps = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
                         for (let i = 0; i < apps.length; i++) {
-                            let appt = await db.getModel('pcp_approducaotempo').find({ where: { idapproducao: apps[i].id } });
-                            let appv = await db.getModel('pcp_approducaovolume').find({ where: { idapproducao: apps[i].id } });
+                            let appt = await db.getModel('pcp_approducaotempo').findOne({ where: { idapproducao: apps[i].id } });
+                            let appv = await db.getModel('pcp_approducaovolume').findOne({ where: { idapproducao: apps[i].id } });
                             if (!appt || !appv) {
                                 return application.error(obj.res, { msg: 'Existe uma produção sem tempo ou volume apontado, verifique' });
                             }
@@ -5918,7 +5918,7 @@ let main = {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        let config = await db.getModel('pcp_config').find();
+                        let config = await db.getModel('pcp_config').findOne();
 
                         await db.getModel('pcp_oprecurso').update({
                             idestado: config.idestadoinicial
@@ -5939,17 +5939,17 @@ let main = {
                 , js_resumoProducao: async function (obj) {
                     try {
 
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } })
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso || 0 } })
                         if (!oprecurso) {
                             return application.error(obj.res, { msg: 'OP não encontrada' });
                         }
-                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } })
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa.idetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
-                        let versao = await db.getModel('pcp_versao').find({ where: { id: op.idversao } });
-                        let opep = await db.getModel('pcp_opep').find({ where: { idop: op.id } });
-                        let pedido = await db.getModel('ven_pedido').find({ where: { id: opep ? opep.idpedido : 0 } });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } })
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
+                        let versao = await db.getModel('pcp_versao').findOne({ where: { id: op.idversao } });
+                        let opep = await db.getModel('pcp_opep').findOne({ where: { idop: op.id } });
+                        let pedido = await db.getModel('ven_pedido').findOne({ where: { id: opep ? opep.idpedido : 0 } });
 
                         let report = {};
                         report.__title = `Resumo OP ${op.codigo}`;
@@ -6126,7 +6126,7 @@ let main = {
                             });
                         } else {
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'idrecurso']);
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.id } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.req.body.id } });
                             let opnova = oprecurso.dataValues;
                             delete opnova['id'];
                             opnova.integrado = null;
@@ -6179,10 +6179,10 @@ let main = {
                 }
                 , js_chamarColorista: async (obj) => {
                     try {
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.idoprecurso } });
-                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.req.body.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
                         main.platform.notification.create([2744], {
                             title: obj.req.body.motivo
                             , description: recurso.codigo + ' / ' + op.codigo
@@ -6221,10 +6221,10 @@ let main = {
                 }
                 , js_chamarCQ: async (obj) => {
                     try {
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.idoprecurso } });
-                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.req.body.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
                         main.platform.notification.create([2750], {
                             title: obj.req.body.motivo
                             , description: recurso.codigo + ' / ' + op.codigo
@@ -6268,15 +6268,15 @@ let main = {
                             let ids = obj.req.body.ids.split(',');
                             //Validação
                             for (let i = 0; i < ids.length; i++) {
-                                let opr = await db.getModel('pcp_oprecurso').find({ where: { id: ids[i] } });
+                                let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: ids[i] } });
                                 if (opr.idestado != 1) {
                                     return application.error(obj.res, { msg: `Só é possível conjugar OPs com estado de "Em Fila de Produção"` })
                                 }
-                                let opconjugada = await db.getModel('pcp_opconjugada').find({ where: { idopconjugada: ids[i] } });
+                                let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: ids[i] } });
                                 if (opconjugada) {
-                                    let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: opconjugada.idopprincipal } });
-                                    let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                                    let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                                    let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: opconjugada.idopprincipal } });
+                                    let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                                    let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
                                     return application.error(obj.res, { msg: `Na seleção existe alguma OP já conjugada com a OP ${op.codigo}` })
                                 }
                             }
@@ -6299,9 +6299,9 @@ let main = {
                             if (obj.ids.length != 1) {
                                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                             }
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.ids[0] } });
-                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
-                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 }, include: [{ all: true }] });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.ids[0] } });
+                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa ? opetapa.idetapa : 0 }, include: [{ all: true }] });
 
                             if (etapa.pcp_tprecurso.codigo != 2) {
                                 return application.error(obj.res, { msg: "Só é permitido montagem de clichê para OPs de impressão" });
@@ -6309,7 +6309,7 @@ let main = {
                             if (oprecurso.idestado == 2 || oprecurso.idestado == 7) {
                                 return application.error(obj.res, { msg: "Não é permitido montagem de clichê para OPs que não estão em produção" });
                             }
-                            let checkCliche = await db.getModel('pcp_apcliche').find({ where: { idoprecurso: obj.ids[0] } });
+                            let checkCliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.ids[0] } });
                             if (checkCliche) {
                                 return application.success(obj.res, { redirect: "/v/apontamento_cliche/" + checkCliche.id });
                             }
@@ -6351,11 +6351,11 @@ let main = {
                             if (!cliche) {
                                 return application.error(obj.res, { msg: "Não foi possível criar o clichê" });
                             }
-                            let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.req.body.idoprecurso } });
-                            let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
-                            let etapa = await db.getModel('pcp_etapa').find({ where: { id: opetapa ? opetapa.idetapa : 0 } });
-                            let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
-                            let versao = await db.getModel('pcp_versao').find({ where: { id: op ? op.idversao : 0 } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.req.body.idoprecurso } });
+                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa ? opetapa.idetapa : 0 } });
+                            let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa ? opetapa.idop : 0 } });
+                            let versao = await db.getModel('pcp_versao').findOne({ where: { id: op ? op.idversao : 0 } });
 
                             let ultimaMontagem = await db.sequelize.query(`
                             select cli.id
@@ -6402,11 +6402,11 @@ let main = {
                                 }
 
                             } else {
-                                let composicao = await db.getModel('pcp_composicao').find({ where: { id: versao ? versao.idcomposicao : 0 } });
+                                let composicao = await db.getModel('pcp_composicao').findOne({ where: { id: versao ? versao.idcomposicao : 0 } });
                                 let componentes = await db.getModel('pcp_componente').findAll({ where: { idcomposicao: composicao ? composicao.id : 0 }, include: [{ all: true }] });
 
                                 for (let i = 0; i < componentes.length; i++) {
-                                    let item = await db.getModel('cad_item').find({ where: { id: componentes[i].pcp_versao.iditem }, include: [{ all: true }] });
+                                    let item = await db.getModel('cad_item').findOne({ where: { id: componentes[i].pcp_versao.iditem }, include: [{ all: true }] });
                                     if (item.est_grupo.codigo == 533) { // Tintas
                                         await db.getModel('pcp_apclichemontagem').create({
                                             estacao: componentes[i].estacao
@@ -6429,10 +6429,10 @@ let main = {
                             return application.error(obj.res, { msg: 'OP Não informada' });
                         }
 
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso } });
-                        let recurso = await db.getModel('pcp_recurso').find({ where: { id: oprecurso.idrecurso } });
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
                         let sql = await db.sequelize.query(`
                         select
@@ -6499,7 +6499,7 @@ let main = {
                 }
                 , e_listaUltimoSetupImp: async (obj) => {
                     try {
-                        let apcliche = await db.getModel('pcp_apcliche').find({ where: { idoprecurso: obj.id } });
+                        let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.id } });
                         if (!apcliche) {
                             return application.error(obj.res, { msg: 'APCliche não encontrado' });
                         }
@@ -6512,12 +6512,12 @@ let main = {
                 }
                 , js_ratearInsumos: async (obj) => {
                     try {
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso || 0 } });
                         if (!oprecurso) {
                             return application.error(obj.res, { msg: 'OP Não encontrada' });
                         }
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
                         let sql = await db.sequelize.query(`
                         with componente as (
@@ -6690,12 +6690,12 @@ let main = {
                 }
                 , js_aplicarRateio: async (obj) => {
                     try {
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso || 0 } });
                         if (!oprecurso) {
                             return application.error(obj.res, { msg: 'OP Não encontrada' });
                         }
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso.idopetapa } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa.idop } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
                         let sql = await db.sequelize.query(`
                         with componente as (
@@ -6877,7 +6877,7 @@ let main = {
                                     restante = 0;
                                 }
 
-                                let apinsumo = await db.getModel('pcp_apinsumo').find({
+                                let apinsumo = await db.getModel('pcp_apinsumo').findOne({
                                     where: { id: insumos[z].id }
                                 });
                                 apinsumo.qtd = (parseFloat(apinsumo.qtd) - pesolancamento).toFixed(4);
@@ -6911,13 +6911,13 @@ let main = {
                 , js_buscaObservacao: async (obj) => {
                     try {
 
-                        let oprecurso = await db.getModel('pcp_oprecurso').find({ where: { id: obj.data.idoprecurso || 0 } });
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso || 0 } });
                         if (!oprecurso) {
                             return application.error(obj.res, { msg: 'OP Não encontrada' });
                         }
 
-                        let opetapa = await db.getModel('pcp_opetapa').find({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
-                        let op = await db.getModel('pcp_op').find({ where: { id: opetapa ? opetapa.idop : 0 } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso ? oprecurso.idopetapa : 0 } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa ? opetapa.idop : 0 } });
 
                         let ultimaObservacao = await db.sequelize.query(`
                             select rec.observacao
@@ -7262,11 +7262,18 @@ let main = {
             }
             , r_pcp112: async (obj) => {
                 try {
-                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['datahoraini', 'datahorafim']);
+                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['datahoraini', 'datahorafim', 'idrecurso']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
-
+                    let rec = [];
+                    if (typeof obj.req.body.idrecurso == 'string') {
+                        obj.req.body.idrecurso = [obj.req.body.idrecurso];
+                    }
+                    let recursos = await db.getModel('pcp_recurso').findAll({ where: { id: { $in: obj.req.body.idrecurso } } });
+                    for (let i = 0; i < recursos.length; i++) {
+                        rec.push(recursos[i].codigo);
+                    }
                     let needle = require('needle');
                     let query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
                         function: 'PLAIniflexSQL', param: JSON.stringify([`
@@ -7311,7 +7318,7 @@ let main = {
                                 left join pcpop op on (ops.empresa = op.empresa and ops.op = op.op)
                                 left join pcprecurso r on (ops.empresa = r.empresa and ops.recurso = r.codigo)
                                 left join estitem i on (op.empresa = i.empresa and op.produto = i.codigo)
-                                where recurso like '2%'
+                                where recurso in (${rec.join(',')})
                                 ) x
                         order by recurso, op`
                         ])
@@ -7342,6 +7349,20 @@ let main = {
                         , acerto: 0
                         , qtditem: 0
                     };
+                    let somageral = {
+                        count: 0
+                        , qtd: 0
+                        , peso: 0
+                        , tempoprod: 0
+                        , perda: 0
+                        , parada: 0
+                        , cprodutividade: 0
+                        , produtividade: 0
+                        , produtividademedia: 0
+                        , cacerto: 0
+                        , acerto: 0
+                        , qtditem: 0
+                    };
                     function resetasoma() {
                         soma.count = 0;
                         soma.qtd = 0;
@@ -7357,20 +7378,46 @@ let main = {
                         soma.qtditem = 0;
                     }
                     function mostrasoma() {
+                        for (let k in soma) {
+                            somageral[k] += soma[k];
+                        }
                         report.__table += `
-                        <tr style="font-weight: bold;">
-                            <td style="text-align:center;"> TOTAL </td>
-                            <td style="text-align:right;">  ${soma.count} Registros com ${soma.qtditem} Itens Produzidos</td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.qtd, 3)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.peso, 3)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.tempoprod, 2)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.perda, 3)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal((soma.perda / (soma.peso + soma.perda)) * 100, 2)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.parada, 2)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividade / soma.cprodutividade, 3)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividademedia / soma.cprodutividade, 3)} </td>
-                            <td style="text-align:right;"> ${application.formatters.fe.time(soma.acerto / soma.cprodutividade)} / ${application.formatters.fe.time(soma.acerto / soma.cacerto)} </td>
-                        </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold;">
+                                <td style="text-align:center;"> TOTAL </td>
+                                <td style="text-align:right;">  ${soma.count} Registros com ${soma.qtditem} Itens Produzidos</td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.qtd, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.peso, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.tempoprod, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.perda, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal((soma.perda / (soma.peso + soma.perda)) * 100, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.parada, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividade / soma.cprodutividade, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividademedia / soma.cprodutividade, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.time(soma.acerto / soma.cprodutividade)} / ${application.formatters.fe.time(soma.acerto / soma.cacerto)} </td>
+                            </tr>
+                        </tfoot>
+                        `;
+                    }
+                    function mostrasomageral() {
+                        report.__table += `
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold;">
+                                <td style="text-align:center;"> TOTAL GERAL </td>
+                                <td style="text-align:right;">  ${somageral.count} Registros com ${somageral.qtditem} Itens Produzidos</td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(somageral.qtd, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(somageral.peso, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(somageral.tempoprod, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(somageral.perda, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal((somageral.perda / (somageral.peso + somageral.perda)) * 100, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(somageral.parada, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(somageral.produtividade / somageral.cprodutividade, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(somageral.produtividademedia / somageral.cprodutividade, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.time(somageral.acerto / somageral.cprodutividade)} / ${application.formatters.fe.time(somageral.acerto / somageral.cacerto)} </td>
+                            </tr>
+                        </tfoot>
                         `;
                     }
                     for (let i = 0; i < query.count; i++) {
@@ -7383,19 +7430,22 @@ let main = {
                             report.__table += `
                             <h2>Recurso: ${query.data['RECURSO'][i]}</h2>
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
-                                <tr>
-                                    <td style="text-align:center;"><strong>OP</strong></td>
-                                    <td style="text-align:center;"><strong>Produto</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd</strong></td>
-                                    <td style="text-align:center;"><strong>Peso</strong></td>
-                                    <td style="text-align:center;"><strong>Prod.(min)</strong></td>
-                                    <td style="text-align:center;"><strong>Peso Perdido</strong></td>
-                                    <td style="text-align:center;"><strong>% Perdido</strong></td>
-                                    <td style="text-align:center;"><strong>Parada(min)</strong></td>
-                                    <td style="text-align:center;"><strong>Produtividade</strong></td>
-                                    <td style="text-align:center;"><strong>Produtividade Média</strong></td>
-                                    <td style="text-align:center;"><strong>Acerto</strong></td>
-                                </tr>
+                                <thead>
+                                    <tr>
+                                        <td style="text-align:center;"><strong>OP</strong></td>
+                                        <td style="text-align:center;"><strong>Produto</strong></td>
+                                        <td style="text-align:center;"><strong>Qtd</strong></td>
+                                        <td style="text-align:center;"><strong>Peso</strong></td>
+                                        <td style="text-align:center;"><strong>Prod.(min)</strong></td>
+                                        <td style="text-align:center;"><strong>Peso Perdido</strong></td>
+                                        <td style="text-align:center;"><strong>% Perdido</strong></td>
+                                        <td style="text-align:center;"><strong>Parada(min)</strong></td>
+                                        <td style="text-align:center;"><strong>Produtividade</strong></td>
+                                        <td style="text-align:center;"><strong>Produtividade Média</strong></td>
+                                        <td style="text-align:center;"><strong>Acerto</strong></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
                             `;
                             ultimorecurso = query.data['RECURSO'][i];
                         }
@@ -7428,6 +7478,7 @@ let main = {
                         soma.qtditem += fd(query.data['TEMPOPROD'][i]) + fd(query.data['PARADA'][i]) > 0 ? 1 : 0
                     }
                     mostrasoma();
+                    mostrasomageral();
                     report.__table += `
                         </table>
                     `;
@@ -7451,7 +7502,7 @@ let main = {
             equipamento: {
                 onsave: async (obj, next) => {
                     try {
-                        let register = await db.getModel('cad_equipamento').find({ where: { id: { $ne: obj.id }, patrimonio: obj.register.patrimonio } })
+                        let register = await db.getModel('cad_equipamento').findOne({ where: { id: { $ne: obj.id }, patrimonio: obj.register.patrimonio } })
                         if (register) {
                             return application.error(obj.res, { msg: 'Já existe um equipamento com este patrimônio' });
                         }
@@ -7580,7 +7631,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_comercial' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7597,10 +7648,10 @@ let main = {
                         await db.getModel('ven_embarque').update({ solicitadapcp: true }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
                         application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
-                        let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_pcp' } });
+                        let notificacao = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_pcp' } });
                         if (notificacao) {
                             notificacao = JSON.parse(notificacao.value);
-                            let embs = await main.platform.model.find('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            let embs = await main.platform.model.findAll('ven_embarque', { where: { id: { $in: obj.ids } } });
                             for (let i = 0; i < embs.count; i++) {
                                 main.platform.notification.create(notificacao, {
                                     title: 'Confirmação Pendente'
@@ -7618,7 +7669,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_comercial' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7643,7 +7694,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_pcp' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_pcp' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7660,10 +7711,10 @@ let main = {
                         await db.getModel('ven_embarque').update({ confirmadapcp: true }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
                         application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
-                        let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        let notificacao = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_comercial' } });
                         if (notificacao) {
                             notificacao = JSON.parse(notificacao.value);
-                            let embs = await main.platform.model.find('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            let embs = await main.platform.model.findAll('ven_embarque', { where: { id: { $in: obj.ids } } });
                             for (let i = 0; i < embs.count; i++) {
                                 main.platform.notification.create(notificacao, {
                                     title: 'Confirmação Realizada'
@@ -7681,7 +7732,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_comercial' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7706,7 +7757,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_comercial' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7723,10 +7774,10 @@ let main = {
                         await db.getModel('ven_embarque').update({ confirmadacomercial: true }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
                         application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
-                        let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        let notificacao = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_expedicao' } });
                         if (notificacao) {
                             notificacao = JSON.parse(notificacao.value);
-                            let embs = await main.platform.model.find('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            let embs = await main.platform.model.findAll('ven_embarque', { where: { id: { $in: obj.ids } } });
                             for (let i = 0; i < embs.count; i++) {
                                 main.platform.notification.create(notificacao, {
                                     title: moment().format(application.formatters.fe.date_format) == embs.rows[i].previsaodata ? 'EMBARQUE IMEDIATO' : 'Confirmação Entrega'
@@ -7743,7 +7794,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_expedicao' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7768,7 +7819,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_expedicao' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7793,7 +7844,7 @@ let main = {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
-                        let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_expedicao' } });
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_expedicao' } });
                         if (!param) {
                             return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                         }
@@ -7820,7 +7871,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                             }
 
-                            let param = await db.getModel('parameter').find({ where: { key: 'ven_embarque_motivoalteracaoentrega' } });
+                            let param = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_motivoalteracaoentrega' } });
                             if (!param) {
                                 return application.error(obj.res, { msg: 'Parâmetro não configurado' });
                             }
@@ -7874,10 +7925,10 @@ let main = {
 
                             application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
-                            let notificacao = await db.getModel('parameter').find({ where: { key: 'ven_embarque_comercial' } });
+                            let notificacao = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_comercial' } });
                             if (notificacao) {
                                 notificacao = JSON.parse(notificacao.value);
-                                let embs = await main.platform.model.find('ven_embarque', { where: { id: obj.req.body.id } });
+                                let embs = await main.platform.model.findAll('ven_embarque', { where: { id: obj.req.body.id } });
                                 for (let i = 0; i < embs.count; i++) {
                                     main.platform.notification.create(notificacao, {
                                         title: 'Alteração de Entrega'
@@ -8006,7 +8057,7 @@ let main = {
                             if (arr.length > 0) {
                                 where.$col = db.Sequelize.literal(arr.join(' and '));
                             }
-                            let embarques = await main.platform.model.find('ven_embarque', {
+                            let embarques = await main.platform.model.findAll('ven_embarque', {
                                 where: where
                                 , order: [
                                     ['previsaodata', 'asc']
@@ -8019,21 +8070,23 @@ let main = {
                             report.__title = `Lista de Embarques (${embarques.count})`;
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
-                                <tr>
-                                    <td style="text-align:center;"><strong>Prev. Entrega</strong></td>
-                                    <td style="text-align:center;"><strong>Cliente</strong></td>
-                                    <td style="text-align:center;"><strong>Pedido</strong></td>
-                                    <td style="text-align:center;"><strong>OP</strong></td>
-                                    <td style="text-align:center;"><strong>Item</strong></td>
-                                    <td style="text-align:center;"><strong>UN</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Atendido</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Est. OP</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Est. Item</strong></td>
-                                    <td style="text-align:center;"><strong>Qtd Prod. OP</strong></td>
-                                    <td style="text-align:center;"><strong>Cidade - UF</strong></td>
-                                    <td style="text-align:center;"><strong>Representante</strong></td>
-                                </tr>
+                                <thead>
+                                    <tr>
+                                        <td style="text-align:center;"><strong>Prev. Entrega</strong></td>
+                                        <td style="text-align:center;"><strong>Cliente</strong></td>
+                                        <td style="text-align:center;"><strong>Pedido</strong></td>
+                                        <td style="text-align:center;"><strong>OP</strong></td>
+                                        <td style="text-align:center;"><strong>Item</strong></td>
+                                        <td style="text-align:center;"><strong>UN</strong></td>
+                                        <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
+                                        <td style="text-align:center;"><strong>Qtd Atendido</strong></td>
+                                        <td style="text-align:center;"><strong>Qtd Est. OP</strong></td>
+                                        <td style="text-align:center;"><strong>Qtd Est. Item</strong></td>
+                                        <td style="text-align:center;"><strong>Qtd Prod. OP</strong></td>
+                                        <td style="text-align:center;"><strong>Cidade - UF</strong></td>
+                                        <td style="text-align:center;"><strong>Representante</strong></td>
+                                    </tr>
+                                </thead>
                             `;
                             for (let i = 0; i < embarques.count; i++) {
                                 report.__table += `
@@ -8182,7 +8235,7 @@ let main = {
                             if (arr.length > 0) {
                                 where.$col = db.Sequelize.literal(arr.join(' and '));
                             }
-                            let embarques = await main.platform.model.find('ven_embarque', {
+                            let embarques = await main.platform.model.findAll('ven_embarque', {
                                 where: where
                                 , order: [
                                     ['previsaodata', 'asc']
@@ -8277,7 +8330,7 @@ let main = {
                                     invalidfields = application.functions.getEmptyFields(obj.register, [
                                         'idcorrentista'
                                     ]);
-                                    let cliente = await db.getModel('cad_corr').find({ where: { id: obj.register.idcorrentista } });
+                                    let cliente = await db.getModel('cad_corr').findOne({ where: { id: obj.register.idcorrentista } });
                                     if (cliente) {
                                         obj.register.condicao_pgto = cliente.condicaopgto;
                                     }
@@ -8431,7 +8484,7 @@ let main = {
                         let saved = await next(obj);
                         if (saved.success) {
                             if (saved.register.digitado) {
-                                let setor = await db.getModel('cad_setor').find({ where: { descricao: 'Comercial' } });
+                                let setor = await db.getModel('cad_setor').findOne({ where: { descricao: 'Comercial' } });
                                 if (setor) {
                                     let usuarios = await db.getModel('cad_setorusuario').findAll({ where: { idsetor: setor.id } });
                                     let arr = [];
@@ -8481,12 +8534,12 @@ let main = {
                 }
                 , f_geraEspelho: (idproposta) => {
                     return new Promise((resolve, reject) => {
-                        main.platform.model.find('ven_proposta', { include: [{ all: true }], where: { id: idproposta || 0 } }).then(proposta => {
+                        main.platform.model.findAll('ven_proposta', { include: [{ all: true }], where: { id: idproposta || 0 } }).then(proposta => {
                             if (!proposta) {
                                 resolve({ success: false, msg: 'Proposta não encontrada' });
                             }
                             proposta = proposta.rows[0];
-                            main.platform.model.find('ven_propostaentrega', { where: { idproposta: proposta.id } }).then(entregas => {
+                            main.platform.model.findAll('ven_propostaentrega', { where: { idproposta: proposta.id } }).then(entregas => {
                                 entregas = entregas.rows;
                                 proposta._entregas = `
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
@@ -8561,7 +8614,7 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let proposta = await db.getModel('ven_proposta').find({ where: { id: obj.register.idproposta } });
+                        let proposta = await db.getModel('ven_proposta').findOne({ where: { id: obj.register.idproposta } });
                         if (proposta.digitado) {
                             return application.error(obj.res, { msg: 'Não é possível editar uma proposta completamente digitada' });
                         }
@@ -8578,7 +8631,7 @@ let main = {
                 , ondelete: async function (obj, next) {
                     try {
 
-                        let propostaentrega = await db.getModel('ven_propostaentrega').find({ include: [{ all: true }], where: { id: obj.ids[0] } });
+                        let propostaentrega = await db.getModel('ven_propostaentrega').findOne({ include: [{ all: true }], where: { id: obj.ids[0] } });
                         if (propostaentrega.ven_proposta.digitado) {
                             return application.error(obj.res, { msg: 'Não é possível editar uma proposta completamente digitada' });
                         }

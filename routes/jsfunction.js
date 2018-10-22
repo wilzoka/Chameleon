@@ -9,7 +9,7 @@ module.exports = function (app) {
     app.post('/jsfunction', application.IsAuthenticated, async (req, res) => {
         try {
             if (!config) {
-                config = await db.getModel('config').find();
+                config = await db.getModel('config').findOne();
             }
             let custom = require('../custom/' + config.customfile);
             let obj = {

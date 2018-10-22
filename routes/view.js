@@ -607,7 +607,7 @@ const deleteModel = function (obj) {
                 if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {
                     let errsplited = err.original.detail.split('"');
                     if (errsplited.length == 3) {
-                        db.getModel('model').find({ where: { name: errsplited[1] } }).then(model => {
+                        db.getModel('model').findOne({ where: { name: errsplited[1] } }).then(model => {
                             if (model) {
                                 resolve({ success: false, err: err });
                                 return application.error(obj.res, { msg: 'Este registro está em uso em ' + (model.description || model.name) });
@@ -678,7 +678,7 @@ const getTemplate = function (template) {
 }
 
 const findView = function (url) {
-    return db.getModel('view').find({ include: [{ all: true }], where: { url: url } });
+    return db.getModel('view').findOne({ include: [{ all: true }], where: { url: url } });
 }
 
 module.exports = function (app) {
@@ -1082,7 +1082,7 @@ module.exports = function (app) {
                             break;
                     }
                 }
-                let register = await db.getModel(view.model.name).find({
+                let register = await db.getModel(view.model.name).findOne({
                     attributes: attributes
                     , where: { id: id }
                     , include: [{ all: true }]
@@ -1146,7 +1146,7 @@ module.exports = function (app) {
                         , res: res
                     };
                     if (view.model.ondelete) {
-                        let config = await db.getModel('config').find();
+                        let config = await db.getModel('config').findOne();
                         let custom = require('../custom/' + config.customfile);
                         return application.functions.getRealReference(custom, view.model.ondelete)(obj, deleteModel);
                     } else {
@@ -1175,9 +1175,9 @@ module.exports = function (app) {
                     where: { idview: view.id, disabled: { $eq: false } }
                     , include: [{ all: true }]
                 });
-                const subview = await db.getModel('viewsubview').find({ where: { idview: view.id } });
+                const subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id } });
                 const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-                let register = await db.getModel(view.model.name).find({ where: { id: req.params.id }, include: [{ all: true }] });
+                let register = await db.getModel(view.model.name).findOne({ where: { id: req.params.id }, include: [{ all: true }] });
                 if (!register) {
                     register = db.getModel(view.model.name).build({ id: 0 });
                 }
@@ -1193,7 +1193,7 @@ module.exports = function (app) {
                 };
                 obj = modelate(obj);
                 if (view.model.onsave) {
-                    let config = await db.getModel('config').find();
+                    let config = await db.getModel('config').findOne();
                     let custom = require('../custom/' + config.customfile);
                     let realfunction = application.functions.getRealReference(custom, view.model.onsave);
                     if (realfunction) {

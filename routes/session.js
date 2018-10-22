@@ -16,7 +16,7 @@ passport.deserializeUser(function (user, done) {
 
 // For Authentication Purposes
 passport.use(new LocalStrategy(function (username, password, done) {
-    db.getModel('users').find({
+    db.getModel('users').findOne({
         where: {
             active: true
             , $or: [{ username: username }, { email: username }]
@@ -62,7 +62,7 @@ module.exports = function (app) {
                 , raw: true
             });
 
-            let config = await db.getModel('config').find();
+            let config = await db.getModel('config').findOne();
 
             permissionarr = [];
             for (let i = 0; i < permissions.length; i++) {
@@ -84,7 +84,7 @@ module.exports = function (app) {
 
             let redirect = '/home';
             if (req.user.idmenu) {
-                let defaultmenu = await db.getModel('menu').find({ include: [{ all: true }], where: { id: req.user.idmenu } });
+                let defaultmenu = await db.getModel('menu').findOne({ include: [{ all: true }], where: { id: req.user.idmenu } });
                 if (defaultmenu.url) {
                     redirect = defaultmenu.url;
                 } else if (defaultmenu.idview) {

@@ -60,7 +60,7 @@ const application = require('../routes/application')
         }
         , afterSave: (register, options) => {
           if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0 && Object.keys(register._changed).length > 0) {
-            getModel('model').find({ where: { name: register.constructor.name } }).then(model => {
+            getModel('model').findOne({ where: { name: register.constructor.name } }).then(model => {
               let audit = getModel('audit').build();
               let iduser = options.iduser || register._iduser;
               audit.datetime = moment();
@@ -82,7 +82,7 @@ const application = require('../routes/application')
         }
         , afterDestroy: (register, options) => {
           if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0) {
-            getModel('model').find({ where: { name: register.constructor.name } }).then(model => {
+            getModel('model').findOne({ where: { name: register.constructor.name } }).then(model => {
               let audit = getModel('audit').build();
               let iduser = options.iduser || register._iduser;
               audit.datetime = moment();
