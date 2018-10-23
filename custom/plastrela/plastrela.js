@@ -7401,9 +7401,25 @@ let main = {
                         `;
                     }
                     function mostrasomageral() {
+                        for (let k in soma) {
+                            somageral[k] += soma[k];
+                        }
                         report.__table += `
                         </tbody>
                         <tfoot>
+                            <tr style="font-weight: bold;">
+                                <td style="text-align:center;"> TOTAL </td>
+                                <td style="text-align:right;">  ${soma.count} Registros com ${soma.qtditem} Itens Produzidos</td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.qtd, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.peso, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.tempoprod, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.perda, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal((soma.perda / (soma.peso + soma.perda)) * 100, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.parada, 2)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividade / soma.cprodutividade, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.decimal(soma.produtividademedia / soma.cprodutividade, 3)} </td>
+                                <td style="text-align:right;"> ${application.formatters.fe.time(soma.acerto / soma.cprodutividade)} / ${application.formatters.fe.time(soma.acerto / soma.cacerto)} </td>
+                            </tr>
                             <tr style="font-weight: bold;">
                                 <td style="text-align:center;"> TOTAL GERAL </td>
                                 <td style="text-align:right;">  ${somageral.count} Registros com ${somageral.qtditem} Itens Produzidos</td>
@@ -7477,7 +7493,6 @@ let main = {
                         soma.acerto += fd(query.data['ACERTO'][i]);
                         soma.qtditem += fd(query.data['TEMPOPROD'][i]) + fd(query.data['PARADA'][i]) > 0 ? 1 : 0
                     }
-                    mostrasoma();
                     mostrasomageral();
                     report.__table += `
                         </table>
