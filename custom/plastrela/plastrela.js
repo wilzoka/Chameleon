@@ -597,6 +597,7 @@ let main = {
                                 idestado: solicitacaoitem.idestado,
                                 ociniflex: solicitacaoitem.ociniflex,
                                 dataprevisao: solicitacaoitem.dataprevisao,
+                                datadesejada: solicitacaoitem.datadesejada,
                                 datainclusao: moment(),
                                 qtd: qtd.toFixed(4)
                             });
@@ -668,57 +669,14 @@ let main = {
                 , _imprimir: async function (obj) {
                     try {
 
-                        let f = application.functions;
-                        let pdfkit = require('pdfkit');
-
                         if (obj.ids.length == 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        const doc = new pdfkit({
-                            autoFirstPage: false
-                        });
-
-                        let config = await db.getModel('config').findOne({ raw: true });
-                        let image = JSON.parse(config.reportimage)[0];
-                        let filename = process.hrtime()[1] + '.pdf';
-                        let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
-
-                        doc.addPage({
-                            margin: 30
-                        });
-
-                        doc.moveTo(25, 25)
-                            .lineTo(569, 25) //top
-                            .lineTo(569, 75) //right
-                            .lineTo(25, 75) //bottom
-                            .lineTo(25, 25) //bottom
-                            .stroke();
-
-                        doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 50 });
-
-                        // Title
-                        doc
-                            .font('Courier-Bold')
-                            .fontSize(11)
-                            .text('ITENS PARA COMPRA', 265, 47);
-
-
-                        doc
-                            .fontSize(7.5)
-                            .text(moment().format('DD/MM/YYYY'), 510, 40)
-                            .text(moment().format('HH:mm'), 522, 55);
-
-                        let padstr = ' ';
-                        let w = [11, 33, 15, 15, 31, 10]
-                        let basew = 4.72;
-                        let mdt = 10;
-                        let mdb = 11;
-                        let md = 0.6;
-
-                        let results = await db.sequelize.query(`
+                        let sql = await db.sequelize.query(`
                             select
                                 si.id
+                                , si.datadesejada
                                 , c.descricao as tipo
                                 , si.qtd
                                 , (select f.valor from pcp_ficha f left join pcp_atribficha af on (f.idatributo = af.id) where f.valor is not null and f.idversao = v.id and af.codigo in (15028, 176, 150028, 150038, 22)) as espessura
@@ -737,96 +695,50 @@ let main = {
                                 type: db.sequelize.QueryTypes.SELECT
                             });
 
-                        let sum = 25;
-                        for (let i = 0; i < results.length; i++) {
-                            sum = 25;
-                            if (i == 0) {
-
-                                doc.y = 85;
-                                // top
-                                doc.moveTo(25, doc.y - 6)
-                                    .lineTo(569, doc.y - 6)
-                                    .stroke();
-                                // bottom
-                                doc.moveTo(25, doc.y + 7)
-                                    .lineTo(569, doc.y + 7)
-                                    .stroke();
-
-                                // first
-                                doc.moveTo(25, doc.y - (md * mdt))
-                                    .lineTo(25, doc.y + (md * mdb))
-                                    .stroke();
-                                // last
-                                doc.moveTo(569, doc.y - (md * mdt))
-                                    .lineTo(569, doc.y + (md * mdb))
-                                    .stroke();
-
-                                for (let z = 0; z < w.length - 1; z++) {
-                                    doc.moveTo(sum + (basew * w[z]), doc.y - (md * mdt))
-                                        .lineTo(sum + (basew * w[z]), doc.y + (md * mdb))
-                                        .stroke();
-                                    sum += (basew * w[z]);
-                                }
-
-                                doc
-                                    .font('Courier-Bold')
-                                    .text(
-                                        f.lpad(' OC ', w[0], padstr) + ' '
-                                        + f.rpad('Tipo', w[1], padstr) + ' '
-                                        + f.lpad('Largura(mm)', w[2], padstr) + ' '
-                                        + f.lpad('Espessura(mm)', w[3], padstr) + ' '
-                                        + f.lpad('Quantidade', w[4], padstr) + ' '
-                                        + f.rpad('Unidade', w[5], padstr)
-                                        , 27, 85)
-                                    .moveDown(md);
-
-                            }
-
-                            // bottom
-                            doc.moveTo(25, doc.y + 7)
-                                .lineTo(569, doc.y + 7)
-                                .stroke();
-
-                            // first
-                            doc.moveTo(25, doc.y - (md * mdt))
-                                .lineTo(25, doc.y + (md * mdb))
-                                .stroke();
-                            // last
-                            doc.moveTo(569, doc.y - (md * mdt))
-                                .lineTo(569, doc.y + (md * mdb))
-                                .stroke();
-                            sum = 25;
-                            for (let z = 0; z < w.length - 1; z++) {
-                                doc.moveTo(sum + (basew * w[z]), doc.y - (md * mdt))
-                                    .lineTo(sum + (basew * w[z]), doc.y + (md * mdb))
-                                    .stroke();
-                                sum += (basew * w[z]);
-                            }
-
-                            doc
-                                .font('Courier')
-                                .text(
-                                    f.lpad(results[i].id, w[0] - 1, padstr) + '  '
-                                    + f.rpad(results[i].tipo, w[1], padstr) + ' '
-                                    + f.lpad(application.formatters.fe.decimal(results[i].largura, 2), w[2], padstr) + ' '
-                                    + f.lpad(application.formatters.fe.decimal(results[i].espessura, 4), w[3], padstr) + ' '
-                                    + f.lpad(application.formatters.fe.decimal(results[i].qtd, 4), w[4], padstr) + ' '
-                                    + f.rpad(results[i].unidade, w[5], padstr)
-                                )
-                                .moveDown(md);
+                        let report = {};
+                        report.__title = 'Solicitações de Compra';
+                        report.__table = `
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <thead>
+                                    <tr>
+                                        <td style="text-align:center;"><strong>OC</strong></td>
+                                        <td style="text-align:center;"><strong>Data Desejada</strong></td>
+                                        <td style="text-align:center;"><strong>Tipo</strong></td>
+                                        <td style="text-align:center;"><strong>Largura(mm)</strong></td>
+                                        <td style="text-align:center;"><strong>Espessura(mm)</strong></td>
+                                        <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                        <td style="text-align:center;"><strong>Unidade</strong></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                            `;
+                        for (let i = 0; i < sql.length; i++) {
+                            report.__table += `
+                                    <tr>
+                                        <td style="text-align:center;"> ${sql[i]['id']} </td>
+                                        <td style="text-align:center;"> ${application.formatters.fe.date(sql[i]['datadesejada'])} </td>
+                                        <td style="text-align:center;"> ${sql[i]['tipo']} </td>
+                                        <td style="text-align:center;"> ${sql[i]['qtd']} </td>
+                                        <td style="text-align:center;"> ${application.formatters.fe.decimal(sql[i]['espessura'], 4)} </td>
+                                        <td style="text-align:center;"> ${application.formatters.fe.decimal(sql[i]['largura'], 4)} </td>
+                                        <td style="text-align:center;"> ${sql[i]['unidade']} </td>
+                                    </tr>
+                                `;
                         }
+                        report.__table += `
+                                </tbody>
+                            </table>
+                            `;
 
-                        doc.end();
-                        stream.on('finish', function () {
-                            return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevt'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
-                            });
+                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            }
                         });
                     } catch (err) {
                         return application.fatal(obj.res, err);
