@@ -718,9 +718,9 @@ let main = {
                                         <td style="text-align:center;"> ${sql[i]['id']} </td>
                                         <td style="text-align:center;"> ${sql[i]['datadesejada'] ? application.formatters.fe.date(sql[i]['datadesejada']) : ''} </td>
                                         <td style="text-align:center;"> ${sql[i]['tipo']} </td>
-                                        <td style="text-align:center;"> ${sql[i]['qtd']} </td>
+                                        <td style="text-align:center;"> ${application.formatters.fe.decimal(sql[i]['largura'], 4)} </td>                                        
                                         <td style="text-align:center;"> ${application.formatters.fe.decimal(sql[i]['espessura'], 4)} </td>
-                                        <td style="text-align:center;"> ${application.formatters.fe.decimal(sql[i]['largura'], 4)} </td>
+                                        <td style="text-align:center;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
                                         <td style="text-align:center;"> ${sql[i]['unidade']} </td>
                                     </tr>
                                 `;
