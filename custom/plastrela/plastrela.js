@@ -1102,6 +1102,20 @@ let main = {
                                 }
                             }
                         }
+                        let volumesreservados = [];
+                        for (let i = 0; i < reservascriadas.length; i++) {
+                            if (volumesreservados.indexOf(reservascriadas[i].idvolume) == -1) {
+                                volumesreservados.push(reservascriadas[i].idvolume);//Entra apenas 1 vez no volume
+                                let volume = await db.getModel('est_volume').findOne({ where: { id: volumesreservados[i] } });
+                                let totalreservado = await db.sequelize.query('select sum(qtd) as soma from est_volumereserva where idvolume = :v1', { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: volume.id } });
+                                let qtd = parseFloat(volume.qtd) - parseFloat(totalreservado.length > 0 ? totalreservado[0].soma || 0 : 0);
+                                if (qtd < 50) {
+                                    let ultimareserva = await db.getModel('est_volumereserva').findOne({ where: { idvolume: volume.id }, order: [['id', 'desc']] });
+                                    ultimareserva.qtd = (parseFloat(ultimareserva.qtd) + parseFloat(qtd)).toFixed(4);
+                                    await ultimareserva.save();
+                                }
+                            }
+                        }
                     }
 
                     for (let z = 0; z < solicitacoesfinalizadas.length; z++) {
@@ -4571,6 +4585,10 @@ let main = {
                             });
 
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.id } });
+                            // let oprecurso = await main.platform.model.findAll('pcp_oprecurso', { where: { id: approducao.idoprecurso } });
+                            // if (oprecurso.rows[0].etapa == 50) {
+
+                            // }
                             let usuarioultimoap = await main.plastrela.pcp.ap.f_usuarioUltimoAp(approducao.idoprecurso);
 
                             body += application.components.html.autocomplete({
@@ -7204,9 +7222,9 @@ let main = {
                                     case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.qtd / (x.tempoprod - x.parada - x.acerto), 2) end
                                 end as produtividade
                                 , case when x.tipo_recurso = 1 then 
-                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.peso / ((x.tempoprod)/60), 2) end
+                                    case when x.tempoprod = 0 then 0 else round(x.peso / ((x.tempoprod)/60), 2) end
                                     else
-                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.qtd / (x.tempoprod), 2) end
+                                    case when x.tempoprod = 0 then 0 else round(x.qtd / (x.tempoprod), 2) end
                                 end as produtividademedia
                                 , round(case when x.peso + x.perda = 0 then 0 else x.perda / (x.peso + x.perda) end,4) * 100 as percperdido
                         from

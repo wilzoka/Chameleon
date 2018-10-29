@@ -1020,7 +1020,6 @@ module.exports = function (app) {
     });
 
     app.get('/v/:view', application.IsAuthenticated, async (req, res) => {
-        console.log(`hit ${req.params.view} ${moment().format(application.formatters.fe.datetime_format + ':ss')}`);
         try {
             const view = await findView(req.params.view);
             if (!view) {
