@@ -4586,6 +4586,10 @@ let main = {
                             });
 
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.id } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
+                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                            let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
                             let usuarioultimoap = await main.plastrela.pcp.ap.f_usuarioUltimoAp(approducao.idoprecurso);
 
                             body += application.components.html.autocomplete({
@@ -4604,7 +4608,7 @@ let main = {
                             });
                             body += application.components.html.decimal({
                                 width: '4'
-                                , label: 'Quantidade*'
+                                , label: tprecurso.codigo == 5 ? 'Metragem Bobina Mãe*' : 'Quantidade*'
                                 , name: 'qtd'
                                 , precision: 2
                             });
