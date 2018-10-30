@@ -3748,6 +3748,7 @@ let main = {
                             data += chunk;
                         });
                         res.on('end', function () {
+                            console.log(data);
                             data = data.replace("{'Total de Solvente': ", '').replace('}', '');
                             db.getModel('pcp_solvente').create({
                                 recurso: 205
@@ -4585,10 +4586,6 @@ let main = {
                             });
 
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.id } });
-                            // let oprecurso = await main.platform.model.findAll('pcp_oprecurso', { where: { id: approducao.idoprecurso } });
-                            // if (oprecurso.rows[0].etapa == 50) {
-
-                            // }
                             let usuarioultimoap = await main.plastrela.pcp.ap.f_usuarioUltimoAp(approducao.idoprecurso);
 
                             body += application.components.html.autocomplete({
@@ -4658,6 +4655,7 @@ let main = {
                             let config = await db.getModel('pcp_config').findOne();
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.req.body.idapproducao } });
                             let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
+
                             if (oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                             }
@@ -4693,6 +4691,9 @@ let main = {
                             if ([1, 2, 3].indexOf(tprecurso.codigo) >= 0) {
                                 qtd = pesoliquido;
                                 metragem = obj.req.body.qtd;
+                            }
+                            if (tprecurso.codigo == 5) {
+                                obj.req.body.qtd = (parseInt(qtd) / parseFloat(obj.req.body.qtdvolumes)).toFixed(4);
                             }
 
                             for (let i = 0; i < obj.req.body.qtdvolumes; i++) {
