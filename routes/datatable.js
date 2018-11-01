@@ -192,7 +192,7 @@ module.exports = function (app) {
 
     app.post('/datatables', application.IsAuthenticated, async (req, res) => {
         try {
-            const view = await db.getModel('view').find({ where: { url: req.body.view }, include: [{ all: true }] });
+            const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
             const viewtables = await db.getModel('viewtable').findAll({ where: { idview: view.id }, include: [{ all: true }] });
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let where = { '$and': {} };
@@ -291,9 +291,9 @@ module.exports = function (app) {
 
     app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
         try {
-            const view = await db.getModel('view').find({ where: { url: req.body.view }, include: [{ all: true }] });
+            const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-            let modelattribute = await db.getModel('modelattribute').find({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
+            let modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 
             let where = {};
 
@@ -307,7 +307,7 @@ module.exports = function (app) {
             }
 
             if (req.body.issubview == 'true') {
-                let modelattributeparent = await db.getModel('modelattribute').find({
+                let modelattributeparent = await db.getModel('modelattribute').findOne({
                     where: { idmodel: view.model.id, type: 'parent' }
                 });
                 if (modelattributeparent) {
@@ -315,7 +315,7 @@ module.exports = function (app) {
                 }
             }
 
-            let register = await db.getModel(view.model.name).find({
+            let register = await db.getModel(view.model.name).findOne({
                 raw: true
                 , attributes: [
                     [db.Sequelize.literal('sum(' + (modelattribute.type == 'virtual' ? application.modelattribute.parseTypeadd(modelattribute.typeadd).subquery : view.model.name + '.' + modelattribute.name) + ')'), 'sum']

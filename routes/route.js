@@ -31,7 +31,7 @@ module.exports = function (app) {
     app.get('/r/:route', async (req, res) => {
         try {
             if (!(req.params.route in routes)) {
-                routes[req.params.route] = await db.getModel('route').find({ raw: true, where: { url: req.params.route } });
+                routes[req.params.route] = await db.getModel('route').findOne({ raw: true, where: { url: req.params.route } });
             }
             if (!routes[req.params.route]) {
                 return application.notFound(res);
@@ -69,13 +69,13 @@ module.exports = function (app) {
     app.post('/r/:route', async (req, res) => {
         try {
             if (!(req.params.route in routes)) {
-                routes[req.params.route] = await db.getModel('route').find({ raw: true, where: { url: req.params.route } });
+                routes[req.params.route] = await db.getModel('route').findOne({ raw: true, where: { url: req.params.route } });
             }
             if (!routes[req.params.route]) {
                 return application.error(res, {});
             }
             if (!config) {
-                config = await db.getModel('config').find();
+                config = await db.getModel('config').findOne();
             }
             let custom = require('../custom/' + config.customfile);
             return application.functions.getRealReference(custom, routes[req.params.route].function)({

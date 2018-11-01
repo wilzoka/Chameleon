@@ -11,7 +11,7 @@ let platform = {
     config: {
         js_getGoogleMapsKey: async function (obj) {
             try {
-                let config = await db.getModel('config').find();
+                let config = await db.getModel('config').findOne();
                 return application.success(obj.res, { data: config.googlemapskey });
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -21,7 +21,7 @@ let platform = {
     , core_bi: require('./core-bi/bi.js')
     , kettle: {
         f_runTransformation: function (filepath) {
-            db.getModel('config').find().then(config => {
+            db.getModel('config').findOne().then(config => {
                 let nrc = require('node-run-cmd');
                 if (application.functions.isWindows()) {
                     nrc.run('Pan.bat /file:' + __dirname + '/' + filepath
@@ -34,7 +34,7 @@ let platform = {
         }
         , f_runJob: function (filepath) {
             return new Promise((resolve) => {
-                db.getModel('config').find().then(config => {
+                db.getModel('config').findOne().then(config => {
                     let nrc = require('node-run-cmd');
                     nrc.run(application.functions.isWindows() ?
                         'Kitchen.bat /file:' + __dirname + '/' + filepath
@@ -224,14 +224,14 @@ let platform = {
                     console.log('----------SYNC MENUS----------');
                     for (let i = 0; i < menus.length; i++) {
                         console.log('MENU ' + menus[i].tree);
-                        let menu = await db.getModel('menu').find({ where: { tree: menus[i].tree } });
+                        let menu = await db.getModel('menu').findOne({ where: { tree: menus[i].tree } });
                         let mp = null;
                         let v = null;
                         if (menus[i].menuparent) {
-                            mp = await db.getModel('menu').find({ where: { tree: menus[i].menuparent } });
+                            mp = await db.getModel('menu').findOne({ where: { tree: menus[i].menuparent } });
                         }
                         if (menus[i].view) {
-                            v = await db.getModel('view').find({ where: { name: menus[i].view } });
+                            v = await db.getModel('view').findOne({ where: { name: menus[i].view } });
                         }
                         if (menu) {
                             menu.description = menus[i].description;
@@ -277,7 +277,7 @@ let platform = {
         onsave: async function (obj, next) {
             try {
 
-                let register = await db.getModel('model').find({ where: { id: { $ne: obj.id }, name: obj.register.name } })
+                let register = await db.getModel('model').findOne({ where: { id: { $ne: obj.id }, name: obj.register.name } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe um modelo com este nome' });
                 }
@@ -456,7 +456,7 @@ let platform = {
                     console.log('----------SYNC MODELS---------');
                     for (let i = 0; i < models.length; i++) {
                         console.log('MODEL ' + models[i].name);
-                        let model = await db.getModel('model').find({ where: { name: models[i].name } });
+                        let model = await db.getModel('model').findOne({ where: { name: models[i].name } });
                         if (model) {
                             model.description = models[i].description;
                             model.onsave = models[i].onsave;
@@ -472,7 +472,7 @@ let platform = {
                         }
                         let attributes = [];
                         for (let z = 0; z < models[i]._attribute.length; z++) {
-                            let attribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: models[i]._attribute[z].name } });
+                            let attribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: models[i]._attribute[z].name } });
                             attributes.push(models[i]._attribute[z].name);
                             if (attribute) {
                                 attribute.label = models[i]._attribute[z].label;
@@ -503,7 +503,7 @@ let platform = {
                 return application.error(obj.res, { msg: err });
             }
         }
-        , find: function (modelname, options) {
+        , findAll: function (modelname, options) {
             return new Promise((resolve, reject) => {
                 const fixResults = function (registers, modelattributes) {
                     for (let i = 0; i < registers.rows.length; i++) {
@@ -566,7 +566,7 @@ let platform = {
                     }
                     return registers;
                 }
-                db.getModel('model').find({ where: { name: modelname } }).then(model => {
+                db.getModel('model').findOne({ where: { name: modelname } }).then(model => {
                     if (!model) {
                         return reject('model not found');
                     }
@@ -621,7 +621,7 @@ let platform = {
         }
         , js_read: async function (obj) {
             try {
-                let notification = await db.getModel('notification').find({ where: { id: obj.data.id } });
+                let notification = await db.getModel('notification').findOne({ where: { id: obj.data.id } });
                 if (notification.iduser != obj.req.user.id) {
                     return application.error(obj.res, {});
                 }
@@ -678,7 +678,7 @@ let platform = {
     , permission: {
         onsave: async function (obj, next) {
             try {
-                let permission = await db.getModel('permission').find({
+                let permission = await db.getModel('permission').findOne({
                     where: {
                         id: { $ne: obj.register.id }
                         , iduser: obj.register.iduser
@@ -727,11 +727,11 @@ let platform = {
                     } else {
                         where = { id: report };
                     }
-                    db.getModel('report').find({ where: where }).then(report => {
+                    db.getModel('report').findOne({ where: where }).then(report => {
                         if (!report) {
                             return reject(`Relatório ${report} não encontrado`);
                         }
-                        db.getModel('config').find({ raw: true }).then(config => {
+                        db.getModel('config').findOne({ raw: true }).then(config => {
                             replaces.__reportimage = '';
                             if (config.reportimage) {
                                 let reportimage = JSON.parse(config.reportimage);
@@ -744,7 +744,15 @@ let platform = {
                                     <meta charset="utf8">
                                     <style>
                                         html, body, table {
-                                            font-size: ${report.fontsize || 12}
+                                            font-size: ${report.fontsize || 12};
+                                        }
+                                        tbody td {
+                                            border-color: #bfbfbf;
+                                            height: 14px;
+                                        }
+
+                                        thead td, tfoot td {
+                                            border: 1px solid black;
                                         }
                                     </style>
                                 </head>
@@ -758,14 +766,15 @@ let platform = {
                             }
                             let options = {
                                 border: {
-                                    top: "1cm",
-                                    right: "1cm",
-                                    bottom: "1cm",
-                                    left: "1cm"
+                                    top: "0.5cm",
+                                    right: "0.5cm",
+                                    bottom: "0.5cm",
+                                    left: "0.5cm"
                                 }
                                 , orientation: report.landscape ? 'landscape' : 'portait'
                             }
                             let filename = process.hrtime()[1] + '.pdf';
+
                             pdf.create(html, options).toFile(__dirname + '/../tmp/' + filename, function (err, res) {
                                 if (err) {
                                     return reject(err);
@@ -782,7 +791,7 @@ let platform = {
     }
     , route: {
         onsave: async function (obj, next) {
-            let register = await db.getModel('route').find({ where: { id: { $ne: obj.id }, description: obj.register.description } })
+            let register = await db.getModel('route').findOne({ where: { id: { $ne: obj.id }, description: obj.register.description } })
             if (register) {
                 return application.error(obj.res, { msg: 'Já existe uma rota com esta descrição' });
             }
@@ -849,7 +858,7 @@ let platform = {
                     console.log('----------SYNC ROUTES---------');
                     for (let i = 0; i < routes.length; i++) {
                         console.log('ROUTE ' + routes[i].description);
-                        let route = await db.getModel('route').find({ where: { description: routes[i].description } });
+                        let route = await db.getModel('route').findOne({ where: { description: routes[i].description } });
                         if (route) {
                             route.file = routes[i].file;
                             route.function = routes[i].function;
@@ -969,7 +978,7 @@ let platform = {
         }
         , onsave: async (obj, next) => {
             try {
-                let user = await db.getModel('users').find({ where: { id: { $ne: obj.register.id }, username: obj.register.username } });
+                let user = await db.getModel('users').findOne({ where: { id: { $ne: obj.register.id }, username: obj.register.username } });
                 if (user) {
                     return application.error(obj.res, { msg: 'Já existe um usuário com este Username', invalidfields: ['username'] });
                 }
@@ -997,11 +1006,11 @@ let platform = {
     , view: {
         onsave: async function (obj, next) {
             try {
-                let register = await db.getModel('view').find({ where: { id: { $ne: obj.id }, name: { $iLike: obj.register.name } } })
+                let register = await db.getModel('view').findOne({ where: { id: { $ne: obj.id }, name: { $iLike: obj.register.name } } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
                 }
-                let modulee = await db.getModel('module').find({ where: { id: obj.register.idmodule || 0 } });
+                let modulee = await db.getModel('module').findOne({ where: { id: obj.register.idmodule || 0 } });
                 obj.register.namecomplete = modulee ? modulee.description + ' - ' + obj.register.name : obj.register.name;
                 await next(obj);
                 db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
@@ -1118,11 +1127,11 @@ let platform = {
                     console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
                         console.log('VIEW ' + views[i].name);
-                        let view = await db.getModel('view').find({ where: { name: views[i].name } });
-                        let model = await db.getModel('model').find({ where: { name: views[i].model } });
+                        let view = await db.getModel('view').findOne({ where: { name: views[i].name } });
+                        let model = await db.getModel('model').findOne({ where: { name: views[i].model } });
                         let modulee = await db.getModel('module').findOrCreate({ where: { description: views[i].module } });
                         let template = await db.getModel('template').findOrCreate({ where: { name: views[i].template } });
-                        let fastsearch = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i].fastsearch } });
+                        let fastsearch = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i].fastsearch } });
                         if (model) {
                             if (view) {
                                 view.name = views[i].name;
@@ -1157,9 +1166,9 @@ let platform = {
                             let viewfields = []
                             for (let z = 0; z < views[i]._field.length; z++) {
                                 let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: template[0].id, name: views[i]._field[z].templatezone } });
-                                let modelattribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
+                                let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
                                 if (modelattribute) {
-                                    let viewfield = await db.getModel('viewfield').find({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                    let viewfield = await db.getModel('viewfield').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
                                     if (viewfield) {
                                         viewfield.idtemplatezone = templatezone[0].id;
                                         viewfield.width = views[i]._field[z].width;
@@ -1186,9 +1195,9 @@ let platform = {
                             await db.getModel('viewfield').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewfields } } });
                             let viewtables = [];
                             for (let z = 0; z < views[i]._table.length; z++) {
-                                let modelattribute = await db.getModel('modelattribute').find({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
+                                let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
                                 if (modelattribute) {
-                                    let viewtable = await db.getModel('viewtable').find({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                    let viewtable = await db.getModel('viewtable').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
                                     if (viewtable) {
                                         viewtable.ordertable = views[i]._table[z].ordertable;
                                         viewtable.orderable = views[i]._table[z].orderable;
@@ -1215,7 +1224,7 @@ let platform = {
                             await db.getModel('viewtable').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewtables } } });
                             let viewevents = [];
                             for (let z = 0; z < views[i]._event.length; z++) {
-                                let viewevent = await db.getModel('viewevent').find({ where: { idview: view.id, description: views[i]._event[z].description } });
+                                let viewevent = await db.getModel('viewevent').findOne({ where: { idview: view.id, description: views[i]._event[z].description } });
                                 if (viewevent) {
                                     viewevent.icon = views[i]._event[z].icon;
                                     viewevent.function = views[i]._event[z].function;
@@ -1243,12 +1252,12 @@ let platform = {
                     }
                     for (let i = 0; i < views.length; i++) {
                         if (!views[i]._skipped) {
-                            let view = await db.getModel('view').find({ include: [{ all: true }], where: { name: views[i].name } });
+                            let view = await db.getModel('view').findOne({ include: [{ all: true }], where: { name: views[i].name } });
                             let viewsubviews = [];
                             for (let z = 0; z < views[i]._subview.length; z++) {
-                                let viewsubview = await db.getModel('view').find({ where: { name: views[i]._subview[z].subview } });
+                                let viewsubview = await db.getModel('view').findOne({ where: { name: views[i]._subview[z].subview } });
                                 if (viewsubview) {
-                                    let subview = await db.getModel('viewsubview').find({ where: { idview: view.id, idsubview: viewsubview.id } });
+                                    let subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id, idsubview: viewsubview.id } });
                                     let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone } });
                                     if (subview) {
                                         subview.description = views[i]._subview[z].description;
@@ -1512,7 +1521,7 @@ let platform = {
 
                     return registers;
                 }
-                db.getModel('view').find({ where: { id: obj.event.view.id }, include: [{ all: true }] }).then(view => {
+                db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] }).then(view => {
                     db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }] }).then(viewfields => {
                         let where = {};
                         if (view.wherefixed) {
@@ -1733,7 +1742,7 @@ let platform = {
                 try {
                     let XLSX = require('xlsx');
 
-                    let view = await db.getModel('view').find({ where: { id: obj.event.view.id }, include: [{ all: true }] });
+                    let view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] });
                     let viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }], order: [['order', 'asc']] });
                     let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
                     let where = {};
@@ -1850,7 +1859,7 @@ let platform = {
                     };
                     let printer = new pdfMakePrinter(fontDescriptors);
 
-                    let config = await db.getModel('config').find();
+                    let config = await db.getModel('config').findOne();
                     let image = config.reportimage ? JSON.parse(config.reportimage)[0] : [{ id: 0, type: '' }];
 
                     let body = [];
@@ -1981,7 +1990,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
 
-                    let viewfield = await db.getModel('viewfield').find({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                    let viewfield = await db.getModel('viewfield').findOne({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
 
                     let body = '';
                     body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });

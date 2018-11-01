@@ -31,7 +31,7 @@ module.exports = function (app) {
 
     app.get('/file/preview/:id', application.IsAuthenticated, function (req, res) {
 
-        db.getModel('file').find({ where: { id: req.params.id } }).then(file => {
+        db.getModel('file').findOne({ where: { id: req.params.id } }).then(file => {
             if (file) {
                 let body = '';
                 if (file.mimetype.match(/image.*/)) {
@@ -62,7 +62,7 @@ module.exports = function (app) {
             if (isNaN(req.params.id)) {
                 return res.send('Arquivo inválido');
             }
-            let file = await db.getModel('file').find({ where: { id: req.params.id } })
+            let file = await db.getModel('file').findOne({ where: { id: req.params.id } })
             if (!file) {
                 return res.send('Arquivo inválido');
             }

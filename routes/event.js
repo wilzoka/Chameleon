@@ -6,8 +6,8 @@ module.exports = function (app) {
 
     app.all('/event/:id', application.IsAuthenticated, async (req, res) => {
         try {
-            let viewevent = await db.getModel('viewevent').find({ where: { id: req.params.id }, include: { all: true } });
-            let config = await db.getModel('config').find();
+            let viewevent = await db.getModel('viewevent').findOne({ where: { id: req.params.id }, include: { all: true } });
+            let config = await db.getModel('config').findOne();
             let custom = require('../custom/' + config.customfile);
             let realfunction = application.functions.getRealReference(custom, viewevent.function);
             let ids = [];
