@@ -7258,7 +7258,7 @@ let main = {
 
                     let report = {};
                     report.__title = `Resumo de Produção por Recurso<br>${obj.req.body.datahoraini} - ${obj.req.body.datahorafim}`;
-                    report.__table = '';
+                    report.__table = ``;
 
                     let ultimorecurso = '';
                     let soma = {

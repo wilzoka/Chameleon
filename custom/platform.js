@@ -743,6 +743,9 @@ let platform = {
                                 <head>
                                     <meta charset="utf8">
                                     <style>
+                                        html {
+                                            zoom: 0.95;
+                                        }
                                         html, body, table {
                                             font-size: ${report.fontsize || 12};
                                         }
