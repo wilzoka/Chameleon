@@ -7261,7 +7261,7 @@ let main = {
                     report.__table = `
                     <style>                    
                         html, body, table {
-                            font-size: 8px;
+                            font-size: 6px;
                         }
                     </style>`;
 
