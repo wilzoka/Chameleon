@@ -750,9 +750,12 @@ let platform = {
                                             border-color: #bfbfbf;
                                             height: 14px;
                                         }
-
                                         thead td, tfoot td {
                                             border: 1px solid black;
+                                        }
+                                        tr td {
+                                            page-break-inside: avoid;
+                                            white-space: nowrap;
                                         }
                                     </style>
                                 </head>
