@@ -758,7 +758,6 @@ let platform = {
                                         }
                                         tr td {
                                             page-break-inside: avoid;
-                                            white-space: nowrap;
                                         }
                                     </style>
                                 </head>
