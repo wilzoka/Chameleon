@@ -15,14 +15,14 @@ let main = {
                         } else if (obj.view.name == "Fornecedor") {
                             obj.register.fornecedor = true;
                         }
+                        let saved = await next(obj);
 
-                        let saved = await db.sequelize.query("update cad_pessoa p set nomecompleto = coalesce(p.fantasia,'') || ' - ' || coalesce(p.bairro,'') || ' - ' || coalesce(p.logradouro,'') || ' - ' || p.numero where id = :idcliente;"
+                        db.sequelize.query("update cad_pessoa p set nomecompleto = coalesce(p.fantasia,'') || ' - ' || coalesce(p.bairro,'') || ' - ' || coalesce(p.logradouro,'') || ' - ' || p.numero where id = :idcliente;"
                             , {
                                 type: db.sequelize.QueryTypes.UPDATE
                                 , replacements: { idcliente: obj.register.id }
                             });
 
-                        next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
