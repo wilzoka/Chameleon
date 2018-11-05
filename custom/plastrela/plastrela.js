@@ -3741,14 +3741,15 @@ let main = {
                     });
                 }
                 , f_solvente: function () {
-                    let http = require('http');
-                    let request = http.get('http://intranet.plastrela.com.br/SistemaH/content/Integracao/solvente205.php', function (res) {
-                        let data = '';
-                        res.on('data', function (chunk) {
-                            data += chunk;
-                        });
-                        res.on('end', function () {
-                            console.log(data);
+                    let needle = require('needle');
+                    needle.get('http://intranet.plastrela.com.br/SistemaH/content/Integracao/solvente205.php', {},
+                        function (err, resp) {
+                            if(err){
+                                console.error(err);
+                                return;
+                            }
+                            let data = resp.body
+                            console.log('coletado: ', data);
                             data = data.replace("{'Total de Solvente': ", '').replace('}', '');
                             db.getModel('pcp_solvente').create({
                                 recurso: 205
@@ -3756,8 +3757,6 @@ let main = {
                                 , valor: data
                             });
                         });
-                    });
-                    request.end();
                 }
             }
             , apclichemontagem: {
@@ -4394,8 +4393,8 @@ let main = {
                                 replacements: {
                                     v1: oprecurso.idrecurso
                                     , v2: obj.register.id
-                                    , v3: dataini.format('YYYY-MM-DD HH:mm')
-                                    , v4: datafim.format('YYYY-MM-DD HH:mm')
+                                    , v3: dataini.format()
+                                    , v4: datafim.format()
                                 }
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
@@ -4839,8 +4838,8 @@ let main = {
                                 replacements: {
                                     v1: oprecurso.idrecurso
                                     , v2: obj.register.id
-                                    , v3: dataini.format(application.formatters.be.datetime_format)
-                                    , v4: datafim.format(application.formatters.be.datetime_format)
+                                    , v3: dataini.format()
+                                    , v4: datafim.format()
                                 }
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
