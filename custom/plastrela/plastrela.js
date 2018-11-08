@@ -1106,7 +1106,7 @@ let main = {
                         for (let i = 0; i < reservascriadas.length; i++) {
                             if (volumesreservados.indexOf(reservascriadas[i].idvolume) == -1) {
                                 volumesreservados.push(reservascriadas[i].idvolume);//Entra apenas 1 vez no volume
-                                let volume = await db.getModel('est_volume').findOne({ where: { id: volumesreservados[i] } });
+                                let volume = await db.getModel('est_volume').findOne({ where: { id: reservascriadas[i].idvolume } });
                                 let totalreservado = await db.sequelize.query('select sum(qtd) as soma from est_volumereserva where idvolume = :v1', { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: volume.id } });
                                 let qtd = parseFloat(volume.qtd) - parseFloat(totalreservado.length > 0 ? totalreservado[0].soma || 0 : 0);
                                 if (qtd < 50) {
@@ -2372,8 +2372,8 @@ let main = {
                                 left join est_classe cl on (i.idclasse = cl.id)
                                 where
                                     consumido = false
-                                    and v.iddeposito = :v1
-                                    and v.id not in (select vb.idvolume from est_volumebalanco vb where v.iddeposito = :v1 and vb.iduser = :v2)
+                                    and v.iddeposito in (2,4,5)
+                                    and v.id not in (select vb.idvolume from est_volumebalanco vb where v.iddeposito in (2,4,5) and vb.iduser = :v2)
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
@@ -2398,7 +2398,7 @@ let main = {
                                 left join est_classe cl on (i.idclasse = cl.id)
                                 where
                                     v.consumido = false
-                                    and vb.iddeposito = :v1
+                                    and vb.iddeposito in (2,4,5)
                                     and vb.iduser = :v2                                    
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
@@ -2535,7 +2535,7 @@ let main = {
                                     where
                                         v.consumido = false
                                         and v.id not in (:v1) 
-                                        and v.iddeposito = :v2   
+                                        and v.iddeposito in (2,4,5) 
                                     order by 1                             
                                     `, {
                                             type: db.sequelize.QueryTypes.SELECT
@@ -7259,11 +7259,7 @@ let main = {
                     let report = {};
                     report.__title = `Resumo de Produção por Recurso<br>${obj.req.body.datahoraini} - ${obj.req.body.datahorafim}`;
                     report.__table = `
-                    <style>                    
-                        html, body, table {
-                            font-size: 6px;
-                        }
-                    </style>`;
+                    `;
 
                     let ultimorecurso = '';
                     let soma = {
