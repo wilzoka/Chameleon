@@ -156,7 +156,7 @@ $(function () {
                         application.handlers.responseSuccess(response);
                         if (response.success) {
                             $modal.modal('hide');
-                            if (['50', '60', '70'].indexOf($('input[name="etapa"]').val()) >= 0) {
+                            if (['50', '500', '60', '70'].indexOf($('input[name="etapa"]').val()) >= 0) {
                                 setTimeout(function () {
                                     addinsumo();
                                 }, 1700);
