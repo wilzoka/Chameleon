@@ -3744,7 +3744,7 @@ let main = {
                     let needle = require('needle');
                     needle.get('http://intranet.plastrela.com.br/SistemaH/content/Integracao/solvente205.php', {},
                         function (err, resp) {
-                            if(err){
+                            if (err) {
                                 console.error(err);
                                 return;
                             }
@@ -6868,6 +6868,32 @@ let main = {
                         );
                         return application.success(obj.res, { data: ultimaObservacao.length > 0 ? ultimaObservacao[0].observacao || '' : '' });
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_reintegrar: async (obj) => {
+                    try {
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'pcp_oprecurso_reintegrar' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id) < 0) {
+                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                        }
+
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ include: [{ all: true }], where: { id: obj.ids[0] } });
+                        if (oprecurso.pcp_opestado.descricao != 'Encerrada') {
+                            return application.error(obj.res, { msg: 'Só é possível reintegrar OPs Encerradas' });
+                        }
+                        oprecurso.integrado = 'P';
+                        await oprecurso.save({ iduser: obj.req.user.id });
+                        return application.success(obj.res, { msg: application.message.success });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

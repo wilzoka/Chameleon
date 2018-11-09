@@ -11,6 +11,13 @@ $(function () {
         $('#col-parada').addClass('hide');
     }
 
+    //Adicionar Insumo
+    function addinsumo() {
+        application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', { etapa: $('input[name="etapa"]').val() }, function (response) {
+            application.handlers.responseSuccess(response);
+        });
+    }
+
     var aux = 0;
     var tabletocount = [
         'tableviewapontamento_de_producao_-_insumo'
@@ -42,12 +49,7 @@ $(function () {
             case 'tableviewapontamento_de_producao_-_insumo':// Insumo
                 customTable(table);
                 $('#' + table + '_events').find('button').remove();
-                $('button#' + table + '_insert').unbind().click(function (e) {
-                    application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', { etapa: $('input[name="etapa"]').val() }, function (response) {
-                        application.handlers.responseSuccess(response);
-                    });
-                });
-
+                $('button#' + table + '_insert').unbind().click(addinsumo);
                 break;
             case 'tableviewapontamento_de_producao_-_producao':// Produção
                 customTable(table);
@@ -154,6 +156,11 @@ $(function () {
                         application.handlers.responseSuccess(response);
                         if (response.success) {
                             $modal.modal('hide');
+                            if (['50', '60', '70'].indexOf($('input[name="etapa"]').val()) >= 0) {
+                                setTimeout(function () {
+                                    addinsumo();
+                                }, 1700);
+                            }
                         }
                     });
                 });
