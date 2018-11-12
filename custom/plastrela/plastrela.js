@@ -6898,6 +6898,76 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , js_insumoAuxiliarModal: async (obj) => {
+                    try {
+                        let param = (await db.getModel('parameter').findOrCreate({ where: { key: 'pcp_oprecurso_insumoauxiliar' } }))[0];
+                        if (!param.value)
+                            param.value = '{}';
+                        param = JSON.parse(param.value);
+
+                        let oprecurso = (await main.platform.model.findAll('pcp_oprecurso', { where: { id: obj.data.idoprecurso } })).rows[0];
+
+                        let body = '';
+                        body += application.components.html.hidden({ name: 'name', value: 'plastrela.pcp.oprecurso.js_insumoAuxiliar' });
+                        body += application.components.html.hidden({ name: 'idoprecurso', value: obj.data.idoprecurso });
+                        if (oprecurso.etapa == '20') {
+                            let option = '';
+                            if (param['r' + oprecurso.idrecurso] && param['r' + oprecurso.idrecurso]['solvente']) {
+                                let versao = await db.getModel('pcp_versao').findOne({ where: { id: param['r' + oprecurso.idrecurso]['solvente'] } });
+                                if (versao)
+                                    option = '<option value="' + versao.id + '" selected>' + versao.descricaocompleta + '</option>';
+                            }
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Solvente'
+                                , name: 'solvente'
+                                , model: 'pcp_versao'
+                                , attribute: 'descricaocompleta'
+                                , option: option
+                            });
+                        }
+
+                        return application.success(obj.res, {
+                            modal: {
+                                form: true
+                                , action: '/jsfunction'
+                                , id: 'modaljs'
+                                , title: 'Insumos Auxiliares'
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                            }
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_insumoAuxiliar: async (obj) => {
+                    try {
+                        let oprecurso = (await main.platform.model.findAll('pcp_oprecurso', { where: { id: obj.req.body.idoprecurso } })).rows[0];
+
+                        let paramm = (await db.getModel('parameter').findOrCreate({ where: { key: 'pcp_oprecurso_insumoauxiliar' } }))[0];
+                        if (!paramm.value)
+                            paramm.value = '{}';
+                        param = JSON.parse(paramm.value);
+                        if (!param['r' + oprecurso.idrecurso])
+                            param['r' + oprecurso.idrecurso] = {};
+
+                        if (oprecurso.etapa == '20') {
+                            if (!obj.req.body.solvente) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['solvente'] });
+                            }
+                            param['r' + oprecurso.idrecurso]['solvente'] = obj.req.body.solvente;
+                        }
+
+                        paramm.value = JSON.stringify(param);
+
+                        await paramm.save({ iduser: obj.req.user.id });
+
+                        return application.success(obj.res, { msg: application.message.success });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , r_conferenciaAp: async function (obj) {
                 try {
@@ -8573,6 +8643,17 @@ let main = {
                                 msg: file.msg
                             });
                         }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_visualizado: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        await db.getModel('ven_proposta').update({ visualizadopor: obj.req.user.id }, { where: { id: { $in: obj.ids } } });
+                        return application.success(obj.res, { msg: application.message.success });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
