@@ -3748,14 +3748,15 @@ let main = {
                                 console.error(err);
                                 return;
                             }
-                            let data = resp.body
-                            console.log('coletado: ', data);
-                            data = data.replace("{'Total de Solvente': ", '').replace('}', '');
-                            db.getModel('pcp_solvente').create({
-                                recurso: 205
-                                , datahora: moment()
-                                , valor: data
-                            });
+                            let data = resp.body;
+                            if (data) {
+                                data = data.replace("{'Total de Solvente': ", '').replace('}', '');
+                                db.getModel('pcp_solvente').create({
+                                    recurso: 205
+                                    , datahora: moment()
+                                    , valor: data
+                                });
+                            }
                         });
                 }
             }
