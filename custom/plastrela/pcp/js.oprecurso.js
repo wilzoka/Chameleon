@@ -100,7 +100,10 @@ $(function () {
 
                 $modal.find('input[name="codigodebarra"]').keydown(function (e) {
                     if (e.keyCode == 13) {
-                        application.jsfunction('plastrela.pcp.apinsumo.__pegarVolume', { codigodebarra: $(this).val() }, function (response) {
+                        application.jsfunction('plastrela.pcp.apinsumo.__pegarVolume', {
+                            idoprecurso: application.functions.getId()
+                            , codigodebarra: $(this).val()
+                        }, function (response) {
                             application.handlers.responseSuccess(response);
                             if (response.success) {
                                 $modal.find('input[name="idvolume"]').val(response.data.id);
@@ -109,7 +112,14 @@ $(function () {
                                 if ($('input[name="etapa"]').val() != '10') {
                                     $modal.find('input[name="qtd"]').val(response.data.qtdreal);
                                 }
-                                $modal.find('input[name="qtd"]').focus();
+                                $('select[name="idsubstituto"]').attr('data-where', '');
+                                if (response.data.substituido <= 0) {
+                                    $('select[name="idsubstituto"]').closest('div.hidden').removeClass('hidden');
+                                    $('select[name="idsubstituto"]').attr('data-where', response.data.where);
+                                    $('select[name="idsubstituto"]').focus();
+                                } else {
+                                    $modal.find('input[name="qtd"]').focus();
+                                }
                             } else {
                                 $modal.find('input[name="idvolume"]').val('');
                                 $modal.find('input[name="qtdreal"]').val('');
@@ -132,6 +142,7 @@ $(function () {
                         , iduser: $modal.find('select[name="iduser"]').val()
                         , idvolume: $modal.find('input[name="idvolume"]').val()
                         , qtd: $modal.find('input[name="qtd"]').val()
+                        , idsubstituto: $modal.find('select[name="idsubstituto"]').val()
                         , recipiente1: $modal.find('input[name="recipiente1"]').is(':checked')
                         , recipiente2: $modal.find('input[name="recipiente2"]').is(':checked')
                         , recipiente3: $modal.find('input[name="recipiente3"]').is(':checked')
@@ -159,7 +170,7 @@ $(function () {
                             if (['50', '500', '60', '70'].indexOf($('input[name="etapa"]').val()) >= 0) {
                                 setTimeout(function () {
                                     addinsumo();
-                                }, 1700);
+                                }, 1300);
                             }
                         }
                     });
@@ -332,8 +343,14 @@ $(function () {
                 application.handlers.responseSuccess(response);
             });
         });
-    }
 
+        $ul.prepend('<li><a id="insumoAuxiliar" href="javascript:void(0)"><i class="fa fa-flask"></i> Insumos Auxiliares</a></li>');
+        $('#insumoAuxiliar').click(function () {
+            application.jsfunction('plastrela.pcp.oprecurso.js_insumoAuxiliarModal', { idoprecurso: application.functions.getId() }, function (response) {
+                application.handlers.responseSuccess(response);
+            });
+        });
+    }
 
     if (localStorage.getItem('descriptionmenumini') == 'RS') {
         $('#ratearInsumos').parent().addClass('hidden');

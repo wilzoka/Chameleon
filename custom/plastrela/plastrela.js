@@ -4644,8 +4644,8 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
-                            if (obj.req.body.qtdvolumes > 50) {
-                                return application.error(obj.res, { msg: 'Não é possível gerar mais que 50 volumes de uma vez só' });
+                            if (obj.req.body.qtdvolumes > 100) {
+                                return application.error(obj.res, { msg: 'Não é possível gerar mais que 100 volumes de uma vez só' });
                             }
 
                             obj.req.body.qtd = application.formatters.be.decimal(obj.req.body.qtd, 4);
@@ -4984,6 +4984,17 @@ let main = {
                         , precision: '4'
                     });
 
+                    body += '<div class="hidden">';
+                    body += application.components.html.autocomplete({
+                        width: 12
+                        , label: 'Insumo Substituto'
+                        , name: 'idsubstituto'
+                        , model: 'pcp_versao'
+                        , attribute: 'descricaocompleta'
+                        , where: ''
+                    });
+                    body += '</div>';
+
                     return application.success(obj.res, {
                         modal: {
                             id: 'apinsumoAdicionarModal'
@@ -5010,11 +5021,38 @@ let main = {
                                     if (volume.consumido) {
                                         return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
                                     } else {
+
+                                        let sql = await db.sequelize.query(`
+                                        select 
+                                            c.*
+                                        from
+                                            pcp_oprecurso opr
+                                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                        left join pcp_op op on (ope.idop = op.id)
+                                        left join pcp_versao v on (op.idversao = v.id)
+                                        left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                                        where
+                                            opr.id = ${obj.data.idoprecurso}
+                                            and c.idversao = ${volume.idversao}`, {
+                                                type: db.Sequelize.QueryTypes.SELECT
+                                            });
+
                                         return application.success(obj.res, {
                                             data: {
                                                 id: volume.id
                                                 , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
                                                 , produto: (volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao) + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                                , substituido: 1//sql.length
+                                                , where: `id in (select 
+                                                        c.idversao
+                                                    from
+                                                        pcp_oprecurso opr
+                                                    left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                                    left join pcp_op op on (ope.idop = op.id)
+                                                    left join pcp_versao v on (op.idversao = v.id)
+                                                    left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                                                    where
+                                                        opr.id = ${obj.data.idoprecurso})`
                                             }
                                         });
                                     }
@@ -5065,7 +5103,7 @@ let main = {
                     try {
                         let invalidfields = application.functions.getEmptyFields(obj.data, ['idoprecurso', 'idvolume', 'iduser', 'qtd']);
                         if (invalidfields.length > 0) {
-                            return application.error(obj.res, { invalidfields: invalidfields });
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                         }
 
                         let user = await db.getModel('users').findOne({ where: { id: obj.data.iduser } });
@@ -5082,6 +5120,24 @@ let main = {
                         let deposito = await db.getModel('est_deposito').findOne({ where: { id: volume.iddeposito } });
                         let qtd = application.formatters.be.decimal(obj.data.qtd);
                         let qtdreal = parseFloat(volume.qtdreal);
+
+                        let sql = await db.sequelize.query(`
+                        select 
+                            c.*
+                        from
+                            pcp_oprecurso opr
+                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        left join pcp_op op on (ope.idop = op.id)
+                        left join pcp_versao v on (op.idversao = v.id)
+                        left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                        where
+                            opr.id = ${obj.data.idoprecurso}
+                            and c.idversao = ${volume.idversao}`, {
+                                type: db.Sequelize.QueryTypes.SELECT
+                            });
+                        if (sql.length <= 0 && !obj.data.idsubstituto) {
+                            // return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['idsubstituto'] });
+                        }
 
                         if (deposito && deposito.descricao == 'Almoxarifado') {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
@@ -5164,6 +5220,7 @@ let main = {
                                 , datahora: moment()
                                 , qtd: qtd
                                 , produto: obj.data.idvolume + ' - ' + (versao ? versao.descricaocompleta : volume.observacao || '') + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                , idsubstituto: obj.data.idsubstituto || null
                             });
                         }
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
