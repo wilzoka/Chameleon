@@ -5022,20 +5022,20 @@ let main = {
                                         return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
                                     } else {
 
-                                        let sql = await db.sequelize.query(`
-                                        select 
-                                            c.*
-                                        from
-                                            pcp_oprecurso opr
-                                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                                        left join pcp_op op on (ope.idop = op.id)
-                                        left join pcp_versao v on (op.idversao = v.id)
-                                        left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
-                                        where
-                                            opr.id = ${obj.data.idoprecurso}
-                                            and c.idversao = ${volume.idversao}`, {
-                                                type: db.Sequelize.QueryTypes.SELECT
-                                            });
+                                        // let sql = await db.sequelize.query(`
+                                        // select 
+                                        //     c.*
+                                        // from
+                                        //     pcp_oprecurso opr
+                                        // left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                        // left join pcp_op op on (ope.idop = op.id)
+                                        // left join pcp_versao v on (op.idversao = v.id)
+                                        // left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                                        // where
+                                        //     opr.id = ${obj.data.idoprecurso}
+                                        //     and c.idversao = ${volume.idversao}`, {
+                                        //         type: db.Sequelize.QueryTypes.SELECT
+                                        //     });
 
                                         return application.success(obj.res, {
                                             data: {
@@ -5121,23 +5121,23 @@ let main = {
                         let qtd = application.formatters.be.decimal(obj.data.qtd);
                         let qtdreal = parseFloat(volume.qtdreal);
 
-                        let sql = await db.sequelize.query(`
-                        select 
-                            c.*
-                        from
-                            pcp_oprecurso opr
-                        left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                        left join pcp_op op on (ope.idop = op.id)
-                        left join pcp_versao v on (op.idversao = v.id)
-                        left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
-                        where
-                            opr.id = ${obj.data.idoprecurso}
-                            and c.idversao = ${volume.idversao}`, {
-                                type: db.Sequelize.QueryTypes.SELECT
-                            });
-                        if (sql.length <= 0 && !obj.data.idsubstituto) {
-                            // return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['idsubstituto'] });
-                        }
+                        // let sql = await db.sequelize.query(`
+                        // select 
+                        //     c.*
+                        // from
+                        //     pcp_oprecurso opr
+                        // left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                        // left join pcp_op op on (ope.idop = op.id)
+                        // left join pcp_versao v on (op.idversao = v.id)
+                        // left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                        // where
+                        //     opr.id = ${obj.data.idoprecurso}
+                        //     and c.idversao = ${volume.idversao}`, {
+                        //         type: db.Sequelize.QueryTypes.SELECT
+                        //     });
+                        // if (sql.length <= 0 && !obj.data.idsubstituto) {
+                        //     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['idsubstituto'] });
+                        // }
 
                         if (deposito && deposito.descricao == 'Almoxarifado') {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
