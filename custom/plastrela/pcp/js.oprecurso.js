@@ -280,6 +280,10 @@ $(function () {
         });
     });
 
+    $('#marcarVolumes').click(function () {
+        $('#modalmarcacaovolume').modal('show');
+    });
+
     function frnc() {
         var produto = $('input[name="produto"]').val().trim().split(' - ')[0].split('/');
         var item = produto[0];

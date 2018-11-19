@@ -1652,17 +1652,55 @@ let main = {
 
                                 str = [];
                                 if (approducaotempos.length > 0) {
-                                    let paradas = await db.getModel('pcp_apparada').findAll({
-                                        where: {
-                                            idoprecurso: oprecurso.id
-                                            , dataini: { $gte: approducaotempos[0].dataini }
-                                            , datafim: { $lte: approducaotempos[approducaotempos.length - 1].datafim }
-                                        }
-                                        , include: [{ all: true }]
-                                        , order: [['dataini', 'desc']]
-                                    });
+                                    let paradas = await db.sequelize.query(`
+                                    (select	
+                                        app.dataini
+                                        , app.emenda
+                                        , mp.descricaocompleta
+                                        , app.observacao
+                                    from
+                                        pcp_apparada app
+                                    left join pcp_motivoparada mp on (app.idmotivoparada = mp.id)
+                                    where
+                                        app.idoprecurso = :idoprecurso
+                                        and app.dataini >= :dataini
+                                        and app.datafim <= :datafim
+                                    
+                                    union all
+                                    
+                                    select
+                                        datahora
+                                        , false
+                                        , motivo
+                                        , ''
+                                    from
+                                        pcp_apmarcacaovolume
+                                    where
+                                        idoprecurso = :idoprecurso
+                                        and datahora >= :dataini
+                                        and datahora <= :datafim )
+                                        
+                                    order by dataini desc`,
+                                        {
+                                            type: db.Sequelize.QueryTypes.SELECT
+                                            , replacements: {
+                                                idoprecurso: oprecurso.id
+                                                , dataini: approducaotempos[0].dataini
+                                                , datafim: approducaotempos[approducaotempos.length - 1].datafim
+                                            }
+                                        });
+
+                                    // let paradas = await db.getModel('pcp_apparada').findAll({
+                                    //     where: {
+                                    //         idoprecurso: oprecurso.id
+                                    //         , dataini: { $gte: approducaotempos[0].dataini }
+                                    //         , datafim: { $lte: approducaotempos[approducaotempos.length - 1].datafim }
+                                    //     }
+                                    //     , include: [{ all: true }]
+                                    //     , order: [['dataini', 'desc']]
+                                    // });
                                     for (let z = 0; z < paradas.length; z++) {
-                                        str.push('(' + (z + 1) + ') ' + (paradas[z].emenda ? 'EMENDA ' : '') + paradas[z].pcp_motivoparada.codigo + '-' + paradas[z].pcp_motivoparada.descricao + (paradas[z].observacao ? ' (' + paradas[z].observacao + ') ' : ''));
+                                        str.push('(' + (z + 1) + ') ' + (paradas[z].emenda ? 'EMENDA ' : '') + paradas[z].descricaocompleta + (paradas[z].observacao ? ' (' + paradas[z].observacao + ') ' : ''));
                                     }
                                 }
 
@@ -5512,6 +5550,18 @@ let main = {
                     }
                 }
             }
+            , apmarcacaovolume: {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.register.id == 0) {
+                            obj.register.datahora = moment();
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
             , apmistura: {
                 e_imprimirEtiqueta: async function (obj) {
                     try {
@@ -6250,20 +6300,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
                             let ids = obj.req.body.ids.split(',');
-                            //Validação
-                            for (let i = 0; i < ids.length; i++) {
-                                let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: ids[i] } });
-                                if (opr.idestado != 1) {
-                                    return application.error(obj.res, { msg: `Só é possível conjugar OPs com estado de "Em Fila de Produção"` })
-                                }
-                                let opconjugada = await db.getModel('pcp_opconjugada').findOne({ where: { idopconjugada: ids[i] } });
-                                if (opconjugada) {
-                                    let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: opconjugada.idopprincipal } });
-                                    let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
-                                    let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
-                                    return application.error(obj.res, { msg: `Na seleção existe alguma OP já conjugada com a OP ${op.codigo}` })
-                                }
-                            }
+                            await db.getModel('pcp_opconjugada').destroy({ where: { idopprincipal: obj.req.body.idopprincipal } });
                             //Conjugação
                             for (let i = 0; i < ids.length; i++) {
                                 await db.getModel('pcp_opconjugada').create({
