@@ -3217,7 +3217,12 @@ let main = {
                             requisicoes[i].save();
                         }
 
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                        main.platform.notification.create([2287], {
+                            title: 'Requisição Entregue'
+                            , description: `${requisicoes.length} requisições entregues.`
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
