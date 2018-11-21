@@ -2311,6 +2311,7 @@ let main = {
                             });
 
                             for (let i = 0; i < volumes.length; i++) {
+                                let caditem = await db.getModel('cad_item').findOne({ include: [{ all: true }], where: { id: volumes[i].pcp_versao.iditem } });
                                 if (volumes[i].consumido) {
                                     return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} está consumido` });
                                 }
@@ -2318,13 +2319,15 @@ let main = {
                                 if (requisicao) {
                                     return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} já possui uma requisição em aberto` });
                                 }
-                                let reservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volumes[i].id } });
-                                if (reservas.length <= 0) {
-                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} não possui reservas` });
-                                }
-                                for (let z = 0; z < reservas.length; z++) {
-                                    if (!reservas[z].idop) {
-                                        return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} possui uma reserva sem OP` });
+                                if ([1, 2, 504, 543].indexOf(caditem.est_grupo.codigo) >= 0) {
+                                    let reservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volumes[i].id } });
+                                    if (reservas.length <= 0) {
+                                        return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} não possui reservas` });
+                                    }
+                                    for (let z = 0; z < reservas.length; z++) {
+                                        if (!reservas[z].idop) {
+                                            return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} possui uma reserva sem OP` });
+                                        }
                                     }
                                 }
                                 if (volumes[i].est_deposito.descricao != 'Almoxarifado') {
