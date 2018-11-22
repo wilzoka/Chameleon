@@ -3222,7 +3222,7 @@ let main = {
 
                         application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
-                        main.platform.notification.create([2287], {
+                        main.platform.notification.create([2287, 2459], {
                             title: 'Requisição Entregue'
                             , description: `${requisicoes.length} requisições entregues.`
                         });
