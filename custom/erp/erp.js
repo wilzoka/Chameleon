@@ -17,7 +17,16 @@ let main = {
                         }
                         let saved = await next(obj);
 
-                        db.sequelize.query("update cad_pessoa p set nomecompleto = coalesce(p.fantasia,'') || ' - ' || coalesce(p.bairro,'') || ' - ' || coalesce(p.logradouro,'') || ' - ' || p.numero where id = :idcliente;"
+                        if (saved.success) {
+                            let pessoa = await db.getModel('cad_pessoa').find({ where: { id: saved.register.id } })
+                            main.platform.notification.create([4], {
+                                title: 'Novo Cliente'
+                                , description: pessoa.fantasia
+                                , link: '/v/cliente/' + saved.register.id
+                            });
+                        }
+
+                        db.sequelize.query("update cad_pessoa p set nomecompleto = coalesce(p.fantasia,'') || ' - ' || coalesce(p.bairro,'') || ' - ' || coalesce(p.logradouro,'') || ' - Nº ' || p.numero  || ' - ' || coalesce(p.complemento,'') where id = :idcliente;"
                             , {
                                 type: db.sequelize.QueryTypes.UPDATE
                                 , replacements: { idcliente: obj.register.id }
@@ -142,7 +151,7 @@ let main = {
                                                             })
                                                         }
                                                     } else if (formaspgto[j].formarecebimento == 'Vale') {
-                                                        let retorno = await main.erp.comercial.venda.f_atualizarValeColetado(formaspgto[j]);
+                                                        let retorno = await main.erp.comercial.venda.f_atualizarValeColetado(formaspgto[j], obj.register.idcliente);
                                                         if (!retorno) {
                                                             return application.error(obj.res, { msg: `Vale não cadastrado. Solicitar cadastro` })
                                                         }
@@ -337,9 +346,9 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , f_atualizarValeColetado: async function (obj) {
+                , f_atualizarValeColetado: async function (obj, idcliente) {
                     try {
-                        let vale = await db.getModel('com_vale').find({ where: { idformapgto: obj.id, coletado: false }, order: [['data', 'asc']] });
+                        let vale = await db.getModel('com_vale').find({ where: { idformapgto: obj.id, idpessoa: idcliente, coletado: false }, order: [['data', 'asc']] });
                         if (vale) {
                             vale.coletado = true;
                             await vale.save()
