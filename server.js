@@ -61,7 +61,7 @@ if (cluster.isMaster) {
     });
     //Static Content
     app.use('/public', express.static(__dirname + '/public', {
-        maxAge: 120000
+        maxAge: 3600000
     }));
     app.use('/files', express.static(__dirname + '/files', {
         maxAge: 3600000

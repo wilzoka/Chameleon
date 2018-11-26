@@ -89,7 +89,18 @@
 
         $('input[name="codigodebarra"]').prop('disabled', false);
 
-        $('input[name="codigodebarra"]').keydown(function (e) {
+        var to = false;
+        $('input[name="codigodebarra"]').on('keydown paste', function (e) {
+            if (e.ctrlKey || e.type == 'paste') {
+                return e.preventDefault();
+            }
+            if (to) {
+                clearTimeout(to);
+            }
+            // to = setTimeout(function () {
+            //     $('input[name="codigodebarra"]').val('');
+            // }, 150);
+
             if (e.keyCode == 13) {
                 application.jsfunction('plastrela.pcp.apinsumo.__pegarVolume', { codigodebarra: $(this).val() }, function (response) {
                     application.handlers.responseSuccess(response);

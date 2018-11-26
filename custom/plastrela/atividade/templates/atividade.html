@@ -12,7 +12,7 @@
     </div>
 </div>
 
-<div class="col-md-12">
+<div class="col-md-9">
     <div class="nav-tabs-custom">
         <ul class="nav nav-tabs">
             <li class="active">
@@ -87,7 +87,7 @@
     </div>
 </div>
 
-<div class="col-md-12">
+<div class="col-md-3">
     <div class="box">
         <div class="box-body">
             <div class="row">
@@ -97,8 +97,35 @@
     </div>
 </div>
 
+<div class="col-md-12">
+    <div class="box">
+        <div class="box-body">
+            <div class="row" id="divcd">
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(function () {
+        function createModal() {
+            var html = '<div class="modal fade" id="creatingModal">';
+            html += '<div class="modal-dialog">';
+            html += '<div class="modal-content">';
+            html += '<div class="modal-header">';
+            html += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+            html += '<span aria-hidden="true">×</span></button>';
+            html += '<h4 class="modal-title">  </h4>';
+            html += '</div>';
+            html += '<div class="modal-body">';
+            html += '<div class="row">';
+            html += '<div class="col-sm-12"> <button class="btn btn-block btn-primary"> TI </button> </div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
 
         var playtempo;
 
@@ -114,6 +141,9 @@
             $('#tabnotas').addClass('hidden');
 
             $('select[name="iduser_responsavel"]').prop('disabled', true);
+
+            $('body').append(createModal());
+            $('#creatingModal').modal({ backdrop: 'static', keyboard: false }, 'show');
         } else {
             $('select[name="idtipo"]').prop('disabled', true);
 
@@ -138,9 +168,21 @@
         $('select[name="idtipo"]').change(function () {
             $iduserresponsavel.val(null).trigger('change');
             adjustAC();
+            trazCD();
         });
         adjustAC();
+        trazCD();
 
+        function trazCD() {
+            application.jsfunction('atividade.atividade.js_obterCamposDinamicos', {
+                idtipo: $('select[name="idtipo"]').val()
+                , idatividade: application.functions.getId()
+            }, function (response) {
+                $('#divcd').children().remove();
+                $('#divcd').append(response.data);
+                application.components.renderInside($('#divcd'));
+            });
+        }
         function runTime() {
             playtempo = setInterval(function () {
                 var val = $nota_tempo.val();
