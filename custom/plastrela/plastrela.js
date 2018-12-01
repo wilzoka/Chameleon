@@ -2413,8 +2413,8 @@ let main = {
                                 left join est_classe cl on (i.idclasse = cl.id)
                                 where
                                     consumido = false
-                                    and v.iddeposito in (2,4,5)
-                                    and v.id not in (select vb.idvolume from est_volumebalanco vb where v.iddeposito in (2,4,5) and vb.iduser = :v2)
+                                    and v.iddeposito = :v1
+                                    and v.id not in (select vb.idvolume from est_volumebalanco vb where v.iddeposito = :v1 and vb.iduser = :v2)
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
@@ -2439,7 +2439,7 @@ let main = {
                                 left join est_classe cl on (i.idclasse = cl.id)
                                 where
                                     v.consumido = false
-                                    and vb.iddeposito in (2,4,5)
+                                    and vb.iddeposito = :v1
                                     and vb.iduser = :v2                                    
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
@@ -4596,7 +4596,7 @@ let main = {
                         for (let i = 0; i < volumes.length; i++) {
                             if (volumes[i].consumido) {
                                 return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' se encontra consumido, verifique' });
-                            } else if (volumes[i].qtd != volumes[i].qtdreal) {
+                            } else if (parseFloat(volumes[i].qtd) != parseFloat(volumes[i].qtdreal)) {
                                 return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' se encontra parcialmente consumido, verifique' });
                             }
                         }
@@ -4765,6 +4765,25 @@ let main = {
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_gravarRFID: async (obj) => {
+                    try {
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+
+                        let volume = await db.getModel('est_volume').findOne({ where: { idapproducaovolume: obj.ids[0] } })
+
+                        let needle = require('needle');
+                        let req = await needle('get', 'http://172.10.30.33:8082/write/' + volume.id);
+                        if (req) {
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        } else {
+                            return application.error(obj.res, { msg: 'algo deu errado' });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -4995,11 +5014,16 @@ let main = {
                     }
                     body += '</div></div>';
 
+                    body += '<div class="' + (obj.data.etapa == 70 ? 'hidden' : '') + '">';
                     body += application.components.html.text({
                         width: 12
                         , label: 'Código de Barra'
                         , name: 'codigodebarra'
                     });
+                    body += '</div>';
+                    if (obj.data.etapa == 70) {
+                        body += '<div class="col-md-12 no-padding text-center"><h3>Aguardando leitura RFID</h3></div>';
+                    }
 
                     body += application.components.html.text({
                         width: '12'
