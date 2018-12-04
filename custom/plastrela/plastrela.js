@@ -1684,21 +1684,12 @@ let main = {
                                         {
                                             type: db.Sequelize.QueryTypes.SELECT
                                             , replacements: {
-                                                idoprecurso: oprecurso.id
+                                                idoprecurso: approducao.idoprecurso
                                                 , dataini: approducaotempos[0].dataini
                                                 , datafim: approducaotempos[approducaotempos.length - 1].datafim
                                             }
                                         });
 
-                                    // let paradas = await db.getModel('pcp_apparada').findAll({
-                                    //     where: {
-                                    //         idoprecurso: oprecurso.id
-                                    //         , dataini: { $gte: approducaotempos[0].dataini }
-                                    //         , datafim: { $lte: approducaotempos[approducaotempos.length - 1].datafim }
-                                    //     }
-                                    //     , include: [{ all: true }]
-                                    //     , order: [['dataini', 'desc']]
-                                    // });
                                     for (let z = 0; z < paradas.length; z++) {
                                         str.push('(' + (z + 1) + ') ' + (paradas[z].emenda ? 'EMENDA ' : '') + paradas[z].descricaocompleta + (paradas[z].observacao ? ' (' + paradas[z].observacao + ') ' : ''));
                                     }
@@ -5520,10 +5511,11 @@ let main = {
                         //     return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
                         // }
 
-                        await next(obj);
-
-                        apinsumo.save();
-                        volume.save();
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            apinsumo.save();
+                            volume.save();
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
