@@ -1,5 +1,36 @@
 $(function () {
 
+    function buscaCodigoBarra(codbar) {
+        application.jsfunction('plastrela.pcp.apinsumo.__pegarVolume', {
+            idoprecurso: application.functions.getId()
+            , codigodebarra: codbar
+        }, function (response) {
+            application.handlers.responseSuccess(response);
+            if (response.success) {
+                $('input[name="idvolume"]').val(response.data.id);
+                $('input[name="qtdreal"]').val(response.data.qtdreal);
+                $('input[name="produto"]').val(response.data.produto);
+                if ($('input[name="etapa"]').val() != '10') {
+                    $('input[name="qtd"]').val(response.data.qtdreal);
+                }
+                $('select[name="idsubstituto"]').attr('data-where', '');
+                if (response.data.substituido <= 0) {
+                    $('select[name="idsubstituto"]').closest('div.hidden').removeClass('hidden');
+                    $('select[name="idsubstituto"]').attr('data-where', response.data.where);
+                    $('select[name="idsubstituto"]').focus();
+                } else {
+                    $('input[name="qtd"]').focus();
+                }
+            } else {
+                $('input[name="idvolume"]').val('');
+                $('input[name="qtdreal"]').val('');
+                $('input[name="produto"]').val('');
+                $('input[name="qtd"]').val('');
+                $('input[name="codigodebarra"]').focus().val('');
+            }
+        });
+    }
+
     function customTable(table) {
         $('#' + table + '_wrapper').css('height', '350px');
     }
@@ -15,6 +46,11 @@ $(function () {
     function addinsumo() {
         application.jsfunction('plastrela.pcp.apinsumo.__adicionarModal', { etapa: $('input[name="etapa"]').val() }, function (response) {
             application.handlers.responseSuccess(response);
+            if ($('input[name="etapa"]').val() == 70) {
+                $.get('http://localhost:8082/read', function (data) {
+                    buscaCodigoBarra('-10-' + data);
+                });
+            }
         });
     }
 
@@ -100,34 +136,7 @@ $(function () {
 
                 $modal.find('input[name="codigodebarra"]').keydown(function (e) {
                     if (e.keyCode == 13) {
-                        application.jsfunction('plastrela.pcp.apinsumo.__pegarVolume', {
-                            idoprecurso: application.functions.getId()
-                            , codigodebarra: $(this).val()
-                        }, function (response) {
-                            application.handlers.responseSuccess(response);
-                            if (response.success) {
-                                $modal.find('input[name="idvolume"]').val(response.data.id);
-                                $modal.find('input[name="qtdreal"]').val(response.data.qtdreal);
-                                $modal.find('input[name="produto"]').val(response.data.produto);
-                                if ($('input[name="etapa"]').val() != '10') {
-                                    $modal.find('input[name="qtd"]').val(response.data.qtdreal);
-                                }
-                                $('select[name="idsubstituto"]').attr('data-where', '');
-                                if (response.data.substituido <= 0) {
-                                    $('select[name="idsubstituto"]').closest('div.hidden').removeClass('hidden');
-                                    $('select[name="idsubstituto"]').attr('data-where', response.data.where);
-                                    $('select[name="idsubstituto"]').focus();
-                                } else {
-                                    $modal.find('input[name="qtd"]').focus();
-                                }
-                            } else {
-                                $modal.find('input[name="idvolume"]').val('');
-                                $modal.find('input[name="qtdreal"]').val('');
-                                $modal.find('input[name="produto"]').val('');
-                                $modal.find('input[name="qtd"]').val('');
-                                $modal.find('input[name="codigodebarra"]').focus().val('');
-                            }
-                        });
+                        buscaCodigoBarra($(this).val())
                     }
                 });
                 $modal.find('input[name="qtd"]').keydown(function (e) {

@@ -5875,12 +5875,12 @@ let main = {
                         let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
                         let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
 
-                        if (etapa.codigo == 10) {
-                            let api = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
-                            if (api.length > 0) {
-                                return application.error(obj.res, { msg: 'OPs na extrusão devem ser feito o rateio/apontadas na camada antes de serem encerradas' });
-                            }
-                        }
+                        // if (etapa.codigo == 10) {
+                        //     let api = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
+                        //     if (api.length > 0) {
+                        //         return application.error(obj.res, { msg: 'OPs na extrusão devem ser feito o rateio/apontadas na camada antes de serem encerradas' });
+                        //     }
+                        // }
 
                         let sql = await db.sequelize.query(`
                         select
