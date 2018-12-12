@@ -4592,7 +4592,19 @@ let main = {
                             }
                         }
 
-                        await next(obj);
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            for (let i = 0; i < volumes.length; i++) {
+                                let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: volumes[i].pcp_approducaovolume.idapproducao }, include: [{ all: true }] })
+                                let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
+                                let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: opr.idopetapa } });
+                                let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                                let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
+                                if (tprecurso.codigo = 7) {
+                                    db.getModel('pcp_apinsumo').update({ recipiente: null }, { where: { idoprecurso: opr.id, recipiente: '' + volumes[i].id } });
+                                }
+                            }
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -4623,7 +4635,20 @@ let main = {
                             });
 
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.id } });
+                            let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
+                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                            let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
                             let usuarioultimoap = await main.plastrela.pcp.ap.f_usuarioUltimoAp(approducao.idoprecurso);
+                            let tintas = false;
+                            if (tprecurso.codigo == 7) {
+                                tintas = {};
+                                tintas.qtdvolumes = 1;
+                                tintas.qtd = parseFloat(await db.getModel('pcp_apinsumo').sum('qtd', { where: { idoprecurso: oprecurso.id, recipiente: null } })) || 0;
+                                if (tintas.qtd <= 0) {
+                                    return application.error(obj.res, { msg: 'Nenhum insumo na pesagem' });
+                                }
+                            }
 
                             body += application.components.html.autocomplete({
                                 width: '12'
@@ -4638,23 +4663,27 @@ let main = {
                                 width: '12'
                                 , label: 'Quantidade de Volumes*'
                                 , name: 'qtdvolumes'
+                                , value: tintas ? tintas.qtdvolumes : ''
                             });
                             body += application.components.html.decimal({
                                 width: '4'
                                 , label: 'Quantidade*'
                                 , name: 'qtd'
+                                , value: tintas ? application.formatters.fe.decimal(tintas.qtd, 2) : ''
                                 , precision: 2
                             });
                             body += application.components.html.decimal({
                                 width: '4'
                                 , label: 'Peso Bruto(Kg)*'
                                 , name: 'pesobruto'
+                                , value: tintas ? application.formatters.fe.decimal(tintas.qtd + 1.5, 2) : ''
                                 , precision: 4
                             });
                             body += application.components.html.decimal({
                                 width: '4'
                                 , label: 'Tara(Kg)*'
                                 , name: 'tara'
+                                , value: tintas ? '1,5000' : ''
                                 , precision: 4
                             });
 
@@ -4740,7 +4769,7 @@ let main = {
                                     , qtd: obj.req.body.qtd
                                 }, { iduser: obj.req.body.iduser });
 
-                                await db.getModel('est_volume').create({
+                                let volume = await db.getModel('est_volume').create({
                                     idapproducaovolume: approducaovolume.id
                                     , idversao: op.idversao
                                     , iddeposito: deposito.id
@@ -4751,8 +4780,19 @@ let main = {
                                     , consumido: false
                                     , qtdreal: qtd
                                 }, { iduser: obj.req.body.iduser });
+                                if (tprecurso.codigo = 7) {
+                                    let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
+                                    for (let z = 0; z < apinsumos.length; z++) {
+                                        apinsumos[z].recipiente = volume.id;
+                                        apinsumos[z].save();
+                                        db.getModel('est_volumemistura').create({
+                                            idvolume: volume.id
+                                            , idvmistura: apinsumos[z].idvolume
+                                            , qtd: apinsumos[z].qtd
+                                        }, { iduser: obj.req.body.iduser });
+                                    }
+                                }
                             }
-
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
@@ -5140,7 +5180,7 @@ let main = {
                                     , qtd: application.formatters.be.decimal(bc[1], 4)
                                     , consumido: false
                                     , qtdreal: application.formatters.be.decimal(bc[1], 4)
-                                    , observacao: 'Gerada pela Impressão'
+                                    , observacao: 'Gerada pelo Setor'
                                 });
                                 if (volumeb) {
                                     return application.success(obj.res, {
@@ -7300,7 +7340,7 @@ let main = {
                                         data.producao.qtd += parseFloat(sql[i].qtd);
                                     }
                                 }
-                                data.producao.tempo += moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm');
+                                data.producao.tempo += moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm') + 1;
                             } else if (sql[i].tipo == 'perda') {
                                 data.table.push({
                                     seq: i + 1
@@ -7328,7 +7368,7 @@ let main = {
                                     , erro: ''
                                 });
                                 data.parada.nro++;
-                                data.parada.tempo += moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm');
+                                data.parada.tempo += moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm') +1;
                             } else if (sql[i].tipo == 'insumo') {
                                 data.table.push({
                                     seq: i + 1
