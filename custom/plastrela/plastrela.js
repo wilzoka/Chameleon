@@ -4505,9 +4505,9 @@ let main = {
                         if (obj.register.pesobruto <= 0) {
                             return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
                         }
-                        if (obj.register.tara <= 0) {
-                            return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
-                        }
+                        // if (obj.register.tara <= 0) {
+                        //     return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
+                        // }
 
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
