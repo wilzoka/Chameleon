@@ -4730,9 +4730,9 @@ let main = {
                             if (obj.req.body.pesobruto <= 0) {
                                 return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
                             }
-                            if (obj.req.body.tara <= 0) {
-                                return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
-                            }
+                            // if (obj.req.body.tara <= 0) {
+                            //     return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
+                            // }
 
                             let pesoliquido = (obj.req.body.pesobruto - obj.req.body.tara).toFixed(4);
 
