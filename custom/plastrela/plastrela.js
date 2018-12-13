@@ -7175,7 +7175,7 @@ let main = {
                                 inner join pcp_approducao app on (opr.id = app.idoprecurso)
                                 inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
                                 where
-                                    apt.datafim' >= :v1 and apt.datafim <= :v2
+                                    apt.datafim >= :v1 and apt.datafim <= :v2
                                     and opr.idrecurso = :v4 ` + filterop + `) as x
                             `);
                     }
