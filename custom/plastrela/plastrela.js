@@ -7175,7 +7175,7 @@ let main = {
                                 inner join pcp_approducao app on (opr.id = app.idoprecurso)
                                 inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
                                 where
-                                    apt.datafim >= :v1 and apt.datafim <= :v2
+                                    apt.datafim' >= :v1 and apt.datafim <= :v2
                                     and opr.idrecurso = :v4 ` + filterop + `) as x
                             `);
                     }
@@ -7456,15 +7456,17 @@ let main = {
                     for (let i = 0; i < recursos.length; i++) {
                         rec.push(recursos[i].codigo);
                     }
+                    let config = await db.getModel('config').findOne();
+                    let empresa = config.cnpj == "90816133000123" ? 2 : 1;
                     let needle = require('needle');
                     let query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
                         function: 'PLAIniflexSQL', param: JSON.stringify([`
                         with ops as (
-                                select empresa, etapa, recurso, op from pcpapproducao where empresa = 1 and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                select empresa, etapa, recurso, op from pcpapproducao where empresa = ${empresa} and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
                                 union
-                                select empresa, etapa, recurso, op from pcpapparada where empresa = 1 and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                select empresa, etapa, recurso, op from pcpapparada where empresa = ${empresa} and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
                                 union
-                                select empresa, etapa, recurso, op from pcpapperda where empresa = 1 and data_hora between cast('${obj.req.body.datahoraini}:00' as timestamp) and cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                select empresa, etapa, recurso, op from pcpapperda where empresa = ${empresa} and data_hora between cast('${obj.req.body.datahoraini}:00' as timestamp) and cast('${obj.req.body.datahorafim}:00' as timestamp)
                         )
                         select
                                 x.*
@@ -7500,7 +7502,7 @@ let main = {
                                 left join pcpop op on (ops.empresa = op.empresa and ops.op = op.op)
                                 left join pcprecurso r on (ops.empresa = r.empresa and ops.recurso = r.codigo)
                                 left join estitem i on (op.empresa = i.empresa and op.produto = i.codigo)
-                                where recurso in (${rec.join(',')})
+                                where op.empresa = ${empresa} and recurso in (${rec.join(',')})
                                 ) x
                         order by recurso, op`
                         ])
