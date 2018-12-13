@@ -6474,6 +6474,7 @@ let main = {
                                         , idanilox: ultimaMontagemItens[i].idanilox
                                         , idcamisa: ultimaMontagemItens[i].idcamisa
                                         , viscosidade: ultimaMontagemItens[i].viscosidade
+                                        , observacao: ultimaMontagemItens[i].observacao
                                     });
 
                                     let consumosAnteriores = await db.getModel('pcp_apclichemontconsumo').findAll({ where: { idapclichemontagem: ultimaMontagemItens[i].id } })
@@ -7174,7 +7175,7 @@ let main = {
                                 inner join pcp_approducao app on (opr.id = app.idoprecurso)
                                 inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
                                 where
-                                    apt.dataini >= :v1 and apt.datafim <= :v2
+                                    apt.datafim >= :v1 and apt.datafim <= :v2
                                     and opr.idrecurso = :v4 ` + filterop + `) as x
                             `);
                     }
@@ -7368,7 +7369,7 @@ let main = {
                                     , erro: ''
                                 });
                                 data.parada.nro++;
-                                data.parada.tempo += moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm') +1;
+                                data.parada.tempo += moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm') + 1;
                             } else if (sql[i].tipo == 'insumo') {
                                 data.table.push({
                                     seq: i + 1
