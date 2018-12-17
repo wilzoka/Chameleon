@@ -6004,7 +6004,7 @@ let main = {
                         }
                         param = JSON.parse(param.value);
                         if (param.indexOf(obj.req.user.id) < 0) {
-                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação, solicite ao PCP' });
                         }
 
                         if (obj.ids.length <= 0) {
