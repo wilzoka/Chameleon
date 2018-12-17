@@ -5907,6 +5907,15 @@ let main = {
                 , js_encerrar: async function (obj) {
                     try {
 
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'pcp_oprecurso_retornarproducao' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id) < 0) {
+                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                        }
+
                         let config = await db.getModel('pcp_config').findOne();
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
@@ -5921,22 +5930,6 @@ let main = {
                         //         return application.error(obj.res, { msg: 'OPs na extrusão devem ser feito o rateio/apontadas na camada antes de serem encerradas' });
                         //     }
                         // }
-
-                        let sql = await db.sequelize.query(`
-                        select
-                            sum((select sum(apv.pesoliquido) from pcp_approducaovolume apv where ap.id = apv.idapproducao)) as sumprod
-                            , sum((select count(*) from pcp_approducaotempo apt where ap.id = apt.idapproducao)) as qtdtempo
-                        from
-                            pcp_approducao ap
-                        where
-                            ap.idoprecurso = :v1
-                        `, {
-                                type: db.sequelize.QueryTypes.SELECT
-                                , replacements: { v1: oprecurso.id }
-                            });
-                        if (sql.length <= 0 || parseFloat(sql[0].sumprod || 0) <= 0 || parseFloat(sql[0].qtdtempo || 0) <= 0) {
-                            return application.error(obj.res, { msg: 'OP sem produção' });
-                        }
 
                         let apps = await db.getModel('pcp_approducao').findAll({ where: { idoprecurso: oprecurso.id } });
                         for (let i = 0; i < apps.length; i++) {
@@ -5958,17 +5951,20 @@ let main = {
                         let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
                         let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
                         let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                        let dif = Math.trunc(100 - (((qtdapproducaovolume + qtdapperda) / qtdapinsumo) * 100));
 
-                        if (etapa.tol_min != null) {
-                            if (dif > etapa.tol_min) {
-                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a menos' });
+                        if (qtdapinsumo > 0) {
+                            let dif = Math.trunc(100 - (((qtdapproducaovolume + qtdapperda) / qtdapinsumo) * 100));
+
+                            if (etapa.tol_min != null) {
+                                if (dif > etapa.tol_min) {
+                                    return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a menos' });
+                                }
                             }
-                        }
-                        dif = Math.abs(dif);
-                        if (etapa.tol_max != null) {
-                            if (dif > etapa.tol_max) {
-                                return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a mais' });
+                            dif = Math.abs(dif);
+                            if (etapa.tol_max != null) {
+                                if (dif > etapa.tol_max) {
+                                    return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a mais' });
+                                }
                             }
                         }
 
@@ -6477,7 +6473,7 @@ let main = {
                                         , observacao: ultimaMontagemItens[i].observacao
                                     });
 
-                                    let consumosAnteriores = await db.getModel('pcp_apclichemontconsumo').findAll({ where: { idapclichemontagem: ultimaMontagemItens[i].id } })
+                                    let consumosAnteriores = await db.getModel('pcp_apclichemontconsumo').findAll({ where: { idapclichemontagem: ultimaMontagemItens[i].id } });
                                     for (let j = 0; j < consumosAnteriores.length; j++) {
                                         await db.getModel('pcp_apclichemontconsumo').create({
                                             idapclichemontagem: apmontagem.id
