@@ -7,26 +7,26 @@ $(function () {
         }, function (response) {
             application.handlers.responseSuccess(response);
             if (response.success) {
-                $('input[name="idvolume"]').val(response.data.id);
-                $('input[name="qtdreal"]').val(response.data.qtdreal);
-                $('input[name="produto"]').val(response.data.produto);
-                if ($('input[name="etapa"]').val() != '10') {
-                    $('input[name="qtd"]').val(response.data.qtdreal);
+                $('#apinsumoAdicionarModal input[name="idvolume"]').val(response.data.id);
+                $('#apinsumoAdicionarModal input[name="qtdreal"]').val(response.data.qtdreal);
+                $('#apinsumoAdicionarModal input[name="produto"]').val(response.data.produto);
+                if ($('#apinsumoAdicionarModal input[name="etapa"]').val() != '10') {
+                    $('#apinsumoAdicionarModal input[name="qtd"]').val(response.data.qtdreal);
                 }
-                $('select[name="idsubstituto"]').attr('data-where', '');
+                $('#apinsumoAdicionarModal select[name="idsubstituto"]').attr('data-where', '');
                 if (response.data.substituido <= 0) {
-                    $('select[name="idsubstituto"]').closest('div.hidden').removeClass('hidden');
-                    $('select[name="idsubstituto"]').attr('data-where', response.data.where);
-                    $('select[name="idsubstituto"]').focus();
+                    $('#apinsumoAdicionarModal select[name="idsubstituto"]').closest('div.hidden').removeClass('hidden');
+                    $('#apinsumoAdicionarModal select[name="idsubstituto"]').attr('data-where', response.data.where);
+                    $('#apinsumoAdicionarModal select[name="idsubstituto"]').focus();
                 } else {
-                    $('input[name="qtd"]').focus();
+                    $('#apinsumoAdicionarModal input[name="qtd"]').focus();
                 }
             } else {
-                $('input[name="idvolume"]').val('');
-                $('input[name="qtdreal"]').val('');
-                $('input[name="produto"]').val('');
-                $('input[name="qtd"]').val('');
-                $('input[name="codigodebarra"]').focus().val('');
+                $('#apinsumoAdicionarModal input[name="idvolume"]').val('');
+                $('#apinsumoAdicionarModal input[name="qtdreal"]').val('');
+                $('#apinsumoAdicionarModal input[name="produto"]').val('');
+                $('#apinsumoAdicionarModal input[name="qtd"]').val('');
+                $('#apinsumoAdicionarModal input[name="codigodebarra"]').focus().val('');
             }
         });
     }
@@ -295,8 +295,6 @@ $(function () {
 
     function frnc() {
         var produto = $('input[name="produto"]').val().trim().split(' - ')[0].split('/');
-        var item = produto[0];
-        var versao = produto[1];
         $.ajax({
             type: 'POST',
             url: 'http://172.10.30.18/Sistema/scripts/socket/scripts2socket.php',
@@ -304,7 +302,7 @@ $(function () {
                 function: 'PLAIniflexSQL', param: JSON.stringify([
                     "select rnc_data, motivo_descricao, rnc_descricao, recurso_codigo, etapa_codigo"
                     + " from vw_rnc a where rnc_empresa_codigo = " + ($('.logo-mini').text() == 'MS' ? '2' : '1') + " and rnc_produto = " + produto[0] + " and rnc_versao = " + produto[1]
-                    + " and etapa_codigo = " + $('input[name="etapa"]').val() + " order by rnc_data desc"
+                    + " and etapa_codigo = " + $('input[name="etapa"]').val() + " and rownum <= 3 order by rnc_data desc"
                 ])
             },
             success: function (response) {
@@ -369,7 +367,7 @@ $(function () {
         $('#ratearInsumos').parent().addClass('hidden');
     }
 
-    if ($('select[name="idestado"]').text().trim() == 'Em Fila de Produção') {
+    if ($('select[name="idestado"]').text().trim() == 'Em Fila de Produção' && $('input[name="observacao"]').val() == '') {
         application.jsfunction('plastrela.pcp.oprecurso.js_buscaObservacao', {
             idoprecurso: application.functions.getId()
         }, function (response) {

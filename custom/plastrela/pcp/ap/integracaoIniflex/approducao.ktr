@@ -278,7 +278,6 @@
   <order>
   <hop> <from>Modified Java Script Value</from><to>Table output</to><enabled>Y</enabled> </hop>
   <hop> <from>Table input</from><to>Modified Java Script Value</to><enabled>Y</enabled> </hop>
-  <hop> <from>Table output</from><to>Update</to><enabled>Y</enabled> </hop>
   </order>
   <step>
     <name>Modified Java Script Value</name>
@@ -443,45 +442,6 @@
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
       <xloc>280</xloc>
-      <yloc>35</yloc>
-      <draw>Y</draw>
-      </GUI>
-    </step>
-
-  <step>
-    <name>Update</name>
-    <type>Update</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-         <partitioning>
-           <method>none</method>
-           <schema_name/>
-           </partitioning>
-    <connection>SIPv2</connection>
-    <skip_lookup>N</skip_lookup>
-    <commit>100</commit>
-    <use_batch>N</use_batch>
-    <error_ignored>N</error_ignored>
-    <ignore_flag_field/>
-    <lookup>
-      <schema/>
-      <table>pcp_oprecurso</table>
-      <key>
-        <name>id</name>
-        <field>id</field>
-        <condition>&#x3d;</condition>
-        <name2/>
-        </key>
-      <value>
-        <name>integrado</name>
-        <rename>integrado_novo</rename>
-        </value>
-      </lookup>
-     <cluster_schema/>
- <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>373</xloc>
       <yloc>35</yloc>
       <draw>Y</draw>
       </GUI>
