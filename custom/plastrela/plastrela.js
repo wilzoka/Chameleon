@@ -5906,16 +5906,6 @@ let main = {
                 }
                 , js_encerrar: async function (obj) {
                     try {
-
-                        let param = await db.getModel('parameter').findOne({ where: { key: 'pcp_oprecurso_retornarproducao' } });
-                        if (!param) {
-                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
-                        }
-                        param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id) < 0) {
-                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
-                        }
-
                         let config = await db.getModel('pcp_config').findOne();
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
@@ -6007,6 +5997,15 @@ let main = {
                 }
                 , e_retornarProducao: async function (obj) {
                     try {
+
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'pcp_oprecurso_retornarproducao' } });
+                        if (!param) {
+                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
+                        }
+                        param = JSON.parse(param.value);
+                        if (param.indexOf(obj.req.user.id) < 0) {
+                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                        }
 
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
