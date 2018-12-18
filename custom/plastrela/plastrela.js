@@ -467,7 +467,7 @@ let main = {
                         LEFT JOIN estitem i ON (nt.empresa = i.empresa and it.item = i.codigo)
                         WHERE nt.cliente = 1
                         AND it.item NOT LIKE '130%'
-                        --AND nt.data_saida > '10/12/2018'
+                        AND nt.data_saida > '10/12/2018'
                         AND i.tipo_item IN (1)
                         ORDER BY nt.data_nota DESC
                         `
