@@ -502,7 +502,7 @@ let main = {
                                     let comissao = 0;
                                     for (let z = 0; z < pedidoitens.length; z++) {
                                         total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
-                                        comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
+                                        comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseFloat(pedidoitens[z].comissao) / 100)
                                     }
                                     if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0) - parseFloat(movparc.devolucao || 0)) > 0 && comissao > 0) {
                                         let movcom = await db.getModel('fin_mov').create({
@@ -570,7 +570,7 @@ let main = {
                                 let comissao = 0;
                                 for (let z = 0; z < pedidoitens.length; z++) {
                                     total += parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd);
-                                    comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseInt(pedidoitens[z].comissao) / 100)
+                                    comissao += (parseFloat(pedidoitens[z].unitario) * parseInt(pedidoitens[z].qtd)) * (parseFloat(pedidoitens[z].comissao) / 100)
                                 }
                                 if ((parseFloat(movparc.valor) - parseFloat(movparc.desconto || 0) - parseFloat(movparc.devolucao || 0)) > 0 && comissao > 0) {
                                     let movcom = await db.getModel('fin_mov').create({
