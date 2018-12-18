@@ -508,7 +508,7 @@ let main = {
                         </table>
                         `;
                         return main.platform.mail.f_sendmail({
-                            to: ['williamb@plastrela.com.br']
+                            to: ['informatica@plastrela.com.br']
                             , subject: 'SIP - Conferência Transferência Itens'
                             , html: body
                         });
