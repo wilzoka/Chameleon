@@ -455,6 +455,68 @@ let main = {
             , notificacaoReserva: function () {
                 main.platform.kettle.f_runJob('plastrela/jobs/notificacaoReserva/Job.kjb');
             }
+            , s_conferenciaItensTransferencia: async () => {
+                try {
+                    let needle = require('needle');
+                    let query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                        function: 'PLAIniflexSQL', param: JSON.stringify([`
+                        SELECT nt.empresa, nt.nota, nt.data_saida, nt.cliente, co.nome, it.item, i.descricao
+                        FROM fatnota nt 
+                        LEFT JOIN fatnotait it ON (nt.empresa = it.empresa and nt.nota = it.nota)
+                        LEFT JOIN cadcorr co ON (nt.cliente = co.codigo)
+                        LEFT JOIN estitem i ON (nt.empresa = i.empresa and it.item = i.codigo)
+                        WHERE nt.cliente = 1
+                        AND it.item NOT LIKE '130%'
+                        --AND nt.data_saida > '10/12/2018'
+                        AND i.tipo_item IN (1)
+                        ORDER BY nt.data_nota DESC
+                        `
+                        ])
+                    });
+                    query = JSON.parse(query.body);
+                    if (query.count > 0) {
+                        let body = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Empresa</strong></td>  
+                                    <td style="text-align:center;"><strong>Nota</strong></td>
+                                    <td style="text-align:center;"><strong>Data Saída</strong></td>
+                                    <td style="text-align:center;"><strong>Cliente</strong></td>
+                                    <td style="text-align:center;"><strong>Nome</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>Descrição</strong></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                        for (let i = 0; i < query.count; i++) {
+                            body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['NOTA'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_SAIDA'][i]} </td>
+                                    <td style="text-align:left;"> ${query.data['CLIENTE'][i]} </td>
+                                    <td style="text-align:left;"> ${query.data['NOME'][i]} </td>                                        
+                                    <td style="text-align:left;"> ${query.data['ITEM'][i]} </td>
+                                    <td style="text-align:left;"> ${query.data['DESCRICAO'][i]} </td>
+                                </tr>
+                            `;
+                        }
+                        body += `
+                            </tbody>
+                        </table>
+                        `;
+                        return main.platform.mail.f_sendmail({
+                            to: ['williamb@plastrela.com.br']
+                            , subject: 'SIP - Conferência Transferência Itens'
+                            , html: body
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
         }
         , cadastro: {
             vinculacaolicenca: {
@@ -6477,7 +6539,6 @@ let main = {
                                         await db.getModel('pcp_apclichemontconsumo').create({
                                             idapclichemontagem: apmontagem.id
                                             , idduplaface: consumosAnteriores[j].idduplaface
-                                            , reutilizada: consumosAnteriores[j].reutilizada
                                         });
                                     }
                                 }

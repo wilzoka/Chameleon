@@ -601,7 +601,7 @@ const deleteModel = function (obj) {
     return new Promise((resolve) => {
         db.getModel(obj.view.model.name).findAll({ where: { id: { $in: obj.ids } }, raw: true }).then(registers => {
             db.getModel(obj.view.model.name).destroy({ iduser: obj.req.user.id, where: { id: { $in: obj.ids } } }).then(() => {
-                resolve({ success: true });
+                resolve({ success: true, registers: registers });
                 application.success(obj.res, { msg: application.message.success });
             }).catch(err => {
                 if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {

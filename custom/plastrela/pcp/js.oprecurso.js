@@ -36,8 +36,8 @@ $(function () {
     }
 
     if ($('input[name="etapa"]').val() == '70') {
-        $('#col-insumo').removeClass('col-md-2').addClass('col-md-6');
-        $('#col-producao').removeClass('col-md-4').addClass('col-md-6');
+        $('#col-insumo').removeClass('col-md-3').addClass('col-md-7');
+        $('#col-producao').removeClass('col-md-4 no-padding-right').addClass('col-md-5');
         $('#col-perda').addClass('hide');
         $('#col-parada').addClass('hide');
     }
