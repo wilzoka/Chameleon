@@ -785,7 +785,7 @@ var application = {
                 , ordering: data.permissions.orderable
                 , pageLength: data.pageLength
                 , paging: data.pageLength > 0
-                , pagingType: 'simple'
+                , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
                 , processing: true
                 , rowId: 'id'
                 , searchDelay: 250
