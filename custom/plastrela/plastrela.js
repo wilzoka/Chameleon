@@ -3857,6 +3857,22 @@ let main = {
                                 });
                             }
                         });
+                    needle.get('http://intranet.plastrela.com.br/SistemaH/content/Integracao/solvente206.php', {},
+                        function (err, resp) {
+                            if (err) {
+                                console.error(err);
+                                return;
+                            }
+                            let data = resp.body;
+                            if (data) {
+                                data = data.replace("{'Total de Solvente': ", '').replace('}', '');
+                                db.getModel('pcp_solvente').create({
+                                    recurso: 206
+                                    , datahora: moment()
+                                    , valor: data
+                                });
+                            }
+                        });
                 }
             }
             , apclichemontagem: {
