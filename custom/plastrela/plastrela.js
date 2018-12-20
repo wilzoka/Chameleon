@@ -4871,7 +4871,7 @@ let main = {
                         let volume = await db.getModel('est_volume').findOne({ where: { idapproducaovolume: obj.ids[0] } })
 
                         let needle = require('needle');
-                        let req = await needle('get', 'http://172.10.30.33:8082/write/' + volume.id);
+                        let req = await needle('get', 'http://172.10.30.111:8082/write/' + volume.id);
                         if (req) {
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         } else {
@@ -6060,32 +6060,32 @@ let main = {
                 , e_retornarProducao: async function (obj) {
                     try {
 
-                        let param = await db.getModel('parameter').findOne({ where: { key: 'pcp_oprecurso_retornarproducao' } });
-                        if (!param) {
-                            return application.error(obj.res, { msg: 'Parâmetro não configurado' });
-                        }
-                        param = JSON.parse(param.value);
-                        if (param.indexOf(obj.req.user.id) < 0) {
-                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação, solicite ao PCP' });
-                        }
-
-                        if (obj.ids.length <= 0) {
-                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
 
                         let config = await db.getModel('pcp_config').findOne();
 
-                        await db.getModel('pcp_oprecurso').update({
-                            idestado: config.idestadoinicial
-                        },
-                            {
-                                where: {
-                                    id: { $in: obj.ids }
-                                }
-                                , iduser: obj.req.user.id
-                            });
+                        await db.getModel('pcp_oprecurso').update({ idestado: config.idestadoinicial }
+                            , { where: { id: obj.ids[0] }, iduser: obj.req.user.id });
 
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        let opr = (await main.platform.model.findAll('pcp_oprecurso', { where: { id: obj.ids[0] } })).rows[0];
+
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                        let setor = await db.getModel('cad_setor').findOne({ where: { descricao: 'PCP (Apontamento)' } });
+                        if (setor) {
+                            let usuarios = await db.getModel('cad_setorusuario').findAll({ where: { idsetor: setor.id } });
+                            let arr = [];
+                            for (let i = 0; i < usuarios.length; i++) {
+                                arr.push(usuarios[i].idusuario);
+                            }
+                            main.platform.notification.create(arr, {
+                                title: `Retorno de OP para Produção`
+                                , description: `OP ${opr.op}/${opr.etapa}`
+                                , link: `/v/apontamento_de_producao/${opr.id}`
+                            });
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
