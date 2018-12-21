@@ -217,7 +217,7 @@ let main = {
                             `SELECT "com_venda"."datahora"
                                 , "cad_pessoa"."nome" AS "cliente"
                                 , (select sum(vi.qtd * vi.valorunitario) from com_vendaitem vi where vi.idvenda = com_venda.id) - coalesce(com_venda.desconto, 0) + coalesce(com_venda.acrescimo, 0)  AS "totalvenda"
-                                , coalesce(select sum(valor) from fin_mov where idvenda = com_venda.id), 0.00) AS "totalpendente"
+                                , coalesce((select sum(valor) from fin_mov where idvenda = com_venda.id and quitado = false), 0.00) AS "totalpendente"
                             FROM "com_venda" AS "com_venda" 
                             LEFT OUTER JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
                             WHERE com_venda.idcliente = :cliente
