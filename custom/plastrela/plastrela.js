@@ -1412,8 +1412,8 @@ let main = {
                                     .lineTo(25, 25) //bottom
                                     .stroke();
 
-                                if (fs.existsSync('files/' + image.id + '.' + image.type)) {
-                                    doc.image('files/' + image.id + '.' + image.type, 35, 33, { width: 20 });
+                                if (fs.existsSync(__dirname + '/../../files/' + image.id + '.' + image.type)) {
+                                    doc.image(__dirname + '/../../files/' + image.id + '.' + image.type, 35, 33, { width: 20 });
                                 }
 
                                 doc.moveTo(25, 60)

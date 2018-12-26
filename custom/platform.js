@@ -1945,7 +1945,7 @@ let platform = {
                                     heights: 60
                                     , widths: [150, '*', 80]
                                     , body: [[
-                                        fs.existsSync('files/' + image.id + '.' + image.type) ? { image: 'files/' + image.id + '.' + image.type, fit: [150, 100], alignment: 'center', border: [true, true, false, true] } : { text: '', border: [true, true, false, true] }
+                                        fs.existsSync(__dirname + '/../files/' + image.id + '.' + image.type) ? { image: __dirname + '/../files/' + image.id + '.' + image.type, fit: [150, 100], alignment: 'center', border: [true, true, false, true] } : { text: '', border: [true, true, false, true] }
                                         , { text: parameters.title, alignment: 'center', border: [false, true, false, true], bold: true }
                                         , { text: '\n\n' + moment().format(application.formatters.fe.date_format) + '\n' + moment().format('HH:mm'), alignment: 'center', border: [false, true, true, true], fontSize: 9 }
                                     ]]
