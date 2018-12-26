@@ -1322,7 +1322,7 @@ let main = {
                         let config = await db.getModel('config').findOne({ raw: true });
                         let image = JSON.parse(config.reportimage)[0];
                         let filename = process.hrtime()[1] + '.pdf';
-                        let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                        let stream = doc.pipe(fs.createWriteStream(__dirname + '/../../tmp/' + filename));
 
                         let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }], raw: true });
                         for (let i = 0; i < volumes.length; i++) {
@@ -2733,7 +2733,7 @@ let main = {
 
                                     let doc = printer.createPdfKitDocument(dd);
                                     let filename = process.hrtime()[1] + '.pdf';
-                                    let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                                    let stream = doc.pipe(fs.createWriteStream(__dirname + '/../../tmp/' + filename));
                                     doc.end();
                                     stream.on('finish', function () {
                                         return application.success(obj.res, {

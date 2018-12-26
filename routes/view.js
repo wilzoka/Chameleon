@@ -208,9 +208,7 @@ const renderTime = function (viewfield, register) {
         disabled = 'disabled="disabled"';
     }
 
-    if (value != null) {
-        value = application.formatters.fe.time(value);
-    }
+    value = value == '' ? '' : application.formatters.fe.time(value);
 
     return application.components.html.time({
         width: viewfield.width
