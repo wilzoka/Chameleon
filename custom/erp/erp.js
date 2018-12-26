@@ -151,7 +151,7 @@ let main = {
                                                             })
                                                         }
                                                     } else if (formaspgto[j].formarecebimento == 'Vale') {
-                                                        let retorno = await main.erp.comercial.venda.f_atualizarValeColetado(formaspgto[j], obj.register.idcliente);
+                                                        let retorno = await main.erp.comercial.venda.f_atualizarValeColetado(formaspgto[j], obj.register);
                                                         if (!retorno) {
                                                             return application.error(obj.res, { msg: `Vale não cadastrado. Solicitar cadastro` })
                                                         }
@@ -217,7 +217,7 @@ let main = {
                             `SELECT "com_venda"."datahora"
                                 , "cad_pessoa"."nome" AS "cliente"
                                 , (select sum(vi.qtd * vi.valorunitario) from com_vendaitem vi where vi.idvenda = com_venda.id) - coalesce(com_venda.desconto, 0) + coalesce(com_venda.acrescimo, 0)  AS "totalvenda"
-                                , (select sum(valor) from fin_mov where idvenda = com_venda.id) AS "totalpendente"
+                                , coalesce((select sum(valor) from fin_mov where idvenda = com_venda.id and quitado = false), 0.00) AS "totalpendente"
                             FROM "com_venda" AS "com_venda" 
                             LEFT OUTER JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
                             WHERE com_venda.idcliente = :cliente
@@ -346,9 +346,10 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , f_atualizarValeColetado: async function (obj, idcliente) {
+                , f_atualizarValeColetado: async function (obj, venda) {
                     try {
-                        let vale = await db.getModel('com_vale').find({ where: { idformapgto: obj.id, idpessoa: idcliente, coletado: false }, order: [['data', 'asc']] });
+                        console.log(venda.idcliente);
+                        let vale = await db.getModel('com_vale').find({ where: { idformapgto: obj.id, idpessoa: venda.idcliente, coletado: false }, order: [['data', 'asc']] });
                         if (vale) {
                             vale.coletado = true;
                             await vale.save()
