@@ -1968,7 +1968,7 @@ let platform = {
 
                     let doc = printer.createPdfKitDocument(dd);
                     let filename = process.hrtime()[1] + '.pdf';
-                    let stream = doc.pipe(fs.createWriteStream('tmp/' + filename));
+                    let stream = doc.pipe(fs.createWriteStream(__dirname + '/../tmp/' + filename));
                     doc.end();
                     stream.on('finish', function () {
                         return application.success(obj.res, {
