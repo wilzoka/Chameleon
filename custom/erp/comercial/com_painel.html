@@ -44,7 +44,25 @@
                         </div>
                     </div>
                 </div>
+                <div class="box box-primary">
+                    <div class="box-body">
+                        <div class="row">
+                            <div id="table"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 </form>
+
+<script type="text/javascript">
+    $(function ($) {
+        $(document).ready(function () {
+            application.jsfunction('erp.comercial.venda.js_prevenda', { idcliente: $('table').val() }, function (response) {
+                $('#table').children().remove();
+                $('#table').append(response.body);
+            });
+        });
+    });
+</script>

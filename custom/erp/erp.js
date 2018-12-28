@@ -361,6 +361,70 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , js_prevenda: async function (obj) {
+                    try {
+                        let prevendas = await db.sequelize.query(
+                            `SELECT cv.id, cv.entregaprogramada as "entregaprogramada", cp.nomecompleto as "cliente"
+                            FROM com_venda cv
+                            LEFT JOIN cad_pessoa cp ON (cv.idcliente = cp.id) 
+                            WHERE cv.entregaprogramada is not null 
+                                AND cv.digitado = false
+                            ORDER BY cv.entregaprogramada ASC`
+                            , { type: db.Sequelize.QueryTypes.SELECT }
+                        );
+
+                        let body = `
+                            <div id="tablebody" class="col-md-12">
+                                <h4 align="center"> Pré Vendas </h4>
+                                <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
+                                    <tr>
+                                        <td style="text-align:center;"><strong>Entrega Programada</strong></td>
+                                        <td style="text-align:center;"><strong>Cliente</strong></td>
+                                        <td style="text-align:center;"><strong>Itens</strong></td>
+                                        <td style="text-align:center;"><strong>Ação</strong></td>
+                                    </tr>
+                                    `;
+                        for (let i = 0; i < prevendas.length; i++) {
+
+                            let prevendasitens = await db.sequelize.query(
+                                `SELECT vi.qtd, ci.descricao 
+                                FROM com_vendaitem vi 
+                                LEFT JOIN cad_item ci on vi.iditem = ci.id
+                                WHERE vi.idvenda = :idvenda`
+                                , {
+                                    type: db.Sequelize.QueryTypes.SELECT
+                                    , replacements: {
+                                        idvenda: prevendas[i].id
+                                    }
+                                });
+
+                            let itens = '';
+                            for (let j = 0; j < prevendasitens.length; j++) {
+                                itens += prevendasitens[j].qtd + ` un - ` + prevendasitens[j].descricao + ` `;
+                            }
+
+                            body += `
+                            <tr>
+                                <td style="text-align:center;"> ${application.formatters.fe.datetime(prevendas[i].entregaprogramada)}   </td>
+                                <td style="text-align:center;">  ${prevendas[i].cliente}   </td>
+                                <td style="text-align:center;"> ${itens} </td>
+                                <td style="text-align:center;">  
+                                    <a href="/v/venda/${prevendas[i].id}">
+                                        <button type="button" style="border-radius: 4px" class="btn btn-primary btn-block btn-lg"><i class="fa fa-pencil-square-o"></i></button>
+                                    </a>  
+                                </td>
+                            </tr>
+                            `;
+                        }
+                        body += `
+                        </table>
+                        </div>`;
+
+                        return application.success(obj.res, { body });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , precovenda: {
                 onsave: async function (obj, next) {
