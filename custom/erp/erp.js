@@ -806,6 +806,91 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_gerarTitulos: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+
+                            let body = '';
+                            body += '<div class="row no-margin">';
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Pessoa*'
+                                , name: 'idpessoa'
+                                , model: 'cad_pessoa'
+                                , attribute: 'nomecompleto'
+                            });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Categoria*'
+                                , name: 'idcategoria'
+                                , model: 'fin_categoria'
+                                , attribute: 'descricao'
+                            });
+                            body += application.components.html.date({
+                                width: '4'
+                                , label: 'Vencimento*'
+                                , name: 'datavcto'
+                            });
+                            body += application.components.html.decimal({
+                                width: '4'
+                                , label: 'Valor*'
+                                , name: 'valor'
+                                , precision: 2
+                            });
+                            body += application.components.html.integer({
+                                width: '4'
+                                , label: 'Parcelas*'
+                                , name: 'parcelas'
+                            });
+                            body += application.components.html.text({
+                                width: '12'
+                                , label: 'Detalhes'
+                                , name: 'detalhe'
+                            });
+
+                            body += '</div>';
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , fullscreen: false
+                                    , id: 'modalevt'
+                                    , action: '/event/' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Baixar</button>'
+                                }
+                            });
+
+                        } else {
+
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['idpessoa', 'datavcto', 'idcategoria', 'valor', 'parcelas']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+
+                            let vcto = obj.req.body.datavcto;
+                            for (let i = 0; i < obj.req.body.parcelas; i++) {
+                                let mov = await db.getModel('fin_mov').create({
+                                    idcategoria: obj.req.body.idcategoria
+                                    , idpessoa: obj.req.body.idpessoa
+                                    , datavcto: '01/01/2019'
+                                    , valor: parseFloat(application.formatters.fe.decimal(obj.req.body.valor, 2))
+                                    , parcela: i + 1 + `/` + obj.req.body.parcelas
+                                    , quitado: false
+                                    , detalhe: obj.req.body.detalhes
+                                });
+                                /* vcto = vcto.add(30, 'day'); */
+                            }
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , movparc: {
                 ondelete: async function (obj, next) {
