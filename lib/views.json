@@ -812,6 +812,14 @@
                 "order": 6,
                 "disabled": false,
                 "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "hidelisting",
+                "width": 12,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
             }
         ],
         "_table": [
@@ -858,6 +866,14 @@
             {
                 "modelattribute": "deletable",
                 "ordertable": 6,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "hidelisting",
+                "ordertable": 7,
                 "orderable": true,
                 "render": "boolean",
                 "totalize": null,

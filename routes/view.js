@@ -1024,7 +1024,7 @@ module.exports = function (app) {
                 return application.notFound(res);
             }
             const permission = await hasPermission(req.user.id, view.id);
-            if (permission.visible) {
+            if (permission.visible && !permission.hidelisting) {
                 return application.render(res, __dirname + '/../views/templates/viewtable.html', {
                     title: view.name
                     , view: view.url

@@ -434,6 +434,13 @@
                 "typeadd": null
             },
             {
+                "name": "hidelisting",
+                "label": "Ocultar Listagem?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
                 "name": "idmenu",
                 "label": "Menu",
                 "type": "autocomplete",
