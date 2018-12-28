@@ -58,7 +58,7 @@ module.exports = function (app) {
             });
 
             let permissions = await db.getModel('permission').findAll({
-                where: { iduser: req.user.id, visible: true }
+                where: { iduser: req.user.id, visible: true, hidelisting: { $or: [null, false] } }
                 , raw: true
             });
 
