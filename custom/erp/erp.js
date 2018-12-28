@@ -642,14 +642,14 @@ let main = {
                                 , model: 'fin_conta'
                                 , attribute: 'descricao'
                             });
-                            body += application.components.html.autocomplete({
+                            /* body += application.components.html.autocomplete({
                                 width: '4'
                                 , label: 'Forma de Pagamento*'
                                 , name: 'idformapgto'
                                 , model: 'fin_formapgto'
                                 , attribute: 'descricao'
                                 , option: formapgto ? '<option value="' + formapgto + '" selected>' + formapgto.descricao + '</option>' : ''
-                            });
+                            }); */
                             body += '</div><hr>';
 
                             let valortotalselecionado = 0;
@@ -659,14 +659,12 @@ let main = {
                                 let valoraberto = application.formatters.fe.decimal((await db.sequelize.query(`
                                     select
                                     m.valor - coalesce(
-                                        (select
-                                                                                sum(mp.valor)
-                                                                                from fin_movparc mp where m.id = mp.idmov)
+                                        (select sum(mp.valor)
+                                        from fin_movparc mp where m.id = mp.idmov)
                                         , 0) as valoraberto
                                     from
                                     fin_mov m
-                                    where m.id = :v1
-                                    `
+                                    where m.id = :v1`
                                     , {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
@@ -744,7 +742,7 @@ let main = {
 
                         } else {
 
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idconta', 'idformapgto', 'datahora']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idconta', 'datahora']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
@@ -770,7 +768,7 @@ let main = {
                                 let movparc = await db.getModel('fin_movparc').create({
                                     valor: application.formatters.be.decimal(obj.req.body['valor' + ids[i]], 2)
                                     , idmov: mov.id
-                                    , idformapgto: obj.req.body.idformapgto
+                                    , idformapgto: 1
                                     , idconta: obj.req.body.idconta
                                     , desconto: obj.req.body['desconto' + ids[i]] ? application.formatters.be.decimal(obj.req.body['desconto' + ids[i]], 2) : null
                                     , juro: obj.req.body['juro' + ids[i]] ? application.formatters.be.decimal(obj.req.body['juro' + ids[i]], 2) : null
@@ -780,16 +778,14 @@ let main = {
 
                             for (let i = 0; i < ids.length; i++) {
                                 let valoraberto = parseFloat((await db.sequelize.query(`
-select
-m.valor - coalesce(
-    (select
-                                        sum(mp.valor)
+                                    select
+                                    m.valor - coalesce(
+                                        (select sum(mp.valor)
                                         from fin_movparc mp where m.id = mp.idmov)
-    , 0) as valoraberto
-from
-fin_mov m
-where m.id = :v1
-    `
+                                        , 0) as valoraberto
+                                    from
+                                    fin_mov m
+                                    where m.id = :v1`
                                     , {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
