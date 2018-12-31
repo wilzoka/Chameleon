@@ -412,7 +412,7 @@ let main = {
 
                         let body = `
                             <div id="tablebody" class="col-md-12">
-                                <h4 align="center"> Pré Vendas </h4>
+                                <h4 align="center"> Pré-Vendas </h4>
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
                                     <tr>
                                         <td style="text-align:center;"><strong>Entrega Programada</strong></td>
