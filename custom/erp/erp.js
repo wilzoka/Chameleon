@@ -271,13 +271,13 @@ let main = {
                             let body = '';
                             body += application.components.html.date({
                                 width: '4'
-                                , label: 'Data'
+                                , label: 'Data*'
                                 , name: 'data'
                                 , value: moment().format(application.formatters.fe.date_format)
                             });
                             body += application.components.html.autocomplete({
                                 width: '4'
-                                , label: 'Vale'
+                                , label: 'Vale*'
                                 , name: 'idformapgto'
                                 , model: 'fin_formapgto'
                                 , attribute: 'descricao'
@@ -285,21 +285,21 @@ let main = {
                             });
                             body += application.components.html.autocomplete({
                                 width: '4'
-                                , label: 'Item'
+                                , label: 'Item*'
                                 , name: 'iditem'
                                 , model: 'cad_item'
                                 , attribute: 'descricao'
                             });
                             body += application.components.html.autocomplete({
                                 width: '4'
-                                , label: 'Pessoa'
+                                , label: 'Pessoa*'
                                 , name: 'idpessoa'
                                 , model: 'cad_pessoa'
                                 , attribute: 'nome'
                             });
                             body += application.components.html.integer({
                                 width: '4'
-                                , label: 'Quantidade'
+                                , label: 'Quantidade*'
                                 , name: 'qtd'
                             });
                             body += application.components.html.decimal({
@@ -322,7 +322,7 @@ let main = {
 
                         } else {
 
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['data', 'idformapgto', 'iditem', 'qtd']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['data', 'idformapgto', 'iditem', 'idpessoa', 'qtd']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
@@ -336,6 +336,8 @@ let main = {
                                     data: application.formatters.be.date(obj.req.body.data)
                                     , idformapgto: obj.req.body.idformapgto
                                     , iditem: obj.req.body.iditem
+                                    , recebido: false
+                                    , coletado: false
                                     , idpessoa: typeof obj.req.body.idpessoa == 'undefined' ? null : obj.req.body.idpessoa
                                     , valorentrega: obj.req.body.valorentrega == '' ? null : application.formatters.be.decimal(obj.req.body.valorentrega)
                                 });
@@ -348,11 +350,46 @@ let main = {
                 }
                 , f_atualizarValeColetado: async function (obj, venda) {
                     try {
-                        console.log(venda.idcliente);
-                        let vale = await db.getModel('com_vale').find({ where: { idformapgto: obj.id, idpessoa: venda.idcliente, coletado: false }, order: [['data', 'asc']] });
-                        if (vale) {
-                            vale.coletado = true;
-                            await vale.save()
+
+                        let item = await db.getModel('com_vendaitem').find({ where: { idvenda: venda.id } });
+
+                        let vale = await db.sequelize.query(
+                            `SELECT val.id, val.idformapgto, val.idpessoa, val.iditem
+                            FROM com_vale val
+                            LEFT JOIN com_vendapagamento vpag 	on val.id = vpag.idformapgto
+                            LEFT JOIN com_venda ven 			on vpag.idvenda = ven.id
+                            LEFT JOIN com_vendaitem vit 		on ven.id = vit.idvenda
+                            WHERE val.iditem = :iditem
+                                AND val.idformapgto = :idformapgto
+                                AND val.idpessoa = :idpessoa
+                                AND val.coletado = false
+                            ORDER BY val.data
+                            LIMIT 1`
+                            , {
+                                type: db.Sequelize.QueryTypes.SELECT
+                                , replacements: {
+                                    iditem: item.iditem
+                                    , idformapgto: obj.id
+                                    , idpessoa: venda.idcliente
+                                }
+                            });
+
+                        let found = true;
+                        if (vale[0] == null) {
+                            found = false;
+                        }
+                        if (found) {
+                            db.sequelize.query(
+                                `UPDATE com_vale
+                                SET coletado = true
+                                WHERE id = :idvale`
+                                , {
+                                    type: db.sequelize.QueryTypes.UPDATE
+                                    , replacements: {
+                                        idvale: vale[0].id
+                                    }
+                                });
+
                             return true;
                         } else {
                             return false;
@@ -870,18 +907,18 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
 
-                            let vcto = obj.req.body.datavcto;
+                            let vcto = moment(obj.req.body.datavcto, application.formatters.fe.date_format);
                             for (let i = 0; i < obj.req.body.parcelas; i++) {
                                 let mov = await db.getModel('fin_mov').create({
                                     idcategoria: obj.req.body.idcategoria
                                     , idpessoa: obj.req.body.idpessoa
-                                    , datavcto: '01/01/2019'
+                                    , datavcto: vcto
                                     , valor: parseFloat(application.formatters.fe.decimal(obj.req.body.valor, 2))
                                     , parcela: i + 1 + `/` + obj.req.body.parcelas
                                     , quitado: false
                                     , detalhe: obj.req.body.detalhes
                                 });
-                                /* vcto = vcto.add(30, 'day'); */
+                                vcto = moment(vcto, application.formatters.fe.date_format).add(30, 'day');
                             }
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
