@@ -7263,7 +7263,7 @@ let main = {
                                 , 0 as duracaototal
                                 , app.peso 
                                 , 0 as qtd
-                                , tp.codigo || ' - ' || tp.descricao as adicionais
+                                , 'ID ' || app.id::text || ' - ' || tp.codigo || ' - ' || tp.descricao as adicionais
                             from
                                 pcp_oprecurso opr
                             left join pcp_opetapa ope on (opr.idopetapa = ope.id)
