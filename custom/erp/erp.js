@@ -117,7 +117,7 @@ let main = {
                                                             , idconta: conta.idconta
                                                         })
                                                     } else if (formaspgto[j].formarecebimento == 'a Prazo') {
-                                                        prazo += formaspgto[j].prazo != null ? formaspgto[j].prazo : moment(vendaformaspgto[i].vencimento).diff(moment(), 'd') + 1
+                                                        prazo += formaspgto[j].prazo != null ? formaspgto[j].prazo : moment(vendaformaspgto[i].vencimento, application.formatters.fe.date_format) != null ? moment(vendaformaspgto[i].vencimento).diff(moment(), 'd') + 1 : moment().add(7, 'day')
                                                         valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0
                                                         let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas
@@ -411,7 +411,7 @@ let main = {
                         );
 
                         let body = `
-                            <div id="tablebody" class="col-md-12">
+                            <div id="tablebody" class="col-md-12">  
                                 <h4 align="center"> Pré-Vendas </h4>
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
                                     <tr>
