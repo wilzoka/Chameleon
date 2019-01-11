@@ -2996,16 +2996,20 @@ let main = {
                         SELECT 
                             "est_volume"."id"
                             , to_char("est_volume"."datahora", 'dd/MM/YYYY') as datahora
-                            , "pcp_versao"."descricaocompleta" AS "produto"
+                            , i.codigo as "codigo"
+                            , '/' as barra
+                            , "pcp_versao".codigo as "versao"
+                            , i."descricao" AS "produto"
                             , "est_deposito"."descricao" AS "deposito"
                             , "est_depositoendereco"."descricao" AS "endereco"
-                            , "est_volume"."qtdreal" as "qtdemestoque"
-                            , est_volume.qtdreal - coalesce((select sum(vr.qtd) from est_volumereserva vr where vr.apontado = false and vr.idvolume = est_volume.id),0) AS "qtddisponivel"
+                            , trim(to_char("est_volume"."qtdreal", '9999990D99')) as "qtdemestoque"
+                            , trim(to_char(est_volume.qtdreal - coalesce((select sum(vr.qtd) from est_volumereserva vr where vr.apontado = false and vr.idvolume = est_volume.id),0), '9999990D99')) AS "qtddisponivel"
                             , (select cad_unidade.unidade from cad_unidade where cad_unidade.id = (select cad_item.idunidade from cad_item where cad_item.id = pcp_versao.iditem)) AS "unidade"
                             , case when "est_volume"."consumido" = true then 'SIM' else 'NAO' end as consumido
                             , "est_volume"."lote"
                             , to_char("est_volume"."datavalidade", 'dd/MM/YYYY') as datavalidade
                             , case when "est_volume"."fotos" is null then 'NAO' else 'SIM' end as possuifoto
+                            , case when "est_nfentradaitem"."laudos" is null then 'NAO' else 'SIM' end as possuilaudo
                             , c.descricao as estrutura
                             , nv.chave
                             , nv.razaosocial as fornecedor
@@ -3031,22 +3035,25 @@ let main = {
                         let ws = XLSX.utils.json_to_sheet(sql, {
                             header: [
                                 'id'
-                                , 'datahora'
+                                , 'estrutura'
+                                , 'codigo'
+                                , 'barra'
+                                , 'versao'
                                 , 'produto'
+                                , 'dataentrada'
+                                , 'fornecedor'
+                                , 'documento'
                                 , 'deposito'
                                 , 'endereco'
                                 , 'qtdemestoque'
                                 , 'qtddisponivel'
                                 , 'unidade'
-                                , 'consumido'
                                 , 'lote'
                                 , 'datavalidade'
+                                , 'possuilaudo'
                                 , 'possuifoto'
-                                , 'estrutura'
+                                , 'consumido'
                                 , 'chave'
-                                , 'fornecedor'
-                                , 'dataentrada'
-                                , 'documento'
                             ], cellDates: true
                         });
                         let filename = process.hrtime()[1] + '.xls';
