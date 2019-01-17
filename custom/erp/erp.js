@@ -61,7 +61,7 @@ let main = {
                             obj._cookies = [{ key: 'wizard-step', value: parseInt(obj.req.body['wizard-step']) + 1 }];
                         }
                         let neednotification = false;
-
+                        
                         switch (obj.req.body['wizard-step']) {
                             case '0'://Cliente
                                 nextStep();
@@ -90,7 +90,6 @@ let main = {
                                     let formaspgto = await db.getModel('fin_formapgto').findAll({ where: { disp_venda: true } });
                                     let conta = await db.getModel('users').find({ where: { id: obj.register.identregador } })
                                     let valorestante = totalvenda
-
                                     if (vendaformaspgto.length > 0) {
                                         for (let i = 0; i < vendaformaspgto.length; i++) {
                                             let prazo = 0
@@ -122,6 +121,7 @@ let main = {
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0
                                                         let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas
                                                         let datavenc = moment().add(prazo, 'day')
+                                                        console.log(datavenc);
                                                         if (totalparcelas > 0) {
                                                             for (let l = 0; l < totalparcelas; l++) {
                                                                 let mov = await db.getModel('fin_mov').create({
@@ -134,6 +134,7 @@ let main = {
                                                                     , idpessoa: obj.register.idcliente
                                                                     , idvenda: obj.register.id
                                                                     , detalhe: `Venda ID ${obj.register.id}`
+                                                                    , compesando: false
                                                                 })
                                                                 datavenc = datavenc.add(prazo, 'day')
                                                             }
@@ -148,6 +149,7 @@ let main = {
                                                                 , idpessoa: obj.register.idcliente
                                                                 , idvenda: obj.register.id
                                                                 , detalhe: `Venda ID ${obj.register.id}`
+                                                                , compesando: false
                                                             })
                                                         }
                                                     } else if (formaspgto[j].formarecebimento == 'Vale') {
@@ -214,14 +216,21 @@ let main = {
                 , js_historicoCompras: async function (obj) {
                     try {
                         let historico = await db.sequelize.query(
-                            `SELECT "com_venda"."datahora"
-                                , "cad_pessoa"."nome" AS "cliente"
+                            `SELECT "com_venda"."id"
+                                , "com_venda"."datahora"
+                                , "item"."descricao" AS "item"
+                                , "fin_pgto"."descricao" AS "pagamento"
                                 , (select sum(vi.qtd * vi.valorunitario) from com_vendaitem vi where vi.idvenda = com_venda.id) - coalesce(com_venda.desconto, 0) + coalesce(com_venda.acrescimo, 0)  AS "totalvenda"
-                                , coalesce((select sum(valor) from fin_mov where idvenda = com_venda.id and quitado = false), 0.00) AS "totalpendente"
+                                , (select coalesce(sum(valor),0.00) from fin_mov where idvenda = com_venda.id and quitado = false and compensado = false) AS "totalpendente"
                             FROM "com_venda" AS "com_venda" 
-                            LEFT OUTER JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
+                            LEFT JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
+                            LEFT JOIN "com_vendaitem"	AS "v_item"			  ON "com_venda"."id" = "v_item"."idvenda"
+                            LEFT JOIN "cad_item"	AS "item"				  ON "v_item"."iditem" = "item"."id"
+                            LEFT JOIN "com_vendapagamento" AS "ven_pgto"	  ON "com_venda"."id" = "ven_pgto"."idvenda"
+                            LEFT JOIN "fin_formapgto" AS "fin_pgto" 	      ON "ven_pgto"."idformapgto" = "fin_pgto"."id"
                             WHERE com_venda.idcliente = :cliente
-                            ORDER BY com_venda.datahora DESC`
+                            ORDER BY com_venda.datahora DESC
+                            LIMIT 5`
                             , {
                                 type: db.Sequelize.QueryTypes.SELECT
                                 , replacements: {
@@ -234,17 +243,21 @@ let main = {
                                 <h4 align="center"> Pendências Financeiras </h4>
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
                                     <tr>
+                                        <td style="text-align:center;"><strong>ID</strong></td>
                                         <td style="text-align:center;"><strong>Data/Hora</strong></td>
-                                        <td style="text-align:center;"><strong>Cliente</strong></td>
+                                        <td style="text-align:center;"><strong>Item</strong></td>
+                                        <td style="text-align:center;"><strong>Forma</strong></td>
                                         <td style="text-align:center;"><strong>Total Venda</strong></td>
-                                        <td style="text-align:center;"><strong>Total Pendente</strong></td>
+                                        <td style="text-align:center;"><strong>Pendente</strong></td>
                                     </tr>
                                     `;
                         for (let i = 0; i < historico.length; i++) {
                             body += `
                             <tr>
+                                <td style="text-align:center;">  ${historico[i].id}   </td>    
                                 <td style="text-align:center;"> ${application.formatters.fe.date(historico[i].datahora)}   </td>
-                                <td style="text-align:center;">  ${historico[i].cliente}   </td>
+                                <td style="text-align:center;">  ${historico[i].item}   </td>
+                                <td style="text-align:center;">  ${historico[i].pagamento}   </td>
                                 <td style="text-align:right;">  ${historico[i].totalvenda}   </td>
                                 <td style="text-align:right;">  ${historico[i].totalpendente}   </td>
                             </tr>
