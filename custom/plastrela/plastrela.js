@@ -2276,6 +2276,47 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_alterarEndereco: async function (obj) {
+                    try {
+
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Endereço'
+                                , name: 'iddepositoendereco'
+                                , model: 'est_depositoendereco'
+                                , attribute: 'descricaocompleta'
+                            });
+
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Alterar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'iddepositoendereco']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            await db.getModel('est_volume').update({ iddepositoendereco: obj.req.body.iddepositoendereco }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
                 , e_reservar: async function (obj) {
                     try {
                         if (obj.req.method == 'GET') {
