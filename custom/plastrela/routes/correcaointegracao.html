@@ -74,7 +74,7 @@
             application.functions.confirmMessage('Confirma a exclusão deste registro?', function () {
                 $.ajax({
                     type: 'POST',
-                    url: 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php',
+                    url: 'http://intranet.plastrela.com.br/SistemaH/scripts/socket/scripts2socket.php',
                     data: {
                         function: 'PLAIniflexSQL', param: JSON.stringify([
                             "delete from integracao.integracaoiniflex2 where id = " + data[0]
@@ -99,7 +99,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php',
+                url: 'http://intranet.plastrela.com.br/SistemaH/scripts/socket/scripts2socket.php',
                 data: {
                     function: 'PLAIniflexSQL', param: JSON.stringify([
                         "select x.id, x.leiaute_integ, to_char(x.texto_integ) as texto_integ, to_char(x.informacao_erro) as informacao_erro from integracao.integracaoiniflex2 x where situacao_integ = 'E' " + where + " order by x.id"
@@ -128,7 +128,7 @@
         $('#corrigir').click(function (e) {
             $.ajax({
                 type: 'POST',
-                url: 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php',
+                url: 'http://intranet.plastrela.com.br/SistemaH/scripts/socket/scripts2socket.php',
                 data: {
                     function: 'PLAIniflexSQL', param: JSON.stringify([
                         "update integracao.integracaoiniflex2 set texto_integ = '" + $('#ftexto').val() + "' where id = " + $('#fid').val()
