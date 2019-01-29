@@ -9,6 +9,7 @@ module.exports = function (app) {
 			&& (file !== 'index.js')
 			&& (file !== 'application.js')
 			&& (file !== 'schedule.js')
+			&& (file !== 'messenger.js')
 	}).forEach(function (file) {
 		require('./' + file.substr(0, file.indexOf('.')))(app);
 	});

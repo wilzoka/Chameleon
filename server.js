@@ -70,6 +70,8 @@ if (cluster.isMaster) {
     require('./routes')(app);
     //Schedule
     require('./routes/schedule');
+    //Messenger
+    require('./routes/messenger');
     //Server
     http.listen(8080, function () {
         console.log('Server UP', 'PID ' + process.pid);

@@ -1,6 +1,5 @@
 const application = require('../../routes/application')
     , db = require('../../models')
-    , schedule = require('../../routes/schedule')
     , moment = require('moment')
     , fs = require('fs')
     , lodash = require('lodash')
@@ -46,6 +45,16 @@ let main = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let saved = await next(obj);
+                    if (saved.register._isInsert) {
+                        let user = await db.getModel('users').findOne({ where: { id: saved.register.iduser_criacao } });
+                        if (user.email) {
+                            main.platform.mail.f_sendmail({
+                                to: [user.email]
+                                , subject: `[ATV#${saved.register.id}] - ${saved.register.assunto}`
+                                , html: `Sua atividade foi registrada!<br>${saved.register.descricao}`
+                            });
+                        }
+                    }
 
                     for (let i = 0; i < cds.length; i++) {
                         let atvcd = (await db.getModel('atv_atividade_cd').findOrCreate({ include: [{ all: true }], where: { idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } }))[0];
@@ -438,6 +447,31 @@ let main = {
                         tipo.save();
                     });
                 });
+            }
+        }
+        , f_coletor: async (email) => {
+            try {
+                let initialIdx = email.subject.indexOf('[ATV#');
+                let finalIdx = email.subject.indexOf(']');
+                if (initialIdx >= 0 && finalIdx >= 0 && initialIdx < finalIdx) {
+                    let id = email.subject.substring(initialIdx + 5, finalIdx);
+                    id = parseInt(id);
+                    if (id > 0) {
+                        let atividade = await db.getModel('atv_atividade').findOne({ where: { id: id } });
+                        let user = await db.getModel('users').findOne({ where: { email: email.from[0].address } });
+                        if (atividade) {
+                            await db.getModel('atv_atividadenota').create({
+                                idatividade: atividade.id
+                                , datahora: moment()
+                                , descricao: email.text.trim()
+                                , tempo: 0
+                                , iduser: user ? user.id : null
+                            });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
     }

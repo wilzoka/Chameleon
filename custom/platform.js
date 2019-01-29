@@ -2,6 +2,7 @@ const db = require('../models')
     , moment = require('moment')
     , fs = require('fs')
     , schedule = require('../routes/schedule')
+    , messenger = require('../routes/messenger')
     , lodash = require('lodash')
     , application = require('../routes/application')
     , pdf = require('html-pdf')
@@ -58,19 +59,16 @@ let platform = {
         }
     }
     , mail: {
-        f_sendmail: function (obj) {
+        f_sendmail: async (obj) => {
+            let config = await db.getModel('config').findOne();
+            if (!config.emailconf) {
+                return console.error('E-mail sent configuration missing');
+            }
+            let transportConfig = JSON.parse(config.emailconf)
             let nodemailer = require('nodemailer');
-            let transporter = nodemailer.createTransport({
-                host: 'smtp.plastrela.com.br'
-                , port: 587
-                , tls: { rejectUnauthorized: false }
-                , auth: {
-                    user: 'sip@plastrela.com.br'
-                    , pass: 'sip#$2016Pls!@'
-                }
-            });
+            let transporter = nodemailer.createTransport(transportConfig);
             let mailOptions = {
-                from: '"SIP" <sip@plastrela.com.br>'
+                from: transportConfig.auth.user
                 , to: obj.to.join(',')
                 , subject: obj.subject
                 , html: obj.html
@@ -963,6 +961,43 @@ let platform = {
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
+        }
+    }
+    , messenger: {
+        e_active: async function (obj) {
+            try {
+                if (obj.ids.length == 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                let messengers = await db.getModel('messenger').findAll({ where: { id: { $in: obj.ids } } });
+                messengers.map(mes => {
+                    messenger.activeMessenger(mes);
+                    mes.active = true;
+                    mes.save();
+                });
+                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , e_desactive: async function (obj) {
+            try {
+                if (obj.ids.length == 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                let messengers = await db.getModel('messenger').findAll({ where: { id: { $in: obj.ids } } });
+                messengers.map(mes => {
+                    messenger.desactiveMessenger(mes);
+                    mes.active = false;
+                    mes.save();
+                });
+                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , mailtest: function (mail) {
+            console.log('received email', mail.subject, mail.text, mail.attachments);
         }
     }
     , users: {

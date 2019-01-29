@@ -1,3 +1,9 @@
+<style>
+    #tableviewatividade_-_nota_insert {
+        display: none;
+    }
+</style>
+
 <div class="hidden">
     {{{hidden}}}
 </div>
@@ -12,7 +18,7 @@
     </div>
 </div>
 
-<div class="col-md-9">
+<div class="col-md-6">
     <div class="nav-tabs-custom">
         <ul class="nav nav-tabs">
             <li class="active">
@@ -20,9 +26,6 @@
             </li>
             <li id="tabdetalhes">
                 <a href="#tab_2" data-toggle="tab"> Detalhes</a>
-            </li>
-            <li id="tabnotas">
-                <a href="#tab_3" data-toggle="tab"> Notas</a>
             </li>
         </ul>
         <div class="tab-content">
@@ -40,67 +43,64 @@
                     </div>
                 </div>
             </div>
-            <div class="tab-pane" id="tab_3">
-                <div class="row">
-                    <div class="col-md-9">
-                        <div class="form-group">
-                            <div class="col-xs-6 no-padding">
-                                <label>Descrição</label>
-                            </div>
-                            <div class="col-xs-6 no-padding" style="text-align: right;">
-                                <label>
-                                    <input name="nota_privada" type="checkbox"> Privada?
-                                </label>
-                            </div>
-                            <textarea name="nota_descricao" rows="3" class="form-control" data-type="textarea"></textarea>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6" id="divnota">
+    <div class="box">
+        <div class="box-body">
+            <div class="row">
+                <h4 class="title_subview">Notas</h4>
+                <hr style="margin: 10px 0;">
+                <div class="col-md-9">
+                    <div class="form-group">
+                        <div class="col-xs-6 no-padding">
+                            <label>Descrição</label>
+                        </div>
+                        <div class="col-xs-6 no-padding" style="text-align: right;">
+                            <label>
+                                <input name="nota_privada" type="checkbox"> Privada?
+                            </label>
+                        </div>
+                        <textarea name="nota_descricao" rows="3" class="form-control" data-type="textarea"></textarea>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Tempo</label>
+                        <input name="nota_tempo" type="text" class="form-control" data-type="time" placeholder="hh:mm" style="text-align:right;">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button id="playtempo" type="button" class="btn btn-default btn-block">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button id="pausetempo" type="button" class="btn btn-default btn-block">
+                                <i class="fa fa-pause"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Tempo</label>
-                            <input name="nota_tempo" type="text" class="form-control" data-type="time" placeholder="hh:mm" style="text-align:right;">
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <button id="playtempo" type="button" class="btn btn-default btn-block">
-                                    <i class="fa fa-play"></i>
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <button id="pausetempo" type="button" class="btn btn-default btn-block">
-                                    <i class="fa fa-pause"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12" style="margin-bottom: 5px;">
-                        <button id="adicionarNota" type="button" class="btn btn-success btn-block">
-                            <i class="fa fa-plus"></i>
-                        </button>
-                    </div>
-                    <div class="col-md-12 no-padding">
-                        {{{nota}}}
-                    </div>
+                </div>
+                <div class="col-md-12" style="margin-bottom: 5px;">
+                    <button id="adicionarNota" type="button" class="btn btn-success btn-block">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+                <div class="col-md-12 no-padding">
+                    {{{nota}}}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="col-md-3">
+<div class="col-md-12 hidden" id="divcd">
     <div class="box">
         <div class="box-body">
-            <div class="row">
-                {{{anexo}}}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="col-md-12">
-    <div class="box">
-        <div class="box-body">
-            <div class="row" id="divcd">
+            <div class="row" id="rowcd">
             </div>
         </div>
     </div>
@@ -178,9 +178,10 @@
                 idtipo: $('select[name="idtipo"]').val()
                 , idatividade: application.functions.getId()
             }, function (response) {
-                $('#divcd').children().remove();
-                $('#divcd').append(response.data);
-                application.components.renderInside($('#divcd'));
+                $('#rowcd').children().remove();
+                $('#rowcd').append(response.data);
+                application.components.renderInside($('#rowcd'));
+                $('#divcd').removeClass('hidden');
             });
         }
         function runTime() {
