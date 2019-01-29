@@ -418,6 +418,103 @@
         "_event": []
     },
     {
+        "name": "Mensageiro",
+        "namecomplete": "Plataforma - Mensageiro",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "messenger",
+        "module": "Plataforma",
+        "url": "mensageiro",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "conf",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "ongathering",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "active",
+                "ordertable": 1,
+                "orderable": true,
+                "render": "booleancircle",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "type",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "ongathering",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Ativar",
+                "icon": "fa fa-check",
+                "function": "platform.messenger.e_active",
+                "parameters": null
+            },
+            {
+                "description": "Desativar",
+                "icon": "fa fa-times",
+                "function": "platform.messenger.e_desactive",
+                "parameters": null
+            }
+        ]
+    },
+    {
         "name": "Menu",
         "namecomplete": "Plataforma - Menu",
         "js": null,

@@ -40,6 +40,14 @@
         "tree": "Plataforma - Configurações"
     },
     {
+        "description": "Mensageiros",
+        "icon": "fa fa-comments-o",
+        "menuparent": "Plataforma",
+        "view": "Mensageiro",
+        "url": null,
+        "tree": "Plataforma - Mensageiros"
+    },
+    {
         "description": "Menus",
         "icon": "fa fa-list-ul",
         "menuparent": "Plataforma",

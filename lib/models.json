@@ -249,6 +249,49 @@
         ]
     },
     {
+        "name": "messenger",
+        "description": "Mensageiro",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "active",
+                "label": "Ativo",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            },
+            {
+                "name": "conf",
+                "label": "Configuração",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": "{\r\n\"rows\": 8\r\n , \"placeholder\": \"\"\r\n }"
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            },
+            {
+                "name": "ongathering",
+                "label": "Ao Coletar",
+                "type": "text",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "radio",
+                "notnull": true,
+                "typeadd": "{\r\n\"options\": [\"E-Mail\"]\r\n }"
+            }
+        ]
+    },
+    {
         "name": "model",
         "description": "Modelo",
         "onsave": "platform.model.onsave",
