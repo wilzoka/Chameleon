@@ -2033,6 +2033,11 @@ let main = {
                             return application.error(obj.res, { msg: 'Já existe uma venda com este número de NFE' });
                         }
 
+                        let movs = await db.getModel('fin_mov').findAll({ where: { idpedido: obj.register.id } });
+                        if (movs.length > 0) {
+                            return application.error(obj.res, { msg: 'Nâo é permitido alterações no pedido com parcelas geradas' });
+                        }
+
                         next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);

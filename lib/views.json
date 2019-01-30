@@ -10,6 +10,8 @@
         "model": "schedule",
         "module": "Plataforma",
         "url": "agendamento",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -103,6 +105,8 @@
         "model": "file",
         "module": "Plataforma",
         "url": "arquivo",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -225,6 +229,8 @@
         "model": "audit",
         "module": "Plataforma",
         "url": "auditoria",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -339,6 +345,8 @@
         "model": "config",
         "module": "Plataforma",
         "url": "configuracao_da_plataforma",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "system",
@@ -381,14 +389,6 @@
                 "disablefilter": false
             },
             {
-                "templatezone": "company",
-                "modelattribute": "reportimage",
-                "width": 4,
-                "order": 104,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
                 "templatezone": "customization",
                 "modelattribute": "descriptionmenu",
                 "width": 6,
@@ -407,8 +407,40 @@
             {
                 "templatezone": "customization",
                 "modelattribute": "favicon",
-                "width": 6,
+                "width": 4,
                 "order": 203,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "loginimage",
+                "width": 4,
+                "order": 204,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "reportimage",
+                "width": 4,
+                "order": 205,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "email",
+                "modelattribute": "emailconf",
+                "width": 6,
+                "order": 301,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "email",
+                "modelattribute": "emailsignature",
+                "width": 6,
+                "order": 302,
                 "disabled": false,
                 "disablefilter": false
             }
@@ -525,6 +557,7 @@
         "model": "menu",
         "module": "Plataforma",
         "url": "menu",
+        "pagelength": null,
         "fastsearch": "tree",
         "_field": [
             {
@@ -615,12 +648,13 @@
         "namecomplete": "Plataforma - Modelo",
         "js": null,
         "wherefixed": null,
-        "orderfixed": "name,asc",
+        "orderfixed": "id,desc",
         "supressid": false,
         "template": "box-12-12",
         "model": "model",
         "module": "Plataforma",
         "url": "modelo",
+        "pagelength": null,
         "fastsearch": "name",
         "_field": [
             {
@@ -729,6 +763,8 @@
         "model": "modelattribute",
         "module": "Plataforma",
         "url": "modelo_-_atributo",
+        "pagelength": -1,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -827,6 +863,8 @@
         "model": "module",
         "module": "Plataforma",
         "url": "modulo",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -851,6 +889,110 @@
         "_event": []
     },
     {
+        "name": "Módulos",
+        "namecomplete": "Plataforma - Módulos",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "module",
+        "module": "Plataforma",
+        "url": "modulos",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Parâmetros",
+        "namecomplete": "Plataforma - Parâmetros",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12",
+        "model": "parameter",
+        "module": "Plataforma",
+        "url": "parametros",
+        "pagelength": null,
+        "fastsearch": "key",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "key",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "value",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "key",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "value",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
         "name": "Permissão",
         "namecomplete": "Plataforma - Permissão",
         "js": null,
@@ -861,6 +1003,8 @@
         "model": "permission",
         "module": "Plataforma",
         "url": "permissao",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -991,6 +1135,8 @@
         "model": "report",
         "module": "Plataforma",
         "url": "relatorio",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1056,6 +1202,7 @@
         "model": "route",
         "module": "Plataforma",
         "url": "rota",
+        "pagelength": null,
         "fastsearch": "description",
         "_field": [
             {
@@ -1168,6 +1315,7 @@
         "model": "template",
         "module": "Plataforma",
         "url": "template",
+        "pagelength": null,
         "fastsearch": "name",
         "_field": [
             {
@@ -1225,6 +1373,8 @@
         "model": "templatezone",
         "module": "Plataforma",
         "url": "template_-_zona",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1259,6 +1409,7 @@
         "model": "users",
         "module": "Plataforma",
         "url": "usuario",
+        "pagelength": null,
         "fastsearch": "fullname",
         "_field": [
             {
@@ -1516,6 +1667,8 @@
         "model": "viewfield",
         "module": "Plataforma",
         "url": "view_-_atributo",
+        "pagelength": -1,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1649,6 +1802,8 @@
         "model": "viewevent",
         "module": "Plataforma",
         "url": "view_-_evento",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1731,6 +1886,8 @@
         "model": "viewsubview",
         "module": "Plataforma",
         "url": "view_-_subview",
+        "pagelength": null,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1797,6 +1954,8 @@
         "model": "viewtable",
         "module": "Plataforma",
         "url": "view_-_tabela",
+        "pagelength": -1,
+        "fastsearch": null,
         "_field": [
             {
                 "templatezone": "z1",

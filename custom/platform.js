@@ -10,7 +10,29 @@ const db = require('../models')
 
 let platform = {
     config: {
-        js_getGoogleMapsKey: async function (obj) {
+        onsave: async (obj, next) => {
+            try {
+                let saved = await next(obj);
+                if (saved.success) {
+                    if (saved.register.favicon) {
+                        const favicon = JSON.parse(saved.register.favicon)[0];
+                        application.Handlebars.registerPartial('parts/favicon', '/files/' + favicon.id + '.' + favicon.type);
+                    } else {
+                        application.Handlebars.registerPartial('parts/favicon', '/public/images/favicon.ico');
+                    }
+
+                    if (saved.register.loginimage) {
+                        const loginimage = JSON.parse(saved.register.loginimage)[0];
+                        application.Handlebars.registerPartial('parts/loginimage', `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="max-width: 100%; margin-bottom: 10px;">`);
+                    } else {
+                        application.Handlebars.registerPartial('parts/loginimage', '');
+                    }
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , js_getGoogleMapsKey: async function (obj) {
             try {
                 let config = await db.getModel('config').findOne();
                 return application.success(obj.res, { data: config.googlemapskey });
@@ -74,6 +96,15 @@ let platform = {
                 , html: obj.html
                 , attachments: obj.attachments || []
             };
+            if (config.emailsignature) {
+                mailOptions.html += '</br></br><img src="cid:unique@signature"/>';
+                let signature = JSON.parse(config.emailsignature)
+                mailOptions.attachments.push({
+                    filename: signature[0].filename,
+                    path: __dirname + `/../files/${signature[0].id}.${signature[0].type}`,
+                    cid: 'unique@signature'
+                });
+            }
             transporter.sendMail(mailOptions, (err, info) => {
                 if (err) {
                     return console.error(err);

@@ -72,6 +72,14 @@
         "tree": "Plataforma - Módulos"
     },
     {
+        "description": "Parâmetros",
+        "icon": "fa fa-code",
+        "menuparent": "Plataforma",
+        "view": "Parâmetros",
+        "url": null,
+        "tree": "Plataforma - Parâmetros"
+    },
+    {
         "description": "Permissões",
         "icon": "fa fa-lock",
         "menuparent": "Plataforma",

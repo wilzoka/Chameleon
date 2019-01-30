@@ -52,23 +52,9 @@
     {
         "name": "config",
         "description": "Configuração da Plataforma",
-        "onsave": null,
+        "onsave": "platform.config.onsave",
         "ondelete": null,
         "_attribute": [
-            {
-                "name": "customfile",
-                "label": "Arquivo Customizado",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
-                "name": "googlemapskey",
-                "label": "Google Maps Key",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
             {
                 "name": "cnpj",
                 "label": "CNPJ",
@@ -77,8 +63,8 @@
                 "typeadd": null
             },
             {
-                "name": "razaosocial",
-                "label": "Razão Social",
+                "name": "customfile",
+                "label": "Arquivo Customizado",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
@@ -98,8 +84,36 @@
                 "typeadd": null
             },
             {
+                "name": "emailconf",
+                "label": "Configuração do E-mail",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": "{\r\n\"rows\": 9\r\n , \"placeholder\": \"\"\r\n }"
+            },
+            {
+                "name": "emailsignature",
+                "label": "Assinatura do E-mail",
+                "type": "file",
+                "notnull": false,
+                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
+            },
+            {
                 "name": "fantasia",
                 "label": "Fantasia",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "favicon",
+                "label": "Favicon",
+                "type": "file",
+                "notnull": false,
+                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
+            },
+            {
+                "name": "googlemapskey",
+                "label": "Google Maps Key",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
@@ -112,15 +126,22 @@
                 "typeadd": null
             },
             {
-                "name": "reportimage",
-                "label": "Imagem para Relatórios",
+                "name": "loginimage",
+                "label": "Imagem de Login",
                 "type": "file",
                 "notnull": false,
                 "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
             },
             {
-                "name": "favicon",
-                "label": "Favicon",
+                "name": "razaosocial",
+                "label": "Razão Social",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "reportimage",
+                "label": "Imagem para Relatórios",
                 "type": "file",
                 "notnull": false,
                 "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
@@ -439,6 +460,35 @@
                 "type": "datetime",
                 "notnull": true,
                 "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "parameter",
+        "description": "Parametros",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": "{\r\n\"rows\": 3\r\n , \"placeholder\": \"\"\r\n }"
+            },
+            {
+                "name": "key",
+                "label": "Chave",
+                "type": "text",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            },
+            {
+                "name": "value",
+                "label": "Valor",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": "{\r\n\"rows\": 3\r\n , \"placeholder\": \"\"\r\n }"
             }
         ]
     },
