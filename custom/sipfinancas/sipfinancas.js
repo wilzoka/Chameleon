@@ -52,7 +52,7 @@ let main = {
 
                         if (obj.register.id == 0) {
                             if (obj.register.idcategoriapai) {
-                                let categoriapai = await db.getModel('fin_categoria').find({ where: { id: obj.register.idcategoriapai } });
+                                let categoriapai = await db.getModel('fin_categoria').findOne({ where: { id: obj.register.idcategoriapai } });
                                 obj.register.dc = categoriapai.dc;
                             } else {
                                 obj.register.dc = parseInt(obj.req.body.dc);
@@ -110,7 +110,7 @@ let main = {
                 f_saldoData: async function (idconta, data) {
                     return new Promise((resolve, reject) => {
                         try {
-                            db.getModel('fin_conta').find({ where: { id: idconta } }).then(conta => {
+                            db.getModel('fin_conta').findOne({ where: { id: idconta } }).then(conta => {
                                 db.sequelize.query(`
                                 select
                                     sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0)) * -1
@@ -143,8 +143,8 @@ let main = {
                 }
                 , js_saldoData: async function (obj) {
                     try {
-                        let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
-                        let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
+                        let conta = await db.getModel('fin_conta').findOne({ where: { id: obj.data.idconta } });
+                        let saldoanterior = await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
                         let sql = await db.sequelize.query(`
                         select
                             sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0) end) as soma
@@ -175,8 +175,8 @@ let main = {
                 }
                 , js_saldoAtual: async function (obj) {
                     try {
-                        let conta = await db.getModel('fin_conta').find({ where: { id: obj.data.idconta } });
-                        let saldoanterior = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
+                        let conta = await db.getModel('fin_conta').findOne({ where: { id: obj.data.idconta } });
+                        let saldoanterior = await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.data.idconta }, order: [['data', 'desc']] });
                         let sql = await db.sequelize.query(`
                         select
                             sum(case when c.dc = 1 then (mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0)) * -1 else mp.valor - coalesce(mp.desconto, 0) - coalesce(mp.devolucao, 0) + coalesce(mp.juro, 0) end) as soma
@@ -276,7 +276,7 @@ let main = {
                             let valortotalselecionado = 0;
                             for (let i = 0; i < obj.ids.length; i++) {
 
-                                let mov = await db.getModel('fin_mov').find({ where: { id: obj.ids[i] }, include: [{ all: true }] });
+                                let mov = await db.getModel('fin_mov').findOne({ where: { id: obj.ids[i] }, include: [{ all: true }] });
                                 let valoraberto = application.formatters.fe.decimal((await db.sequelize.query(`
                                     select
                                         m.valor - coalesce(
@@ -418,7 +418,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: requiredFields });
                             }
 
-                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idconta, data: { $gte: application.formatters.be.date(obj.req.body.data) } } });
+                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idconta, data: { $gte: application.formatters.be.date(obj.req.body.data) } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
                             }
@@ -431,7 +431,7 @@ let main = {
                                     return application.error(obj.res, { msg: 'Não existem compensações em aberto para este cliente' });
                                 }
                                 for (let i = 0; i < ids.length; i++) {
-                                    let mov = await db.getModel('fin_mov').find({ where: { id: ids[i] } });
+                                    let mov = await db.getModel('fin_mov').findOne({ where: { id: ids[i] } });
                                     for (let z = 0; z < sql.length; z++) {
                                         if (sql[z].idcorr == mov.idcorr) {
                                             sql[z].valoraberto = parseFloat(sql[z].valoraberto) - application.formatters.be.decimal(obj.req.body['valor' + ids[i]]);
@@ -446,7 +446,7 @@ let main = {
                             }
 
                             for (let i = 0; i < ids.length; i++) {
-                                let mov = await db.getModel('fin_mov').find({ where: { id: ids[i] }, include: [{ all: true }] });
+                                let mov = await db.getModel('fin_mov').findOne({ where: { id: ids[i] }, include: [{ all: true }] });
                                 let movparc = await db.getModel('fin_movparc').create({
                                     valor: application.formatters.be.decimal(obj.req.body['valor' + ids[i]], 2)
                                     , idmov: mov.id
@@ -543,7 +543,7 @@ let main = {
                                         }
                                     }))[0].valoraberto);
                                 if (valoraberto <= 0) {
-                                    let mov = await db.getModel('fin_mov').find({ where: { id: ids[i] } });
+                                    let mov = await db.getModel('fin_mov').findOne({ where: { id: ids[i] } });
                                     mov.quitado = true;
                                     await mov.save();
                                 }
@@ -562,7 +562,7 @@ let main = {
 
                         for (let i = 0; i < movparcs.length; i++) {
                             let movparc = movparcs[i];
-                            let mov = await db.getModel('fin_mov').find({ where: { id: movparc.idmov }, include: [{ all: true }] });
+                            let mov = await db.getModel('fin_mov').findOne({ where: { id: movparc.idmov }, include: [{ all: true }] });
 
                             if (mov.fin_categoria.dc == 2 && mov.ven_pedido && mov.ven_pedido.idvendedor) {
                                 let pedidoitens = await db.getModel('ven_pedidoitem').findAll({ where: { idpedido: mov.ven_pedido.id } });
@@ -672,7 +672,7 @@ let main = {
 
                             let total = 0;
                             let report = {};
-                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            let categoria = await db.getModel('fin_categoria').findOne({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Contas a Receber em Aberto</br>Vencimento de ${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table = `
@@ -803,7 +803,7 @@ let main = {
 
                             let total = 0;
                             let report = {};
-                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            let categoria = await db.getModel('fin_categoria').findOne({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Contas a Pagar em Aberto</br>Vencimento de ${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table = `
@@ -951,7 +951,7 @@ let main = {
                                 });
 
                             let report = {};
-                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            let categoria = await db.getModel('fin_categoria').findOne({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Contas a Pagar Abertas</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>Categoria: ${categoria.descricaocompleta} `;
 
                             report.__table = `
@@ -999,15 +999,15 @@ let main = {
                         let ids = [];
                         let mpc = [];
                         for (let i = 0; i < movparcs.length; i++) {
-                            let fechamento = await db.getModel('fin_contasaldo').find({ where: { idconta: movparcs[i].idconta, data: { $gte: movparcs[i].data } } });
+                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: movparcs[i].idconta, data: { $gte: movparcs[i].data } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: 'Conta fechada para estorno nesta competência' });
                             }
                             ids.push(movparcs[i].idmov);
 
-                            let movparccomissao = await db.getModel('fin_movparccomissao').find({ where: { idmovparc: movparcs[i].id } });
+                            let movparccomissao = await db.getModel('fin_movparccomissao').findOne({ where: { idmovparc: movparcs[i].id } });
                             if (movparccomissao) {
-                                let mpcmov = await db.getModel('fin_movparc').find({ where: { idmov: movparccomissao.idmov } });
+                                let mpcmov = await db.getModel('fin_movparc').findOne({ where: { idmov: movparccomissao.idmov } });
                                 if (mpcmov) {
                                     return application.error(obj.res, { msg: 'Não é possível estornar uma movimentação com comissão já quitada (ID ' + movparccomissao.idmov + ')' })
                                 }
@@ -1023,7 +1023,7 @@ let main = {
                             }
                         }
                         for (let i = 0; i < mpc.length; i++) {
-                            let movaux = await db.getModel('fin_mov').find({ where: { id: mpc[i].idmov } });
+                            let movaux = await db.getModel('fin_mov').findOne({ where: { id: mpc[i].idmov } });
                             await movaux.destroy();
                         }
 
@@ -1099,7 +1099,7 @@ let main = {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                         }
 
-                        let pedido = await db.getModel('ven_pedido').find({ where: { id: obj.data.idpedido } });
+                        let pedido = await db.getModel('ven_pedido').findOne({ where: { id: obj.data.idpedido } });
                         let sum = await db.sequelize.query(
                             `select round(sum(qtd * unitario), 3) as sum from ven_pedidoitem where idpedido = :v1`
                             , {
@@ -1170,7 +1170,7 @@ let main = {
                             let datafim = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format).endOf('month');
                             let contas = await db.getModel('fin_conta').findAll({ raw: true, order: [['descricao', 'asc']] });
                             for (let i = 0; i < contas.length; i++) {
-                                contas[i]._cs = await db.getModel('fin_contasaldo').find({ raw: true, where: { idconta: contas[i].id, data: { $lt: dataini } }, order: [['data', 'desc']] });
+                                contas[i]._cs = await db.getModel('fin_contasaldo').findOne({ raw: true, where: { idconta: contas[i].id, data: { $lt: dataini } }, order: [['data', 'desc']] });
                                 contas[i]._saldo = contas[i]._cs ? parseFloat(contas[i]._cs.valor) : parseFloat(contas[i].saldoinicial);
                             }
                             let categorias = await db.getModel('fin_categoria').findAll({ raw: true, order: [['descricaocompleta', 'asc']] });
@@ -1667,8 +1667,8 @@ let main = {
 
                         if (obj.req.method == 'GET') {
 
-                            let categoriad = await db.getModel('fin_categoria').find({ where: { descricaocompleta: 'Transferencia - Debito' } });
-                            let categoriac = await db.getModel('fin_categoria').find({ where: { descricaocompleta: 'Transferencia - Credito' } });
+                            let categoriad = await db.getModel('fin_categoria').findOne({ where: { descricaocompleta: 'Transferencia - Debito' } });
+                            let categoriac = await db.getModel('fin_categoria').findOne({ where: { descricaocompleta: 'Transferencia - Credito' } });
 
                             let body = '';
                             body += application.components.html.autocomplete({
@@ -1754,10 +1754,10 @@ let main = {
                             }
                             let valor = application.formatters.be.decimal(obj.req.body.valor, 2);
                             let data = application.formatters.be.date(obj.req.body.data);
-                            if (await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idcontad, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
+                            if (await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idcontad, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência', invalidfields: ['idcontad', 'data'] });
                             }
-                            if (await db.getModel('fin_contasaldo').find({ where: { idconta: obj.req.body.idcontac, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
+                            if (await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idcontac, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência', invalidfields: ['idcontac', 'data'] });
                             }
                             if (parseFloat(valor) <= 0) {
@@ -1921,7 +1921,7 @@ let main = {
                                 });
 
                             let total = 0;
-                            let categoria = await db.getModel('fin_categoria').find({ where: { id: obj.req.body.idcategoria } });
+                            let categoria = await db.getModel('fin_categoria').findOne({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Movimentações</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table += `
@@ -2026,12 +2026,7 @@ let main = {
         , venda: {
             pedido: {
                 onsave: async function (obj, next) {
-                    try {
-
-                        let register = await db.getModel('ven_pedido').find({ where: { id: { $ne: obj.id }, nfe: obj.register.nfe } })
-                        if (register) {
-                            return application.error(obj.res, { msg: 'Já existe uma venda com este número de NFE' });
-                        }
+                    try {                        
 
                         let movs = await db.getModel('fin_mov').findAll({ where: { idpedido: obj.register.id } });
                         if (movs.length > 0) {
@@ -2049,7 +2044,7 @@ let main = {
                             return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
 
-                        let pedido = await db.getModel('ven_pedido').find({ include: [{ all: true }], where: { id: obj.ids[0] } });
+                        let pedido = await db.getModel('ven_pedido').findOne({ include: [{ all: true }], where: { id: obj.ids[0] } });
                         let report = {};
 
                         report.id = pedido.id
