@@ -2030,7 +2030,7 @@ let main = {
 
                         let movs = await db.getModel('fin_mov').findAll({ where: { idpedido: obj.register.id } });
                         if (movs.length > 0) {
-                            return application.error(obj.res, { msg: 'Nâo é permitido alterações no pedido com parcelas geradas' });
+                            return application.error(obj.res, { msg: 'Nâo é permitido alterações na venda com parcelas geradas' });
                         }
 
                         next(obj);
