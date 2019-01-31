@@ -11,7 +11,7 @@
         "module": "Plataforma",
         "url": "agendamento",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "description",
         "_field": [
             {
                 "templatezone": "z1",
@@ -106,7 +106,7 @@
         "module": "Plataforma",
         "url": "arquivo",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "filename",
         "_field": [
             {
                 "templatezone": "z1",
@@ -230,7 +230,7 @@
         "module": "Plataforma",
         "url": "auditoria",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "changes",
         "_field": [
             {
                 "templatezone": "z1",
@@ -764,7 +764,7 @@
         "module": "Plataforma",
         "url": "modelo_-_atributo",
         "pagelength": -1,
-        "fastsearch": null,
+        "fastsearch": "label",
         "_field": [
             {
                 "templatezone": "z1",
@@ -864,7 +864,7 @@
         "module": "Plataforma",
         "url": "modulo",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "description",
         "_field": [
             {
                 "templatezone": "z1",
@@ -900,7 +900,7 @@
         "module": "Plataforma",
         "url": "modulos",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "description",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1004,7 +1004,7 @@
         "module": "Plataforma",
         "url": "permissao",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "idmenu",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1136,7 +1136,7 @@
         "module": "Plataforma",
         "url": "relatorio",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "name",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1374,7 +1374,7 @@
         "module": "Plataforma",
         "url": "template_-_zona",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "name",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1668,7 +1668,7 @@
         "module": "Plataforma",
         "url": "view_-_atributo",
         "pagelength": -1,
-        "fastsearch": null,
+        "fastsearch": "idmodelattribute",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1803,7 +1803,7 @@
         "module": "Plataforma",
         "url": "view_-_evento",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "description",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1887,7 +1887,7 @@
         "module": "Plataforma",
         "url": "view_-_subview",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "idsubview",
         "_field": [
             {
                 "templatezone": "z1",
@@ -1955,7 +1955,7 @@
         "module": "Plataforma",
         "url": "view_-_tabela",
         "pagelength": -1,
-        "fastsearch": null,
+        "fastsearch": "idmodelattribute",
         "_field": [
             {
                 "templatezone": "z1",

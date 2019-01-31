@@ -35,6 +35,7 @@ Dropzone.prototype.defaultOptions.dictResponseError = "Servidor respondeu com {{
 var maps = [];
 var notifications = [];
 var tables = [];
+var dzs = {};
 var app = false;
 var socket;
 // Application
@@ -357,7 +358,7 @@ var application = {
                 + '<div class="col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash"></i></button></a></div>'
                 + '</div>';
             $obj.each(function () {
-                var dz = new Dropzone(this, {
+                dzs[$(this).attr('data-name')] = new Dropzone(this, {
                     url: "/file"
                     , dictDefaultMessage: $(this).attr('data-message') || 'Clique aqui para adicionar arquivos'
                     , previewTemplate: previewTemplate
@@ -383,11 +384,11 @@ var application = {
                     , parallelUploads: 1
                     , timeout: null
                 });
-                dz.on('addedfile', function (file) {
+                dzs[$(this).attr('data-name')].on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
                     $(file.previewElement).find('a').attr('href', '/file/download/' + file.id);
                 });
-                dz.on('removedfile', function (file) {
+                dzs[$(this).attr('data-name')].on('removedfile', function (file) {
                     if (file.accepted) {
                         var fileid = $(file.previewElement).attr('data-id');
                         var $hidden = $(this.element).find('input[type="hidden"]');
@@ -408,12 +409,12 @@ var application = {
                 var obj = value ? JSON.parse(value) : [];
                 for (var i = 0; i < obj.length; i++) {
                     var mockFile = { id: obj[i].id, name: obj[i].filename, size: obj[i].size, type: obj[i].mimetype, accepted: true };
-                    dz.emit("addedfile", mockFile);
+                    dzs[$(this).attr('data-name')].emit("addedfile", mockFile);
                     if (obj[i].mimetype.match(/image.*/)) {
                         dz.emit("thumbnail", mockFile, '/files/' + obj[i].id + '.' + obj[i].type);
                     }
-                    dz.emit("complete", mockFile);
-                    dz.files.push(mockFile);
+                    dzs[$(this).attr('data-name')].emit("complete", mockFile);
+                    dzs[$(this).attr('data-name')].files.push(mockFile);
                 }
             });
         }
@@ -855,14 +856,16 @@ var application = {
             tables[idtable].rows().deselect();
             $('#' + idtable).attr('data-selected', '');
         }
-        , reload: function (idtable) {
-            application.tables.deselectAll(idtable);
+        , reload: function (idtable, keepSelection) {
+            if (!keepSelection) {
+                application.tables.deselectAll(idtable);
+            }
             tables[idtable].ajax.reload(null, false);
             application.tables.reloadFooter(idtable);
         }
-        , reloadAll: function () {
+        , reloadAll: function (keepSelection) {
             for (var k in tables) {
-                application.tables.reload(k);
+                application.tables.reload(k, keepSelection);
             }
         }
         , reloadFooter: function (idtable) {

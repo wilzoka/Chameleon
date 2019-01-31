@@ -13,8 +13,9 @@ let main = {
                 try {
                     if (obj.register.id == 0) {
                         obj.register.datahora_criacao = moment();
-                        obj.register.iduser_criacao = obj.req.user.id;
-
+                        if (!obj.register.iduser_criacao) {
+                            obj.register.iduser_criacao = obj.req.user.id;
+                        }
                         let statusinicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: obj.register.idtipo, inicial: true } });
                         if (!statusinicial) {
                             return application.error(obj.res, { msg: 'Status Inicial não configurado para este tipo' });
@@ -282,6 +283,7 @@ let main = {
                         , datahora: moment()
                         , iduser: obj.req.user.id
                         , descricao: obj.data.nota_descricao
+                        , anexos: obj.data.nota_anexos
                         , tempo: obj.data.nota_tempo == '' ? null : application.formatters.be.time(obj.data.nota_tempo)
                         , privada: privada
                     });

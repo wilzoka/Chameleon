@@ -53,7 +53,7 @@
             <div class="row">
                 <h4 class="title_subview">Notas</h4>
                 <hr style="margin: 10px 0;">
-                <div class="col-md-9">
+                <div class="col-md-4">
                     <div class="form-group">
                         <div class="col-xs-6 no-padding">
                             <label>Descrição</label>
@@ -66,7 +66,15 @@
                         <textarea name="nota_descricao" rows="3" class="form-control" data-type="textarea"></textarea>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Anexos</label>
+                        <div class="dropzone" data-name="nota_anexos" data-type="file" data-maxfiles="" data-acceptedfiles="">
+                            <input name="nota_anexos" type="hidden">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="form-group">
                         <label>Tempo</label>
                         <input name="nota_tempo" type="text" class="form-control" data-type="time" placeholder="hh:mm" style="text-align:right;">
@@ -133,6 +141,7 @@
         var $iduserresponsavel = $('select[name="iduser_responsavel"]');
         var $nota_descricao = $('textarea[name="nota_descricao"]');
         var $nota_privada = $('input[name="nota_privada"]');
+        var $nota_anexos = $('input[name="nota_anexos"]');
         var $nota_tempo = $('input[name="nota_tempo"]');
 
         if (application.functions.getId() == 0) {
@@ -247,6 +256,7 @@
                 , nota_descricao: $nota_descricao.val()
                 , nota_tempo: $nota_tempo.val()
                 , nota_privada: $nota_privada.is(':checked')
+                , nota_anexos: $nota_anexos.val()
             }, function (response) {
                 application.handlers.responseSuccess(response);
                 if (response.success) {
@@ -254,6 +264,7 @@
                     $nota_privada.prop('checked', false);
                     $nota_tempo.val('00:00');
                     $nota_descricao.parent().removeClass('has-error');
+                    dzs['nota_anexos'].removeAllFiles(true);
                 }
             });
         });
