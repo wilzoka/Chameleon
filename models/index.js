@@ -192,7 +192,7 @@ sequelize.query('select * from config', { type: Sequelize.QueryTypes.SELECT }).t
 
     if (config[0].loginimage) {
       const loginimage = JSON.parse(config[0].loginimage)[0];
-      application.Handlebars.registerPartial('parts/loginimage', `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="max-width: 100%; margin-bottom: 10px;">`);
+      application.Handlebars.registerPartial('parts/loginimage', `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="width: 100%; margin-bottom: 10px;">`);
     } else {
       application.Handlebars.registerPartial('parts/loginimage', '');
     }

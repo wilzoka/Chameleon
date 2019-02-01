@@ -23,7 +23,7 @@ let platform = {
 
                     if (saved.register.loginimage) {
                         const loginimage = JSON.parse(saved.register.loginimage)[0];
-                        application.Handlebars.registerPartial('parts/loginimage', `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="max-width: 100%; margin-bottom: 10px;">`);
+                        application.Handlebars.registerPartial('parts/loginimage', `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="width: 100%; margin-bottom: 10px;">`);
                     } else {
                         application.Handlebars.registerPartial('parts/loginimage', '');
                     }
