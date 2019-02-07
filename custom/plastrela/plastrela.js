@@ -300,6 +300,25 @@ let main = {
                             , description: `Nota de ${obj.req.user.fullname} adicionada!`
                             , link: '/v/minha_atividade/' + atividade.id
                         });
+                        let user = await db.getModel('users').findOne({ where: { id: obj.req.user.id } });
+                        if (user.email) {
+                            let attachments = [];
+                            if (obj.data.nota_anexos) {
+                                let j = JSON.parse(obj.data.nota_anexos);
+                                for (let i = 0; i < j.length; i++) {
+                                    attachments.push({
+                                        filename: j[i].filename
+                                        , path: __dirname + `/../../files/${j[i].id}.${j[i].type}`
+                                    })
+                                }
+                            }
+                            main.platform.mail.f_sendmail({
+                                to: [user.email]
+                                , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
+                                , html: obj.data.nota_descricao
+                                , attachments: attachments
+                            });
+                        }
                     }
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 } catch (err) {
@@ -4695,7 +4714,7 @@ let main = {
 
                             let qtd = saved.register.qtd;
                             let metragem = null;
-                            if ([1, 2, 3].indexOf(tprecurso.codigo) >= 0) {
+                            if ([1, 2, 3, 5].indexOf(tprecurso.codigo) >= 0) {
                                 qtd = saved.register.pesoliquido;
                                 metragem = saved.register.qtd;
                             }
