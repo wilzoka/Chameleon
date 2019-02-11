@@ -179,6 +179,18 @@ let main = {
                     if (!statusemandamento) {
                         return application.error(obj.res, { msg: 'Status Em Andamento não configurado para este tipo' });
                     }
+                    let atvemandamento = await db.getModel('atv_atividadetempo').findOne({ where: { iduser: obj.req.user.id, datahorafim: null } });
+                    if (atvemandamento) {
+                        let atv = await db.getModel('atv_atividade').findOne({ where: { id: atvemandamento.idatividade } });
+                        let statuspausada = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: atividade.idtipo, pausada: true } });
+                        if (!statuspausada) {
+                            return application.error(obj.res, { msg: 'Status Pausada não configurado para este tipo' });
+                        }
+                        atv.idstatus = statuspausada.idstatus;
+                        atvemandamento.datahorafim = moment();
+                        await atvemandamento.save();
+                        await atv.save();
+                    }
                     await db.getModel('atv_atividadetempo').create({
                         idatividade: atividade.id
                         , iduser: obj.req.user.id
@@ -300,7 +312,7 @@ let main = {
                             , description: `Nota de ${obj.req.user.fullname} adicionada!`
                             , link: '/v/minha_atividade/' + atividade.id
                         });
-                        let user = await db.getModel('users').findOne({ where: { id: obj.req.user.id } });
+                        let user = await db.getModel('users').findOne({ where: { id: atividade.iduser_criacao } });
                         if (user.email) {
                             let attachments = [];
                             if (obj.data.nota_anexos) {
