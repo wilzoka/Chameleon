@@ -885,13 +885,6 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "icon",
-                "label": "Ícone",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "description",
                 "label": "Descrição",
                 "type": "text",
@@ -901,6 +894,13 @@
             {
                 "name": "function",
                 "label": "Função",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "icon",
+                "label": "Ícone",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
@@ -928,11 +928,25 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "disabled",
+                "label": "Desabilitado?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "disablefilter",
+                "label": "Desabilitar Filtro?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
                 "name": "idmodelattribute",
                 "label": "Atributo",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\r\n\"model\": \"modelattribute\"\r\n, \"attribute\": \"label\"\r\n, \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\"\r\n, \"cascade\": true\r\n}"
+                "typeadd": "{\r\n\"model\": \"modelattribute\"\r\n, \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\"\r\n, \"cascade\": true\r\n, \"query\": \"modelattribute .label || ' (' || modelattribute .name || ')'\"\r\n}"
             },
             {
                 "name": "idtemplatezone",
@@ -942,11 +956,11 @@
                 "typeadd": "{\"model\": \"templatezone\", \"attribute\": \"name\", \"where\": \"id in (select id from templatezone where idtemplate = (select idtemplate from view where id = $parent))\"}"
             },
             {
-                "name": "width",
-                "label": "Largura",
-                "type": "integer",
+                "name": "idview",
+                "label": "View",
+                "type": "parent",
                 "notnull": true,
-                "typeadd": null
+                "typeadd": "{\"model\": \"view\", \"cascade\": true}"
             },
             {
                 "name": "order",
@@ -956,24 +970,10 @@
                 "typeadd": null
             },
             {
-                "name": "disabled",
-                "label": "Desabilitado?",
-                "type": "boolean",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
-                "name": "idview",
-                "label": "View",
-                "type": "parent",
+                "name": "width",
+                "label": "Largura",
+                "type": "integer",
                 "notnull": true,
-                "typeadd": "{\"model\": \"view\", \"cascade\": true}"
-            },
-            {
-                "name": "disablefilter",
-                "label": "Desabilitar Filtro?",
-                "type": "boolean",
-                "notnull": false,
                 "typeadd": null
             }
         ]
@@ -984,6 +984,20 @@
         "onsave": null,
         "ondelete": null,
         "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "idsubview",
+                "label": "SubView",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"as\": \"subview\", \"model\": \"view\", \"attribute\": \"namecomplete\", \"cascade\": true}"
+            },
             {
                 "name": "idtemplatezone",
                 "label": "Zona",
@@ -997,20 +1011,6 @@
                 "type": "parent",
                 "notnull": true,
                 "typeadd": "{\"as\": \"view\", \"model\": \"view\", \"cascade\": true}"
-            },
-            {
-                "name": "idsubview",
-                "label": "SubView",
-                "type": "autocomplete",
-                "notnull": true,
-                "typeadd": "{\"as\": \"subview\", \"model\": \"view\", \"attribute\": \"namecomplete\", \"cascade\": true}"
-            },
-            {
-                "name": "description",
-                "label": "Descrição",
-                "type": "text",
-                "notnull": false,
-                "typeadd": null
             }
         ]
     },
@@ -1021,16 +1021,37 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "ordertable",
-                "label": "Ordem",
-                "type": "integer",
-                "notnull": true,
+                "name": "class",
+                "label": "Classes Adicionais",
+                "type": "text",
+                "notnull": false,
                 "typeadd": null
+            },
+            {
+                "name": "idmodelattribute",
+                "label": "Atributo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\r\n\"model\": \"modelattribute\"\r\n, \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\"\r\n, \"cascade\": true\r\n, \"query\": \"modelattribute .label || ' (' || modelattribute .name || ')'\"\r\n}"
+            },
+            {
+                "name": "idview",
+                "label": "View",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"view\", \"cascade\": true}"
             },
             {
                 "name": "orderable",
                 "label": "Ordenável",
                 "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "ordertable",
+                "label": "Ordem",
+                "type": "integer",
                 "notnull": true,
                 "typeadd": null
             },
@@ -1042,30 +1063,9 @@
                 "typeadd": null
             },
             {
-                "name": "idview",
-                "label": "View",
-                "type": "parent",
-                "notnull": true,
-                "typeadd": "{\"model\": \"view\", \"cascade\": true}"
-            },
-            {
                 "name": "totalize",
                 "label": "Totalizar?",
                 "type": "boolean",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
-                "name": "idmodelattribute",
-                "label": "Atributo",
-                "type": "autocomplete",
-                "notnull": true,
-                "typeadd": "{\"model\": \"modelattribute\", \"attribute\": \"label\", \"where\": \"id in (select id from modelattribute where idmodel = (select idmodel from view where id = $parent))\", \"cascade\": true}"
-            },
-            {
-                "name": "class",
-                "label": "Classes Adicionais",
-                "type": "text",
                 "notnull": false,
                 "typeadd": null
             }

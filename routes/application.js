@@ -301,6 +301,9 @@ let application = {
 		}
 		, fe: {
 			time: function (value) {
+				if (value == 0) {
+					return '0:00';
+				}
 				let isNegative = value < 0;
 				value = Math.abs(value);
 				let v = value / 60;

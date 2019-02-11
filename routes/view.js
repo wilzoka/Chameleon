@@ -197,7 +197,7 @@ const renderDateTime = function (viewfield, register) {
 
 const renderTime = function (viewfield, register) {
 
-    let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] >= 0 ? register.dataValues[viewfield.modelattribute.name] : '';
 
     let label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
@@ -208,7 +208,7 @@ const renderTime = function (viewfield, register) {
         disabled = 'disabled="disabled"';
     }
 
-    value = value == '' ? '' : application.formatters.fe.time(value);
+    value = value == null ? '' : application.formatters.fe.time(value);
 
     return application.components.html.time({
         width: viewfield.width
@@ -404,7 +404,9 @@ const modelate = function (obj) {
                 }
                 break;
             case 'time':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                if (obj.req.body[obj.viewfields[i].modelattribute.name] === '0') {
+                    obj.register[obj.viewfields[i].modelattribute.name] = 0;
+                } else if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
                     obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.time(obj.req.body[obj.viewfields[i].modelattribute.name]);
                 } else {
                     obj.register[obj.viewfields[i].modelattribute.name] = null;

@@ -440,8 +440,19 @@ let main = {
         , tipo: {
             onsave: async (obj, next) => {
                 try {
-                    await next(obj);
-                    main.atividade.tipo.f_treeAll();
+                    let saved = await next(obj);
+                    if (saved.success) {
+                        main.atividade.tipo.f_treeAll();
+                        await db.getModel('atv_tipo_status').create({
+                            idtipo: saved.register.id
+                            , idstatus: false
+                            , inicial: false
+                            , andamento: false
+                            , pausada: false
+                            , cancelada: false
+                            , final: false
+                        });
+                    }
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -488,6 +499,47 @@ let main = {
                                 , tempo: 0
                                 , iduser: user ? user.id : null
                             });
+                        }
+                    }
+                } else {
+                    let tipo = await db.getModel('atv_tipo').findOne({ where: { descricaocompleta: 'TI - Geral' } });
+                    let status_inicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: tipo.id, inicial: true } });
+                    let user = await db.getModel('users').findOne({ where: { email: email.from[0].address } });
+                    if (tipo && status_inicial) {
+                        let atividade = await db.getModel('atv_atividade').create({
+                            iduser_criacao: user ? user.id : null
+                            , assunto: email.subject
+                            , descricao: email.text
+                            , idtipo: tipo.id
+                            , idstatus: status_inicial.idstatus
+                            , datahora_criacao: moment()
+                            , encerrada: false
+                        });
+                        if (email.attachments && email.attachments.length > 0) {
+                            let files = [];
+                            let modelatv = await db.getModel('model').findOne({ where: { name: 'atv_atividade' } });
+                            for (let i = 0; i < email.attachments.length; i++) {
+                                let type = email.attachments[i].fileName.split('.');
+                                type = type[type.length - 1];
+                                let file = await db.getModel('file').create({
+                                    filename: email.attachments[i].fileName
+                                    , size: email.attachments[i].length
+                                    , bounded: true
+                                    , mimetype: email.attachments[i].contentType
+                                    , type: type
+                                    , datetime: moment()
+                                    , modelid: atividade.id
+                                    , iduser: user ? user.id : null
+                                    , idmodel: modelatv.id
+                                });
+                                var attach = email.attachments[i];
+                                fs.writeFile(`${__dirname}/../../files/${file.id}.${type}`, attach.content, function (err) { });
+                                files.push(file);
+                            }
+                            if (files.length > 0) {
+                                atividade.anexo = JSON.stringify(files);
+                                atividade.save();
+                            }
                         }
                     }
                 }

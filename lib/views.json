@@ -648,7 +648,7 @@
         "namecomplete": "Plataforma - Modelo",
         "js": null,
         "wherefixed": null,
-        "orderfixed": "id,desc",
+        "orderfixed": "name,asc",
         "supressid": false,
         "template": "box-12-12",
         "model": "model",
