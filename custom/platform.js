@@ -105,6 +105,7 @@ let platform = {
                     cid: 'unique@signature'
                 });
             }
+            mailOptions.html = `<div class="system_content">${mailOptions.html}</div>`;
             transporter.sendMail(mailOptions, (err, info) => {
                 if (err) {
                     return console.error(err);

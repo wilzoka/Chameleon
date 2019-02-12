@@ -53,7 +53,22 @@
             <div class="row">
                 <h4 class="title_subview">Notas</h4>
                 <hr style="margin: 10px 0;">
-                <div class="col-md-4">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <input name="nota_tempo" type="text" class="form-control" data-type="time" placeholder="hh:mm" style="text-align:right;">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button id="playtempo" type="button" class="btn btn-default btn-block">
+                        <i class="fa fa-play"></i>
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button id="pausetempo" type="button" class="btn btn-default btn-block">
+                        <i class="fa fa-pause"></i>
+                    </button>
+                </div>
+                <div class="col-md-12">
                     <div class="form-group">
                         <div class="col-xs-6 no-padding">
                             <label>Descrição</label>
@@ -63,32 +78,18 @@
                                 <input name="nota_privada" type="checkbox"> Privada?
                             </label>
                         </div>
-                        <textarea name="nota_descricao" rows="7" class="form-control" data-type="textarea"></textarea>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <textarea name="nota_descricao" rows="3" class="form-control" data-type="textarea"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <div class="form-group">
                         <label>Anexos</label>
                         <div class="dropzone" data-name="nota_anexos" data-type="file" data-maxfiles="" data-acceptedfiles="">
                             <input name="nota_anexos" type="hidden">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>Tempo</label>
-                        <input name="nota_tempo" type="text" class="form-control" data-type="time" placeholder="hh:mm" style="text-align:right;">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <button id="playtempo" type="button" class="btn btn-default btn-block">
-                                <i class="fa fa-play"></i>
-                            </button>
-                        </div>
-                        <div class="col-md-6">
-                            <button id="pausetempo" type="button" class="btn btn-default btn-block">
-                                <i class="fa fa-pause"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -116,6 +117,36 @@
 
 <script type="text/javascript">
     $(function () {
+
+        CKEDITOR_BASEPATH = '/public/assets/ckeditor/';
+        application.functions.getJs([
+            '/public/assets/ckeditor/ckeditor.js'
+        ]);
+
+        $(document).on('app-loadjs', function () {
+            var config = {
+                toolbarGroups: [
+                    { name: 'document', groups: ['mode', 'document', 'doctools'] },
+                    { name: 'clipboard', groups: ['clipboard', 'undo'] },
+                    { name: 'editing', groups: ['find', 'selection', 'spellchecker', 'editing'] },
+                    { name: 'forms', groups: ['forms'] },
+                    { name: 'basicstyles', groups: ['basicstyles', 'cleanup'] },
+                    { name: 'paragraph', groups: ['list', 'indent', 'blocks', 'align', 'bidi', 'paragraph'] },
+                    { name: 'links', groups: ['links'] },
+                    { name: 'insert', groups: ['insert'] },
+                    { name: 'styles', groups: ['styles'] },
+                    { name: 'colors', groups: ['colors'] },
+                    { name: 'tools', groups: ['tools'] },
+                    { name: 'about', groups: ['about'] },
+                    { name: 'others', groups: ['others'] }
+                ]
+                , removeButtons: 'Preview,Print,NewPage,Save,Source,Templates,Cut,Copy,Paste,PasteText,PasteFromWord,Find,Undo,Redo,Replace,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Strike,Subscript,Superscript,CopyFormatting,RemoveFormat,NumberedList,Outdent,Indent,Blockquote,CreateDiv,BidiLtr,BidiRtl,Language,Anchor,Flash,Smiley,SpecialChar,PageBreak,Iframe,Styles,Format,Font,ShowBlocks,About'
+            };
+            CKEDITOR.replace('descricao', config);
+            CKEDITOR.replace('nota_descricao', config);
+        });
+
+
         function createModal() {
             var html = '<div class="modal fade" id="creatingModal">';
             html += '<div class="modal-dialog">';
@@ -253,17 +284,17 @@
             }
             application.jsfunction('atividade.atividade.js_adicionarNota', {
                 id: application.functions.getId()
-                , nota_descricao: $nota_descricao.val()
+                , nota_descricao: CKEDITOR.instances.nota_descricao.getData()
                 , nota_tempo: $nota_tempo.val()
                 , nota_privada: $nota_privada.is(':checked')
                 , nota_anexos: $nota_anexos.val()
             }, function (response) {
                 application.handlers.responseSuccess(response);
                 if (response.success) {
-                    $nota_descricao.val('');
+                    CKEDITOR.instances.nota_descricao.setData('');
                     $nota_privada.prop('checked', false);
                     $nota_tempo.val('00:00');
-                    $nota_descricao.parent().removeClass('has-error');
+                    $nota_descricao.closest('div.form-group').removeClass('has-error');
                     dzs['nota_anexos'].removeAllFiles(true);
                 }
             });

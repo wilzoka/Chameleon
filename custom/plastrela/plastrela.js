@@ -327,7 +327,9 @@ let main = {
                             main.platform.mail.f_sendmail({
                                 to: [user.email]
                                 , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
-                                , html: obj.data.nota_descricao
+                                , html: `<a href="http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}</a>
+                                <br>
+                                ${obj.data.nota_descricao || ''}`
                                 , attachments: attachments
                             });
                         }
@@ -504,13 +506,49 @@ let main = {
                         let atividade = await db.getModel('atv_atividade').findOne({ where: { id: id } });
                         let user = await db.getModel('users').findOne({ where: { email: email.from[0].address } });
                         if (atividade) {
-                            await db.getModel('atv_atividadenota').create({
+                            let nota = await db.getModel('atv_atividadenota').create({
                                 idatividade: atividade.id
                                 , datahora: moment()
-                                , descricao: email.text.trim()
+                                , descricao: email.html
                                 , tempo: 0
                                 , iduser: user ? user.id : null
                             });
+                            let html = nota.descricao;
+                            if (email.attachments && email.attachments.length > 0) {
+                                let files = [];
+                                let modelatv = await db.getModel('model').findOne({ where: { name: 'atv_atividade' } });
+                                for (let i = 0; i < email.attachments.length; i++) {
+                                    let type = email.attachments[i].fileName.split('.');
+                                    type = type[type.length - 1];
+                                    let file = await db.getModel('file').create({
+                                        filename: email.attachments[i].fileName
+                                        , size: email.attachments[i].length
+                                        , bounded: true
+                                        , mimetype: email.attachments[i].contentType
+                                        , type: type
+                                        , datetime: moment()
+                                        , modelid: atividade.id
+                                        , iduser: user ? user.id : null
+                                        , idmodel: modelatv.id
+                                    });
+                                    var attach = email.attachments[i];
+                                    fs.writeFile(`${__dirname}/../../files/${file.id}.${type}`, attach.content, function (err) { });
+                                    if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
+                                        files.push(file);
+                                    }
+                                    html = html.replace('cid:' + email.attachments[i].contentId, `/files/${file.id}.${type}`);
+                                }
+                                const jsdom = require("jsdom");
+                                const { JSDOM } = jsdom;
+                                const dom = new JSDOM(html);
+                                const $ = (require('jquery'))(dom.window);
+                                $('div.system_content').remove();
+                                nota.descricao = $('html').html();
+                                if (files.length > 0) {
+                                    nota.anexos = JSON.stringify(files);
+                                }
+                                nota.save();
+                            }
                         }
                     }
                 } else {
@@ -521,12 +559,13 @@ let main = {
                         let atividade = await db.getModel('atv_atividade').create({
                             iduser_criacao: user ? user.id : null
                             , assunto: email.subject
-                            , descricao: email.text
+                            , descricao: email.html
                             , idtipo: tipo.id
                             , idstatus: status_inicial.idstatus
                             , datahora_criacao: moment()
                             , encerrada: false
                         });
+                        let html = atividade.descricao;
                         if (email.attachments && email.attachments.length > 0) {
                             let files = [];
                             let modelatv = await db.getModel('model').findOne({ where: { name: 'atv_atividade' } });
@@ -546,12 +585,16 @@ let main = {
                                 });
                                 var attach = email.attachments[i];
                                 fs.writeFile(`${__dirname}/../../files/${file.id}.${type}`, attach.content, function (err) { });
-                                files.push(file);
+                                if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
+                                    files.push(file);
+                                }
+                                html = html.replace('cid:' + email.attachments[i].contentId, `/files/${file.id}.${type}`);
                             }
+                            atividade.descricao = html;
                             if (files.length > 0) {
                                 atividade.anexo = JSON.stringify(files);
-                                atividade.save();
                             }
+                            atividade.save();
                         }
                     }
                 }
