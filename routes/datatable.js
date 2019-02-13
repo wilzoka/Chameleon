@@ -61,11 +61,10 @@ const fixResults = function (registers, modelattributes, viewtables) {
     }
     return registers;
 }
-const getFilter = function (cookie, modelattributes) {
+const getFilter = function (cookie, modelattributes, req) {
     let obj = {};
     cookie = JSON.parse(cookie);
     let m;
-    let v;
     let f;
     for (let i = 0; i < cookie.length; i++) {
         for (let k in cookie[i]) {
@@ -116,11 +115,11 @@ const getFilter = function (cookie, modelattributes) {
                 case 'rv':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
-                            if (f && f.indexOf('$value') > 0) {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                            let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                            if (j.field && f.field.indexOf('$value') > 0) {
+                                o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " = " + cookie[i][k]);
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " = " + cookie[i][k]);
                             }
                         }
                     }
@@ -128,11 +127,11 @@ const getFilter = function (cookie, modelattributes) {
                 case 'sv':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
-                            if (f && f.indexOf('$value') > 0) {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                            let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                            if (j.field && f.field.indexOf('$value') > 0) {
+                                o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::text ilike '" + cookie[i][k] + "'");
                             }
                         }
                     }
@@ -140,11 +139,11 @@ const getFilter = function (cookie, modelattributes) {
                 case 'bv':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
-                            if (f && f.indexOf('$value') > 0) {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                            let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                            if (j.field && f.field.indexOf('$value') > 0) {
+                                o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal >= " + cookie[i][k]);
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::decimal >= " + cookie[i][k]);
                             }
                         }
                     }
@@ -152,11 +151,11 @@ const getFilter = function (cookie, modelattributes) {
                 case 'ev':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
-                            if (f && f.indexOf('$value') > 0) {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k]));
+                            let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                            if (j.field && f.field.indexOf('$value') > 0) {
+                                o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal <= " + cookie[i][k]);
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::decimal <= " + cookie[i][k]);
                             }
                         }
                     }
@@ -164,11 +163,11 @@ const getFilter = function (cookie, modelattributes) {
                 case 'iv':
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
-                            f = application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field;
-                            if (f && f.indexOf('$value') > 0) {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field.replace('$value', cookie[i][k].val));
+                            let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                            if (j.field && f.field.indexOf('$value') > 0) {
+                                o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k].val));
                             } else {
-                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + " in ('" + cookie[i][k].val.join("','") + "')");
+                                o = db.Sequelize.literal(j.field + " in ('" + cookie[i][k].val.join("','") + "')");
                             }
                         }
                     }
@@ -201,7 +200,7 @@ module.exports = function (app) {
                 where['$col'] = db.Sequelize.literal(view.wherefixed);
             }
             if ('tableview' + view.url + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes);
+                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes, req);
             }
             if (view.idfastsearch && req.body.search.value) {
                 let j = application.modelattribute.parseTypeadd(view.fastsearch.typeadd);
@@ -241,7 +240,7 @@ module.exports = function (app) {
                         }
                         break;
                     case 'virtual':
-                        attributes.push([db.Sequelize.literal(j.subquery), modelattributes[i].name]);
+                        attributes.push([db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id)), modelattributes[i].name]);
                         break;
                     default:
                         attributes.push(modelattributes[i].name);
@@ -303,7 +302,7 @@ module.exports = function (app) {
                 where['$col'] = db.Sequelize.literal(view.wherefixed);
             }
             if ('tableview' + view.url + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes);
+                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes, req);
             }
 
             if (req.body.issubview == 'true') {

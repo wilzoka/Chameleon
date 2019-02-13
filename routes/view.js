@@ -1075,7 +1075,7 @@ module.exports = function (app) {
                             }
                             break;
                         case 'virtual':
-                            attributes.push([db.Sequelize.literal(j.subquery), viewfields[i].modelattribute.name]);
+                            attributes.push([db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id)), viewfields[i].modelattribute.name]);
                             break;
                         default:
                             attributes.push(viewfields[i].modelattribute.name);

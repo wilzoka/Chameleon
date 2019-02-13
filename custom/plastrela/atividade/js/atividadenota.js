@@ -24,7 +24,7 @@ $(function () {
             ]
             , removeButtons: 'Preview,Print,NewPage,Save,Source,Templates,Cut,Copy,Paste,PasteText,PasteFromWord,Find,Undo,Redo,Replace,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Strike,Subscript,Superscript,CopyFormatting,RemoveFormat,NumberedList,Outdent,Indent,Blockquote,CreateDiv,BidiLtr,BidiRtl,Language,Anchor,Flash,Smiley,SpecialChar,PageBreak,Iframe,Styles,Format,Font,ShowBlocks,About'
         };
-        CKEDITOR.replace('descricao', config);
+        CKEDITOR.replace('vdescricao', config);
     });
 
 });

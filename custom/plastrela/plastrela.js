@@ -45,6 +45,11 @@ let main = {
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
+
+                    obj._responseModifier = function (ret) {
+                        ret['historyBack'] = true;
+                        return ret;
+                    }
                     let saved = await next(obj);
                     if (saved.register._isInsert) {
                         let user = await db.getModel('users').findOne({ where: { id: saved.register.iduser_criacao } });
@@ -104,7 +109,7 @@ let main = {
                     main.platform.notification.create([atividade.iduser_criacao], {
                         title: `Atividade - ${atividade.assunto}`
                         , description: `Sua solicitação foi ${statusfinal.atv_status.descricao}!`
-                        , link: '/v/minha_atividade/' + atividade.id
+                        , link: '/v/atividade_solicitada/' + atividade.id
                     });
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 } catch (err) {
@@ -134,7 +139,7 @@ let main = {
                     main.platform.notification.create([atividade.iduser_criacao], {
                         title: `Atividade - ${atividade.assunto}`
                         , description: `Sua solicitação foi ${statuscancelada.atv_status.descricao}!`
-                        , link: '/v/minha_atividade/' + atividade.id
+                        , link: '/v/atividade_solicitada/' + atividade.id
                     });
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 } catch (err) {
@@ -310,7 +315,7 @@ let main = {
                         main.platform.notification.create([atividade.iduser_criacao], {
                             title: `Atividade - ${atividade.assunto}`
                             , description: `Nota de ${obj.req.user.fullname} adicionada!`
-                            , link: '/v/minha_atividade/' + atividade.id
+                            , link: '/v/atividade_solicitada/' + atividade.id
                         });
                         let user = await db.getModel('users').findOne({ where: { id: atividade.iduser_criacao } });
                         if (user.email) {
@@ -441,9 +446,27 @@ let main = {
                     if (atividade.encerrada) {
                         return application.error(obj.res, { msg: 'Atividade está encerrada' });
                     }
+
                     if (obj.register.id == 0) {
                         obj.register.datahora = moment();
                         obj.register.iduser = obj.req.user.id;
+                    } else {
+                        if (obj.register.iduser != obj.req.user.id) {
+                            return application.error(obj.res, { msg: 'Apenas o usuário criador da nota pode alterá-la' });
+                        }
+                    }
+                    await next(obj);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , ondelete: async (obj, next) => {
+                try {
+                    let notas = await db.getModel('atv_atividadenota').findAll({ where: { id: { $in: obj.ids } } });
+                    for (let i = 0; i < notas.length; i++) {
+                        if (notas[i].iduser != obj.req.user.id) {
+                            return application.error(obj.res, { msg: 'Apenas o usuário criador da nota pode excluí-la' });
+                        }
                     }
                     await next(obj);
                 } catch (err) {
@@ -499,11 +522,11 @@ let main = {
             try {
                 let initialIdx = email.subject.indexOf('[ATV#');
                 let finalIdx = email.subject.indexOf(']');
-                if (initialIdx >= 0 && finalIdx >= 0 && initialIdx < finalIdx) {
+                if (initialIdx >= 0 && finalIdx >= 0 && initialIdx < finalIdx) { //Existe
                     let id = email.subject.substring(initialIdx + 5, finalIdx);
                     id = parseInt(id);
                     if (id > 0) {
-                        let atividade = await db.getModel('atv_atividade').findOne({ where: { id: id } });
+                        let atividade = await db.getModel('atv_atividade').findOne({ include: [{ all: true }], where: { id: id } });
                         let user = await db.getModel('users').findOne({ where: { email: email.from[0].address } });
                         if (atividade) {
                             let nota = await db.getModel('atv_atividadenota').create({
@@ -512,6 +535,7 @@ let main = {
                                 , descricao: email.html
                                 , tempo: 0
                                 , iduser: user ? user.id : null
+                                , privada: false
                             });
                             let html = nota.descricao;
                             if (email.attachments && email.attachments.length > 0) {
@@ -549,9 +573,27 @@ let main = {
                                 }
                                 nota.save();
                             }
+                            if (atividade.iduser_responsavel) {
+                                main.platform.notification.create([atividade.iduser_responsavel], {
+                                    title: `Atividade - ${atividade.assunto}`
+                                    , description: `Nota de ${atividade.user.fullname} adicionada!`
+                                    , link: '/v/atividade/' + atividade.id
+                                });
+                            } else {
+                                let usersnotification = []
+                                let su = await db.getModel('cad_setorusuario').findAll({ include: [{ all: true }], where: { idsetor: atividade.atv_tipo.idsetor } });
+                                for (let i = 0; i < su.length; i++) {
+                                    usersnotification.push(su[i].idusuario);
+                                }
+                                main.platform.notification.create(usersnotification, {
+                                    title: `Atividade - ${atividade.assunto}`
+                                    , description: `Nota de ${atividade.user.fullname} adicionada!`
+                                    , link: '/v/atividade_do_setor/' + atividade.id
+                                });
+                            }
                         }
                     }
-                } else {
+                } else { // Novo
                     let tipo = await db.getModel('atv_tipo').findOne({ where: { descricaocompleta: 'TI - Geral' } });
                     let status_inicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: tipo.id, inicial: true } });
                     let user = await db.getModel('users').findOne({ where: { email: email.from[0].address } });
@@ -595,6 +637,13 @@ let main = {
                                 atividade.anexo = JSON.stringify(files);
                             }
                             atividade.save();
+                        }
+                        if (user && user.email) {
+                            main.platform.mail.f_sendmail({
+                                to: [user.email]
+                                , subject: `Nova Atividade -  [ATV#${atividade.id}] - ${atividade.assunto}`
+                                , html: `Sua solicitacao foi recebida, para visualizá-la <a href="http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}" target="_blank">clique aqui!</a>`
+                            });
                         }
                     }
                 }
