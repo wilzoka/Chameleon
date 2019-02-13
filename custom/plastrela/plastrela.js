@@ -576,7 +576,7 @@ let main = {
                             if (atividade.iduser_responsavel) {
                                 main.platform.notification.create([atividade.iduser_responsavel], {
                                     title: `Atividade - ${atividade.assunto}`
-                                    , description: `Nota de ${atividade.user.fullname} adicionada!`
+                                    , description: `Nota de ${atividade.users.fullname} adicionada!`
                                     , link: '/v/atividade/' + atividade.id
                                 });
                             } else {
