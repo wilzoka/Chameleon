@@ -314,7 +314,7 @@ let main = {
                     if (!privada) {
                         main.platform.notification.create([atividade.iduser_criacao], {
                             title: `Atividade - ${atividade.assunto}`
-                            , description: `Nota de ${obj.req.user.fullname} adicionada!`
+                            , description: `Nota adicionada!`
                             , link: '/v/atividade_solicitada/' + atividade.id
                         });
                         let user = await db.getModel('users').findOne({ where: { id: atividade.iduser_criacao } });
@@ -576,7 +576,7 @@ let main = {
                             if (atividade.iduser_responsavel) {
                                 main.platform.notification.create([atividade.iduser_responsavel], {
                                     title: `Atividade - ${atividade.assunto}`
-                                    , description: `Nota de ${atividade.users.fullname} adicionada!`
+                                    , description: `Nota adicionada!`
                                     , link: '/v/atividade/' + atividade.id
                                 });
                             } else {
@@ -587,7 +587,7 @@ let main = {
                                 }
                                 main.platform.notification.create(usersnotification, {
                                     title: `Atividade - ${atividade.assunto}`
-                                    , description: `Nota de ${atividade.user.fullname} adicionada!`
+                                    , description: `Nota adicionada!`
                                     , link: '/v/atividade_do_setor/' + atividade.id
                                 });
                             }
