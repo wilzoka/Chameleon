@@ -65,7 +65,6 @@ const getFilter = function (cookie, modelattributes, req) {
     let obj = {};
     cookie = JSON.parse(cookie);
     let m;
-    let f;
     for (let i = 0; i < cookie.length; i++) {
         for (let k in cookie[i]) {
             let field = k.split('+');
@@ -116,7 +115,7 @@ const getFilter = function (cookie, modelattributes, req) {
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
                             let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
-                            if (j.field && f.field.indexOf('$value') > 0) {
+                            if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
                                 o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " = " + cookie[i][k]);
@@ -128,7 +127,7 @@ const getFilter = function (cookie, modelattributes, req) {
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
                             let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
-                            if (j.field && f.field.indexOf('$value') > 0) {
+                            if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
                                 o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::text ilike '" + cookie[i][k] + "'");
@@ -140,7 +139,7 @@ const getFilter = function (cookie, modelattributes, req) {
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
                             let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
-                            if (j.field && f.field.indexOf('$value') > 0) {
+                            if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
                                 o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::decimal >= " + cookie[i][k]);
@@ -152,7 +151,7 @@ const getFilter = function (cookie, modelattributes, req) {
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
                             let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
-                            if (j.field && f.field.indexOf('$value') > 0) {
+                            if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
                                 o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::decimal <= " + cookie[i][k]);
@@ -164,7 +163,7 @@ const getFilter = function (cookie, modelattributes, req) {
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
                             let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
-                            if (j.field && f.field.indexOf('$value') > 0) {
+                            if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k].val));
                             } else {
                                 o = db.Sequelize.literal(j.field + " in ('" + cookie[i][k].val.join("','") + "')");
