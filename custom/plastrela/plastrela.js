@@ -9188,6 +9188,17 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_cancelar: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        await db.getModel('ven_proposta').update({ cancelada: true }, { where: { id: { $in: obj.ids } } });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , propostaentrega: {
                 onsave: async function (obj, next) {

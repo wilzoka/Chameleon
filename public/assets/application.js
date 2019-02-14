@@ -587,7 +587,7 @@ var application = {
                             }
                             , error: function (response) {
                                 if (response.status == '403') {
-                                    $this.parent().addClass('text-center').append('<i class="fa fa-lock fa-3x" aria-hidden="true"></i>');
+                                    $this.parent().addClass('text-center').append('<i class="fa fa-lock fa-2x" aria-hidden="true"></i>');
                                     $this.remove();
                                 } else {
                                     application.notify.error(response);
