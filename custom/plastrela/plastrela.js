@@ -51,35 +51,37 @@ let main = {
                         return ret;
                     }
                     let saved = await next(obj);
-                    if (saved.register._isInsert) {
-                        let user = await db.getModel('users').findOne({ where: { id: saved.register.iduser_criacao } });
-                        if (user.email) {
-                            main.platform.mail.f_sendmail({
-                                to: [user.email]
-                                , subject: `[ATV#${saved.register.id}] - ${saved.register.assunto}`
-                                , html: `Sua atividade foi registrada!<br>${saved.register.descricao}`
-                            });
-                        }
-                    }
-
-                    for (let i = 0; i < cds.length; i++) {
-                        let atvcd = (await db.getModel('atv_atividade_cd').findOrCreate({ include: [{ all: true }], where: { idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } }))[0];
-                        if (obj.req.body['cd' + cds[i].idcampodinamico]) {
-                            switch (atvcd.atv_campodinamico.tipo) {
-                                case 'Data':
-                                    atvcd.valor = application.formatters.be.date(obj.req.body['cd' + cds[i].idcampodinamico]);
-                                    break;
-                                case 'Data/Hora':
-                                    atvcd.valor = application.formatters.be.datetime(obj.req.body['cd' + cds[i].idcampodinamico]);
-                                    break;
-                                case 'Decimal':
-                                    atvcd.valor = application.formatters.be.decimal(obj.req.body['cd' + cds[i].idcampodinamico]);
-                                    break;
-                                default:
-                                    atvcd.valor = obj.req.body['cd' + cds[i].idcampodinamico];
-                                    break;
+                    if (saved.success) {
+                        if (saved.register._isInsert) {
+                            let user = await db.getModel('users').findOne({ where: { id: saved.register.iduser_criacao } });
+                            if (user.email) {
+                                main.platform.mail.f_sendmail({
+                                    to: [user.email]
+                                    , subject: `[ATV#${saved.register.id}] - ${saved.register.assunto}`
+                                    , html: `Sua atividade foi registrada!<br>${saved.register.descricao}`
+                                });
                             }
-                            atvcd.save({ iduser: obj.req.user.id });
+                        }
+
+                        for (let i = 0; i < cds.length; i++) {
+                            let atvcd = (await db.getModel('atv_atividade_cd').findOrCreate({ include: [{ all: true }], where: { idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } }))[0];
+                            if (obj.req.body['cd' + cds[i].idcampodinamico]) {
+                                switch (atvcd.atv_campodinamico.tipo) {
+                                    case 'Data':
+                                        atvcd.valor = application.formatters.be.date(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                        break;
+                                    case 'Data/Hora':
+                                        atvcd.valor = application.formatters.be.datetime(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                        break;
+                                    case 'Decimal':
+                                        atvcd.valor = application.formatters.be.decimal(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                        break;
+                                    default:
+                                        atvcd.valor = obj.req.body['cd' + cds[i].idcampodinamico];
+                                        break;
+                                }
+                                atvcd.save({ iduser: obj.req.user.id });
+                            }
                         }
                     }
                 } catch (err) {
@@ -312,13 +314,13 @@ let main = {
                         }
                     });
                     if (!privada) {
+                        // Notifica o criador
                         main.platform.notification.create([atividade.iduser_criacao], {
                             title: `Atividade - ${atividade.assunto}`
                             , description: `Nota adicionada!`
                             , link: '/v/atividade_solicitada/' + atividade.id
                         });
-                        let user = await db.getModel('users').findOne({ where: { id: atividade.iduser_criacao } });
-                        if (user.email) {
+                        if (atividade.users.email) {
                             let attachments = [];
                             if (obj.data.nota_anexos) {
                                 let j = JSON.parse(obj.data.nota_anexos);
@@ -326,11 +328,27 @@ let main = {
                                     attachments.push({
                                         filename: j[i].filename
                                         , path: __dirname + `/../../files/${j[i].id}.${j[i].type}`
-                                    })
+                                    });
                                 }
                             }
+                            let participantes = await db.getModel('atv_atividadeparticipante').findAll({ include: [{ all: true }], where: { id: { $in: obj.data.participantes } } })
+                            let parts = { id: [], email: [] };
+                            for (let i = 0; i < participantes.length; i++) {
+                                if (participantes[i].users.email) {
+                                    parts.id.push(participantes[i].iduser);
+                                    parts.email.push(participantes[i].users.email);
+                                }
+                            }
+                            if (parts.id.length > 0) {
+                                main.platform.notification.create(parts.id, {
+                                    title: `Atividade - ${atividade.assunto}`
+                                    , description: `Nota adicionada!`
+                                    , link: '/v/atividade_participante/' + atividade.id
+                                });
+                            }
                             main.platform.mail.f_sendmail({
-                                to: [user.email]
+                                to: [atividade.users.email]
+                                , cc: parts.email
                                 , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
                                 , html: `<a href="http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}</a>
                                 <br>
@@ -422,6 +440,25 @@ let main = {
                         }
                     }
                     return application.success(obj.res, { data: html });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_getParticipantes: async (obj) => {
+                try {
+                    let participantes = await main.platform.model.findAll('atv_atividadeparticipante', { where: { idatividade: obj.data.idatividade || 0 } });
+                    if (!participantes) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    let ret = [];
+                    for (let i = 0; i < participantes.count; i++) {
+                        ret.push({
+                            id: 'participante_' + participantes.rows[i].id
+                            , user: participantes.rows[i].iduser
+                            , email: participantes.rows[i].vemail || ''
+                        });
+                    }
+                    return application.success(obj.res, { data: ret });
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }

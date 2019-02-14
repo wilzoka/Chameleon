@@ -92,13 +92,14 @@ let platform = {
             let mailOptions = {
                 from: transportConfig.auth.user
                 , to: obj.to.join(',')
+                , cc: obj.cc && Array.isArray(obj.cc) ? obj.cc : []
                 , subject: obj.subject
                 , html: obj.html
                 , attachments: obj.attachments || []
             };
             if (config.emailsignature) {
                 mailOptions.html += '</br></br><img src="cid:unique@signature"/>';
-                let signature = JSON.parse(config.emailsignature)
+                let signature = JSON.parse(config.emailsignature);
                 mailOptions.attachments.push({
                     filename: signature[0].filename,
                     path: __dirname + `/../files/${signature[0].id}.${signature[0].type}`,

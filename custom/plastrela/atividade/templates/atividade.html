@@ -21,11 +21,14 @@
 <div class="col-md-6">
     <div class="nav-tabs-custom">
         <ul class="nav nav-tabs">
-            <li class="active">
+            <li id="tabgeral" class="active">
                 <a href="#tab_1" data-toggle="tab"> Geral</a>
             </li>
             <li id="tabdetalhes">
                 <a href="#tab_2" data-toggle="tab"> Detalhes</a>
+            </li>
+            <li id="tabparticipante">
+                <a href="#tab_3" data-toggle="tab"> Participantes</a>
             </li>
         </ul>
         <div class="tab-content">
@@ -40,6 +43,13 @@
                 <div class="row">
                     <div class="col-md-12 no-padding">
                         {{{detalhes}}}
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_3">
+                <div class="row">
+                    <div class="col-md-12 no-padding">
+                        {{{participante}}}
                     </div>
                 </div>
             </div>
@@ -70,13 +80,8 @@
                 </div>
                 <div class="col-md-12">
                     <div class="form-group">
-                        <div class="col-xs-6 no-padding">
+                        <div class="col-xs-12 no-padding">
                             <label>Descrição</label>
-                        </div>
-                        <div class="col-xs-6 no-padding" style="text-align: right;">
-                            <label>
-                                <input name="nota_privada" type="checkbox"> Privada?
-                            </label>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
@@ -115,6 +120,43 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalnota">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Adicionar Nota</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="text-align: center;">
+                    <label title="Apenas você e colaboradores do mesmo setor podem ver esta nota">
+                        <input name="nota_privada" type="checkbox"> Privada?
+                    </label>
+                </div>
+                <div id="rowparticipantes" class="row">
+                    <hr>
+                    <div class="col-md-12">
+                        <table id="tableparticipantes" class="table table-bordered table-hover no-footer" style="margin-bottom: 0;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center;">Notificar?</th>
+                                    <th style="text-align: center;">Participante</th>
+                                    <th style="text-align: center;">E-mail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
+                <button type="button" class="btn btn-success" id="addNota">Adicionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(function () {
 
@@ -145,7 +187,6 @@
             CKEDITOR.replace('descricao', config);
             CKEDITOR.replace('nota_descricao', config);
         });
-
 
         function createModal() {
             var html = '<div class="modal fade" id="creatingModal">';
@@ -279,14 +320,45 @@
             });
         });
         $('#adicionarNota').click(function () {
+
+            $nota_privada.prop('checked', false);
+            application.jsfunction('atividade.atividade.js_getParticipantes', {
+                idatividade: application.functions.getId()
+            }, function (response) {
+                var tpl = '<tr><td style="text-align: center;"><input name="$name" type="checkbox" style="width: 100%;"></td>' +
+                    '<td>$user</td>' +
+                    '<td>$email</td></tr>';
+                var html = '';
+                for (var i = 0; i < response.data.length; i++) {
+                    html += tpl.replace('$name', response.data[i].id).replace('$user', response.data[i].user).replace('$email', response.data[i].email);
+                }
+                $('#tableparticipantes').find('tbody').children().remove();
+                $('#tableparticipantes').find('tbody').append(html);
+                if (html) {
+                    $('#rowparticipantes').removeClass('hidden');
+                } else {
+                    $('#rowparticipantes').addClass('hidden');
+                }
+            });
+            $('#modalnota').modal('show');
+        });
+        $('#addNota').click(function () {
             if (playtempo) {
                 $('#pausetempo').trigger('click');
+            }
+            var $participantes = $('#tableparticipantes').find('input[type="checkbox"]');
+            var participantes = [];
+            for (var i = 0; i < $participantes.length; i++) {
+                if ($($participantes[i]).is(':checked')) {
+                    participantes.push($participantes[i].name.replace('participante_', ''));
+                }
             }
             application.jsfunction('atividade.atividade.js_adicionarNota', {
                 id: application.functions.getId()
                 , nota_descricao: CKEDITOR.instances.nota_descricao.getData()
                 , nota_tempo: $nota_tempo.val()
                 , nota_privada: $nota_privada.is(':checked')
+                , participantes: participantes
                 , nota_anexos: $nota_anexos.val()
             }, function (response) {
                 application.handlers.responseSuccess(response);
@@ -296,8 +368,16 @@
                     $nota_tempo.val('00:00');
                     $nota_descricao.closest('div.form-group').removeClass('has-error');
                     dzs['nota_anexos'].removeAllFiles(true);
+                    $('#modalnota').modal('hide');
                 }
             });
+        });
+        $nota_privada.change(function () {
+            if ($nota_privada.is(':checked')) {
+                $('#rowparticipantes').addClass('hidden');
+            } else {
+                $('#rowparticipantes').removeClass('hidden');
+            }
         });
     });
 </script>
