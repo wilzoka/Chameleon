@@ -331,7 +331,7 @@ let main = {
                                     });
                                 }
                             }
-                            let participantes = await db.getModel('atv_atividadeparticipante').findAll({ include: [{ all: true }], where: { id: { $in: obj.data.participantes } } })
+                            let participantes = await db.getModel('atv_atividadeparticipante').findAll({ include: [{ all: true }], where: { id: { $in: obj.data.participantes || [] } } })
                             let parts = { id: [], email: [] };
                             for (let i = 0; i < participantes.length; i++) {
                                 if (participantes[i].users.email) {
@@ -350,7 +350,7 @@ let main = {
                                 to: [atividade.users.email]
                                 , cc: parts.email
                                 , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
-                                , html: `<a href="http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}</a>
+                                , html: `<a href="http://intranet.plastrela.com.br:8084/r/visao_administrativa" target="_blank">http://intranet.plastrela.com.br:8084/r/visao_administrativa</a>
                                 <br>
                                 ${obj.data.nota_descricao || ''}`
                                 , attachments: attachments
