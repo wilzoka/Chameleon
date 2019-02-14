@@ -88,6 +88,13 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
+            , ondelete: async (obj, next) => {
+                try {
+                    return application.error(obj.res, { msg: 'Não é possível excluir atividades' });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
             , e_finalizar: async (obj) => {
                 try {
                     if (obj.ids.length != 1) {
@@ -110,7 +117,7 @@ let main = {
                     await atividade.save({ iduser: obj.req.user.id });
                     main.platform.notification.create([atividade.iduser_criacao], {
                         title: `Atividade - ${atividade.assunto}`
-                        , description: `Sua solicitação foi ${statusfinal.atv_status.descricao}!`
+                        , description: `Sua atividade foi ${statusfinal.atv_status.html}!`
                         , link: '/v/atividade_solicitada/' + atividade.id
                     });
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
@@ -140,7 +147,7 @@ let main = {
                     await atividade.save({ iduser: obj.req.user.id });
                     main.platform.notification.create([atividade.iduser_criacao], {
                         title: `Atividade - ${atividade.assunto}`
-                        , description: `Sua solicitação foi ${statuscancelada.atv_status.descricao}!`
+                        , description: `Sua atividade foi ${statuscancelada.atv_status.html}!`
                         , link: '/v/atividade_solicitada/' + atividade.id
                     });
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
@@ -511,6 +518,29 @@ let main = {
                 }
             }
         }
+        , atividadeparticipante: {
+            onsave: async (obj, next) => {
+                try {
+                    let sql = await db.sequelize.query(`
+                    select
+                        *
+                    from
+                        atv_atividade a
+                    left join atv_tipo t on (a.idtipo = t.id)
+                    where
+                        a.id = ${obj.register.idatividade}
+                        and t.idsetor in (select c.idsetor from cad_setorusuario c where c.idusuario = ${obj.req.user.id})
+                    `,
+                        { type: db.Sequelize.QueryTypes.SELECT });
+                    if (sql.length <= 0) {
+                        return application.error(obj.res, { msg: 'Apenas o setor responsável pode adicionar participantes' });
+                    }
+                    await next(obj);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
         , tipo: {
             onsave: async (obj, next) => {
                 try {
@@ -679,7 +709,7 @@ let main = {
                             main.platform.mail.f_sendmail({
                                 to: [user.email]
                                 , subject: `Nova Atividade -  [ATV#${atividade.id}] - ${atividade.assunto}`
-                                , html: `Sua solicitacao foi recebida, para visualizá-la <a href="http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}" target="_blank">clique aqui!</a>`
+                                , html: `Sua atividade foi registrada, para visualizá-la <a href="http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}" target="_blank">clique aqui!</a>`
                             });
                         }
                     }
