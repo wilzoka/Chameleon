@@ -470,6 +470,48 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
+            , js_getInfo: async (obj) => {
+                try {
+                    let horashoje = await db.sequelize.query(`
+                    select sum(tempo) as sum from atv_atividadenota where iduser = ${obj.req.user.id} and datahora >= :dataini and datahora <= :datafim
+                    `, {
+                            type: db.Sequelize.QueryTypes.SELECT, replacements: {
+                                dataini: moment().startOf('day').format(application.formatters.be.datetime_format)
+                                , datafim: moment().endOf('day').format(application.formatters.be.datetime_format)
+                            }
+                        });
+                    let horashojemeta = horashoje.length > 0 ? (parseFloat(horashoje[0].sum) / 370 * 100).toFixed(2) + '%' : '0%';
+                    let tarefaandamento = await db.sequelize.query(`
+                       select idatividade from atv_atividadetempo where iduser = ${obj.req.user.id} and datahorafim is null
+                           `, {
+                            type: db.Sequelize.QueryTypes.SELECT, replacements: {
+                                dataini: moment().startOf('day').format(application.formatters.be.datetime_format)
+                                , datafim: moment().endOf('day').format(application.formatters.be.datetime_format)
+                            }
+                        });
+                    let tempomedioresolucao = await db.sequelize.query(`
+                    select avg(EXTRACT(EPOCH FROM (datahora_termino - datahora_criacao))/60) as sum from atv_atividade where iduser_responsavel = ${obj.req.user.id} and encerrada = true and datahora_criacao >= now() - interval '15 days'
+                        `, {
+                            type: db.Sequelize.QueryTypes.SELECT, replacements: {
+                                dataini: moment().startOf('day').format(application.formatters.be.datetime_format)
+                                , datafim: moment().endOf('day').format(application.formatters.be.datetime_format)
+                            }
+                        });
+
+
+                    let ret = {
+                        horashoje: horashoje.length > 0 ? application.formatters.fe.time(horashoje[0].sum) : '0:00'
+                        , horashojemeta: horashojemeta
+                        , horashojemetacor: horashojemeta >= 100 ? 'text-green' : 'text-red'
+                        , tarefaandamento: tarefaandamento.length > 0 ? '#' + tarefaandamento[0].idatividade : ''
+                        , tempomedioresolucao: tempomedioresolucao.length > 0 ? application.formatters.fe.time(tempomedioresolucao[0].sum) : '0:00'
+                    };
+
+                    return application.success(obj.res, { data: ret });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
         }
         , atividadehora: {
             onsave: async (obj, next) => {
@@ -793,6 +835,21 @@ let main = {
                     }
                 } catch (err) {
                     console.error(err);
+                }
+            }
+        }
+        , adm: {
+            viagem: {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.id == 0) {
+                            obj.register.datahorainclusao = moment();
+                            obj.register.iduser = obj.req.user.id;
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
                 }
             }
         }
