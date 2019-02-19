@@ -3,7 +3,10 @@ const application = require('../../routes/application')
     , moment = require('moment')
     , fs = require('fs')
     , lodash = require('lodash')
+    , schedule = require('node-schedule')
     ;
+
+let atv_schedules = [];
 
 let main = {
     platform: require('../platform.js')
@@ -480,7 +483,6 @@ let main = {
                                 , datafim: moment().endOf('day').format(application.formatters.be.datetime_format)
                             }
                         });
-                    let horashojemeta = horashoje.length > 0 ? (parseFloat(horashoje[0].sum) / 370 * 100).toFixed(2) + '%' : '0%';
                     let tarefaandamento = await db.sequelize.query(`
                        select idatividade from atv_atividadetempo where iduser = ${obj.req.user.id} and datahorafim is null
                            `, {
@@ -501,13 +503,272 @@ let main = {
 
                     let ret = {
                         horashoje: horashoje.length > 0 ? application.formatters.fe.time(horashoje[0].sum) : '0:00'
-                        , horashojemeta: horashojemeta
-                        , horashojemetacor: horashojemeta >= 100 ? 'text-green' : 'text-red'
                         , tarefaandamento: tarefaandamento.length > 0 ? '#' + tarefaandamento[0].idatividade : ''
                         , tempomedioresolucao: tempomedioresolucao.length > 0 ? application.formatters.fe.time(tempomedioresolucao[0].sum) : '0:00'
                     };
 
                     return application.success(obj.res, { data: ret });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
+        , atividadeag: {
+            onsave: async (obj, next) => {
+                try {
+                    if (obj.register.id == 0) {
+                        obj.register.iduser_criacao = obj.req.user.id;
+                    } else {
+                        obj.register.idtipo = obj.register._previousDataValues.idtipo; delete obj.register._changed.idtipo;
+                    }
+
+                    //campos dinâmicos
+                    let invalidfields = [];
+                    let cds = await db.getModel('atv_tipo_cd').findAll({ include: [{ all: true }], where: { idtipo: obj.register.idtipo } });
+                    for (let i = 0; i < cds.length; i++) {
+                        if (cds[i].obrigatorioc && !obj.req.body['cd' + cds[i].idcampodinamico]) {
+                            invalidfields.push('cd' + cds[i].idcampodinamico);
+                        }
+                    }
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    obj.register.ativo = false;
+                    let saved = await next(obj);
+                    if (saved.success) {
+                        main.atividade.atividadeag.f_desativar(saved.register);
+                        if (saved.register._isInsert) {
+                            let user = await db.getModel('users').findOne({ where: { id: saved.register.iduser_criacao } });
+                            if (user.email) {
+                                main.platform.mail.f_sendmail({
+                                    to: [user.email]
+                                    , subject: `[ATV#${saved.register.id}] - ${saved.register.assunto}`
+                                    , html: `Sua atividade foi registrada!<br>${saved.register.descricao}`
+                                });
+                            }
+                        }
+                        for (let i = 0; i < cds.length; i++) {
+                            let atvcd = (await db.getModel('atv_atividadeag_cd').findOrCreate({ include: [{ all: true }], where: { idatividadeag: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } }))[0];
+                            if (obj.req.body['cd' + cds[i].idcampodinamico]) {
+                                switch (atvcd.atv_campodinamico.tipo) {
+                                    case 'Data':
+                                        atvcd.valor = application.formatters.be.date(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                        break;
+                                    case 'Data/Hora':
+                                        atvcd.valor = application.formatters.be.datetime(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                        break;
+                                    case 'Decimal':
+                                        atvcd.valor = application.formatters.be.decimal(obj.req.body['cd' + cds[i].idcampodinamico]);
+                                        break;
+                                    default:
+                                        atvcd.valor = obj.req.body['cd' + cds[i].idcampodinamico];
+                                        break;
+                                }
+                            } else {
+                                atvcd.valor = null;
+                            }
+                            atvcd.save({ iduser: obj.req.user.id });
+                        }
+                    }
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , f_agendamento: async (atividadeag) => {
+                try {
+                    let replaces = function (str) {
+                        return str ? str.replace(/\${day}/g, moment().format('DD'))
+                            .replace(/\${month}/g, moment().format('MM'))
+                            .replace(/\${year}/g, moment().format('YYYY'))
+                            : str
+                    }
+                    let status_inicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: atividadeag.idtipo, inicial: true } });
+                    if (status_inicial) {
+                        let matv = {
+                            iduser_criacao: atividadeag.iduser_criacao
+                            , iduser_responsavel: atividadeag.iduser_responsavel
+                            , assunto: atividadeag.assunto
+                            , descricao: atividadeag.descricao
+                            , idtipo: atividadeag.idtipo
+                            , idstatus: status_inicial.idstatus
+                            , datahora_criacao: moment()
+                            , datahora_prazo: moment()
+                            , encerrada: false
+                        };
+                        if (atividadeag.prazo) {
+                            matv.datahora_prazo.add(atividadeag.prazo, 'day')
+                        }
+                        if (atividadeag.prazohora) {
+                            let time = application.formatters.fe.time(atividadeag.prazohora).split(':');
+                            matv.datahora_prazo.set({
+                                hour: time[0]
+                                , minute: time[1]
+                            });
+                        }
+                        matv.assunto = replaces(matv.assunto);
+                        matv.descricao = replaces(matv.descricao);
+                        let atividade = await db.getModel('atv_atividade').create(matv);
+                        let atvagcds = await db.getModel('atv_atividadeag_cd').findAll({ where: { idatividadeag: atividadeag.id } });
+                        for (let i = 0; i < atvagcds.length; i++) {
+                            await db.getModel('atv_atividade_cd').create({
+                                idatividade: atividade.id
+                                , idcampodinamico: atvagcds[i].idcampodinamico
+                                , valor: atvagcds[i].valor
+                            });
+                        }
+                        if (atividade.iduser_responsavel) {
+                            main.platform.notification.create([atividade.iduser_responsavel], {
+                                title: `Atividade - ${atividade.assunto}`
+                                , description: `Atividade agendada criada`
+                                , link: '/v/atividade/' + atividade.id
+                            });
+                        } else {
+                            let atv_tipo = await db.getModel('atv_tipo').findOne({ where: { id: atividade.idtipo } });
+                            let usersnotification = []
+                            let su = await db.getModel('cad_setorusuario').findAll({ include: [{ all: true }], where: { idsetor: atv_tipo.idsetor } });
+                            for (let i = 0; i < su.length; i++) {
+                                usersnotification.push(su[i].idusuario);
+                            }
+                            main.platform.notification.create(usersnotification, {
+                                title: `Atividade - ${atividade.assunto}`
+                                , description: `Atividade agendada criada`
+                                , link: '/v/atividade_do_setor/' + atividade.id
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            , f_ativar: function (atividadeag) {
+                atv_schedules[atividadeag.id] = schedule.scheduleJob(
+                    [
+                        , atividadeag.cron_minute
+                        , atividadeag.cron_hour
+                        , atividadeag.cron_dom
+                        , atividadeag.cron_moy
+                        , atividadeag.cron_dow
+                    ].join(' ')
+                    , main.atividade.atividadeag.f_agendamento.bind(null, atividadeag));
+            }
+            , f_desativar: function (atividadeag) {
+                if (atv_schedules[atividadeag.id]) {
+                    atv_schedules[atividadeag.id].cancel();
+                    delete atv_schedules[atividadeag.id];
+                }
+            }
+            , e_ativar: async (obj) => {
+                try {
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                    }
+                    let atividadeag = await db.getModel('atv_atividadeag').findOne({ where: { id: obj.ids[0] } });
+                    if (!atividadeag) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    main.atividade.atividadeag.f_ativar(atividadeag.dataValues);
+                    atividadeag.ativo = true;
+                    await atividadeag.save({ iduser: obj.req.user.id });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , e_desativar: async (obj) => {
+                try {
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                    }
+                    let atividadeag = await db.getModel('atv_atividadeag').findOne({ where: { id: obj.ids[0] } });
+                    if (!atividadeag) {
+                        return application.error(obj.res, { msg: 'Atividade não encontrada' });
+                    }
+                    main.atividade.atividadeag.f_desativar(atividadeag.dataValues);
+                    atividadeag.ativo = false;
+                    await atividadeag.save({ iduser: obj.req.user.id });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_obterCamposDinamicos: async (obj) => {
+                try {
+                    if (!obj.data.idtipo) {
+                        return application.error(obj.res, { msg: 'Tipo não informado' });
+                    }
+                    let sql = await db.sequelize.query(`
+                    select
+                        cd.id
+                        , case when tcd.obrigatorioc = true then cd.descricao || '*'
+                          when ${obj.data.idatividadeag} > 0 and tcd.obrigatoriof = true then cd.descricao || '*'
+                          else cd.descricao
+                        end as descricao
+                        , tcd.largura
+                        , cd.tipo
+                        , cd.add
+                        , (select acd.valor from atv_atividadeag_cd acd where acd.idcampodinamico = cd.id and acd.idatividadeag = ${obj.data.idatividadeag}) as valor
+                    from
+                        atv_tipo_cd tcd
+                    left join atv_campodinamico cd on (tcd.idcampodinamico = cd.id)
+                    where
+                        tcd.idtipo = ${obj.data.idtipo}
+                    order by tcd.ordem asc
+                    `, { type: db.Sequelize.QueryTypes.SELECT });
+                    let html = '';
+                    for (let i = 0; i < sql.length; i++) {
+                        switch (sql[i].tipo) {
+                            case 'Texto':
+                                html += application.components.html.text({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor || ''
+                                });
+                                break;
+                            case 'Inteiro':
+                                html += application.components.html.integer({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor || ''
+                                });
+                                break;
+                            case 'Decimal':
+                                html += application.components.html.decimal({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor ? application.formatters.fe.decimal(sql[i].valor, 2) : ''
+                                });
+                                break;
+                            case 'Data':
+                                html += application.components.html.date({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor ? application.formatters.fe.date(sql[i].valor) : ''
+                                });
+                                break;
+                            case 'Data/Hora':
+                                html += application.components.html.datetime({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , value: sql[i].valor ? application.formatters.fe.datetime(sql[i].valor) : ''
+                                });
+                                break;
+                            case 'Combo':
+                                html += application.components.html.autocomplete({
+                                    width: sql[i].largura
+                                    , label: sql[i].descricao
+                                    , name: 'cd' + sql[i].id
+                                    , option: sql[i].valor ? `<option selected>${sql[i].valor}</option>` : '<option></option>'
+                                    , options: sql[i].add
+                                });
+                                break;
+                        }
+                    }
+                    return application.success(obj.res, { data: html });
                 } catch (err) {
                     return application.fatal(obj.res, err);
                 }
@@ -519,6 +780,18 @@ let main = {
                     if (obj.register.id == 0) {
                         obj.register.iduser = obj.req.user.id;
                     }
+
+                    let invalidfields = [];
+                    let cds = await db.getModel('atv_tipo_cd').findAll({ include: [{ all: true }], where: { idtipo: obj.register.idtipo } });
+                    for (let i = 0; i < cds.length; i++) {
+                        if (cds[i].obrigatorioc && !obj.req.body['cd' + cds[i].idcampodinamico]) {
+                            invalidfields.push('cd' + cds[i].idcampodinamico);
+                        }
+                    }
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+
                     await next(obj);
                 } catch (err) {
                     return application.fatal(obj.res, err);
@@ -9324,5 +9597,11 @@ let main = {
     }
 }
 
+//Agendamento de Atividades
+db.sequelize.query("SELECT * FROM atv_atividadeag where ativo", { type: db.sequelize.QueryTypes.SELECT }).then(scheds => {
+    scheds.map(sched => {
+        main.atividade.atividadeag.f_ativar(sched);
+    });
+});
 
 module.exports = main;

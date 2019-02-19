@@ -183,6 +183,7 @@ sequelize.query(`
 
 sequelize.query('select * from config', { type: Sequelize.QueryTypes.SELECT }).then(config => {
   if (config) {
+    require('../custom/' + config[0].customfile);
     if (config[0].favicon) {
       const favicon = JSON.parse(config[0].favicon)[0];
       application.Handlebars.registerPartial('parts/favicon', '/files/' + favicon.id + '.' + favicon.type);
