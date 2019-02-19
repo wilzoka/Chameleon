@@ -574,8 +574,26 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
+            , ondelete: async (obj, next) => {
+                try {
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                    }
+                    let atividadeag = await db.getModel('atv_atividadeag').findOne({ where: { id: obj.ids[0] } });
+                    if (atividadeag.ativo) {
+                        return application.error(obj.res, { msg: 'Não é possível excluir agendamentos ativos' });
+                    }
+                    next(obj);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
             , f_agendamento: async (atividadeag) => {
                 try {
+                    db.getModel('atv_atividadeag').update({
+                        datahora_ultimaexecucao: moment()
+                        , datahora_proximaexecucao: moment(atv_schedules[atividadeag.id].nextInvocation()._date)
+                    }, { where: { id: atividadeag.id } });
                     let replaces = function (str) {
                         return str ? str.replace(/\${day}/g, moment().format('DD'))
                             .replace(/\${month}/g, moment().format('MM'))
@@ -650,6 +668,7 @@ let main = {
                         , atividadeag.cron_dow
                     ].join(' ')
                     , main.atividade.atividadeag.f_agendamento.bind(null, atividadeag));
+                db.getModel('atv_atividadeag').update({ datahora_proximaexecucao: moment(atv_schedules[atividadeag.id].nextInvocation()._date) }, { where: { id: atividadeag.id } });
             }
             , f_desativar: function (atividadeag) {
                 if (atv_schedules[atividadeag.id]) {
@@ -685,6 +704,7 @@ let main = {
                     }
                     main.atividade.atividadeag.f_desativar(atividadeag.dataValues);
                     atividadeag.ativo = false;
+                    atividadeag.datahora_proximaexecucao = null;
                     await atividadeag.save({ iduser: obj.req.user.id });
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 } catch (err) {
