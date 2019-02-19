@@ -197,7 +197,7 @@ const renderDateTime = function (viewfield, register) {
 
 const renderTime = function (viewfield, register) {
 
-    let value = register && register.dataValues[viewfield.modelattribute.name] >= 0 ? register.dataValues[viewfield.modelattribute.name] : '';
+    let value = register && register.dataValues[viewfield.modelattribute.name] >= 0 ? register.dataValues[viewfield.modelattribute.name] : null;
 
     let label = viewfield.modelattribute.label;
     if (viewfield.modelattribute.notnull) {
