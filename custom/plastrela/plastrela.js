@@ -534,6 +534,7 @@ let main = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     obj.register.ativo = false;
+                    obj.register.datahora_proximaexecucao = null;
                     let saved = await next(obj);
                     if (saved.success) {
                         main.atividade.atividadeag.f_desativar(saved.register);
