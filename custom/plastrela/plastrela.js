@@ -4771,11 +4771,8 @@ let main = {
                 }
                 , e_cadastrarAnilox: async function (obj) {
                     try {
-
                         if (obj.req.method == 'GET') {
-
                             let body = '';
-
                             body += application.components.html.date({
                                 width: '4'
                                 , label: 'Data compra*'
@@ -4803,7 +4800,6 @@ let main = {
                                 , model: 'cad_corr'
                                 , attribute: 'nome'
                             });
-
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -4825,13 +4821,10 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-
                             if (obj.req.body.qtd <= 0 || obj.req.body.qtd > 50) {
                                 return application.error(obj.res, { msg: 'A quantidade deve ser entre 1 e 50', invalidfields: ['qtd'] });
                             }
-
                             for (let i = 0; i < obj.req.body.qtd; i++) {
-
                                 await db.getModel('est_anilox').create({
                                     datacompra: application.formatters.be.date(obj.req.body.datacompra)
                                     , descricao: obj.req.body.descricao
@@ -4841,7 +4834,6 @@ let main = {
                                     , ativo: true
                                 }, { iduser: obj.req.body.iduser });
                             }
-
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
@@ -4852,9 +4844,7 @@ let main = {
                 , e_acompanhamento: async function (obj) {
                     try {
                         if (obj.req.method == 'GET') {
-
                             let body = '';
-
                             body += application.components.html.date({
                                 width: '6'
                                 , label: 'Data Inicio*'
@@ -4865,7 +4855,6 @@ let main = {
                                 , label: 'Data Fim*'
                                 , name: 'datafim'
                             });
-
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -4966,7 +4955,6 @@ let main = {
                             report.__table += `
                             </table>
                             `;
-
                             let file = await main.platform.report.f_generate('Geral - Listagem', report);
                             return application.success(obj.res, {
                                 modal: {
@@ -4978,7 +4966,6 @@ let main = {
                                 }
                             });
                         }
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5001,7 +4988,6 @@ let main = {
                             return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
                         }
                         await next(obj);
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5009,7 +4995,6 @@ let main = {
                 , js_ultimoapontamento: async (obj) => {
                     try {
                         let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.data.idmontagem }, include: [{ all: true }] });
-
                         let sql = await db.sequelize.query(`
                                 select
                                     max(datahorafim) as max
@@ -5030,12 +5015,10 @@ let main = {
                                 , type: db.sequelize.QueryTypes.SELECT
                             }
                         );
-
                         application.success(obj.res, {
                             datahoraini: sql[0].max ? moment(sql[0].max, 'YYYY-MM-DD HH:mm').add(1, 'minutes').format(application.formatters.fe.datetime_format) : null
                             , datahorafim: moment().format(application.formatters.fe.datetime_format)
                         });
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5045,52 +5028,41 @@ let main = {
                 _recalcula: function (id) {
                     return new Promise((resolve, reject) => {
                         db.getModel('pcp_approducao').findOne({ where: { id: id } }).then(approducao => {
-
                             db.getModel('pcp_approducaovolume').findAll({
                                 where: { idapproducao: approducao.id }
                             }).then(volumes => {
-
                                 db.getModel('pcp_approducaotempo').findAll({
                                     where: { idapproducao: approducao.id }
                                     , order: [['dataini', 'desc']]
                                 }).then(tempos => {
-
                                     let intervalos = [];
                                     let pesoliquido = 0;
                                     let qtd = 0;
-
                                     for (let i = 0; i < tempos.length; i++) {
                                         intervalos.push(moment(tempos[i].dataini).format('DD/MM HH:mm') + ' - ' + moment(tempos[i].datafim).format('DD/MM HH:mm'));
                                     }
-
                                     for (let i = 0; i < volumes.length; i++) {
                                         pesoliquido += parseFloat(volumes[i].pesoliquido);
                                         qtd += parseFloat(volumes[i].qtd);
                                     }
-
                                     approducao.intervalo = intervalos.join('<br>');
                                     approducao.qtd = qtd.toFixed(4);
                                     approducao.pesoliquido = pesoliquido.toFixed(4);
                                     approducao.save().then(() => {
                                         resolve(true);
                                     });
-
                                 });
                             });
                         });
                     });
                 }
-
                 , __adicionar: async function (obj) {
                     try {
-
                         let config = await db.getModel('pcp_config').findOne();
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
-
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                         }
-
                         let results = await db.sequelize.query(
                             'select'
                             + ' ap.id'
@@ -5105,16 +5077,13 @@ let main = {
                                 }
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
-
                         for (let i = 0; i < results.length; i++) {
                             if (!results[i].volumes) {
                                 return application.success(obj.res, { redirect: '/v/apontamento_de_producao_-_producao/' + results[i].id + '?parent=' + oprecurso.id });
                             }
                         }
-
                         let newapproducao = await db.getModel('pcp_approducao').create({ idoprecurso: oprecurso.id });
                         return application.success(obj.res, { redirect: '/v/apontamento_de_producao_-_producao/' + newapproducao.id + '?parent=' + oprecurso.id });
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5123,7 +5092,6 @@ let main = {
             , approducaotempo: {
                 onsave: async function (obj, next) {
                     try {
-
                         let config = await db.getModel('pcp_config').findOne();
                         let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.register.idapproducao } })
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
@@ -5135,11 +5103,9 @@ let main = {
                             let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
-
                         if (!obj.register.dataini || !obj.register.datafim) {
                             return application.error(obj.res, { msg: 'Informe as datas corretamente', invalidfields: ['dataini', 'datafim'] });
                         }
-
                         let dataini = moment(obj.register.dataini);
                         let datafim = moment(obj.register.datafim);
                         let duracao = datafim.diff(dataini, 'm');
@@ -5151,7 +5117,6 @@ let main = {
                             return application.error(obj.res, { msg: 'Datas incorretas, verifique' });
                         }
                         obj.register.duracao = duracao;
-
                         let results = await db.sequelize.query(`
                             select
                                 *
@@ -5193,7 +5158,6 @@ let main = {
                         if (results.length > 0) {
                             return application.error(obj.res, { msg: 'Existe um apontamento de ' + results[0].tipo + ' neste horário' });
                         }
-
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
                         next(obj);
                     } catch (err) {
