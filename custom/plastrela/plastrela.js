@@ -1010,7 +1010,7 @@ let main = {
                             , datahora_criacao: moment()
                             , encerrada: false
                         });
-                        let html = atividade.descricao;
+                        let html = atividade.descricao || '';
                         if (email.attachments && email.attachments.length > 0) {
                             let files = [];
                             let modelatv = await db.getModel('model').findOne({ where: { name: 'atv_atividade' } });
@@ -1727,7 +1727,6 @@ let main = {
                                 where: {
                                     idversao: nfentradaitens[i].idversao
                                     , ociniflex: nfentradaitens[i].oc
-                                    , idestado: config.idsolicitacaoestadocomprado
                                 }
                                 , order: [['datainclusao', 'asc']]
                             });
@@ -1762,24 +1761,24 @@ let main = {
                                         let totalreservado = await db.sequelize.query('select sum(qtd) as soma from est_volumereserva where idvolume = :v1', { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: volumes[z].id } });
                                         let qtd = parseFloat(volumes[z].qtd) - parseFloat(totalreservado.length > 0 ? totalreservado[0].soma || 0 : 0);
                                         if (pesorestante < qtd) {
-                                            qtd = pesorestante;
                                             if (pesorestante > 0 && solicitacaoitem[y].idpedidoitem) {
                                                 reservascriadas.push(await db.getModel('est_volumereserva').create({
                                                     idvolume: volumes[z].id
                                                     , idpedidoitem: solicitacaoitem[y].idpedidoitem
-                                                    , idop: solicitacaoitem[y].idop
+                                                    , idopetapa: solicitacaoitem[y].idopetapa
                                                     , qtd: pesorestante.toFixed(4)
                                                     , apontado: false
                                                 }));
                                             }
                                             solicitacaoitem[y].qtdrecebida = parseFloat(solicitacaoitem[y].qtdrecebida || 0) + pesorestante;
+                                            pesorestante = 0;
                                         } else {
                                             pesorestante -= qtd;
                                             if (qtd > 0 && solicitacaoitem[y].idpedidoitem) {
                                                 reservascriadas.push(await db.getModel('est_volumereserva').create({
                                                     idvolume: volumes[z].id
                                                     , idpedidoitem: solicitacaoitem[y].idpedidoitem
-                                                    , idop: solicitacaoitem[y].idop
+                                                    , idopetapa: solicitacaoitem[y].idopetapa
                                                     , qtd: qtd.toFixed(4)
                                                     , apontado: false
                                                 }));
@@ -2957,9 +2956,9 @@ let main = {
                             body += application.components.html.autocomplete({
                                 width: '12'
                                 , label: 'OP'
-                                , name: 'idop'
-                                , model: 'pcp_op'
-                                , attribute: 'codigo'
+                                , name: 'idopetapa'
+                                , model: 'pcp_opetapa'
+                                , query: "(select op.codigo from pcp_op op where op.id = pcp_opetapa.idop) || '/'  || (select e.codigo from pcp_etapa e where e.id = pcp_opetapa.idetapa)"
                             });
                             return application.success(obj.res, {
                                 modal: {
@@ -2972,7 +2971,7 @@ let main = {
                                 }
                             });
                         } else {
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idop']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'idopetapa']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
@@ -2980,7 +2979,8 @@ let main = {
                             let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.req.body.ids.split(',') } } });
                             for (let i = 0; i < volumes.length; i++) {
                                 let reservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volumes[i].id } });
-                                let op = await db.getModel('pcp_op').findOne({ where: { id: obj.req.body.idop } });
+                                let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: obj.req.body.idopetapa } });
+                                let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
                                 let pcp_opep = await db.getModel('pcp_opep').findOne({ where: { idop: op.id } });
                                 let ven_pedidoitem = await db.getModel('ven_pedidoitem').findOne({ where: { idpedido: pcp_opep ? pcp_opep.idpedido : 0, idversao: op.idversao } });
                                 if (!ven_pedidoitem) {
@@ -2992,13 +2992,13 @@ let main = {
                                             idvolume: volumes[i].id
                                             , idpedidoitem: ven_pedidoitem.id
                                             , qtd: volumes[i].qtdreal
-                                            , idop: obj.req.body.idop
+                                            , idopetapa: obj.req.body.idopetapa
                                             , apontado: false
                                         });
                                         break;
                                     case 1:
                                         if (reservas[0].idpedidoitem = ven_pedidoitem.id) {
-                                            reservas[0].idop = op.id;
+                                            reservas[0].idopetapa = opetapa.id;
                                             await reservas[0].save();
                                         } else {
                                             return application.error(obj.res, { msg: 'A reserva do volume ' + volumes[i].id + ' não pertence a OP informada' });
@@ -3006,7 +3006,6 @@ let main = {
                                         break;
                                     default:
                                         return application.error(obj.res, { msg: 'O volume ' + volumes[i].id + ' possui mais de uma reserva' });
-                                        break;
                                 }
                             }
                             if (bulkreservas.length > 0) {
@@ -3048,7 +3047,7 @@ let main = {
                                         return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} não possui reservas` });
                                     }
                                     for (let z = 0; z < reservas.length; z++) {
-                                        if (!reservas[z].idop) {
+                                        if (!reservas[z].idopetapa) {
                                             return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} possui uma reserva sem OP` });
                                         }
                                     }
@@ -5260,31 +5259,78 @@ let main = {
                         if (obj.register.pesobruto <= 0) {
                             return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
                         }
-                        // if (obj.register.tara <= 0) {
-                        //     return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
-                        // }
 
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
-                        let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                        let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                        let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where apv.id != ' + (obj.register.id || 0) + ' and ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
+                        let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idopreferente || oprecurso.id } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: opr.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                        let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
+                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
-                        if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + parseFloat(obj.register.pesoliquido)) < 0) {
-                            // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
+                        let sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
+                            `with et as (
+                            select 
+                                e.idtprecurso
+                            from
+                                est_deposito d
+                            left join pcp_etapa e on (d.id = e.iddeposito)
+                            where
+                                d.codigo = (
+                                    select
+                                        case
+                                        when destino = 'EXP' then 1
+                                        when destino = 'EXT' then 6
+                                        when destino = 'IMP' then 7
+                                        when destino = 'LAM' then 8
+                                        when destino = 'COR' then 9
+                                        when destino = 'REB' then 10
+                                        else null end as dep
+                                    from
+                                        (select
+                                            substr(f.valor,1,3) as destino
+                                        from pcp_ficha f
+                                        left join pcp_atribficha af on (f.idatributo = af.id)
+                                        where
+                                            f.valor is not null
+                                            and f.idversao = ${op.idversao}
+                                            and af.codigo in (6005)) as x)
+                            )                                
+                            select
+                                ope.id as idopetapa
+                                , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
+                            from
+                                pcp_op op
+                            left join pcp_op opmae on (op.idopmae = opmae.id)
+                            left join pcp_opetapa ope on (opmae.id = ope.idop)
+                            left join pcp_etapa e on (ope.idetapa = e.id)
+                            inner join et et on (e.idtprecurso = et.idtprecurso)
+                            where
+                                op.id = ${op.id}
+                            `
+                            :
+                            `select
+                                ope.seq
+                                , ope.id as idopetapa
+                                , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
+                            from
+                                pcp_op op
+                            left join pcp_opetapa ope on (op.id = ope.idop)
+                            where
+                                op.id = ${op.id}
+                                and ope.seq > ${opetapa.seq}
+                            order by ope.seq
+                        `,
+                            { type: db.Sequelize.QueryTypes.SELECT });
+                        if (sql.length > 0 && sql[0].iddeposito) {
+                        } else {
+                            return application.error(obj.res, { msg: 'Depósito não configurado' });
                         }
 
-                        main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
                         let saved = await next(obj);
 
                         if (saved.success) {
-                            let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: saved.register.idopreferente || oprecurso.id } });
-                            let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: opr.idopetapa } });
-                            let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
-                            let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
-                            let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
-                            let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
-                            let deposito = await db.getModel('est_deposito').findOne({ where: { id: recurso.iddepositoprodutivo } });
+                            main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
 
                             let qtd = saved.register.qtd;
                             let metragem = null;
@@ -5292,10 +5338,18 @@ let main = {
                                 qtd = saved.register.pesoliquido;
                                 metragem = saved.register.qtd;
                             }
-
                             let volume = await db.getModel('est_volume').findOne({
                                 where: { idapproducaovolume: saved.register.id }
                             });
+                            let sqlped = await db.sequelize.query(`
+                            select 
+                                pi.id as idpedidoitem
+                            from pcp_opep ep
+                            left join pcp_op op on (ep.idop = op.id)
+                            left join ven_pedidoitem pi on (ep.idpedido = pi.idpedido)
+                            where op.id = ${[1].indexOf(tprecurso.codigo) >= 0 ? op.idopmae : op.id} and pi.idversao = op.idversao
+                            `, { type: db.Sequelize.QueryTypes.SELECT });
+                            let idpedidoitem = sqlped.length > 0 ? sqlped[0].idpedidoitem : null;
                             if (volume) {
                                 volume.qtd = qtd;
                                 volume.qtdreal = qtd;
@@ -5303,13 +5357,14 @@ let main = {
                                 volume.metragem = metragem;
                                 volume.iduser = saved.register.iduser;
                                 volume.idversao = op.idversao;
-                                volume.save();
+                                volume.iddeposito = sql[0].iddeposito;
+                                volume.save({ iduser: obj.req.user.id });
+                                await db.getModel('est_volumereserva').destroy({ where: { idvolume: volume.id } });
                             } else {
-
-                                db.getModel('est_volume').create({
+                                volume = await db.getModel('est_volume').create({
                                     idapproducaovolume: saved.register.id
                                     , idversao: op.idversao
-                                    , iddeposito: deposito.id
+                                    , iddeposito: sql[0].iddeposito
                                     , iduser: saved.register.iduser
                                     , datahora: moment()
                                     , qtd: qtd
@@ -5318,9 +5373,16 @@ let main = {
                                     , qtdreal: qtd
                                     , observacao: saved.register.observacao
                                 });
-
                             }
-
+                            if (sql.length > 0 && sql[0].idopetapa) {
+                                await db.getModel('est_volumereserva').create({
+                                    idvolume: volume.id
+                                    , idpedidoitem: idpedidoitem
+                                    , idopetapa: sql[0].idopetapa
+                                    , qtd: qtd
+                                    , apontado: false
+                                });
+                            }
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -5485,26 +5547,81 @@ let main = {
                             if (obj.req.body.pesobruto <= 0) {
                                 return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
                             }
-                            // if (obj.req.body.tara <= 0) {
-                            //     return application.error(obj.res, { msg: 'A tara deve ser maior que 0', invalidfields: ['tara'] });
-                            // }
 
                             let pesoliquido = (obj.req.body.pesobruto - obj.req.body.tara).toFixed(4);
-
-                            let qtdapinsumo = parseFloat((await db.sequelize.query('select sum(qtd) as sum from pcp_apinsumo where idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                            let qtdapperda = parseFloat((await db.sequelize.query('select sum(app.peso) as sum from pcp_apperda app left join pcp_tipoperda tp on (app.idtipoperda = tp.id) where tp.codigo not in (300, 322) and app.idoprecurso = ' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-                            let qtdapproducaovolume = parseFloat((await db.sequelize.query('select sum(apv.pesoliquido) as sum from pcp_approducaovolume apv left join pcp_approducao ap on (apv.idapproducao = ap.id) where ap.idoprecurso =' + oprecurso.id, { type: db.sequelize.QueryTypes.SELECT }))[0].sum || 0);
-
-                            if ((qtdapinsumo * 1.15) - (qtdapperda + qtdapproducaovolume + (parseFloat(pesoliquido) * obj.req.body.qtdvolumes)) < 0) {
-                                // return application.error(obj.res, { msg: 'Insumos insuficientes para realizar este apontamento' });
-                            }
 
                             let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
                             let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
                             let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
                             let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
-                            let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
-                            let deposito = await db.getModel('est_deposito').findOne({ where: { id: recurso.iddepositoprodutivo } });
+
+                            let sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
+                                `with et as (
+                                select 
+                                    e.idtprecurso
+                                from
+                                    est_deposito d
+                                left join pcp_etapa e on (d.id = e.iddeposito)
+                                where
+                                    d.codigo = (
+                                        select
+                                            case
+                                            when destino = 'EXP' then 1
+                                            when destino = 'EXT' then 6
+                                            when destino = 'IMP' then 7
+                                            when destino = 'LAM' then 8
+                                            when destino = 'COR' then 9
+                                            when destino = 'REB' then 10
+                                            else null end as dep
+                                        from
+                                            (select
+                                                substr(f.valor,1,3) as destino
+                                            from pcp_ficha f
+                                            left join pcp_atribficha af on (f.idatributo = af.id)
+                                            where
+                                                f.valor is not null
+                                                and f.idversao = ${op.idversao}
+                                                and af.codigo in (6005)) as x)
+                                )                                
+                                select
+                                    ope.id as idopetapa
+                                    , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
+                                from
+                                    pcp_op op
+                                left join pcp_op opmae on (op.idopmae = opmae.id)
+                                left join pcp_opetapa ope on (opmae.id = ope.idop)
+                                left join pcp_etapa e on (ope.idetapa = e.id)
+                                inner join et et on (e.idtprecurso = et.idtprecurso)
+                                where
+                                    op.id = ${op.id}
+                                `
+                                :
+                                `select
+                                    ope.seq
+                                    , ope.id as idopetapa
+                                    , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
+                                from
+                                    pcp_op op
+                                left join pcp_opetapa ope on (op.id = ope.idop)
+                                where
+                                    op.id = ${op.id}
+                                    and ope.seq > ${opetapa.seq}
+                                order by ope.seq
+                                `,
+                                { type: db.Sequelize.QueryTypes.SELECT });
+                            if (sql.length > 0 && sql[0].iddeposito) {
+                            } else {
+                                return application.error(obj.res, { msg: 'Depósito não configurado' });
+                            }
+                            let sqlped = await db.sequelize.query(`
+                            select 
+                                pi.id as idpedidoitem
+                            from pcp_opep ep
+                            left join pcp_op op on (ep.idop = op.id)
+                            left join ven_pedidoitem pi on (ep.idpedido = pi.idpedido)
+                            where op.id = ${[1].indexOf(tprecurso.codigo) >= 0 ? op.idopmae : op.id} and pi.idversao = op.idversao
+                            `, { type: db.Sequelize.QueryTypes.SELECT });
+                            let idpedidoitem = sqlped.length > 0 ? sqlped[0].idpedidoitem : null;
 
                             let qtd = obj.req.body.qtd;
                             let metragem = null;
@@ -5527,7 +5644,7 @@ let main = {
                                 let volume = await db.getModel('est_volume').create({
                                     idapproducaovolume: approducaovolume.id
                                     , idversao: op.idversao
-                                    , iddeposito: deposito.id
+                                    , iddeposito: sql[0].iddeposito
                                     , iduser: obj.req.body.iduser
                                     , datahora: moment()
                                     , qtd: qtd
@@ -5535,6 +5652,15 @@ let main = {
                                     , consumido: false
                                     , qtdreal: qtd
                                 }, { iduser: obj.req.body.iduser });
+
+                                await db.getModel('est_volumereserva').create({
+                                    idvolume: volume.id
+                                    , idpedidoitem: idpedidoitem
+                                    , idopetapa: sql[0].idopetapa
+                                    , qtd: qtd
+                                    , apontado: false
+                                });
+
                                 if (tprecurso.codigo = 7) {
                                     let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
                                     for (let z = 0; z < apinsumos.length; z++) {
@@ -5550,7 +5676,6 @@ let main = {
                             }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -6084,7 +6209,7 @@ let main = {
                         await volume.save();
 
                         for (let i = 0; i < volumereservas.length; i++) {
-                            if (volumereservas[i].idop = op.id) {
+                            if (volumereservas[i].opetapa = opetapa.id) {
                                 volumereservas[i].apontado = true;
                                 volumereservas[i].save();
                             }
@@ -6143,7 +6268,7 @@ let main = {
                                 await volumes[i].save();
                             }
                             for (let i = 0; i < volumesreservas.length; i++) {
-                                if (volumesreservas[i].idop = op.id) {
+                                if (volumesreservas[i].idopetapa = opetapa.id) {
                                     volumesreservas[i].apontado = false;
                                     await volumesreservas[i].save();
                                 }
