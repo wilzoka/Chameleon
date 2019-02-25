@@ -1291,7 +1291,7 @@ var application = {
                 $notificationLabel.text(notifications.length);
                 for (var i = 0; i < notifications.length; i++) {
                     $notificationMenuUl.append(
-                        '<li><a href="' + (notifications[i].link || 'javascript:void(0)') + '" class="nav-notification-item" data-notification-id="' + notifications[i].id + '" style="white-space: unset;border-bottom: none;padding: 15px 10px;">'
+                        '<li><a href="' + (notifications[i].link || 'javascript:void(0)') + '" class="nav-notification-item" data-notification-id="' + notifications[i].id + '" style="white-space: unset;padding: 15px 10px;">'
                         + '<h4 style="margin: 0;">' + notifications[i].title
                         + '<small style="top: -13px;right: -5px;"><i class="fa fa-clock-o"></i> ' + notifications[i].duration + '</small>'
                         + '</h4>'
