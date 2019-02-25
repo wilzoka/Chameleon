@@ -4674,6 +4674,7 @@ let main = {
                                 , model: 'est_anilox'
                                 , option: anilox ? '<option value="' + montagem.idanilox + '" selected>' + anilox.descricao + '</option>' : ''
                                 , query: "'Nº ' || coalesce(est_anilox.id,'0') || ' - ' || est_anilox.descricao || ' - ' || est_anilox.bcmatual || ' BCM' || coalesce('<span style=color:red> ' || est_anilox.problema ||'</span>', '')"
+                                , where: 'ativo = true'
                             });
                             return application.success(obj.res, {
                                 modal: {
@@ -4832,7 +4833,6 @@ let main = {
                             for (let i = 0; i < obj.req.body.qtd; i++) {
 
                                 await db.getModel('est_anilox').create({
-                                    //numero: i + 1
                                     datacompra: application.formatters.be.date(obj.req.body.datacompra)
                                     , descricao: obj.req.body.descricao
                                     , bcm: obj.req.body.bcm
