@@ -8652,6 +8652,103 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_resumo: async (obj) => {
+                    try {
+
+                        let sql = await db.sequelize.query(`
+                        select
+                            x.hostname as "Hostname"
+                            , x.fullname as "Usuário"
+                            , case when x.softwares ilike '%windows%' then 'Windows'
+                                when (x.softwares ilike '%ubuntu%' or x.softwares ilike '%linux%') then 'Linux'
+                                when x.softwares ilike '%raspbian%' then 'Raspbian'
+                                else 'N/I' end as "SO"
+                            , (select s.descricao || ' - ' || l.serial from cad_vinculacaolicenca vl left join cad_licenca l on (vl.idlicenca = l.id) left join cad_software s on (l.idsoftware = s.id) where vl.idequipamento = x.id and vl.detalhes = 'SO' limit 1) as "Licença"
+                            , case when x.hostname ilike 'PLAMS%' then 'MS' else 'RS' end as "Unidade"
+                        from
+                            (select
+                                e.id
+                                , e.hostname
+                                , u.fullname
+                                , (select
+                                    string_agg(s.descricao, ',')
+                                from
+                                    cad_vinculacaosoftware vs
+                                left join cad_software s on (vs.idsoftware = s.id)
+                                where
+                                    vs.idequipamento = e.id) as softwares
+                            from
+                                cad_equipamento e
+                            left join users u on (e.iduser = u.id)
+                            where
+                                e.idequipamentotipo = 2 and ativo) as x
+                        order by hostname
+                        `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                            });
+
+                        let report = {};
+                        report.__title = obj.event.description;
+                        report.__table = '';
+                        if (sql.length > 0) {
+                            report.__table = `<table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%"><tr>`;
+                            for (let k in sql[0]) {
+                                report.__table += `<td style="text-align:center;"><strong>${k}</strong></td>`
+                            }
+                            report.__table += `</tr>`;
+                            for (let i = 0; i < sql.length; i++) {
+                                report.__table += `<tr>`;
+                                for (let k in sql[i]) {
+                                    report.__table += `<td style="text-align:left;">${sql[i][k] || ''}</td>`
+                                }
+                                report.__table += `</tr>`;
+                            }
+                            report.__table += `</table>`;
+                        }
+
+                        //Resumo 
+                        let keys = ['Unidade', 'SO'];
+                        let resumo = {};
+                        for (let i = 0; i < sql.length; i++) {
+                            for (let z = 0; z < keys.length; z++) {
+                                if (!resumo[sql[i][keys[z]]]) {
+                                    resumo[sql[i][keys[z]]] = 1;
+                                } else {
+                                    resumo[sql[i][keys[z]]]++;
+                                }
+                            }
+                        }
+                        report.__table += `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:20%;margin-top: 15px;">
+                            <tr>
+                                <td style="text-align:center;"><strong>Item</strong></td>
+                                <td style="text-align:center;"><strong>Qtd</strong></td>
+                            </tr>
+                        `;
+                        for (let k in resumo) {
+                            report.__table += `
+                            <tr>
+                                <td style="text-align:center;"> ${k} </td>
+                                <td style="text-align:center;"> ${resumo[k]} </td>
+                            </tr>
+                            `;
+                        }
+                        report.__table += `</table>`;
+
+                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            }
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
         }
         , venda: {
