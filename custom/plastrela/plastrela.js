@@ -8709,31 +8709,34 @@ let main = {
                         //Resumo 
                         let keys = ['Unidade', 'SO'];
                         let resumo = {};
-                        for (let i = 0; i < sql.length; i++) {
-                            for (let z = 0; z < keys.length; z++) {
-                                if (!resumo[sql[i][keys[z]]]) {
-                                    resumo[sql[i][keys[z]]] = 1;
+                        for (let k = 0; k < keys.length; k++) {
+                            resumo[keys[k]] = {};
+                            for (let i = 0; i < sql.length; i++) {
+                                if (!resumo[keys[k]][sql[i][keys[k]]]) {
+                                    resumo[keys[k]][sql[i][keys[k]]] = 1;
                                 } else {
-                                    resumo[sql[i][keys[z]]]++;
+                                    resumo[keys[k]][sql[i][keys[k]]]++;
                                 }
                             }
                         }
-                        report.__table += `
-                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:20%;margin-top: 15px;">
-                            <tr>
-                                <td style="text-align:center;"><strong>Item</strong></td>
-                                <td style="text-align:center;"><strong>Qtd</strong></td>
-                            </tr>
-                        `;
+
                         for (let k in resumo) {
                             report.__table += `
-                            <tr>
-                                <td style="text-align:center;"> ${k} </td>
-                                <td style="text-align:center;"> ${resumo[k]} </td>
-                            </tr>
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:20%;margin-top: 15px;">
+                                <tr>
+                                    <td style="text-align:center;" colspan="2"><strong>${k}</strong></td>
+                                </tr>
                             `;
+                            for (let z in resumo[k]) {
+                                report.__table += `
+                                <tr>
+                                    <td style="text-align:center;"> ${z} </td>
+                                    <td style="text-align:center;"> ${resumo[k][z]} </td>
+                                </tr>
+                                `;
+                            }
+                            report.__table += `</table>`;
                         }
-                        report.__table += `</table>`;
 
                         let file = await main.platform.report.f_generate('Geral - Listagem', report);
                         return application.success(obj.res, {
