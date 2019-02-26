@@ -1210,6 +1210,50 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_importar: async function (obj) {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            let body = '';
+                            body += '<div class="row no-margin">';
+                            body += application.components.html.hidden({ name: 'id', value: obj.id });
+                            body += application.components.html.file({
+                                width: '12'
+                                , name: 'file'
+                                , label: 'Arquivo'
+                                , maxfiles: '1'
+                            });
+                            body += '</div>';
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , id: 'modalevt'
+                                    , action: '/event/' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Importar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'file']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let file = JSON.parse(obj.req.body.file)[0];
+                            let lines = fs.readFileSync(__dirname + '/../../files/' + file.id + '.' + file.type, 'ucs-2').split(/\n/);
+                            for (let i = 1; i < lines.length - 1; i++) {
+                                let content = lines[i].trim().replace(/\s\s+/g, 'xxx').split('xxx');
+                                let software = (await db.getModel('cad_software').findOrCreate({ where: { descricao: content[0] } }))[0];
+                                let vs = (await db.getModel('cad_vinculacaosoftware').findOrCreate({ where: { idequipamento: obj.req.body.id, idsoftware: software.id } }))[0];
+                                console.log(vs);
+                                vs.detalhes = content[1];
+                                await vs.save();
+                            }
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
         }
         , compra: {
