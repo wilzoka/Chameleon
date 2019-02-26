@@ -1244,7 +1244,6 @@ let main = {
                                 let content = lines[i].trim().replace(/\s\s+/g, 'xxx').split('xxx');
                                 let software = (await db.getModel('cad_software').findOrCreate({ where: { descricao: content[0] } }))[0];
                                 let vs = (await db.getModel('cad_vinculacaosoftware').findOrCreate({ where: { idequipamento: obj.req.body.id, idsoftware: software.id } }))[0];
-                                console.log(vs);
                                 vs.detalhes = content[1];
                                 await vs.save();
                             }
