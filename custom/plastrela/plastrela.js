@@ -8663,7 +8663,7 @@ let main = {
                                 when (x.softwares ilike '%ubuntu%' or x.softwares ilike '%linux%') then 'Linux'
                                 when x.softwares ilike '%raspbian%' then 'Raspbian'
                                 else 'N/I' end as "SO"
-                            , (select s.descricao || ' - ' || l.serial from cad_vinculacaolicenca vl left join cad_licenca l on (vl.idlicenca = l.id) left join cad_software s on (l.idsoftware = s.id) where vl.idequipamento = x.id and vl.detalhes = 'SO' limit 1) as "Licença"
+                            , (select s.descricao || ' - ' || coalesce(l.serial, '') from cad_vinculacaolicenca vl left join cad_licenca l on (vl.idlicenca = l.id) left join cad_software s on (l.idsoftware = s.id) where vl.idequipamento = x.id and vl.detalhes = 'SO' limit 1) as "Licença"
                             , case when x.hostname ilike 'PLAMS%' then 'MS' else 'RS' end as "Unidade"
                         from
                             (select
