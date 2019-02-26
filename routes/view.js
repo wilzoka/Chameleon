@@ -513,7 +513,7 @@ const validate = function (obj) {
 const boundFiles = function (obj) {
     let idsToBound = [];
     for (let i = 0; i < obj.modelattributes.length; i++) {
-        if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined) {
+        if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined && obj.register[obj.modelattributes[i].name] != '') {
             let j = JSON.parse(obj.register[obj.modelattributes[i].name]);
             for (let z = 0; z < j.length; z++) {
                 idsToBound.push(j[z].id);

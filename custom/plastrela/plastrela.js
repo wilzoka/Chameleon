@@ -8681,7 +8681,7 @@ let main = {
                                 cad_equipamento e
                             left join users u on (e.iduser = u.id)
                             where
-                                e.idequipamentotipo = 2 and ativo) as x
+                                e.idequipamentotipo in (2,3,4,5,11) and ativo) as x
                         order by hostname
                         `, {
                                 type: db.sequelize.QueryTypes.SELECT
