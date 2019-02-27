@@ -1157,7 +1157,7 @@ let main = {
                         }
                         let count = await db.getModel('cad_vinculacaolicenca').count({ where: { idlicenca: licenca.id, id: { $ne: obj.register.id } } });
                         if (count >= licenca.qtd) {
-                            return application.error(obj.res, { msg: 'Esta licença excedeu o número de vinculações' });
+                            // return application.error(obj.res, { msg: 'Esta licença excedeu o número de vinculações' });
                         }
                         next(obj);
                     } catch (err) {
@@ -1240,6 +1240,14 @@ let main = {
                             }
                             let file = JSON.parse(obj.req.body.file)[0];
                             let lines = fs.readFileSync(__dirname + '/../../files/' + file.id + '.' + file.type, 'ucs-2').split(/\n/);
+                            // Limpa softwares
+                            let sql = await db.sequelize.query(`select vl.id from cad_vinculacaosoftware vl left join cad_software s on (vl.idsoftware = s.id) 
+                            where vl.idequipamento = ${obj.req.body.id} and (s.so is null or s.so = false)`, { type: db.Sequelize.QueryTypes.SELECT });
+                            let ids = []
+                            for (let i = 0; i < sql.length; i++) {
+                                ids.push(sql[i]['id']);
+                            }
+                            await db.getModel('cad_vinculacaosoftware').destroy({ where: { id: { $in: ids } } });
                             for (let i = 1; i < lines.length - 1; i++) {
                                 let content = lines[i].trim().replace(/\s\s+/g, 'xxx').split('xxx');
                                 let software = (await db.getModel('cad_software').findOrCreate({ where: { descricao: content[0] } }))[0];
@@ -8700,32 +8708,18 @@ let main = {
 
                         let sql = await db.sequelize.query(`
                         select
-                            x.hostname as "Hostname"
-                            , x.fullname as "Usuário"
-                            , case when x.softwares ilike '%windows%' then 'Windows'
-                                when (x.softwares ilike '%ubuntu%' or x.softwares ilike '%linux%') then 'Linux'
-                                when x.softwares ilike '%raspbian%' then 'Raspbian'
-                                else 'N/I' end as "SO"
-                            , (select s.descricao || ' - ' || coalesce(l.serial, '') from cad_vinculacaolicenca vl left join cad_licenca l on (vl.idlicenca = l.id) left join cad_software s on (l.idsoftware = s.id) where vl.idequipamento = x.id and vl.detalhes = 'SO' limit 1) as "Licença"
-                            , case when x.hostname ilike 'PLAMS%' then 'MS' else 'RS' end as "Unidade"
+                            e.id
+                            , e.hostname as "Hostname"
+                            , u.fullname as "Usuário"
+                            , case when e.hostname ilike 'PLAMS%' then 'MS' else 'RS' end as "Unidade"
+                            , (select s.descricao from cad_vinculacaosoftware vs left join cad_software s on (vs.idsoftware = s.id) where vs.idequipamento = e.id and s.so = true limit 1) as "SO"
+                            , (select s.descricao || ' - ' || coalesce(l.serial, '') from cad_vinculacaolicenca vl left join cad_licenca l on (vl.idlicenca = l.id) left join cad_software s on (l.idsoftware = s.id) where vl.idequipamento = e.id and s.so = true limit 1) as "Licença"
                         from
-                            (select
-                                e.id
-                                , e.hostname
-                                , u.fullname
-                                , (select
-                                    string_agg(s.descricao, ',')
-                                from
-                                    cad_vinculacaosoftware vs
-                                left join cad_software s on (vs.idsoftware = s.id)
-                                where
-                                    vs.idequipamento = e.id) as softwares
-                            from
-                                cad_equipamento e
-                            left join users u on (e.iduser = u.id)
-                            where
-                                e.idequipamentotipo in (2,3,4,5,11) and ativo) as x
-                        order by hostname
+                            cad_equipamento e
+                        left join users u on (e.iduser = u.id)
+                        where
+                            e.idequipamentotipo in (2,3,4,5,11) and ativo
+                        order by e.hostname
                         `, {
                                 type: db.sequelize.QueryTypes.SELECT
                             });
