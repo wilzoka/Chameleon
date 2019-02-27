@@ -8755,6 +8755,11 @@ let main = {
                                     resumo[keys[k]][sql[i][keys[k]]]++;
                                 }
                             }
+                            let ordered = {};
+                            Object.keys(resumo[keys[k]]).sort().forEach(function (key) {
+                                ordered[key] = resumo[keys[k]][key];
+                            });
+                            resumo[keys[k]] = ordered;
                         }
 
                         for (let k in resumo) {
