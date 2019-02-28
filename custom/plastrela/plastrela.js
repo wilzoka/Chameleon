@@ -4079,7 +4079,7 @@ let main = {
                             let sql = await db.sequelize.query(`
                             select * from (select
                                 v.descricaocompleta as produto
-                                , e.codigo || ' - ' || e.descricao as etapa
+                                , (select e.codigo || ' - ' || e.descricao from pcp_etapa e where rv.iddeposito = e.iddeposito limit 1) as etapa
                                 , string_agg(vol.id::text, ' ,') as ids
                                 , sum(rv.qtd) as qtd
                             from
@@ -4087,7 +4087,6 @@ let main = {
                             left join est_volume vol on (rv.idvolume = vol.id)	
                             left join pcp_versao v on (vol.idversao = v.id)
                             left join cad_item i on (v.iditem = i.id)
-                            left join pcp_etapa e on (rv.iddeposito = e.iddeposito)
                             where
                                 rv.datahoraatendido between :dataini and :datafim
                             group by 1,2
@@ -4097,14 +4096,13 @@ let main = {
 
                             select count(*)::text, '', '', sum(qtd) from (select
                                 v.descricaocompleta as produto
-                                , e.codigo || ' - ' || e.descricao as etapa
+                                , (select e.codigo || ' - ' || e.descricao from pcp_etapa e where rv.iddeposito = e.iddeposito limit 1) as etapa
                                 , sum(rv.qtd) as qtd
                             from
                                 est_requisicaovolume rv
                             left join est_volume vol on (rv.idvolume = vol.id)	
                             left join pcp_versao v on (vol.idversao = v.id)
                             left join cad_item i on (v.iditem = i.id)
-                            left join pcp_etapa e on (rv.iddeposito = e.iddeposito)
                             where
                                 rv.datahoraatendido between :dataini and :datafim
                             group by 1,2) as x

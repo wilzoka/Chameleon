@@ -41,24 +41,18 @@ const activeMessenger = async function (mes) {
                     attachments: false,
                     attachmentOptions: { directory: "files/" }
                 }, JSON.parse(mes.conf)));
-                messengers[mes.id]._reconnAttempts = 0;
                 messengers[mes.id].start();
                 messengers[mes.id].on("server:connected", function () {
-                    this._reconnAttempts = 0;
                     console.log(`Messenger ${mes.description} Connected`);
                 });
                 messengers[mes.id].on("server:disconnected", function () {
-                    if (this._reconnAttempts > 10) {
-                        console.log(`Messenger ${mes.description} Reconnection Attempts Reached`);
-                    } else if (this._desactive) {
-                        this._reconnAttempts = 0;
+                    if (this._desactive) {
                         console.log(`Messenger ${mes.description} Disconnected`);
                     } else {// Reconnect
-                        console.log(`Reconnecting`);
-                        this._reconnAttempts++;
+                        console.log(`Reconnecting ${mes.description}`);
                         setTimeout(() => {
                             this.restart();
-                        }, 2500);
+                        }, 60000);
                     }
                 });
                 messengers[mes.id].on("error", function (err) {
