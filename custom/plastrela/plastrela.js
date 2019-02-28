@@ -5317,7 +5317,7 @@ let main = {
                             left join pcp_op opmae on (op.idopmae = opmae.id)
                             left join pcp_opetapa ope on (opmae.id = ope.idop)
                             left join pcp_etapa e on (ope.idetapa = e.id)
-                            inner join et et on (e.idtprecurso = et.idtprecurso)
+                            left join et et on (e.idtprecurso = et.idtprecurso)
                             where
                                 op.id = ${op.id}
                             `
