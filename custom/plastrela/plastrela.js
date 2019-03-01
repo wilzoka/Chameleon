@@ -5283,8 +5283,8 @@ let main = {
 
                         let sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
                             `with et as (
-                            select 
-                                e.idtprecurso
+                            select distinct
+                                d.id as iddeposito
                             from
                                 est_deposito d
                             left join pcp_etapa e on (d.id = e.iddeposito)
@@ -5317,7 +5317,7 @@ let main = {
                             left join pcp_op opmae on (op.idopmae = opmae.id)
                             left join pcp_opetapa ope on (opmae.id = ope.idop)
                             left join pcp_etapa e on (ope.idetapa = e.id)
-                            inner join et et on (e.idtprecurso = et.idtprecurso)
+                            inner join et et on (e.iddeposito = et.iddeposito)
                             where
                                 op.id = ${op.id}
                             `
@@ -5570,8 +5570,8 @@ let main = {
 
                             let sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
                                 `with et as (
-                                select 
-                                    e.idtprecurso
+                                select distinct
+                                    d.id as iddeposito
                                 from
                                     est_deposito d
                                 left join pcp_etapa e on (d.id = e.iddeposito)
@@ -5604,7 +5604,7 @@ let main = {
                                 left join pcp_op opmae on (op.idopmae = opmae.id)
                                 left join pcp_opetapa ope on (opmae.id = ope.idop)
                                 left join pcp_etapa e on (ope.idetapa = e.id)
-                                inner join et et on (e.idtprecurso = et.idtprecurso)
+                                inner join et et on (e.iddeposito = et.iddeposito)
                                 where
                                     op.id = ${op.id}
                                 `
