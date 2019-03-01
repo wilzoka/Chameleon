@@ -3103,11 +3103,11 @@ let main = {
                                         }
                                     }
                                 }
-                                if (volumes[i].est_deposito.descricao != 'Almoxarifado') {
-                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} não está no Almoxarifado` });
+                                if (['Almoxarifado', 'Copapa', 'Devolucao', 'Produtos de Transferência'].indexOf(volumes[i].est_deposito.descricao) == -1) {
+                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} está em um depósito não permitido para requisição` });
                                 }
                                 if (volumes[i].iddepositoendereco && volumes[i].est_depositoendereco.retido) {
-                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} está retido no Almoxarifado` });
+                                    return application.error(obj.res, { msg: `O volume ID ${volumes[i].id} está retido` });
                                 }
                             }
 
