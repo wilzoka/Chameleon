@@ -6055,7 +6055,7 @@ let main = {
                                 }
                                 break;
 
-                            case 'b':
+                            case '#':
                                 let bc = obj.data.codigodebarra.substring(1, obj.data.codigodebarra.length).split('-');
                                 let item = await db.getModel('cad_item').findOne({ where: { codigo: bc[0].split('/')[0] } })
                                 if (!item) {
@@ -6065,7 +6065,6 @@ let main = {
                                 if (!versao) {
                                     return application.error(obj.res, { msg: 'Versão de produto não encontrado' });
                                 }
-
                                 let volumeb = await db.getModel('est_volume').create({
                                     idversao: versao.id
                                     , iduser: obj.req.user.id
@@ -6087,8 +6086,10 @@ let main = {
                                     return application.error(obj.res, { msg: 'Volume com problema' });
                                 }
                                 break;
+                            default:
+                                return application.error(obj.res, { msg: 'Código de barra incorreto' });
+                                break;
                         }
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
