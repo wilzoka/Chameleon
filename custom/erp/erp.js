@@ -61,7 +61,7 @@ let main = {
                             obj._cookies = [{ key: 'wizard-step', value: parseInt(obj.req.body['wizard-step']) + 1 }];
                         }
                         let neednotification = false;
-                        
+
                         switch (obj.req.body['wizard-step']) {
                             case '0'://Cliente
                                 nextStep();
@@ -513,6 +513,68 @@ let main = {
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
+                }
+            }
+        }
+        , evento: {
+            onsave: async function (obj, next) {
+                try {
+                    if (obj.register.id == 0) {
+
+                        let saved = await next(obj);
+                        let tarefas = await db.getModel('eve_tarefatipoevento').findAll({ where: { idevetipo: obj.register.idevetipo } });
+                        for (let i = 0; i < tarefas.length; i++) {
+                            let eventotarefas = await db.getModel('eve_eventotarefa').create({
+                                idtarefa: tarefas[i].idtarefa
+                                , idevento: saved.register.id
+                            })
+                        }
+                    } else if (obj.register.id > 0) {
+                        let saved = await next(obj);
+                    } else {
+                        return application.error(obj.res, { msg: 'Não foram encontradas tarefas para esse tipo de evento.' });
+                    }
+                } catch (error) {
+                    return application.fatal(obj.res, error);
+                }
+            }
+            , e_buscarfornecedores: async function (obj) {
+                try {
+                    console.log(obj.id)
+                    let eventotarefa = await db.getModel('eve_eventotarefa').findOne({ where: { id: obj.id } });
+                    let fornecedores = await db.getModel('eve_fornecedorservico').findAll({ where: { idcategoria: eventotarefa.idcategoria } });
+                    if (fornecedores.length > 0) {
+                        for (let i = 0; i < fornecedores.length; i++) {
+                            await db.getModel('eve_eventotarefaorca').create({
+                                idfornecedor: fornecedores[i].idfornecedor
+                                , valor: ''
+                                , ideventotarefa: eventotarefa.id
+                            })
+                        }
+                    } else {
+                        return application.error(obj.res, { msg: `Nenhum fornecedor encontrado para a categoria da tarefa.` })
+                    }
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , e_solicitarorcamento: async function (obj) {
+                try {
+                    let eventotarefa = await db.getModel('eve_eventotarefa').findOne({ where: { id: obj.id } });
+                    let fornecedoresorca = await db.getModel('eve_eventotarefaorca').findAll({ where: { ideventotarefa: eventotarefa.id } });
+                    for (let i = 0; i < fornecedoresorca.length; i++) {
+                        console.log(fornecedoresorca[i].idfornecedor)
+                        let fornecedor = await db.getModel('cad_pessoa').findOne({ where: { id: fornecedoresorca[i].idfornecedor } });
+                        main.platform.mail.f_sendmail({
+                            to: [fornecedor.email]
+                            , subject: `${eventotarefa.emailassunto}`
+                            , html: `${eventotarefa.emailtexto}`
+                        });
+                    }
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
                 }
             }
         }
