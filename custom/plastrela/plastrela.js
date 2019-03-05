@@ -5634,6 +5634,7 @@ let main = {
                                 order by ope.seq
                                 `,
                                 { type: db.Sequelize.QueryTypes.SELECT });
+                                console.log(sql);
                             if (sql.length > 0 && sql[0].iddeposito) {
                             } else {
                                 return application.error(obj.res, { msg: 'Depósito não configurado' });
