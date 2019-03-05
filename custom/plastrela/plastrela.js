@@ -5596,7 +5596,7 @@ let main = {
                                                 and f.idversao = ${op.idversao}
                                                 and af.codigo in (6005)) as x)
                                 )                                
-                                select
+                                (select
                                     ope.id as idopetapa
                                     , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
                                 from
@@ -5606,7 +5606,19 @@ let main = {
                                 left join pcp_etapa e on (ope.idetapa = e.id)
                                 inner join et et on (e.iddeposito = et.iddeposito)
                                 where
-                                    op.id = ${op.id}
+                                    op.id = ${op.id})
+
+                                union all
+
+				                (select ope.id as idopetapa, e.iddeposito 
+                                from
+                                    pcp_op op
+                                left join pcp_op opmae on (op.idopmae = opmae.id)
+                                left join pcp_opetapa ope on (opmae.id = ope.idop)
+                                left join pcp_etapa e on (ope.idetapa = e.id)
+                                where
+                                    op.id = ${op.id} 
+                                order by ope.seq)
                                 `
                                 :
                                 `select
