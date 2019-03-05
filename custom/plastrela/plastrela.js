@@ -5330,8 +5330,12 @@ let main = {
                             left join pcp_opetapa ope on (opmae.id = ope.idop)
                             left join pcp_etapa e on (ope.idetapa = e.id)
                             where
-                                op.id = ${op.id} 
+                                op.id = ${op.id} and e.iddeposito is not null
                             order by ope.seq)
+
+                            union all
+
+                            (select null as idopetapa, ${etapa.iddeposito} as iddeposito)
                             `
                             :
                             `select
@@ -5347,6 +5351,7 @@ let main = {
                             order by ope.seq
                         `,
                             { type: db.Sequelize.QueryTypes.SELECT });
+
                         if (sql.length > 0 && sql[0].iddeposito) {
                         } else {
                             return application.error(obj.res, { msg: 'Depósito não configurado' });
@@ -5629,8 +5634,12 @@ let main = {
                                 left join pcp_opetapa ope on (opmae.id = ope.idop)
                                 left join pcp_etapa e on (ope.idetapa = e.id)
                                 where
-                                    op.id = ${op.id} 
+                                    op.id = ${op.id} and e.iddeposito is not null
                                 order by ope.seq)
+
+                                union all
+
+                                (select null as idopetapa, ${etapa.iddeposito} as iddeposito)
                                 `
                                 :
                                 `select
@@ -7504,6 +7513,63 @@ let main = {
                         obj.id = apcliche.id;
                         main.plastrela.pcp.apclichemontagem.e_listaUltimaMontagem(obj);
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_secagem: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length != 1) {
+                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            }
+                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.ids[0] } });
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.integer({
+                                width: '3'
+                                , label: 'Estação*'
+                                , name: 'estacao'
+                                , value: montagem.estacao
+                            });
+                            body += application.components.html.integer({
+                                width: '3'
+                                , label: 'Viscosidade'
+                                , name: 'viscosidade'
+                                , value: montagem.viscosidade || ''
+                            });
+                            let anilox = await db.getModel('est_anilox').findOne({ where: { id: montagem.idanilox || 0 } });
+                            body += application.components.html.autocomplete({
+                                width: '6'
+                                , label: 'Anilox'
+                                , name: 'idanilox'
+                                , model: 'est_anilox'
+                                , option: anilox ? '<option value="' + montagem.idanilox + '" selected>' + anilox.descricao + '</option>' : ''
+                                , query: "'Nº ' || coalesce(est_anilox.id,'0') || ' - ' || est_anilox.descricao || ' - ' || est_anilox.bcmatual || ' BCM' || coalesce('<span style=color:red> ' || est_anilox.problema ||'</span>', '')"
+                                , where: 'ativo = true'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'estacao']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.req.body.id } });
+                            montagem.estacao = obj.req.body.estacao;
+                            montagem.viscosidade = obj.req.body.viscosidade || null;
+                            montagem.idanilox = obj.req.body.idanilox || null;
+                            await montagem.save({ iduser: obj.req.user.id });
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
