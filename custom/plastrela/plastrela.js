@@ -5699,13 +5699,15 @@ let main = {
                                     , qtdreal: qtd
                                 }, { iduser: obj.req.body.iduser });
 
-                                await db.getModel('est_volumereserva').create({
-                                    idvolume: volume.id
-                                    , idpedidoitem: idpedidoitem
-                                    , idopetapa: sql[0].idopetapa
-                                    , qtd: qtd
-                                    , apontado: false
-                                });
+                                if (sql[0].idopetapa) {
+                                    await db.getModel('est_volumereserva').create({
+                                        idvolume: volume.id
+                                        , idpedidoitem: idpedidoitem
+                                        , idopetapa: sql[0].idopetapa
+                                        , qtd: qtd
+                                        , apontado: false
+                                    });
+                                }
 
                                 if (tprecurso.codigo = 7) {
                                     let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
