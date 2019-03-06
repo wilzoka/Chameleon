@@ -5335,7 +5335,31 @@ let main = {
 
                             union all
 
-                            (select null as idopetapa, ${etapa.iddeposito} as iddeposito)
+                            (
+                                select 
+                                    null as idopetapa
+                                    , d.id as iddeposito
+                                from
+                                    (select
+                                        case
+                                        when destino = 'EXP' then 1
+                                        when destino = 'EXT' then 6
+                                        when destino = 'IMP' then 7
+                                        when destino = 'LAM' then 8
+                                        when destino = 'COR' then 9
+                                        when destino = 'REB' then 10
+                                        else null end as deposito
+                                    from
+                                        (select
+                                        substr(f.valor,1,3) as destino
+                                        from pcp_ficha f
+                                        left join pcp_atribficha af on (f.idatributo = af.id)
+                                        where
+                                        f.valor is not null
+                                        and f.idversao = ${op.idversao}
+                                        and af.codigo in (6005)) as x) as x
+                                left join est_deposito d on (d.codigo = x.deposito)
+                            )
                             `
                             :
                             `select
@@ -5639,7 +5663,31 @@ let main = {
 
                                 union all
 
-                                (select null as idopetapa, ${etapa.iddeposito} as iddeposito)
+                                (
+                                    select 
+                                        null as idopetapa
+                                        , d.id as iddeposito
+                                    from
+                                        (select
+                                            case
+                                            when destino = 'EXP' then 1
+                                            when destino = 'EXT' then 6
+                                            when destino = 'IMP' then 7
+                                            when destino = 'LAM' then 8
+                                            when destino = 'COR' then 9
+                                            when destino = 'REB' then 10
+                                            else null end as deposito
+                                        from
+                                            (select
+                                            substr(f.valor,1,3) as destino
+                                            from pcp_ficha f
+                                            left join pcp_atribficha af on (f.idatributo = af.id)
+                                            where
+                                            f.valor is not null
+                                            and f.idversao = ${op.idversao}
+                                            and af.codigo in (6005)) as x) as x
+                                    left join est_deposito d on (d.codigo = x.deposito)
+                                )
                                 `
                                 :
                                 `select
