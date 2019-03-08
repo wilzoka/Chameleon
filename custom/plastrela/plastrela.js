@@ -8156,6 +8156,81 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_volumesXparadas: async (obj) => {
+                    try {
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+
+                        let sql = await db.sequelize.query(`
+                        select
+                            op
+                            , idvolume 
+                            , (select count(*) from pcp_apparada app where app.idoprecurso = x.idoprecurso and app.dataini >= x.min and app.datafim <= x.max ) as qtd
+                        from
+                            (select
+                                v.id as idvolume
+                                , opr.id as idoprecurso
+                                , op.codigo as op
+                                , (select min(dataini) from pcp_approducaotempo apt where apt.idapproducao = ap.id) as min
+                                , (select max(datafim) from pcp_approducaotempo apt where apt.idapproducao = ap.id) as max
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            left join pcp_approducao ap on (opr.id = ap.idoprecurso)
+                            left join pcp_approducaovolume apv on (ap.id = apv.idapproducao)
+                            left join est_volume v on (apv.id = v.idapproducaovolume)
+                            where
+                                opr.id = ${obj.ids[0]}) as x
+                        order by 1,2		
+                        `, {
+                                type: db.sequelize.QueryTypes.SELECT
+                            });
+
+                        let qtd = 0;
+                        let report = {};
+                        report.__title = obj.event.description;
+                        report.__table = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>OP</strong></td>
+                                <td style="text-align:center;"><strong>Volume</strong></td>
+                                <td style="text-align:center;"><strong>Paradas</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            report.__table += `
+                            <tr>
+                                <td style="text-align:left;"> ${sql[i]['op']} </td>
+                                <td style="text-align:left;"> ${sql[i]['idvolume'] || ''} </td>
+                                <td style="text-align:right;"> ${sql[i]['qtd']} </td>
+                            </tr>
+                            `;
+                            qtd += parseInt(sql[i]['qtd']);
+                        }
+                        report.__table += `
+                            <tr>
+                                <td style="text-align:right;" colspan="2"> Total </td>
+                                <td style="text-align:right;"> ${qtd} </td>
+                            </tr>
+                        </table>
+                        `;
+
+                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , fullscreen: true
+                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
+                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
+                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
+                            }
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , r_conferenciaAp: async function (obj) {
                 try {
