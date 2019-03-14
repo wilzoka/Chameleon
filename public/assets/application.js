@@ -867,6 +867,7 @@ var application = {
             }
             tables[idtable].ajax.reload(null, false);
             application.tables.reloadFooter(idtable);
+            $(document).trigger('app-datatable-reload', idtable);
         }
         , reloadAll: function (keepSelection) {
             for (var k in tables) {

@@ -6935,6 +6935,71 @@ let main = {
                             }
                         }
 
+                        //Conferência
+                        let sql = await db.sequelize.query(`
+                        select
+                            *
+                        from
+                            (select
+                                ac.descricao as atributo
+                                , g.description as grupo
+                                , acg.nivelminimo
+                                , acg.qtdpessoas
+                                , (select
+                                    count(*)
+                                from
+                                    pcp_oprecursoconferencia oprc
+                                left join users u on (oprc.iduser = u.id)
+                                left join cad_cargo c on (u.c_idcargo = c.id)
+                                where oprc.idoprecurso = ${oprecurso.id}
+                                and u.idgroupusers = acg.idgroupusers
+                                and c.nivel >= acg.nivelminimo) as qtd
+                            from
+                                pcp_atributoconferencia ac
+                            inner join pcp_atributoconferenciagrupo acg on (ac.id = acg.idatributoconferencia)
+                            left join groupusers g on (acg.idgroupusers = g.id)
+                            where
+                                ac.idtprecurso = ${etapa.idtprecurso}) as x
+                        where
+                            qtd < qtdpessoas
+                        `
+                            , { type: db.Sequelize.QueryTypes.SELECT });
+                        if (sql.length > 0) {
+                            let body = `
+                            <div class="col-md-12">
+                                <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                    <tr>
+                                        <td style="text-align:center;"><strong>Atributo</strong></td>
+                                        <td style="text-align:center;"><strong>Setor</strong></td>
+                                        <td style="text-align:center;"><strong>Nível Mínimo</strong></td>
+                                        <td style="text-align:center;"><strong>Quantidade de pessoas à conferir</strong></td>
+                                    </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:left;"> ${sql[i].atributo}   </td>
+                                    <td style="text-align:left;">  ${sql[i].grupo}   </td>
+                                    <td style="text-align:center;">  ${sql[i].nivelminimo}   </td>
+                                    <td style="text-align:center;">   ${parseInt(sql[i].qtdpessoas) - parseInt(sql[i].qtd)}   </td>
+                                </tr>
+                            `;
+                            }
+                            body += `
+                                </table>
+                            </div>
+                            `;
+
+                            // return application.success(obj.res, {
+                            //     modal: {
+                            //         id: 'modalevtg'
+                            //         , title: 'Atributos que necessitam de conferência'
+                            //         , body: body
+                            //         , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
+                            //     }
+                            // });
+                        }
+
                         oprecurso.idestado = config.idestadoencerrada;
                         if (!oprecurso.integrado) {
                             oprecurso.integrado = 'P';
@@ -6949,7 +7014,6 @@ let main = {
                 }
                 , js_totalperda: async function (obj) {
                     try {
-
                         let sql = await db.sequelize.query(`
                         select
                             sum(p.peso) as soma
@@ -6961,13 +7025,105 @@ let main = {
                             idoprecurso = :v1
                             and tp.codigo not in (300, 322)
                       `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: obj.data.idoprecurso } });
-
                         if (sql.length > 0 && sql[0].soma) {
                             return application.success(obj.res, { qtd: sql[0].qtd, peso: application.formatters.fe.decimal(sql[0].soma, 4) });
                         } else {
                             return application.success(obj.res, { qtd: 0, peso: '0,0000' });
                         }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_totalparada: async function (obj) {
+                    try {
+                        let sql = await db.sequelize.query(`
+                        select
+                            sum(p.duracao) as soma
+                            , count(*) as qtd
+                        from
+                            pcp_apparada p
+                        where
+                            p.idoprecurso = :v1
+                      `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: obj.data.idoprecurso } });
 
+                        if (sql.length > 0 && sql[0].soma) {
+                            return application.success(obj.res, { qtd: sql[0].qtd, duracao: application.formatters.fe.time(sql[0].soma) });
+                        } else {
+                            return application.success(obj.res, { qtd: 0, duracao: '0:00' });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_totalinsumo: async function (obj) {
+                    try {
+                        let sql = await db.sequelize.query(`
+                        select
+                            sum(i.qtd) as soma
+                            , count(*) as qtd
+                        from
+                            pcp_apinsumo i
+                        where
+                            i.idoprecurso = :v1
+                      `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: obj.data.idoprecurso } });
+
+                        if (sql.length > 0 && sql[0].soma) {
+                            return application.success(obj.res, { volumes: sql[0].qtd, qtd: application.formatters.fe.decimal(sql[0].soma, 4) });
+                        } else {
+                            return application.success(obj.res, { volumes: 0, qtd: '0,0000' });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_totalproducao: async function (obj) {
+                    try {
+                        let sql = await db.sequelize.query(`
+                        select
+                            sum((select count(*) from pcp_approducaovolume apv where apv.idapproducao = ap.id)) as volumes
+                            , sum((select sum(apv.qtd) from pcp_approducaovolume apv where apv.idapproducao = ap.id)) as qtd
+                            , sum((select sum(apv.pesoliquido) from pcp_approducaovolume apv where apv.idapproducao = ap.id)) as peso
+                        from
+                            pcp_approducao ap
+                        where
+                            ap.idoprecurso = :v1
+                      `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: obj.data.idoprecurso } });
+                        if (sql.length > 0 && sql[0].qtd) {
+                            return application.success(obj.res, { volumes: sql[0].volumes, qtd: application.formatters.fe.decimal(sql[0].qtd, 4), peso: application.formatters.fe.decimal(sql[0].peso, 4) });
+                        } else {
+                            return application.success(obj.res, { volumes: 0, qtd: '0,0000', peso: '0,0000' });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_indicadores: async function (obj) {
+                    try {
+                        let sql = await db.sequelize.query(`
+                        select
+                            *
+                            , (select sum(case when x.codigo = 1 then apv.pesoliquido else apv.qtd end) from pcp_approducao ap left join pcp_approducaovolume apv on (apv.idapproducao = ap.id) where ap.idoprecurso = x.idoprecurso) 
+                            / ( coalesce((select sum(extract(epoch from ap.datafim - ap.dataini) / 60) from pcp_apparada ap where ap.idoprecurso = x.idoprecurso and ap.dataini > x.datainiproducao), 0)
+                            + (select sum(extract(epoch from apt.datafim - apt.dataini) / 60) from pcp_approducao ap left join pcp_approducaotempo apt on (ap.id = apt.idapproducao) where ap.idoprecurso = x.idoprecurso)) 
+                            * case when x.codigo = 1 then 60 else 1 end as efetiva
+                        from
+                            (select
+                                opr.id as idoprecurso
+                                , tpr.codigo
+                                , (select min(apt.dataini) from pcp_approducao ap left join pcp_approducaotempo apt on (apt.idapproducao = ap.id) where ap.idoprecurso = opr.id) as datainiproducao
+                            from
+                                pcp_oprecurso opr
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_etapa e on (ope.idetapa = e.id)
+                            left join pcp_tprecurso tpr on (e.idtprecurso = tpr.id)
+                            where
+                                opr.id = :v1) as x
+                      `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: obj.data.idoprecurso } });
+                        if (sql.length > 0 && sql[0].efetiva) {
+                            return application.success(obj.res, { efetiva: application.formatters.fe.decimal(sql[0].efetiva, 2) });
+                        } else {
+                            return application.success(obj.res, { efetiva: '0,00' });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -7573,31 +7729,77 @@ let main = {
                             if (obj.ids.length != 1) {
                                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                             }
-                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.ids[0] } });
                             let body = '';
                             body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                            body += application.components.html.time({
+                                width: '3'
+                                , label: 'Secagem (min)*'
+                                , name: 'secagem'
+                                , placeholder: 'mm:ss'
+                            });
+                            body += application.components.html.decimal({
+                                width: '3'
+                                , label: 'Temperatura (°C)*'
+                                , name: 'temperatura'
+                                , precision: 1
+                            });
                             body += application.components.html.integer({
                                 width: '3'
-                                , label: 'Estação*'
-                                , name: 'estacao'
-                                , value: montagem.estacao
+                                , label: 'Umidade (%)*'
+                                , name: 'umidade'
                             });
-                            body += application.components.html.integer({
+                            body += application.components.html.checkbox({
                                 width: '3'
-                                , label: 'Viscosidade'
-                                , name: 'viscosidade'
-                                , value: montagem.viscosidade || ''
+                                , label: 'Retardador?'
+                                , name: 'retardador'
                             });
-                            let anilox = await db.getModel('est_anilox').findOne({ where: { id: montagem.idanilox || 0 } });
-                            body += application.components.html.autocomplete({
-                                width: '6'
-                                , label: 'Anilox'
-                                , name: 'idanilox'
-                                , model: 'est_anilox'
-                                , option: anilox ? '<option value="' + montagem.idanilox + '" selected>' + anilox.descricao + '</option>' : ''
-                                , query: "'Nº ' || coalesce(est_anilox.id,'0') || ' - ' || est_anilox.descricao || ' - ' || est_anilox.bcmatual || ' BCM' || coalesce('<span style=color:red> ' || est_anilox.problema ||'</span>', '')"
-                                , where: 'ativo = true'
+                            body += application.components.html.text({
+                                width: '12'
+                                , label: 'Observação'
+                                , name: 'observacao'
                             });
+
+                            body += `<div class="col-md-12"><button type="submit" class="btn btn-block btn-success" style="margin: 10px 0;"><i class="fa fa-plus"></i></button></div>`;
+
+                            let sql = await db.sequelize.query(`
+                            select
+                                *
+                            from
+                                pcp_apclichemontsecagem
+                            where
+                                idapclichemontagem = ${obj.ids[0]}
+                            order by datahora desc
+                            `, { type: db.Sequelize.QueryTypes.SELECT });
+
+                            body += `
+                            <div class="col-md-12">
+                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                <tr>
+                                    <td style="text-align:center;"><strong>Data/hora</strong></td>
+                                    <td style="text-align:center;"><strong>Secagem (min)</strong></td>
+                                    <td style="text-align:center;"><strong>Temperatura (ºC)</strong></td>
+                                    <td style="text-align:center;"><strong>Umidade (%)</strong></td>
+                                    <td style="text-align:center;"><strong>Retardador?</strong></td>
+                                    <td style="text-align:center;"><strong>Observação</strong></td>
+                                </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${application.formatters.fe.datetime(sql[i].datahora)}   </td>
+                                    <td style="text-align:right;">  ${application.formatters.fe.time(sql[i].secagem)}   </td>
+                                    <td style="text-align:right;">  ${application.formatters.fe.decimal(sql[i].temperatura, 1)}   </td>
+                                    <td style="text-align:right;">  ${sql[i].umidade}   </td>
+                                    <td style="text-align:center;">   ${sql[i].retardador ? 'Sim' : 'Não'}   </td>
+                                    <td style="text-align:left;">   ${sql[i].observacao || ''}   </td>
+                                </tr>
+                                `;
+                            }
+                            body += `
+                            </table>
+                            </div>
+                            `;
+
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -7605,19 +7807,23 @@ let main = {
                                     , id: 'modalevt' + obj.event.id
                                     , title: obj.event.description
                                     , body: body
-                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>'
                                 }
                             });
                         } else {
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'estacao']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'secagem', 'temperatura', 'umidade']);
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.req.body.id } });
-                            montagem.estacao = obj.req.body.estacao;
-                            montagem.viscosidade = obj.req.body.viscosidade || null;
-                            montagem.idanilox = obj.req.body.idanilox || null;
-                            await montagem.save({ iduser: obj.req.user.id });
+                            await db.getModel('pcp_apclichemontsecagem').create({
+                                idapclichemontagem: obj.req.body.id
+                                , datahora: moment()
+                                , secagem: application.formatters.be.time(obj.req.body.secagem)
+                                , temperatura: application.formatters.be.decimal(obj.req.body.temperatura)
+                                , umidade: obj.req.body.umidade
+                                , retardador: 'retardador' in obj.req.body && obj.req.body.retardador == 'on'
+                                , observacao: obj.req.body.observacao || null
+                            });
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
                     } catch (err) {
@@ -8227,6 +8433,38 @@ let main = {
                                 , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
                             }
                         });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_confatributo: async (obj) => {
+                    try {
+                        let atributoconf = await db.getModel('pcp_atributoconferencia').findOne({ where: obj.data });
+                        return application.success(obj.res, { data: atributoconf.dataValues });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_adicionarAtributo: async (obj) => {
+                    try {
+                        let user = await db.getModel('users').findOne({ where: { username: obj.data.confuser, password: obj.data.confpass } });
+                        if (!user) {
+                            return application.error(obj.res, { msg: 'Usuário inválido', invalidfields: ['confuser', 'confpass'] });
+                        }
+                        if (obj.data.confatributo == '' || obj.data.confresul == '') {
+                            return application.error(obj.res, { msg: 'Informe o resultado para o atributo selecionado' });
+                        }
+
+                        await db.getModel('pcp_oprecursoconferencia').create({
+                            datahora: moment()
+                            , idoprecurso: obj.data.idoprecurso
+                            , iduser: user.id
+                            , idatributoconferencia: obj.data.confatributo
+                            , resultado: obj.data.confresul
+                            , observacao: obj.data.confobs || null
+                        });
+
+                        return application.success(obj.res, { reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

@@ -157,6 +157,7 @@ let application = {
 					, name: ''
 					, value: ''
 					, disabled: ''
+					, placeholder: 'hh:mm'
 				}, obj);
 				return `
 				<div class="col-md-${obj.width}">
@@ -164,7 +165,7 @@ let application = {
 						<label>${obj.label}</label>
 						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" ${obj.disabled} style="text-align:right;"
 							data-type="time"
-							placeholder="hh:mm"
+							placeholder="${obj.placeholder}"
 						>
 					</div>
 				</div>`;

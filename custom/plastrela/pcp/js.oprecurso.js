@@ -65,6 +65,7 @@ $(function () {
 
         if (tabletocount.indexOf(table) >= 0) {
             aux++;
+            $('#' + table + '_filter').remove();
         }
         if (aux == 4) {
             for (var i = 0; i < tabletocount.length; i++) {
@@ -78,8 +79,6 @@ $(function () {
                 frnc();
             }
         }
-
-        $('.dataTables_filter').remove();
 
         switch (table) {
             case 'tableviewapontamento_de_producao_-_insumo':// Insumo
@@ -106,6 +105,15 @@ $(function () {
                 break;
         }
 
+    });
+    $(document).on('app-datatable-reload', function (e, table) {
+        if (tabletocount.indexOf(table) >= 0) {
+            totalperda();
+            totalparada();
+            totalinsumo();
+            totalproducao();
+            indicadores();
+        }
     });
 
     $(document).on('app-modal', function (e, modal) {
@@ -181,6 +189,7 @@ $(function () {
                                     addinsumo();
                                 }, 1300);
                             }
+                            totalinsumo();
                         }
                     });
                 });
@@ -256,14 +265,65 @@ $(function () {
         });
     });
 
-    application.jsfunction('plastrela.pcp.oprecurso.js_totalperda', {
-        idoprecurso: application.functions.getId()
-    }, function (response) {
-        if (response.success) {
-            $('#totalpesoperda').text(response.peso);
-            $('#totalqtdperda').text(response.qtd);
-        }
-    });
+    function totalperda() {
+        application.jsfunction('plastrela.pcp.oprecurso.js_totalperda', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            if (response.success) {
+                $('#totalpesoperda').text(response.peso);
+                $('#totalqtdperda').text(response.qtd);
+            }
+        });
+    }
+    totalperda();
+
+    function totalparada() {
+        application.jsfunction('plastrela.pcp.oprecurso.js_totalparada', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            if (response.success) {
+                $('#totalduracaoparada').text(response.duracao);
+                $('#totalqtdparada').text(response.qtd);
+            }
+        });
+    }
+    totalparada();
+
+    function totalinsumo() {
+        application.jsfunction('plastrela.pcp.oprecurso.js_totalinsumo', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            if (response.success) {
+                $('#totalvolumesinsumo').text(response.volumes);
+                $('#totalqtdinsumo').text(response.qtd);
+            }
+        });
+    }
+    totalinsumo();
+
+    function totalproducao() {
+        application.jsfunction('plastrela.pcp.oprecurso.js_totalproducao', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            if (response.success) {
+                $('#totalvolumesproducao').text(response.volumes);
+                $('#totalqtdproducao').text(response.qtd);
+                $('#totalpesoproducao').text(response.peso);
+            }
+        });
+    }
+    totalproducao();
+
+    function indicadores() {
+        application.jsfunction('plastrela.pcp.oprecurso.js_indicadores', {
+            idoprecurso: application.functions.getId()
+        }, function (response) {
+            if (response.success) {
+                $('#efetiva').text(response.efetiva);
+            }
+        });
+    }
+    indicadores();
 
     $('#resumo').click(function () {
         application.jsfunction('plastrela.pcp.oprecurso.js_resumoProducao', {
@@ -291,6 +351,10 @@ $(function () {
 
     $('#marcarVolumes').click(function () {
         $('#modalmarcacaovolume').modal('show');
+    });
+
+    $('#conferencias').click(function () {
+        $('#modalconferencia').modal('show');
     });
 
     function frnc() {
@@ -374,5 +438,64 @@ $(function () {
             $('input[name="observacao"]').val(response.data);
         });
     }
+
+    var $confatributo = $('select[name="confatributo"]');
+    var atributotipo = '';
+    $confatributo.on('select2:select', function (e) {
+        application.jsfunction('plastrela.pcp.oprecurso.js_confatributo', {
+            id: e.params.data.id
+        }, function (response) {
+            atributotipo = response.data.tipo;
+            $('.confresult').addClass('hidden');
+            switch (response.data.tipo) {
+                case 'Texto':
+                    $('input[name="confresultexto"]').removeClass('hidden');
+                    break;
+                case 'Valor':
+                    $('input[name="confresulvalor"]').removeClass('hidden');
+                    break;
+                case 'Combo':
+                    $('select[name="confresulcombo"]').find('option').remove();
+                    var options = response.data.combo.split(',');
+                    for (var i = 0; i < options.length; i++) {
+                        $('select[name="confresulcombo"]').append($('<option>', { text: options[i] }));
+                    }
+                    $('select[name="confresulcombo"]').removeClass('hidden');
+                    break;
+            }
+        });
+    });
+    $confatributo.on('select2:unselecting', function (e) {
+        $('.confresult').addClass('hidden');
+    });
+    $confatributo.attr('data-where', "idtprecurso = (select e.idtprecurso from pcp_oprecurso opr left join pcp_opetapa ope on (opr.idopetapa = ope.id) left join pcp_etapa e on (ope.idetapa = e.id) where opr.id = " + application.functions.getId() + ")");
+    $('#adicionarAtributo').click(function () {
+        application.jsfunction('plastrela.pcp.oprecurso.js_adicionarAtributo', {
+            idoprecurso: application.functions.getId()
+            , confuser: $('input[name="confuser"]').val()
+            , confpass: $('input[name="confpass"]').val()
+            , confatributo: $('select[name="confatributo"]').val()
+            , confresul: atributotipo == 'Texto' ? $('input[name="confresultexto"]').val() :
+                atributotipo == 'Valor' ? $('input[name="confresulvalor"]').val() :
+                    atributotipo == 'Combo' ? $('select[name="confresulcombo"]').val()
+                        : ''
+            , confobs: $('input[name="confobs"]').val()
+        }, function (response) {
+            application.handlers.responseSuccess(response);
+            if (response.success) {
+                $confatributo.val(null).trigger('change');
+                $('.confresult').addClass('hidden');
+                $('input[name="confresultexto"]').val('');
+                $('input[name="confresulvalor"]').val('');
+                $('input[name="confobs"]').val('');
+            }
+        });
+    });
+    $('#modalconferencia').on('show.bs.modal', function () {
+        $confatributo.val(null).trigger('change');
+        $('input[name="confuser"]').val('');
+        $('input[name="confpass"]').val('');
+        $('.confresult').addClass('hidden');
+    });
 
 });
