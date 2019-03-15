@@ -6990,14 +6990,14 @@ let main = {
                             </div>
                             `;
 
-                            // return application.success(obj.res, {
-                            //     modal: {
-                            //         id: 'modalevtg'
-                            //         , title: 'Atributos que necessitam de conferência'
-                            //         , body: body
-                            //         , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
-                            //     }
-                            // });
+                            return application.success(obj.res, {
+                                modal: {
+                                    id: 'modalevtg'
+                                    , title: 'Atributos que necessitam de conferência'
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
+                                }
+                            });
                         }
 
                         oprecurso.idestado = config.idestadoencerrada;
@@ -7007,7 +7007,6 @@ let main = {
                         await oprecurso.save();
 
                         return application.success(obj.res, { msg: application.message.success, redirect: '/v/apontamento_de_producao' });
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
