@@ -121,7 +121,6 @@ let main = {
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0
                                                         let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas
                                                         let datavenc = moment().add(prazo, 'day')
-                                                        console.log(datavenc);
                                                         if (totalparcelas > 0) {
                                                             for (let l = 0; l < totalparcelas; l++) {
                                                                 let mov = await db.getModel('fin_mov').create({
@@ -209,6 +208,9 @@ let main = {
                             });
                         }
 
+                        // Adicionado mas não funcionou.
+                        return application.success(obj.res, { msg: application.message.success, historyBack: true });
+
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -239,8 +241,8 @@ let main = {
                             });
 
                         let body = `
-                            <div id="tablebody" class="col-md-12">
-                                <h4 align="center"> Pendências Financeiras </h4>
+                            <div id="tablebody" class="col-md-12" style="padding-bottom: 10px">
+                                <h4 align="center"> Histórico de Compras </h4>
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
                                     <tr>
                                         <td style="text-align:center;"><strong>ID</strong></td>
@@ -520,13 +522,15 @@ let main = {
             onsave: async function (obj, next) {
                 try {
                     if (obj.register.id == 0) {
-
                         let saved = await next(obj);
+                        let evento = await db.getModel("eve_evento").find({ where: { id: saved.register.id } });
                         let tarefas = await db.getModel('eve_tarefatipoevento').findAll({ where: { idevetipo: obj.register.idevetipo } });
                         for (let i = 0; i < tarefas.length; i++) {
+                            let tarefa = await db.getModel("eve_tarefa").find({ where: { id: tarefas[i].idtarefa } });
                             let eventotarefas = await db.getModel('eve_eventotarefa').create({
                                 idtarefa: tarefas[i].idtarefa
                                 , idevento: saved.register.id
+                                , prazo: moment(evento.data_evento, application.formatters.fe.date_format).subtract(tarefas.previsaoinicio, 'day')
                             })
                         }
                     } else if (obj.register.id > 0) {
@@ -885,6 +889,7 @@ let main = {
                                     , desconto: obj.req.body['desconto' + ids[i]] ? application.formatters.be.decimal(obj.req.body['desconto' + ids[i]], 2) : null
                                     , juro: obj.req.body['juro' + ids[i]] ? application.formatters.be.decimal(obj.req.body['juro' + ids[i]], 2) : null
                                     , datahora: application.formatters.be.datetime(obj.req.body.datahora)
+                                    , detalhes: mov.detalhe
                                 });
                             }
 
