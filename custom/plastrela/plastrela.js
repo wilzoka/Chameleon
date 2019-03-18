@@ -7498,6 +7498,7 @@ let main = {
                                     idopprincipal: obj.req.body.idopprincipal
                                     , idopconjugada: ids[i]
                                 });
+                                await db.getModel('pcp_apcliche').update({ idoprecurso: obj.req.body.idopprincipal }, { where: { idoprecurso: ids[i] } });
                             }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
