@@ -45,8 +45,8 @@
 
 <div class="col-md-12">
     <div class="box box-success">
-        <div class="box-header with-border text-center">
-            <h3 class="box-title">Minhas Atividades</h3>
+        <div id="headerminhas" class="box-header with-border text-center">
+            <h3 class="box-title" style="display: block;">Minhas Atividades</h3>
         </div>
         <div class="box-body">
             <div class="row">
@@ -60,8 +60,8 @@
 
 <div class="col-md-12">
     <div class="box box-primary">
-        <div class="box-header with-border text-center">
-            <h3 class="box-title">Atividades do Setor</h3>
+        <div id="headersetor" class="box-header with-border text-center">
+            <h3 class="box-title" style="display: block;">Atividades do Setor</h3>
         </div>
         <div class="box-body">
             <div class="row">
@@ -114,6 +114,18 @@
         });
         setInterval(function () {
             application.tables.reloadAll(true);
+            // application.jsfunction('atividade.atividade.js_getUnread', {}, function (response) {
+            //     if (response.success) {
+            //         $('#headerminhas').find('span').remove();
+            //         for (var i = 0; i < response.data.minhas.length; i++) {
+            //             $('#headerminhas').append('<span class="label label-danger" style="margin: 0 5px;"><a href="/v/atividade/' + response.data.minhas[i] + '" style="color: white;">#' + response.data.minhas[i] + '</a></span>')
+            //         }
+            //         $('#headersetor').find('span').remove();
+            //         for (var i = 0; i < response.data.minhas.length; i++) {
+            //             $('#headersetor').append('<span class="label label-danger" style="margin: 0 5px;"><a href="/v/atividade_do_setor/' + response.data.minhas[i] + '" style="color: white;">#' + response.data.minhas[i] + '</a></span>')
+            //         }
+            //     }
+            // });
         }, 10000);
     });
 </script>

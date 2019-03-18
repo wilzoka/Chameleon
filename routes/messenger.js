@@ -65,6 +65,7 @@ const activeMessenger = async function (mes) {
                     if (!realfunction) {
                         return console.error('Function not found');
                     }
+                    mail._messenger = mes;
                     realfunction(mail);
                 });
                 break;

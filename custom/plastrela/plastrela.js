@@ -356,15 +356,16 @@ let main = {
                                     , link: '/v/atividade_participante/' + atividade.id
                                 });
                             }
-                            main.platform.mail.f_sendmail({
-                                to: [atividade.users.email]
-                                , cc: parts.email
-                                , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
-                                , html: `<a href="http://intranet.plastrela.com.br:8084/r/visao_administrativa" target="_blank">http://intranet.plastrela.com.br:8084/r/visao_administrativa</a>
-                                <br>
-                                ${obj.data.nota_descricao || ''}`
-                                , attachments: attachments
-                            });
+                            if (atividade.users.email) {
+                                main.platform.mail.f_sendmail({
+                                    to: [atividade.users.email]
+                                    , cc: parts.email
+                                    , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
+                                    , html: `<a href="http://intranet.plastrela.com.br:8084/r/visao_administrativa" target="_blank">http://intranet.plastrela.com.br:8084/r/visao_administrativa</a>
+                                    <br>${obj.data.nota_descricao || ''}`
+                                    , attachments: attachments
+                                });
+                            }
                         }
                     }
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
@@ -999,10 +1000,14 @@ let main = {
                 } else { // Novo
                     let tipo = await db.getModel('atv_tipo').findOne({ where: { descricaocompleta: 'TI - Geral' } });
                     let status_inicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: tipo.id, inicial: true } });
-                    let user = await db.getModel('users').findOne({ where: { email: email.from[0].address } });
+                    let user = (await db.getModel('users').findOrCreate({ where: { email: email.from[0].address } }))[0];
+                    if (!user.fullname) {
+                        user.fullname = email.from[0].name;
+                        user.save();
+                    }
                     if (tipo && status_inicial) {
                         let atividade = await db.getModel('atv_atividade').create({
-                            iduser_criacao: user ? user.id : null
+                            iduser_criacao: user.id
                             , assunto: email.subject
                             , descricao: email.html
                             , idtipo: tipo.id
@@ -1011,6 +1016,41 @@ let main = {
                             , encerrada: false
                         });
                         let html = atividade.descricao || '';
+                        // Participantes
+                        let j = JSON.parse(email._messenger.conf);
+                        // to
+                        if (email.to.length > 0) {
+                            for (let i = 0; i < email.to.length; i++) {
+                                if (j.username != email.to[i].address) {
+                                    let participante = (await db.getModel('users').findOrCreate({ where: { email: email.to[i].address } }))[0];
+                                    if (!participante.fullname) {
+                                        participante.fullname = email.to[i].name;
+                                        participante.save();
+                                    }
+                                    await db.getModel('atv_atividadeparticipante').create({
+                                        idatividade: atividade.id
+                                        , iduser: participante.id
+                                    });
+                                }
+                            }
+                        }
+                        // CC
+                        if (email.cc && email.cc.length > 0) {
+                            for (let i = 0; i < email.cc.length; i++) {
+                                if (j.username != email.cc[i].address) {
+                                    let participante = (await db.getModel('users').findOrCreate({ where: { email: email.cc[i].address } }))[0];
+                                    if (!participante.fullname) {
+                                        participante.fullname = email.cc[i].name;
+                                        participante.save();
+                                    }
+                                    await db.getModel('atv_atividadeparticipante').create({
+                                        idatividade: atividade.id
+                                        , iduser: participante.id
+                                    });
+                                }
+                            }
+                        }
+                        // Anexo
                         if (email.attachments && email.attachments.length > 0) {
                             let files = [];
                             let modelatv = await db.getModel('model').findOne({ where: { name: 'atv_atividade' } });

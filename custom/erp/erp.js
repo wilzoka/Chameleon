@@ -190,6 +190,7 @@ let main = {
                                         let vendaitens = await db.getModel('com_vendaitem').findAll({ where: { idvenda: obj.register.id } });
                                         f_atualizarEstoque(vendaitens);
                                     } */
+                                    obj._redirect = '/r/painel_do_vendedor';
                                 }
                                 break;
                             default:
