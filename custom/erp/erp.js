@@ -116,10 +116,8 @@ let main = {
                                                             , idconta: conta.idconta
                                                         })
                                                     } else if (formaspgto[j].formarecebimento == 'a Prazo') {
-                                                        console.log("Prazo: " + formaspgto[j].prazo)
-                                                        console.log("Data1: " + moment(vendaformaspgto[i].vencimento, application.formatters.fe.date_format))
-                                                        console.log("Data2: " + moment(vendaformaspgto[i].vencimento))
-                                                        prazo += formaspgto[j].prazo != null ? formaspgto[j].prazo : moment(vendaformaspgto[i].vencimento, application.formatters.fe.date_format) != null ? moment(vendaformaspgto[i].vencimento).diff(moment(), 'd') + 1 : moment().add(7, 'day')
+                                                        console.log("Data: " + moment(vendaformaspgto[i].vencimento))
+                                                        prazo += formaspgto[j].prazo != null ? formaspgto[j].prazo : moment(vendaformaspgto[i].vencimento) != null ? moment(vendaformaspgto[i].vencimento).diff(moment(), 'd') + 1 : moment().add(7, 'day')
                                                         valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0
                                                         let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas
