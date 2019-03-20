@@ -105,6 +105,24 @@
 
 <script type="text/javascript">
     $(function () {
+        function getUnread() {
+            application.jsfunction('atividade.atividade.js_getUnread', {}, function (response) {
+                if (response.success) {
+                    if (tables['tableviewatividade']) {
+                        $('#headerminhas').find('span').remove();
+                        for (var i = 0; i < response.data.minhas.length; i++) {
+                            $('#headerminhas').append('<span class="label label-danger" style="margin: 0 5px;"><a href="/v/atividade/' + response.data.minhas[i] + '" style="color: white;">#' + response.data.minhas[i] + '</a></span>')
+                        }
+                    }
+                    if (tables['tableviewatividade_do_setor']) {
+                        $('#headersetor').find('span').remove();
+                        for (var i = 0; i < response.data.minhas.length; i++) {
+                            $('#headersetor').append('<span class="label label-danger" style="margin: 0 5px;"><a href="/v/atividade_do_setor/' + response.data.minhas[i] + '" style="color: white;">#' + response.data.minhas[i] + '</a></span>')
+                        }
+                    }
+                }
+            });
+        }
         application.jsfunction('atividade.atividade.js_getInfo', {}, function (response) {
             $('#horashoje').html(response.data.horashoje);
             $('#horashojemeta').html(response.data.horashojemeta).addClass(response.data.horashojemeta >= 100 ? 'fa-caret-up' : 'fa-caret-down');
@@ -114,18 +132,10 @@
         });
         setInterval(function () {
             application.tables.reloadAll(true);
-            // application.jsfunction('atividade.atividade.js_getUnread', {}, function (response) {
-            //     if (response.success) {
-            //         $('#headerminhas').find('span').remove();
-            //         for (var i = 0; i < response.data.minhas.length; i++) {
-            //             $('#headerminhas').append('<span class="label label-danger" style="margin: 0 5px;"><a href="/v/atividade/' + response.data.minhas[i] + '" style="color: white;">#' + response.data.minhas[i] + '</a></span>')
-            //         }
-            //         $('#headersetor').find('span').remove();
-            //         for (var i = 0; i < response.data.minhas.length; i++) {
-            //             $('#headersetor').append('<span class="label label-danger" style="margin: 0 5px;"><a href="/v/atividade_do_setor/' + response.data.minhas[i] + '" style="color: white;">#' + response.data.minhas[i] + '</a></span>')
-            //         }
-            //     }
-            // });
+            getUnread();
         }, 10000);
+        setTimeout(function () {
+            getUnread();
+        }, 1000);
     });
 </script>

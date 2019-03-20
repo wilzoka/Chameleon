@@ -621,7 +621,9 @@ let platform = {
                             , raw: true
                             , include: [{ all: true }]
                         }, options)).then(registers => {
+                            let original = JSON.stringify(registers.rows);
                             registers = fixResults(registers, modelattributes);
+                            registers.original = JSON.parse(original);
                             return resolve(registers);
                         });
                     });

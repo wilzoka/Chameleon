@@ -25,6 +25,21 @@ let main = {
                         }
                         obj.register.idstatus = statusinicial.idstatus;
                     } else {
+                        // Autenticar/Leitura
+                        if (!obj.register.iduser_leitura) {
+                            if (obj.register.atv_tipo.autenticarleitura) {
+                                let userauth = await db.getModel('users').findOne({ where: { username: obj.req.body.authuser, password: obj.req.body.authpass } })
+                                if (userauth) {
+                                    let single = await db.getModel('atv_atividade').findOne({ where: { id: obj.register.id } });
+                                    single.iduser_leitura = userauth.id;
+                                    single.save({ iduser: obj.req.user.id });
+                                    return application.success(obj.res, { redirect: obj.req.path });
+                                } else {
+                                    return application.error(obj.res, { msg: 'Usuário inválido' });
+                                }
+                            }
+                        }
+
                         if (obj.register.encerrada) {
                             return application.error(obj.res, { msg: 'Atividade está encerrada' });
                         }
@@ -508,6 +523,46 @@ let main = {
                         , tempomedioresolucao: tempomedioresolucao.length > 0 ? application.formatters.fe.time(tempomedioresolucao[0].sum) : '0:00'
                     };
 
+                    return application.success(obj.res, { data: ret });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_read: async (obj) => {
+                try {
+                    let atividade = await db.getModel('atv_atividade').findOne({ where: { id: obj.data.id || 0 } });
+                    if (!atividade) {
+                        return application.success(obj.res, {});
+                    }
+                    atividade.iduser_leitura = obj.req.user.id;
+                    atividade.save({ iduser: obj.req.user.id });
+                    return application.success(obj.res, {});
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+            , js_getUnread: async (obj) => {
+                try {
+                    let ret = {
+                        minhas: []
+                        , setor: []
+                    };
+                    let viewatv = await db.getModel('view').findOne({ where: { name: 'Atividade' } });
+                    let atividades = await db.getModel('atv_atividade').findAll({
+                        include: [{ all: true }]
+                        , where: { iduser_leitura: null, $col: db.Sequelize.literal(viewatv.wherefixed.replace(/\$user/g, obj.req.user.id)) }
+                    });
+                    for (let i = 0; i < atividades.length; i++) {
+                        ret.minhas.push(atividades[i].id);
+                    }
+                    let viewsetor = await db.getModel('view').findOne({ where: { name: 'Atividade do Setor' } });
+                    let setor = await db.getModel('atv_atividade').findAll({
+                        include: [{ all: true }]
+                        , where: { iduser_leitura: null, $col: db.Sequelize.literal(viewsetor.wherefixed.replace(/\$user/g, obj.req.user.id)) }
+                    });
+                    for (let i = 0; i < setor.length; i++) {
+                        ret.setor.push(setor[i].id);
+                    }
                     return application.success(obj.res, { data: ret });
                 } catch (err) {
                     return application.fatal(obj.res, err);
@@ -4737,37 +4792,81 @@ let main = {
                 , e_definicoes: async (obj) => {
                     try {
                         if (obj.req.method == 'GET') {
-                            if (obj.ids.length != 1) {
-                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                            let ids = []
+                            let regs = await main.platform.model.findAll('pcp_apclichemontagem', {
+                                where: {
+                                    $col: db.Sequelize.literal(`pcp_apcliche.idoprecurso = ${obj.id}`)
+                                }
+                                , order: [['estacao', 'asc']]
+                            });
+                            let body = '<div class="row no-margin">';
+                            body += application.components.html.decimal({
+                                width: '3'
+                                , label: 'Temperatura (°C)*'
+                                , name: 'temperatura'
+                                , precision: 1
+                            });
+                            body += application.components.html.integer({
+                                width: '3'
+                                , label: 'Umidade (%)*'
+                                , name: 'umidade'
+                            });
+                            body += '</div>';
+                            for (let i = 0; i < regs.count; i++) {
+                                body += '<hr><div class="row no-margin">';
+                                ids.push(regs.rows[i].id);
+                                body += application.components.html.integer({
+                                    width: '1'
+                                    , label: 'Estação*'
+                                    , name: 'estacao' + regs.rows[i].id
+                                    , value: regs.rows[i].estacao || ''
+                                });
+                                body += application.components.html.text({
+                                    width: '3'
+                                    , label: 'Cor'
+                                    , value: regs.rows[i].idversao || ''
+                                    , disabled: 'disabled="disabled"'
+                                });
+                                let anilox = await db.getModel('est_anilox').findOne({ where: { id: regs.original[i].idanilox || 0 } });
+                                body += application.components.html.autocomplete({
+                                    width: '3'
+                                    , label: 'Anilox*'
+                                    , name: 'idanilox' + regs.rows[i].id
+                                    , model: 'est_anilox'
+                                    , option: anilox ? '<option value="' + anilox.id + '" selected>' + anilox.descricao + '</option>' : ''
+                                    , query: "'Nº ' || coalesce(est_anilox.id,'0') || ' - ' || est_anilox.descricao || ' - ' || est_anilox.bcmatual || ' BCM' || coalesce('<span style=color:red> ' || est_anilox.problema ||'</span>', '')"
+                                    , where: 'ativo = true'
+                                });
+                                body += application.components.html.integer({
+                                    width: '1'
+                                    , label: 'Viscosidade'
+                                    , name: 'viscosidade' + regs.rows[i].id
+                                    , value: regs.rows[i].viscosidade || ''
+                                });
+
+                                body += application.components.html.time({
+                                    width: '1'
+                                    , label: 'Secagem'
+                                    , name: 'secagem' + regs.rows[i].id
+                                    , placeholder: 'mm:ss'
+                                });
+                                body += application.components.html.checkbox({
+                                    width: '1'
+                                    , label: 'Retardador?'
+                                    , name: 'retardador' + regs.rows[i].id
+                                });
+                                body += application.components.html.text({
+                                    width: '2'
+                                    , label: 'Observação'
+                                    , name: 'observacao' + regs.rows[i].id
+                                });
+                                body += '</div>';
                             }
-                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.ids[0] } });
-                            let body = '';
-                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
-                            body += application.components.html.integer({
-                                width: '3'
-                                , label: 'Estação*'
-                                , name: 'estacao'
-                                , value: montagem.estacao
-                            });
-                            body += application.components.html.integer({
-                                width: '3'
-                                , label: 'Viscosidade'
-                                , name: 'viscosidade'
-                                , value: montagem.viscosidade || ''
-                            });
-                            let anilox = await db.getModel('est_anilox').findOne({ where: { id: montagem.idanilox || 0 } });
-                            body += application.components.html.autocomplete({
-                                width: '6'
-                                , label: 'Anilox'
-                                , name: 'idanilox'
-                                , model: 'est_anilox'
-                                , option: anilox ? '<option value="' + montagem.idanilox + '" selected>' + anilox.descricao + '</option>' : ''
-                                , query: "'Nº ' || coalesce(est_anilox.id,'0') || ' - ' || est_anilox.descricao || ' - ' || est_anilox.bcmatual || ' BCM' || coalesce('<span style=color:red> ' || est_anilox.problema ||'</span>', '')"
-                                , where: 'ativo = true'
-                            });
+                            body += application.components.html.hidden({ name: 'ids', value: ids.join(',') });
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
+                                    , fullscreen: true
                                     , action: '/event/' + obj.event.id
                                     , id: 'modalevt' + obj.event.id
                                     , title: obj.event.description
@@ -4776,15 +4875,38 @@ let main = {
                                 }
                             });
                         } else {
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'estacao']);
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids']);
+                            let ids = obj.req.body.ids.split(',');
+                            for (let i = 0; i < ids.length; i++) {
+                                invalidfields = invalidfields.concat(application.functions.getEmptyFields(obj.req.body, ['estacao' + ids[i], 'idanilox' + ids[i]]));
+                                if (obj.req.body['secagem' + ids[i]] && (!obj.req.body.temperatura || !obj.req.body.umidade)) {
+                                    invalidfields = invalidfields.concat(['temperatura', 'umidade']);
+                                }
+                            }
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                            let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: obj.req.body.id } });
-                            montagem.estacao = obj.req.body.estacao;
-                            montagem.viscosidade = obj.req.body.viscosidade || null;
-                            montagem.idanilox = obj.req.body.idanilox || null;
-                            await montagem.save({ iduser: obj.req.user.id });
+
+                            for (let i = 0; i < ids.length; i++) {
+                                let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: ids[i] } });
+                                montagem.estacao = obj.req.body['estacao' + ids[i]];
+                                montagem.viscosidade = obj.req.body['viscosidade' + ids[i]] || null;
+                                montagem.idanilox = obj.req.body['idanilox' + ids[i]];
+                                await montagem.save({ iduser: obj.req.user.id });
+
+                                if (obj.req.body['secagem' + ids[i]]) {
+                                    await db.getModel('pcp_apclichemontsecagem').create({
+                                        idapclichemontagem: montagem.id
+                                        , datahora: moment()
+                                        , secagem: application.formatters.be.time(obj.req.body['secagem' + ids[i]])
+                                        , temperatura: application.formatters.be.decimal(obj.req.body.temperatura)
+                                        , umidade: obj.req.body.umidade
+                                        , retardador: 'retardador' + ids[i] in obj.req.body && obj.req.body['retardador' + ids[i]] == 'on'
+                                        , observacao: obj.req.body['observacao' + ids[i]] || null
+                                    });
+                                }
+                            }
+
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
                     } catch (err) {
@@ -7765,107 +7887,56 @@ let main = {
                 }
                 , e_secagem: async (obj) => {
                     try {
-                        if (obj.req.method == 'GET') {
-                            if (obj.ids.length != 1) {
-                                return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
-                            }
-                            let body = '';
-                            body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
-                            body += application.components.html.time({
-                                width: '3'
-                                , label: 'Secagem (min)*'
-                                , name: 'secagem'
-                                , placeholder: 'mm:ss'
-                            });
-                            body += application.components.html.decimal({
-                                width: '3'
-                                , label: 'Temperatura (°C)*'
-                                , name: 'temperatura'
-                                , precision: 1
-                            });
-                            body += application.components.html.integer({
-                                width: '3'
-                                , label: 'Umidade (%)*'
-                                , name: 'umidade'
-                            });
-                            body += application.components.html.checkbox({
-                                width: '3'
-                                , label: 'Retardador?'
-                                , name: 'retardador'
-                            });
-                            body += application.components.html.text({
-                                width: '12'
-                                , label: 'Observação'
-                                , name: 'observacao'
-                            });
-
-                            body += `<div class="col-md-12"><button type="submit" class="btn btn-block btn-success" style="margin: 10px 0;"><i class="fa fa-plus"></i></button></div>`;
-
-                            let sql = await db.sequelize.query(`
-                            select
-                                *
-                            from
-                                pcp_apclichemontsecagem
-                            where
-                                idapclichemontagem = ${obj.ids[0]}
-                            order by datahora desc
-                            `, { type: db.Sequelize.QueryTypes.SELECT });
-
-                            body += `
-                            <div class="col-md-12">
-                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
-                                <tr>
-                                    <td style="text-align:center;"><strong>Data/hora</strong></td>
-                                    <td style="text-align:center;"><strong>Secagem (min)</strong></td>
-                                    <td style="text-align:center;"><strong>Temperatura (ºC)</strong></td>
-                                    <td style="text-align:center;"><strong>Umidade (%)</strong></td>
-                                    <td style="text-align:center;"><strong>Retardador?</strong></td>
-                                    <td style="text-align:center;"><strong>Observação</strong></td>
-                                </tr>
-                            `;
-                            for (let i = 0; i < sql.length; i++) {
-                                body += `
-                                <tr>
-                                    <td style="text-align:center;"> ${application.formatters.fe.datetime(sql[i].datahora)}   </td>
-                                    <td style="text-align:right;">  ${application.formatters.fe.time(sql[i].secagem)}   </td>
-                                    <td style="text-align:right;">  ${application.formatters.fe.decimal(sql[i].temperatura, 1)}   </td>
-                                    <td style="text-align:right;">  ${sql[i].umidade}   </td>
-                                    <td style="text-align:center;">   ${sql[i].retardador ? 'Sim' : 'Não'}   </td>
-                                    <td style="text-align:left;">   ${sql[i].observacao || ''}   </td>
-                                </tr>
-                                `;
-                            }
-                            body += `
-                            </table>
-                            </div>
-                            `;
-
-                            return application.success(obj.res, {
-                                modal: {
-                                    form: true
-                                    , action: '/event/' + obj.event.id
-                                    , id: 'modalevt' + obj.event.id
-                                    , title: obj.event.description
-                                    , body: body
-                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>'
-                                }
-                            });
-                        } else {
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'secagem', 'temperatura', 'umidade']);
-                            if (invalidfields.length > 0) {
-                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                            }
-                            await db.getModel('pcp_apclichemontsecagem').create({
-                                idapclichemontagem: obj.req.body.id
-                                , datahora: moment()
-                                , secagem: application.formatters.be.time(obj.req.body.secagem)
-                                , temperatura: application.formatters.be.decimal(obj.req.body.temperatura)
-                                , umidade: obj.req.body.umidade
-                                , retardador: 'retardador' in obj.req.body && obj.req.body.retardador == 'on'
-                                , observacao: obj.req.body.observacao || null
-                            });
-                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                         }
+                        let body = '';
+                        let sql = await db.sequelize.query(`
+                        select
+                            *
+                        from
+                            pcp_apclichemontsecagem
+                        where
+                            idapclichemontagem = ${obj.ids[0]}
+                        order by datahora desc
+                        `, { type: db.Sequelize.QueryTypes.SELECT });
+
+                        body += `
+                        <div class="col-md-12">
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <tr>
+                                <td style="text-align:center;"><strong>Data/hora</strong></td>
+                                <td style="text-align:center;"><strong>Secagem (min)</strong></td>
+                                <td style="text-align:center;"><strong>Temperatura (ºC)</strong></td>
+                                <td style="text-align:center;"><strong>Umidade (%)</strong></td>
+                                <td style="text-align:center;"><strong>Retardador?</strong></td>
+                                <td style="text-align:center;"><strong>Observação</strong></td>
+                            </tr>
+                        `;
+                        for (let i = 0; i < sql.length; i++) {
+                            body += `
+                            <tr>
+                                <td style="text-align:center;"> ${application.formatters.fe.datetime(sql[i].datahora)}   </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.time(sql[i].secagem)}   </td>
+                                <td style="text-align:right;">  ${application.formatters.fe.decimal(sql[i].temperatura, 1)}   </td>
+                                <td style="text-align:right;">  ${sql[i].umidade}   </td>
+                                <td style="text-align:center;">   ${sql[i].retardador ? 'Sim' : 'Não'}   </td>
+                                <td style="text-align:left;">   ${sql[i].observacao || ''}   </td>
+                            </tr>
+                            `;
+                        }
+                        body += `
+                        </table>
+                        </div>
+                        `;
+
+                        return application.success(obj.res, {
+                            modal: {
+                                title: 'Secagens Anteriores'
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>'
+                            }
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
