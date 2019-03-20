@@ -88,13 +88,13 @@ let main = {
                                     }
                                     let vendaformaspgto = await db.getModel('com_vendapagamento').findAll({ where: { idvenda: obj.register.id } });
                                     let formaspgto = await db.getModel('fin_formapgto').findAll({ where: { disp_venda: true } });
-                                    let conta = await db.getModel('users').find({ where: { id: obj.register.identregador } })
+                                    let conta = await db.getModel('users').findOne({ where: { id: obj.register.identregador } })
                                     let valorestante = totalvenda
                                     if (vendaformaspgto.length > 0) {
                                         for (let i = 0; i < vendaformaspgto.length; i++) {
-                                            let prazo = 0
-                                            let valortaxas = 0
-                                            let totalparcelas = 0
+                                            let prazo = 0;
+                                            let valortaxas = 0;
+                                            let totalparcelas = 0;
                                             for (let j = 0; j < formaspgto.length; j++) {
                                                 if (vendaformaspgto[i].idformapgto == formaspgto[j].id) {
                                                     if (formaspgto[j].formarecebimento == 'a Vista') {
@@ -116,12 +116,15 @@ let main = {
                                                             , idconta: conta.idconta
                                                         })
                                                     } else if (formaspgto[j].formarecebimento == 'a Prazo') {
-                                                        console.log("Data: " + moment(vendaformaspgto[i].vencimento))
-                                                        prazo += formaspgto[j].prazo != null ? formaspgto[j].prazo : moment(vendaformaspgto[i].vencimento) != null ? moment(vendaformaspgto[i].vencimento).diff(moment(), 'd') + 1 : moment().add(7, 'day')
-                                                        valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0
-                                                        totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0
-                                                        let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas
-                                                        let datavenc = moment().add(prazo, 'day')
+                                                        console.log("Data1: " + moment(vendaformaspgto[i].vencimento, application.formatters.be.date_format))
+                                                        console.log("Data2: " + moment(vendaformaspgto[i].vencimento))
+                                                        prazo += formaspgto[j].prazo ? formaspgto[j].prazo :
+                                                            vendaformaspgto[i].vencimento ? moment(vendaformaspgto[i].vencimento, application.formatters.be.date_format).diff(moment(), 'd') + 1 : 7;
+                                                        valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0;
+                                                        totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0;
+                                                        let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas;
+                                                        console.log(prazo);
+                                                        let datavenc = moment().add(prazo, 'day');
                                                         if (totalparcelas > 0) {
                                                             for (let l = 0; l < totalparcelas; l++) {
                                                                 let mov = await db.getModel('fin_mov').create({
