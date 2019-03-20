@@ -194,7 +194,10 @@ let main = {
                                         let vendaitens = await db.getModel('com_vendaitem').findAll({ where: { idvenda: obj.register.id } });
                                         f_atualizarEstoque(vendaitens);
                                     } */
-                                    obj._redirect = '/r/painel_do_vendedor';
+                                    obj._responseModifier = function (ret) {
+                                        ret['redirect'] = '/r/painel_do_vendedor';
+                                        return ret;
+                                    }
                                 }
                                 break;
                             default:
@@ -212,10 +215,6 @@ let main = {
                                 , link: '/v/venda/' + saved.register.id
                             });
                         }
-
-                        // Adicionado mas não funcionou.
-                        return application.success(obj.res, { msg: application.message.success, historyBack: true });
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
