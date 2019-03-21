@@ -4813,7 +4813,7 @@ let main = {
                             });
                             body += '</div>';
                             for (let i = 0; i < regs.count; i++) {
-                                body += '<hr><div class="row no-margin">';
+                                body += '<div class="row no-margin">';
                                 ids.push(regs.rows[i].id);
                                 body += application.components.html.integer({
                                     width: '1'
