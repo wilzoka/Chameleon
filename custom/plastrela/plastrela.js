@@ -3379,19 +3379,19 @@ let main = {
                                     let body = [];
 
                                     let registers = await db.sequelize.query(`
-                                select distinct
-                                    v.id
-                                    , de.descricao as depositoendereco
-                                    , v.qtdreal
-                                    , coalesce(ver.descricaocompleta, ' ') as produto
-                                from
-                                    est_volume v
-                                left join est_depositoendereco de on (v.iddepositoendereco = de.id)
-                                left join pcp_versao ver on (v.idversao = ver.id)
-                                where
-                                    v.id in (:v1)  
-                                order by 1                               
-                                `, {
+                                    select distinct
+                                        v.id
+                                        , de.descricao as depositoendereco
+                                        , v.qtdreal
+                                        , coalesce(ver.descricaocompleta, ' ') as produto
+                                    from
+                                        est_volume v
+                                    left join est_depositoendereco de on (v.iddepositoendereco = de.id)
+                                    left join pcp_versao ver on (v.idversao = ver.id)
+                                    where
+                                        v.id in (:v1)  
+                                    order by 1                               
+                                    `, {
                                             type: db.sequelize.QueryTypes.SELECT
                                             , replacements: {
                                                 v1: obj.req.body.idsfound || 0
@@ -3438,6 +3438,12 @@ let main = {
 
                                     let body2 = [];
 
+                                    let dep = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
+                                    let deps = `(${dep.codigo})`
+                                    if ([7, 8, 9, 10].indexOf(dep.codigo) >= 0) {
+                                        deps = '(7,8,9,10)';
+                                    }
+
                                     registers = await db.sequelize.query(`
                                     select distinct
                                         v.id
@@ -3446,18 +3452,18 @@ let main = {
                                         , coalesce(ver.descricaocompleta, '') as produto
                                     from
                                         est_volume v
+                                    left join est_deposito d on (v.iddeposito = d.id)
                                     left join est_depositoendereco de on (v.iddepositoendereco = de.id)
                                     left join pcp_versao ver on (v.idversao = ver.id)
                                     where
                                         v.consumido = false
                                         and v.id not in (:v1) 
-                                        and v.iddeposito in (2,4,5) 
+                                        and d.codigo in ${deps}
                                     order by 1                             
                                     `, {
                                             type: db.sequelize.QueryTypes.SELECT
                                             , replacements: {
                                                 v1: obj.req.body.idsfound || 0
-                                                , v2: obj.req.body.iddeposito
                                             }
                                         });
 
