@@ -3266,6 +3266,12 @@ let main = {
                         let f = {
                             getAtual: async (obj) => {
 
+                                let dep = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
+                                let deps = `(${dep.codigo})`
+                                if ([7, 8, 9, 10].indexOf(dep.codigo) >= 0) {
+                                    deps = '(7,8,9,10)';
+                                }
+
                                 let notfound = await db.sequelize.query(`
                                 select
                                     v.id
@@ -3275,13 +3281,14 @@ let main = {
                                     , ver.descricaocompleta as produto
                                 from
                                     est_volume v
+                                left join est_deposito d on (v.iddeposito = d.id)
                                 left join est_depositoendereco de on (v.iddepositoendereco = de.id)
                                 left join pcp_versao ver on (v.idversao = ver.id)
                                 left join cad_item i on (ver.iditem = i.id)
                                 left join est_classe cl on (i.idclasse = cl.id)
                                 where
                                     consumido = false
-                                    and v.iddeposito = :v1
+                                    and d.codigo in ${deps}
                                     and v.id not in (select vb.idvolume from est_volumebalanco vb where v.iddeposito = :v1 and vb.iduser = :v2)
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
