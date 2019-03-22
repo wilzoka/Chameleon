@@ -290,6 +290,7 @@ module.exports = function (app) {
     app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
+            
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 
@@ -323,19 +324,13 @@ module.exports = function (app) {
             });
 
             if (register.sum) {
-                switch (modelattribute.type) {
+                let j = application.modelattribute.parseTypeadd(modelattribute.typeadd);
+                switch (j.type || modelattribute.type) {
                     case 'decimal':
                         register.sum = application.formatters.fe.decimal(register.sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
                         break;
                     case 'time':
                         register.sum = application.formatters.fe.time(register.sum);
-                        break;
-                    case 'virtual':
-                        switch (application.modelattribute.parseTypeadd(modelattribute.typeadd).type) {
-                            case 'decimal':
-                                register.sum = application.formatters.fe.decimal(register.sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
-                                break;
-                        }
                         break;
                 }
             }
