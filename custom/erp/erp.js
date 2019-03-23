@@ -107,7 +107,7 @@ let main = {
                                                             , idpessoa: obj.register.idcliente
                                                             , idvenda: obj.register.id
                                                             , detalhe: `Venda ID ${obj.register.id}`
-                                                            , compesando: false
+                                                            , compensando: false
                                                         })
                                                         let movparc = await db.getModel('fin_movparc').create({
                                                             datahora: moment()
@@ -135,9 +135,9 @@ let main = {
                                                                     , idpessoa: obj.register.idcliente
                                                                     , idvenda: obj.register.id
                                                                     , detalhe: `Venda ID ${obj.register.id}`
-                                                                    , compesando: false
+                                                                    , compensando: false
                                                                 })
-                                                                datavenc = datavenc.add(prazo, 'day')
+                                                                datavenc = datavenc.add(prazo, 'day');
                                                             }
                                                         } else {
                                                             let mov = await db.getModel('fin_mov').create({
@@ -150,7 +150,7 @@ let main = {
                                                                 , idpessoa: obj.register.idcliente
                                                                 , idvenda: obj.register.id
                                                                 , detalhe: `Venda ID ${obj.register.id}`
-                                                                , compesando: false
+                                                                , compensando: false
                                                             })
                                                         }
                                                     } else if (formaspgto[j].formarecebimento == 'Vale') {
@@ -174,7 +174,7 @@ let main = {
                                                 , idpessoa: obj.register.idcliente
                                                 , idvenda: obj.register.id
                                                 , detalhe: `Venda ID ${obj.register.id}`
-                                                , compesando: false
+                                                , compensando: false
                                             })
                                         }
                                     } else {
@@ -186,7 +186,7 @@ let main = {
                                             , idpessoa: obj.register.idcliente
                                             , idvenda: obj.register.id
                                             , detalhe: `Venda ID ${obj.register.id}`
-                                            , compesando: false
+                                            , compensando: false
                                         })
                                     }
 
@@ -227,7 +227,7 @@ let main = {
                                 , "item"."descricao" AS "item"
                                 , "fin_pgto"."descricao" AS "pagamento"
                                 , (select sum(vi.qtd * vi.valorunitario) from com_vendaitem vi where vi.idvenda = com_venda.id) - coalesce(com_venda.desconto, 0) + coalesce(com_venda.acrescimo, 0)  AS "totalvenda"
-                                , (select coalesce(sum(valor),0.00) from fin_mov where idvenda = com_venda.id and quitado = false and compensado = false) AS "totalpendente"
+                                , (select coalesce(trunc(sum(valor),2),0.00) from fin_mov where idvenda = com_venda.id and quitado = false and compensado = false) AS "totalpendente"
                             FROM "com_venda" AS "com_venda" 
                             LEFT JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
                             LEFT JOIN "com_vendaitem"	AS "v_item"			  ON "com_venda"."id" = "v_item"."idvenda"
@@ -513,7 +513,7 @@ let main = {
                     try {
                         let formareceb = await db.getModel('fin_formapgto').find({ where: { id: obj.register.idformapgto } })
                         if (formareceb.formarecebimento == 'a Prazo' && formareceb.prazo == null && obj.register.vencimento == null) {
-                            return application.error(obj.res, { msg: `Venda a prazo. Informe o vencimento` })
+                            return application.error(obj.res, { msg: `Venda a prazo. Informe o vencimento` });
                         }
                         next(obj)
                     } catch (err) {
