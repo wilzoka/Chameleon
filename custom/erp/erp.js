@@ -107,6 +107,7 @@ let main = {
                                                             , idpessoa: obj.register.idcliente
                                                             , idvenda: obj.register.id
                                                             , detalhe: `Venda ID ${obj.register.id}`
+                                                            , compesando: false
                                                         })
                                                         let movparc = await db.getModel('fin_movparc').create({
                                                             datahora: moment()
@@ -116,14 +117,11 @@ let main = {
                                                             , idconta: conta.idconta
                                                         })
                                                     } else if (formaspgto[j].formarecebimento == 'a Prazo') {
-                                                        console.log("Data1: " + moment(vendaformaspgto[i].previsaopgto, application.formatters.be.date_format))
-                                                        console.log("Data2: " + moment(vendaformaspgto[i].previsaopgto))
                                                         prazo += formaspgto[j].prazo ? formaspgto[j].prazo :
-                                                            vendaformaspgto[i].previsaopgto ? moment(vendaformaspgto[i].previsaopgto, application.formatters.be.date_format).diff(moment(), 'd') + 1 : 7;
+                                                            vendaformaspgto[i].vencimento ? moment(vendaformaspgto[i].vencimento, application.formatters.be.date_format).diff(moment(), 'd') + 1 : 7;
                                                         valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0;
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0;
                                                         let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas;
-                                                        console.log(prazo);
                                                         let datavenc = moment().add(prazo, 'day');
                                                         if (totalparcelas > 0) {
                                                             for (let l = 0; l < totalparcelas; l++) {
@@ -176,6 +174,7 @@ let main = {
                                                 , idpessoa: obj.register.idcliente
                                                 , idvenda: obj.register.id
                                                 , detalhe: `Venda ID ${obj.register.id}`
+                                                , compesando: false
                                             })
                                         }
                                     } else {
@@ -187,6 +186,7 @@ let main = {
                                             , idpessoa: obj.register.idcliente
                                             , idvenda: obj.register.id
                                             , detalhe: `Venda ID ${obj.register.id}`
+                                            , compesando: false
                                         })
                                     }
 
@@ -264,8 +264,8 @@ let main = {
                                 <td style="text-align:center;"> ${application.formatters.fe.date(historico[i].datahora)}   </td>
                                 <td style="text-align:center;">  ${historico[i].item}   </td>
                                 <td style="text-align:center;">  ${historico[i].pagamento}   </td>
-                                <td style="text-align:right;">  ${historico[i].totalvenda}   </td>
-                                <td style="text-align:right;">  ${historico[i].totalpendente}   </td>
+                                <td style="text-align:center;">  ${historico[i].totalvenda}   </td>
+                                <td style="text-align:center;">  ${historico[i].totalpendente}   </td>
                             </tr>
                             `;
                         }
