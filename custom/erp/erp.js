@@ -101,7 +101,7 @@ let main = {
                                                         let mov = await db.getModel('fin_mov').create({
                                                             datavcto: moment()
                                                             , idcategoria: tipovenda.idcategoria
-                                                            , valor: vendaformaspgto[i].valor
+                                                            , valor: vendaformaspgto[i].valor.toFixed(2)
                                                             , parcela: null
                                                             , quitado: true
                                                             , idpessoa: obj.register.idcliente
@@ -112,7 +112,7 @@ let main = {
                                                         let movparc = await db.getModel('fin_movparc').create({
                                                             datahora: moment()
                                                             , idmov: mov.id
-                                                            , valor: vendaformaspgto[i].valor
+                                                            , valor: vendaformaspgto[i].valor.toFixed(2)
                                                             , idformapgto: vendaformaspgto[i].idformapgto
                                                             , idconta: conta.idconta
                                                         })
@@ -128,7 +128,7 @@ let main = {
                                                                 let mov = await db.getModel('fin_mov').create({
                                                                     datavcto: datavenc
                                                                     , idcategoria: tipovenda.idcategoria
-                                                                    , valor: valorparcela
+                                                                    , valor: valorparcela.toFixed(2)
                                                                     , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
                                                                     , quitado: false
                                                                     , preformapgto: vendaformaspgto[i].idformapgto
@@ -143,7 +143,7 @@ let main = {
                                                             let mov = await db.getModel('fin_mov').create({
                                                                 datavcto: datavenc
                                                                 , idcategoria: tipovenda.idcategoria
-                                                                , valor: valorparcela
+                                                                , valor: valorparcela.toFixed(2)
                                                                 , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
                                                                 , quitado: false
                                                                 , preformapgto: vendaformaspgto[i].idformapgto
@@ -169,7 +169,7 @@ let main = {
                                             let mov = await db.getModel('fin_mov').create({
                                                 datavcto: moment().add(30, 'day')
                                                 , idcategoria: tipovenda.idcategoria
-                                                , valor: valorestante
+                                                , valor: valorestante.toFixed(2)
                                                 , quitado: false
                                                 , idpessoa: obj.register.idcliente
                                                 , idvenda: obj.register.id
@@ -181,7 +181,7 @@ let main = {
                                         let mov = await db.getModel('fin_mov').create({
                                             datavcto: moment().add(30, 'day')
                                             , idcategoria: tipovenda.idcategoria
-                                            , valor: totalvenda
+                                            , valor: totalvenda.toFixed(2)
                                             , quitado: false
                                             , idpessoa: obj.register.idcliente
                                             , idvenda: obj.register.id
