@@ -528,13 +528,14 @@ let main = {
                     if (obj.register.id == 0) {
                         let saved = await next(obj);
                         let evento = await db.getModel("eve_evento").findOne({ where: { id: saved.register.id } });
-                        let tarefas = await db.getModel('eve_tarefatipoevento').findAll({ where: { idevetipo: obj.register.idevetipo } });
-                        for (let i = 0; i < tarefas.length; i++) {
-                            let tarefa = await db.getModel("eve_tarefa").findOne({ where: { id: tarefas[i].idtarefa } });
+                        let tarefatipoevento = await db.getModel('eve_tarefatipoevento').findAll({ where: { idevetipo: obj.register.idevetipo } });
+                        for (let i = 0; i < tarefatipoevento.length; i++) {
+                            let tarefa = await db.getModel("eve_tarefa").findOne({ where: { id: tarefatipoevento[i].idtarefa } });
+                            let tarefatipoevento2 = await db.getModel("eve_tarefatipoevento").findOne({ where: { idtarefa: tarefa.id, idevetipo: evento.idevetipo } });
                             let eventotarefas = await db.getModel('eve_eventotarefa').create({
-                                idtarefa: tarefas[i].idtarefa
+                                idtarefa: tarefatipoevento[i].idtarefa
                                 , idevento: saved.register.id
-                                , prazo: moment(evento.data_evento, application.formatters.fe.date_format).subtract(tarefas.previsaoinicio, 'day')
+                                , prazo: tarefatipoevento2.previsaoinicio ? moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento2.previsaoinicio, 'day') : null
                             })
                         }
                     } else if (obj.register.id > 0) {
