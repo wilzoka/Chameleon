@@ -5916,7 +5916,7 @@ let main = {
 
                             let qtd = obj.req.body.qtd;
                             let metragem = null;
-                            if ([1, 2, 3].indexOf(tprecurso.codigo) >= 0) {
+                            if ([1, 2, 3, 5].indexOf(tprecurso.codigo) >= 0) {
                                 qtd = pesoliquido;
                                 metragem = obj.req.body.qtd;
                             }
