@@ -4826,7 +4826,7 @@ let main = {
                             });
                             body += '</div>';
                             for (let i = 0; i < regs.count; i++) {
-                                body += '<div class="row no-margin">';
+                                body += '<hr><div class="row no-margin">';
                                 ids.push(regs.rows[i].id);
                                 body += application.components.html.integer({
                                     width: '1'
@@ -4873,6 +4873,25 @@ let main = {
                                     , label: 'Observação'
                                     , name: 'observacao' + regs.rows[i].id
                                 });
+                                body += application.components.html.integer({
+                                    width: '5'
+                                    , label: 'Nº OP da Tinta'
+                                    , name: 'optinta' + regs.rows[i].id
+                                    , value: regs.rows[i].optinta || ''
+                                });
+                                body += application.components.html.decimal({
+                                    width: '2'
+                                    , label: 'Consumo de Tinta'
+                                    , name: 'consumotinta' + regs.rows[i].id
+                                    , precision: 2
+                                    , value: regs.rows[i].consumotinta || ''
+                                });
+                                body += application.components.html.text({
+                                    width: '5'
+                                    , label: 'Placa'
+                                    , name: 'placatinta' + regs.rows[i].id
+                                    , value: regs.rows[i].placatinta || ''
+                                });
                                 body += '</div>';
                             }
                             body += application.components.html.hidden({ name: 'ids', value: ids.join(',') });
@@ -4905,6 +4924,9 @@ let main = {
                                 montagem.estacao = obj.req.body['estacao' + ids[i]];
                                 montagem.viscosidade = obj.req.body['viscosidade' + ids[i]] || null;
                                 montagem.idanilox = obj.req.body['idanilox' + ids[i]];
+                                montagem.optinta = obj.req.body['optinta' + ids[i]] || null;
+                                montagem.consumotinta = application.formatters.be.decimal(obj.req.body['consumotinta' + ids[i]]) || null;
+                                montagem.placatinta = obj.req.body['placatinta' + ids[i]] || null;
                                 await montagem.save({ iduser: obj.req.user.id });
 
                                 if (obj.req.body['secagem' + ids[i]]) {
