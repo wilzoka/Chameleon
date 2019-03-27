@@ -4925,7 +4925,7 @@ let main = {
                                 montagem.viscosidade = obj.req.body['viscosidade' + ids[i]] || null;
                                 montagem.idanilox = obj.req.body['idanilox' + ids[i]];
                                 montagem.optinta = obj.req.body['optinta' + ids[i]] || null;
-                                montagem.consumotinta = application.formatters.be.decimal(obj.req.body['consumotinta' + ids[i]]) || null;
+                                montagem.consumotinta = obj.req.body['consumotinta' + ids[i]] ? application.formatters.be.decimal(obj.req.body['consumotinta' + ids[i]]) : null;
                                 montagem.placatinta = obj.req.body['placatinta' + ids[i]] || null;
                                 await montagem.save({ iduser: obj.req.user.id });
 
@@ -7087,6 +7087,7 @@ let main = {
                         }
                         let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
                         let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
+                        let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
 
                         // if (etapa.codigo == 10) {
                         //     let api = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
@@ -7131,6 +7132,10 @@ let main = {
                                 }
                             }
                         }
+
+                        // if (tprecurso.codigo == 2) {
+                        //     let montagens = await db.getModel('pcp_apcliche')
+                        // }
 
                         //Conferência
                         let sql = await db.sequelize.query(`
