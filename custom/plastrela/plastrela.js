@@ -8706,7 +8706,7 @@ let main = {
                                 , 0 as duracaototal
                                 , 0 as peso 
                                 , 0 as qtd
-                                , mp.codigo || ' - ' || mp.descricao as adicionais
+                                , mp.codigo || ' - ' || mp.descricao || coalesce(' @ ' || mp.observacao, '') as adicionais
                             from
                                 pcp_oprecurso opr
                             left join pcp_opetapa ope on (opr.idopetapa = ope.id)
