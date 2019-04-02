@@ -420,10 +420,16 @@ let platform = {
         }
         , e_export: async function (obj) {
             try {
-                if (obj.ids.length <= 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                let json = JSON.parse(obj.event.parameters || '{}');
+                let models = [];
+                if (json.all) {
+                    models = await db.getModel('model').findAll({ order: [['name', 'asc']] });
+                } else {
+                    if (obj.ids.length <= 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
                 }
-                let models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
                 let j = [];
                 for (let i = 0; i < models.length; i++) {
                     j.push({
@@ -1095,10 +1101,16 @@ let platform = {
         }
         , e_export: async function (obj) {
             try {
-                if (obj.ids.length <= 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                let json = JSON.parse(obj.event.parameters || '{}');
+                let views = [];
+                if (json.all) {
+                    views = await db.getModel('view').findAll({ include: [{ all: true }], order: [['name', 'asc']] });
+                } else {
+                    if (obj.ids.length <= 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    views = await db.getModel('view').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
                 }
-                let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
                 let j = [];
                 for (let i = 0; i < views.length; i++) {
                     j.push({
