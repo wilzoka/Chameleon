@@ -4080,6 +4080,96 @@ let main = {
                     }
                 }
             }
+            , solicitacaonf: {
+                onsave: async function (obj, next) {
+                    try {
+                        if (obj.id == 0) {
+                            obj.register.solicitante = obj.req.user.id;
+                            obj.register.datahora = moment();
+                        }
+                        next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_finalizarfaturamento: async function (obj) {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            if (obj.ids.length <= 0) {
+                                return application.error(obj.res, { msg: application.message.selectOneEvent });
+                            }
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                            body += application.components.html.datetime({
+                                width: '12'
+                                , label: 'Data/Hora Faturamento*'
+                                , name: 'datahora'
+                            });
+                            body += application.components.html.integer({
+                                width: '12'
+                                , label: 'NF nº'
+                                , name: 'nf'
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt'
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Finalizar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'datahora', 'nf']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
+                            let solicitacaoitens = await db.getModel('est_solicitacaonfitem').findAll({ where: { id: { $in: obj.req.body.ids.split(',') } } });
+                            for (let i = 0; i < solicitacaoitens.length; i++) {
+                                solicitacaoitens[i].datahorafaturamento = application.formatters.be.datetime(obj.req.body.datahora);
+                                solicitacaoitens[i].nf = obj.req.body.nf;
+                                solicitacaoitens[i].faturada = true;
+                                await solicitacaoitens[i].save({ iduser: obj.req.user.id });
+                            }
+
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , solicitacaonfitem: {
+                onsave: async function (obj, next) {
+                    try {
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            let setor = null;
+                            if (saved.register.valorun) {
+                                setor = await db.getModel('cad_setor').findOne({ where: { descricao: 'Expedição' } });
+                            } else {
+                                setor = await db.getModel('cad_setor').findOne({ where: { descricao: 'Compras' } });
+                            }
+
+                            if (setor) {
+                                let usuarios = await db.getModel('cad_setorusuario').findAll({ where: { idsetor: setor.id } });
+                                let arr = [];
+                                for (let i = 0; i < usuarios.length; i++) {
+                                    arr.push(usuarios[i].idusuario);
+                                }
+                                main.platform.notification.create(arr, {
+                                    title: 'Solicitação de NF'
+                                    , description: 'Solicitação NF ' + saved.register.idsolicitacaonf
+                                    , link: '/v/solicitacao_nf/' + saved.register.idsolicitacaonf
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
             , requisicao: {
                 e_entregar: async function (obj) {
                     try {
@@ -4843,7 +4933,7 @@ let main = {
                                 let anilox = await db.getModel('est_anilox').findOne({ where: { id: regs.original[i].idanilox || 0 } });
                                 body += application.components.html.autocomplete({
                                     width: '3'
-                                    , label: 'Anilox*'
+                                    , label: 'Anilox'
                                     , name: 'idanilox' + regs.rows[i].id
                                     , model: 'est_anilox'
                                     , option: anilox ? '<option value="' + anilox.id + '" selected>' + anilox.descricao + '</option>' : ''
@@ -4873,25 +4963,22 @@ let main = {
                                     , label: 'Observação'
                                     , name: 'observacao' + regs.rows[i].id
                                 });
-                                body += application.components.html.integer({
-                                    width: '5'
-                                    , label: 'Nº OP da Tinta'
-                                    , name: 'optinta' + regs.rows[i].id
-                                    , value: regs.rows[i].optinta || ''
-                                });
-                                body += application.components.html.decimal({
-                                    width: '2'
-                                    , label: 'Consumo de Tinta'
-                                    , name: 'consumotinta' + regs.rows[i].id
-                                    , precision: 2
-                                    , value: regs.rows[i].consumotinta || ''
-                                });
-                                body += application.components.html.text({
-                                    width: '5'
-                                    , label: 'Placa'
-                                    , name: 'placatinta' + regs.rows[i].id
-                                    , value: regs.rows[i].placatinta || ''
-                                });
+                                let config = await db.getModel('config').findOne();
+                                if (config.cnpj == '90816133000123') {
+                                    body += application.components.html.integer({
+                                        width: '4'
+                                        , label: 'Nº OP da Tinta'
+                                        , name: 'optinta' + regs.rows[i].id
+                                        , value: regs.rows[i].optinta || ''
+                                    });
+                                    body += application.components.html.decimal({
+                                        width: '3'
+                                        , label: 'Consumo de Tinta'
+                                        , name: 'consumotinta' + regs.rows[i].id
+                                        , precision: 2
+                                        , value: regs.rows[i].consumotinta || ''
+                                    });
+                                }
                                 body += '</div>';
                             }
                             body += application.components.html.hidden({ name: 'ids', value: ids.join(',') });
@@ -4910,7 +4997,7 @@ let main = {
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids']);
                             let ids = obj.req.body.ids.split(',');
                             for (let i = 0; i < ids.length; i++) {
-                                invalidfields = invalidfields.concat(application.functions.getEmptyFields(obj.req.body, ['estacao' + ids[i], 'idanilox' + ids[i]]));
+                                invalidfields = invalidfields.concat(application.functions.getEmptyFields(obj.req.body, ['estacao' + ids[i]]));
                                 if (obj.req.body['secagem' + ids[i]] && (!obj.req.body.temperatura || !obj.req.body.umidade)) {
                                     invalidfields = invalidfields.concat(['temperatura', 'umidade']);
                                 }
@@ -4923,10 +5010,9 @@ let main = {
                                 let montagem = await db.getModel('pcp_apclichemontagem').findOne({ where: { id: ids[i] } });
                                 montagem.estacao = obj.req.body['estacao' + ids[i]];
                                 montagem.viscosidade = obj.req.body['viscosidade' + ids[i]] || null;
-                                montagem.idanilox = obj.req.body['idanilox' + ids[i]];
+                                montagem.idanilox = obj.req.body['idanilox' + ids[i]] || null;
                                 montagem.optinta = obj.req.body['optinta' + ids[i]] || null;
                                 montagem.consumotinta = obj.req.body['consumotinta' + ids[i]] ? application.formatters.be.decimal(obj.req.body['consumotinta' + ids[i]]) : null;
-                                montagem.placatinta = obj.req.body['placatinta' + ids[i]] || null;
                                 await montagem.save({ iduser: obj.req.user.id });
 
                                 if (obj.req.body['secagem' + ids[i]]) {
