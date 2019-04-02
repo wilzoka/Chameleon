@@ -4084,7 +4084,7 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
                         if (obj.id == 0) {
-                            obj.register.solicitante = obj.req.user.id;
+                            obj.register.idsolicitante = obj.req.user.id;
                             obj.register.datahora = moment();
                         }
                         next(obj);

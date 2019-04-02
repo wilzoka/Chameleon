@@ -197,10 +197,16 @@ let platform = {
         }
         , e_export: async function (obj) {
             try {
-                if (obj.ids.length <= 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                let json = JSON.parse(obj.event.parameters || '{}');
+                let menus = [];
+                if (json.all) {
+                    menus = await db.getModel('menu').findAll({ include: [{ all: true }], order: [['tree', 'asc']] });
+                } else {
+                    if (obj.ids.length <= 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    menus = await db.getModel('menu').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['tree', 'asc']] });
                 }
-                let menus = await db.getModel('menu').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['tree', 'asc']] });
                 let j = [];
                 for (let i = 0; i < menus.length; i++) {
                     j.push({
