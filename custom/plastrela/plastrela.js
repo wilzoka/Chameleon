@@ -7219,9 +7219,41 @@ let main = {
                             }
                         }
 
-                        // if (tprecurso.codigo == 2) {
-                        //     let montagens = await db.getModel('pcp_apcliche')
-                        // }
+                        if (tprecurso.codigo == 2) {
+                            let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: oprecurso.id } });
+                            if (!apcliche) {
+                                return application.error(obj.res, { msg: 'Não é possível encerrar uma OP de Impressão sem clichês montados' });
+                            }
+                            let montagens = await db.getModel('pcp_apclichemontagem').findAll({ where: { idapcliche: apcliche.id }, order: [['estacao', 'asc']] });
+                            if (montagens.length <= 0) {
+                                return application.error(obj.res, { msg: 'Não é possível encerrar uma OP de Impressão sem clichês montados' });
+                            }
+                            let config = await db.getModel('config').findOne();
+                            let msg = [];
+                            for (let i = 0; i < montagens.length; i++) {
+                                if (!montagens[i].idanilox) {
+                                    msg.push('Anilox');
+                                }
+                                if (!montagens[i].viscosidade) {
+                                    msg.push('Viscosidade');
+                                }
+                                let secagem = await db.getModel('pcp_apclichemontsecagem').findOne({ where: { idapclichemontagem: montagens[i].id } });
+                                if (!secagem) {
+                                    msg.push('Medição de Secagem');
+                                }
+                                if (config.cnpj == "90816133000123") {//MS
+                                    if (!montagens[i].optinta) {
+                                        msg.push('OP de Tinta');
+                                    }
+                                    if (!montagens[i].consumotinta) {
+                                        msg.push('Consumo de Tinta');
+                                    }
+                                }
+                                if (msg.length > 0) {
+                                    return application.error(obj.res, { msg: `Campos obrigatórios na Estação ${montagens[i].estacao} não preenchidos: ` + msg.join(', ') });
+                                }
+                            }
+                        }
 
                         //Conferência
                         let sql = await db.sequelize.query(`
