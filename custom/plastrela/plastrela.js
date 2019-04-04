@@ -7677,7 +7677,28 @@ let main = {
                             opnova.integrado = null;
                             opnova.idestado = 1;
                             opnova.idrecurso = obj.req.body.idrecurso;
-                            await db.getModel('pcp_oprecurso').create(opnova);
+                            let opr = await db.getModel('pcp_oprecurso').create(opnova);
+                            let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.req.body.id } });
+                            if (apcliche) {
+                                let apc = await db.getModel('pcp_apcliche').create({
+                                    idoprecurso: opr.id
+                                    , datahora: apcliche.datahora
+                                    , idrecurso: apcliche.idrecurso
+                                    , passo: apcliche.passo
+                                });
+                                let montagens = await db.getModel('pcp_apclichemontagem').findAll({ where: { idapcliche: apcliche.id } });
+                                for (let i = 0; i < montagens.length; i++) {
+                                    await db.getModel('pcp_apclichemontagem').create({
+                                        idapcliche: apc.id
+                                        , cliche: montagens[i].cliche
+                                        , estacao: montagens[i].estacao
+                                        , idversao: montagens[i].idversao
+                                        , observacao: montagens[i].observacao
+                                        , idcamisa: montagens[i].idcamisa
+                                        , camerondistancia: montagens[i].camerondistancia
+                                    });
+                                }
+                            }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
                     } catch (err) {
