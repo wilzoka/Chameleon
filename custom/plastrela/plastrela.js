@@ -9111,7 +9111,7 @@ let main = {
                                     else
                                     case when x.tempoprod = 0 then 0 else round(x.qtd / (x.tempoprod), 2) end
                                 end as produtividademedia
-                                , round(case when x.peso + x.perda = 0 then 0 else x.perda / (x.peso + x.perda) end,4) * 100 as percperdido
+                                , round(case when x.peso + x.perda = 0 then 0 else x.perda / (x.peso + x.perda) end, 4) * 100 as percperdido
                         from
                                 (select
                                         r.tipo_recurso
