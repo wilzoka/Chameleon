@@ -2171,7 +2171,7 @@ let main = {
                                 </style>
                             </head>
                             <body>          
-                                ${html.join('<hr>')}
+                                ${html.join('<div style="page-break-after:always;"></div>')}
                             </body>
                         </html>
                         `;
