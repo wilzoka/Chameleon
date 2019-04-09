@@ -1008,7 +1008,7 @@ module.exports = function (app) {
                         , html: application.functions.singleSpace(filter)
                         , available: viewfields.length
                     }
-                    , pageLength: view.pagelength || 10
+                    , pageLength: view.pagelength || 15
                     , fastsearch: view.idfastsearch ? view.fastsearch.label : false
                 });
             } else {
