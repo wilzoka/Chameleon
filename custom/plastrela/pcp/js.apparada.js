@@ -7,7 +7,7 @@ $(function () {
         application.jsfunction('plastrela.pcp.apparada.js_getComplemento', { id: id, idapparada: application.functions.getId() }, function (response) {
             if (response.success && response.data) {
                 var opts = [''].concat(response.data.split(','));
-                for (let i = 0; i < opts.length; i++) {
+                for (var i = 0; i < opts.length; i++) {
                     $('select[name="complemento"]').append($("<option>").attr('value', opts[i]).text(opts[i]));
                 }
                 if (response.current) {
