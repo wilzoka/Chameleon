@@ -3743,6 +3743,7 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
+                            let deposito = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
                             let sql = await db.sequelize.query(`
                                 select * from (select
                                     g.descricao as grupo
@@ -3781,7 +3782,7 @@ let main = {
                                 });
 
                             let report = {};
-                            report.__title = `Inventário Almoxarifado`;
+                            report.__title = `Inventário ${deposito.descricao}`;
                             report.__table = `
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
@@ -3803,7 +3804,7 @@ let main = {
                             </table>
                             `;
 
-                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
                             return application.success(obj.res, {
                                 modal: {
                                     id: 'modalevt'
@@ -6136,6 +6137,10 @@ let main = {
             , apparada: {
                 onsave: async function (obj, next) {
                     try {
+                        let invalidfields = application.functions.getEmptyFields(obj.register, ['iduser', 'dataini', 'datafim', 'idmotivoparada']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
 
                         let config = await db.getModel('pcp_config').findOne();
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idoprecurso } });
@@ -6147,6 +6152,12 @@ let main = {
                             let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
+
+                        let motivoparada = await db.getModel('pcp_motivoparada').findOne({ where: { id: obj.register.idmotivoparada } });
+                        if (motivoparada.complemento && !obj.req.body.complemento) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['complemento'] });
+                        }
+                        obj.register.complemento = obj.req.body.complemento || null;
 
                         let dataini = moment(obj.register.dataini);
                         let datafim = moment(obj.register.datafim);
@@ -6202,7 +6213,6 @@ let main = {
                         if (results.length > 0) {
                             return application.error(obj.res, { msg: 'Existe um apontamento de ' + results[0].tipo + ' neste horário' });
                         }
-
 
                         let dataUltimoAp = moment((await main.plastrela.pcp.ap.f_dataUltimoAp(oprecurso.id)), application.formatters.be.datetime_format).add(1, 'minutes');
                         duracao = dataini.diff(dataUltimoAp, 'm');
@@ -6266,6 +6276,15 @@ let main = {
                         }
 
                         next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_getComplemento: async (obj) => {
+                    try {
+                        let motivoparada = await db.getModel('pcp_motivoparada').findOne({ where: { id: obj.data.id } });
+                        let apparada = await db.getModel('pcp_apparada').findOne({ where: { id: obj.data.idapparada } });
+                        return application.success(obj.res, { data: motivoparada.complemento, current: apparada.complemento });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -7679,6 +7698,66 @@ let main = {
                             opnova.idrecurso = obj.req.body.idrecurso;
                             let opr = await db.getModel('pcp_oprecurso').create(opnova);
                             let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.req.body.id } });
+                            if (apcliche) {
+                                let apc = await db.getModel('pcp_apcliche').create({
+                                    idoprecurso: opr.id
+                                    , datahora: apcliche.datahora
+                                    , idrecurso: apcliche.idrecurso
+                                    , passo: apcliche.passo
+                                });
+                                let montagens = await db.getModel('pcp_apclichemontagem').findAll({ where: { idapcliche: apcliche.id } });
+                                for (let i = 0; i < montagens.length; i++) {
+                                    await db.getModel('pcp_apclichemontagem').create({
+                                        idapcliche: apc.id
+                                        , cliche: montagens[i].cliche
+                                        , estacao: montagens[i].estacao
+                                        , idversao: montagens[i].idversao
+                                        , observacao: montagens[i].observacao
+                                        , idcamisa: montagens[i].idcamisa
+                                        , camerondistancia: montagens[i].camerondistancia
+                                    });
+                                }
+                            }
+                            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_carregarMontagem: async (obj) => {
+                    try {
+                        if (obj.req.method == 'GET') {
+                            let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.id } });
+                            if (apcliche) {
+                                return application.error(obj.res, { msg: 'Este apontamento já possui montagem de clichê' });
+                            }
+                            let body = '';
+                            body += application.components.html.hidden({ name: 'id', value: obj.id });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'OP'
+                                , name: 'idoprecurso'
+                                , model: 'pcp_oprecurso'
+                                , query: `(select op.codigo::text from pcp_opetapa ope left join pcp_etapa e on (ope.idetapa = e.id) left join pcp_op op on (ope.idop = op.id) where ope.id = pcp_oprecurso.idopetapa)`
+                                , where: `(select tpr.codigo from pcp_opetapa ope left join pcp_etapa e on (ope.idetapa = e.id) left join pcp_tprecurso tpr on (e.idtprecurso = tpr.id) where ope.id = pcp_oprecurso.idopetapa) = 2`
+                            });
+                            return application.success(obj.res, {
+                                modal: {
+                                    form: true
+                                    , action: '/event/' + obj.event.id
+                                    , id: 'modalevt' + obj.event.id
+                                    , title: obj.event.description
+                                    , body: body
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
+                                }
+                            });
+                        } else {
+                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'idoprecurso']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidfields, invalidfields: invalidfields });
+                            }
+                            let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.req.body.id } });
+                            let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.req.body.idoprecurso } });
                             if (apcliche) {
                                 let apc = await db.getModel('pcp_apcliche').create({
                                     idoprecurso: opr.id
