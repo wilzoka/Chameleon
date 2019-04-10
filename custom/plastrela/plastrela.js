@@ -7775,6 +7775,8 @@ let main = {
                                         , observacao: montagens[i].observacao
                                         , idcamisa: montagens[i].idcamisa
                                         , camerondistancia: montagens[i].camerondistancia
+                                        , idanilox: montagens[i].idanilox
+                                        , viscosidade: montagens[i].viscosidade
                                     });
                                 }
                             }
