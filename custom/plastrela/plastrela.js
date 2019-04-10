@@ -3727,6 +3727,14 @@ let main = {
                                 , model: 'est_deposito'
                                 , attribute: 'descricao'
                             });
+                            body += application.components.html.autocomplete({
+                                width: '12'
+                                , label: 'Grupo'
+                                , name: 'idgrupo'
+                                , model: 'est_grupo'
+                                , query: `codigo ||  ' - ' || descricao`
+                                , multiple: 'multiple="multiple"'
+                            });
 
                             return application.success(obj.res, {
                                 modal: {
@@ -3744,6 +3752,10 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
                             let deposito = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
+                            let grupo = '';
+                            if (obj.req.body.idgrupo) {
+                                grupo = ` and g.id in (${obj.req.body.idgrupo})`;
+                            }
                             let sql = await db.sequelize.query(`
                                 select * from (select
                                     g.descricao as grupo
@@ -3757,6 +3769,7 @@ let main = {
                                 where
                                     vol.consumido = false
                                     and vol.iddeposito = :iddeposito
+                                    ${grupo}
                                 group by 1,2
                                 order by 1,2) as x
 
@@ -3774,6 +3787,7 @@ let main = {
                                 where
                                     vol.consumido = false
                                     and vol.iddeposito = :iddeposito
+                                    ${grupo}
                                 group by 1,2
                                 order by 1,2) as x
                             `, {
