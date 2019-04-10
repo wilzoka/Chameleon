@@ -6298,7 +6298,7 @@ let main = {
                     try {
                         let motivoparada = await db.getModel('pcp_motivoparada').findOne({ where: { id: obj.data.id } });
                         let apparada = await db.getModel('pcp_apparada').findOne({ where: { id: obj.data.idapparada } });
-                        return application.success(obj.res, { data: motivoparada.complemento, current: apparada.complemento });
+                        return application.success(obj.res, { data: motivoparada.complemento, current: apparada ? apparada.complemento : null });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
