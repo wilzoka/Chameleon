@@ -3789,7 +3789,6 @@ let main = {
                                 where
                                     vol.consumido = false
                                     and vol.iddeposito = :iddeposito
-                                    ${grupo}
                                 group by 1,2
                                 order by 1,2) as x
                             `, {
