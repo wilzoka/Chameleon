@@ -5574,7 +5574,7 @@ let main = {
                         let volume = await db.getModel('est_volume').findOne({
                             where: { idapproducaovolume: obj.register.id }
                         });
-                        if (parseFloat(volume.qtd) != parseFloat(volume.qtdreal)) {
+                        if (volume && (parseFloat(volume.qtd) != parseFloat(volume.qtdreal))) {
                             return application.error(obj.res, { msg: 'Não é possível modificar um volume já utilizado' });
                         }
 
