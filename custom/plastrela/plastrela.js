@@ -5571,6 +5571,13 @@ let main = {
                             return application.error(obj.res, { msg: 'O peso deve ser maior que 0', invalidfields: ['pesobruto'] });
                         }
 
+                        let volume = await db.getModel('est_volume').findOne({
+                            where: { idapproducaovolume: obj.register.id }
+                        });
+                        if (parseFloat(volume.qtd) != parseFloat(volume.qtdreal)) {
+                            return application.error(obj.res, { msg: 'Não é possível modificar um volume já utilizado' });
+                        }
+
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
                         let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idopreferente || oprecurso.id } });
@@ -5690,7 +5697,7 @@ let main = {
                                 qtd = saved.register.pesoliquido;
                                 metragem = saved.register.qtd;
                             }
-                            let volume = await db.getModel('est_volume').findOne({
+                            volume = await db.getModel('est_volume').findOne({
                                 where: { idapproducaovolume: saved.register.id }
                             });
                             let sqlped = await db.sequelize.query(`
@@ -8850,6 +8857,15 @@ let main = {
                         });
 
                         return application.success(obj.res, { reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+            , oprecursoconferencia: {
+                ondelete: async function (obj, next) {
+                    try {
+                        return application.error(obj.res, { msg: 'Não é possível apagar conferências' });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
