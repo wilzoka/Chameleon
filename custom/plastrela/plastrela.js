@@ -3759,6 +3759,7 @@ let main = {
                             let sql = await db.sequelize.query(`
                                 select * from (select
                                     g.descricao as grupo
+                                    , sg.descricao as subgrupo
                                     , v.descricaocompleta
                                     , sum(vol.qtdreal) as qtd
                                 from
@@ -3766,24 +3767,25 @@ let main = {
                                 left join pcp_versao v on (vol.idversao = v.id)
                                 left join cad_item i on (v.iditem = i.id)
                                 left join est_grupo g on (i.idgrupo = g.id)
+                                left join est_subgrupo sg on (i.idsubgrupo = sg.id)
                                 where
                                     vol.consumido = false
                                     and vol.iddeposito = :iddeposito
                                     ${grupo}
-                                group by 1,2
-                                order by 1,2) as x
+                                group by 1,2,3
+                                order by 1,2,3) as x
 
                                 union all
 
                                 select * from (select
                                     'Total' as grupo
-                                    , ''
+                                    , ''::text
+                                    , ''::text
                                     , sum(vol.qtdreal) as qtd
                                 from
                                     est_volume vol
                                 left join pcp_versao v on (vol.idversao = v.id)
                                 left join cad_item i on (v.iditem = i.id)
-                                left join est_grupo g on (i.idgrupo = g.id)
                                 where
                                     vol.consumido = false
                                     and vol.iddeposito = :iddeposito
@@ -3801,6 +3803,7 @@ let main = {
                             <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
                                 <tr>
                                     <td style="text-align:center;"><strong>Grupo</strong></td>
+                                    <td style="text-align:center;"><strong>Subgrupo</strong></td>
                                     <td style="text-align:center;"><strong>Produto</strong></td>
                                     <td style="text-align:center;"><strong>Quantidade</strong></td>
                                 </tr>
@@ -3809,6 +3812,7 @@ let main = {
                                 report.__table += `
                                 <tr>
                                     <td style="text-align:left;"> ${sql[i]['grupo']} </td>
+                                    <td style="text-align:left;"> ${sql[i]['subgrupo']} </td>
                                     <td style="text-align:left;"> ${sql[i]['descricaocompleta']} </td>
                                     <td style="text-align:right;"> ${application.formatters.fe.decimal(sql[i]['qtd'], 4)} </td>
                                 </tr>

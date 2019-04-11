@@ -285,7 +285,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>542</xloc>
+      <xloc>649</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -384,7 +384,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1081</xloc>
+      <xloc>1188</xloc>
       <yloc>210</yloc>
       </entry>
     <entry>
@@ -549,7 +549,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>968</xloc>
+      <xloc>1075</xloc>
       <yloc>210</yloc>
       </entry>
     <entry>
@@ -582,7 +582,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1081</xloc>
+      <xloc>1188</xloc>
       <yloc>57</yloc>
       </entry>
     <entry>
@@ -615,7 +615,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>968</xloc>
+      <xloc>1075</xloc>
       <yloc>57</yloc>
       </entry>
     <entry>
@@ -648,7 +648,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>436</xloc>
+      <xloc>543</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -681,7 +681,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>737</xloc>
+      <xloc>844</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -714,7 +714,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>846</xloc>
+      <xloc>953</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -747,7 +747,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1191</xloc>
+      <xloc>1298</xloc>
       <yloc>210</yloc>
       </entry>
     <entry>
@@ -846,7 +846,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>642</xloc>
+      <xloc>749</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -879,7 +879,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1298</xloc>
+      <xloc>1405</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -912,7 +912,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1406</xloc>
+      <xloc>1513</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -945,7 +945,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1511</xloc>
+      <xloc>1618</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -978,7 +978,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1191</xloc>
+      <xloc>1298</xloc>
       <yloc>57</yloc>
       </entry>
     <entry>
@@ -1011,7 +1011,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1614</xloc>
+      <xloc>1721</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -1044,7 +1044,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1721</xloc>
+      <xloc>1828</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -1110,7 +1110,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1298</xloc>
+      <xloc>1405</xloc>
       <yloc>57</yloc>
       </entry>
     <entry>
@@ -1143,7 +1143,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>968</xloc>
+      <xloc>1075</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -1176,7 +1176,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1081</xloc>
+      <xloc>1188</xloc>
       <yloc>136</yloc>
       </entry>
     <entry>
@@ -1219,7 +1219,7 @@
       <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1721</xloc>
+      <xloc>1828</xloc>
       <yloc>351</yloc>
       </entry>
     <entry>
@@ -1252,7 +1252,7 @@
       </parameters>      <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1721</xloc>
+      <xloc>1828</xloc>
       <yloc>210</yloc>
       </entry>
     <entry>
@@ -1268,7 +1268,7 @@
       <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>1721</xloc>
+      <xloc>1828</xloc>
       <yloc>282</yloc>
       </entry>
     <entry>
@@ -1337,6 +1337,39 @@
       <xloc>334</xloc>
       <yloc>351</yloc>
       </entry>
+    <entry>
+      <name>estsubgrupo</name>
+      <description/>
+      <type>TRANS</type>
+      <specification_method>filename</specification_method>
+      <trans_object_id/>
+      <filename>&#x24;&#x7b;Internal.Job.Filename.Directory&#x7d;&#x2f;estsubgrupo.ktr</filename>
+      <transname/>
+      <arg_from_previous>N</arg_from_previous>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <cluster>N</cluster>
+      <slave_server_name/>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <follow_abort_remote>N</follow_abort_remote>
+      <create_parent_folder>N</create_parent_folder>
+      <logging_remote_work>N</logging_remote_work>
+      <parameters>        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>436</xloc>
+      <yloc>136</yloc>
+      </entry>
   </entries>
   <hops>
     <hop>
@@ -1369,15 +1402,6 @@
     <hop>
       <from>estclasse</from>
       <to>cadunidade</to>
-      <from_nr>0</from_nr>
-      <to_nr>0</to_nr>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>estgrupo</from>
-      <to>estclasse</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
@@ -1643,6 +1667,24 @@
       <to_nr>0</to_nr>
       <enabled>Y</enabled>
       <evaluation>N</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>estgrupo</from>
+      <to>estsubgrupo</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>estsubgrupo</from>
+      <to>estclasse</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
       <unconditional>Y</unconditional>
     </hop>
   </hops>
