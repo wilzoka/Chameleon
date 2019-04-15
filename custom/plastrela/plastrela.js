@@ -3786,9 +3786,11 @@ let main = {
                                     est_volume vol
                                 left join pcp_versao v on (vol.idversao = v.id)
                                 left join cad_item i on (v.iditem = i.id)
+                                left join est_grupo g on (i.idgrupo = g.id)
                                 where
                                     vol.consumido = false
                                     and vol.iddeposito = :iddeposito
+                                    ${grupo}
                                 group by 1,2
                                 order by 1,2) as x
                             `, {
@@ -3821,7 +3823,7 @@ let main = {
                             </table>
                             `;
 
-                            let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
+                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
                             return application.success(obj.res, {
                                 modal: {
                                     id: 'modalevt'
