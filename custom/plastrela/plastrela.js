@@ -2769,7 +2769,7 @@ let main = {
                                 let results = await db.sequelize.query(`
                                     select
                                         *
-                                        , round(qtd / (largura::decimal / 10) / ((case when tipoitem = 13 then espessura::decimal * 10 else espessura::decimal end) / 10) / (densidade / 10), 2) as metragem
+                                        , round(qtd / (largura::decimal / 10) / ((case when tipoitem = 13 then espessura::decimal * 100 else espessura::decimal end) / 10) / (densidade / 10), 2) as metragem
                                     from
                                         (select
                                             ev.id
@@ -2897,7 +2897,7 @@ let main = {
                                 let results = await db.sequelize.query(`
                                     select
                                         *
-                                        , round(qtd / (largura::decimal / 10) / ((case when tipoitem = 13 then espessura::decimal * 10 else espessura::decimal end) / 10) / (densidade / 10), 2) as metragem
+                                        , round(qtd / (largura::decimal / 10) / ((case when tipoitem = 13 then espessura::decimal * 100 else espessura::decimal end) / 10) / (densidade / 10), 2) as metragem
                                     from
                                         (select
                                             ev.id
@@ -7366,9 +7366,7 @@ let main = {
                         }
 
                         oprecurso.idestado = config.idestadoencerrada;
-                        if (!oprecurso.integrado) {
-                            oprecurso.integrado = 'P';
-                        }
+                        oprecurso.integrado = 'P';
                         await oprecurso.save();
 
                         return application.success(obj.res, { msg: application.message.success, redirect: '/v/apontamento_de_producao' });
