@@ -7714,6 +7714,9 @@ let main = {
                             });
                         } else {
                             let invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'idrecurso']);
+                            if (invalidfields.length > 0) {
+                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                            }
                             let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.req.body.id } });
                             let opnova = oprecurso.dataValues;
                             delete opnova['id'];
