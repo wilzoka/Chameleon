@@ -7731,7 +7731,7 @@ let main = {
                                 });
                                 let montagens = await db.getModel('pcp_apclichemontagem').findAll({ where: { idapcliche: apcliche.id } });
                                 for (let i = 0; i < montagens.length; i++) {
-                                    await db.getModel('pcp_apclichemontagem').create({
+                                    let apcm = await db.getModel('pcp_apclichemontagem').create({
                                         idapcliche: apc.id
                                         , cliche: montagens[i].cliche
                                         , estacao: montagens[i].estacao
@@ -7740,7 +7740,30 @@ let main = {
                                         , idcamisa: montagens[i].idcamisa
                                         , camerondistancia: montagens[i].camerondistancia
                                     });
+                                    let secagem = await db.getModel('pcp_apclichemontsecagem').findOne({ where: { idapclichemontagem: montagens[i].id }, order: [['datahora', 'desc']] });
+                                    if (secagem) {
+                                        await db.getModel('pcp_apclichemontagem').create({
+                                            datahora: secagem.datahora
+                                            , idapclichemontagem: apcm.id
+                                            , observacao: secagem.observacao
+                                            , retardador: secagem.retardador
+                                            , secagem: secagem.secagem
+                                            , temperatura: secagem.temperatura
+                                            , umidade: secagem.umidade
+                                        });
+                                    }
                                 }
+                            }
+                            let conferencias = await db.getModel('pcp_oprecursoconferencia').findAll({ where: { idoprecurso: oprecurso.id } })
+                            for (let i = 0; i < conferencias.length; i++) {
+                                await db.getModel('pcp_oprecursoconferencia').create({
+                                    idoprecurso: opr.id
+                                    , datahora: conferencias[i].datahora
+                                    , idatributoconferencia: conferencias[i].idatributoconferencia
+                                    , iduser: conferencias[i].iduser
+                                    , observacao: conferencias[i].observacao
+                                    , resultado: conferencias[i].resultado
+                                });
                             }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
@@ -9845,7 +9868,18 @@ let main = {
                             }
                         }
                         await db.getModel('ven_embarque').update({ confirmadacomercial: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        let notificacao = await db.getModel('parameter').findOne({ where: { key: { $in: ['ven_embarque_comercial', 'ven_embarque_expedicao'] } } });
+                        if (notificacao) {
+                            notificacao = JSON.parse(notificacao.value);
+                            let embs = await main.platform.model.findAll('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embs.count; i++) {
+                                main.platform.notification.create(notificacao, {
+                                    title: 'Entrega Desconfirmada'
+                                    , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
+                                });
+                            }
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -9895,7 +9929,18 @@ let main = {
                             }
                         }
                         await db.getModel('ven_embarque').update({ aprovadoretirada: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        let notificacao = await db.getModel('parameter').findOne({ where: { key: 'ven_embarque_expedicao' } });
+                        if (notificacao) {
+                            notificacao = JSON.parse(notificacao.value);
+                            let embs = await main.platform.model.findAll('ven_embarque', { where: { id: { $in: obj.ids } } });
+                            for (let i = 0; i < embs.count; i++) {
+                                main.platform.notification.create(notificacao, {
+                                    title: 'Retirada Desaprovada'
+                                    , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
+                                });
+                            }
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
