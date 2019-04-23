@@ -6119,6 +6119,9 @@ let main = {
                                         }, { iduser: obj.req.body.iduser });
                                     }
                                 }
+
+                                approducao.integrado = false;
+                                approducao.save();
                             }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
