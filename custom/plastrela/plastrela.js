@@ -5440,6 +5440,29 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , ondelete: async function (obj, next) {
+                    try {
+                        let config = await db.getModel('pcp_config').findOne();
+                        let approducao = await db.getModel('pcp_apperda').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                        for (let i = 0; i < approducao.length; i++) {
+                            if (approducao[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
+                                return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
+                            }
+                        }
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            let gconfig = await db.getModel('config').findOne();
+                            for (let i = 0; i < approducao.length; i++) {
+                                db.getModel('pcp_apintegracao').create({
+                                    integrado: false
+                                    , texto: '10|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||.1.' + approducao[i].id + '|||'
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , approducaotempo: {
                 onsave: async function (obj, next) {
@@ -5511,7 +5534,11 @@ let main = {
                             return application.error(obj.res, { msg: 'Existe um apontamento de ' + results[0].tipo + ' neste horário' });
                         }
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
-                        next(obj);
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            approducao.integrado = false;
+                            approducao.save();
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5528,7 +5555,10 @@ let main = {
                             }
                         }
 
-                        next(obj);
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            db.getModel('pcp_approducao').update({ integrado: false }, { where: { idoprecurso: tempos[0].idoprecurso } });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -5694,6 +5724,8 @@ let main = {
                         let saved = await next(obj);
 
                         if (saved.success) {
+                            approducao.integrado = false;
+                            approducao.save();
                             main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
 
                             let qtd = saved.register.qtd;
@@ -5757,6 +5789,7 @@ let main = {
 
                         let config = await db.getModel('pcp_config').findOne();
                         let volumes = await db.getModel('est_volume').findAll({ where: { idapproducaovolume: { $in: obj.ids } }, include: [{ all: true }] });
+                        let approducaovolumes = await db.getModel('pcp_approducaovolume').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
 
                         for (let i = 0; i < volumes.length; i++) {
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: volumes[i].pcp_approducaovolume.idapproducao }, include: [{ all: true }] })
@@ -5784,7 +5817,14 @@ let main = {
                                 if (tprecurso.codigo = 7) {
                                     db.getModel('pcp_apinsumo').update({ recipiente: null }, { where: { idoprecurso: opr.id, recipiente: '' + volumes[i].id } });
                                 }
+                                approducao.integrado = false;
+                                approducao.save();
                             }
+                            let gconfig = await db.getModel('config').findOne();
+                            db.getModel('pcp_apintegracao').create({
+                                integrado: false
+                                , texto: '10|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||.1.' + approducaovolumes[0].pcp_approducao.id + '|||'
+                            });
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -6109,7 +6149,7 @@ let main = {
             , apperda: {
                 onsave: async function (obj, next) {
                     try {
-
+                        obj.register.integrado = false;
                         let config = await db.getModel('pcp_config').findOne();
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idoprecurso } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
@@ -6154,7 +6194,16 @@ let main = {
                             }
                         }
 
-                        next(obj);
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            let gconfig = await db.getModel('config').findOne();
+                            for (let i = 0; i < apperdas.length; i++) {
+                                db.getModel('pcp_apintegracao').create({
+                                    integrado: false
+                                    , texto: '30|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||.2.' + apperdas[i].id + '||||||'
+                                });
+                            }
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -6163,6 +6212,7 @@ let main = {
             , apparada: {
                 onsave: async function (obj, next) {
                     try {
+                        obj.register.integrado = false;
                         let invalidfields = application.functions.getEmptyFields(obj.register, ['iduser', 'dataini', 'datafim', 'idmotivoparada']);
                         if (invalidfields.length > 0) {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
@@ -6284,7 +6334,10 @@ let main = {
                         }
 
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
-                        next(obj);
+                        let saved = await next(obj);
+                        if (saved.success) {
+                            db.getModel('pcp_approducao').update({ integrado: false }, { where: { idoprecurso: saved.register.idoprecurso } });
+                        }
 
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -6292,7 +6345,6 @@ let main = {
                 }
                 , ondelete: async function (obj, next) {
                     try {
-
                         let config = await db.getModel('pcp_config').findOne();
                         let apparadas = await db.getModel('pcp_apparada').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
                         for (let i = 0; i < apparadas.length; i++) {
@@ -6300,8 +6352,17 @@ let main = {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
                             }
                         }
-
-                        next(obj);
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            let gconfig = await db.getModel('config').findOne();
+                            for (let i = 0; i < apparadas.length; i++) {
+                                db.getModel('pcp_apintegracao').create({
+                                    integrado: false
+                                    , texto: '20|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '||||||||||.3.' + apparadas[i].id
+                                });
+                            }
+                            db.getModel('pcp_approducao').update({ integrado: false }, { where: { idoprecurso: apparadas[0].idoprecurso } });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -6609,7 +6670,8 @@ let main = {
                         if (selects.length > 0) {
                             for (let i = 0; i < selects.length; i++) {
                                 await db.getModel('pcp_apinsumo').create({
-                                    iduser: obj.data.iduser
+                                    integrado: false
+                                    , iduser: obj.data.iduser
                                     , idvolume: obj.data.idvolume
                                     , idoprecurso: obj.data.idoprecurso
                                     , datahora: moment()
@@ -6620,7 +6682,8 @@ let main = {
                             }
                         } else {
                             await db.getModel('pcp_apinsumo').create({
-                                iduser: obj.data.iduser
+                                integrado: false
+                                , iduser: obj.data.iduser
                                 , idvolume: obj.data.idvolume
                                 , idoprecurso: obj.data.idoprecurso
                                 , datahora: moment()
@@ -6686,9 +6749,14 @@ let main = {
                             volumesreservas = volumesreservas.concat(volumereservas);
                         }
 
-                        let saved = await next(obj);
+                        let deleted = await next(obj);
+                        if (deleted.success) {
+                            let gconfig = await db.getModel('config').findOne();
+                            db.getModel('pcp_apintegracao').create({
+                                integrado: false
+                                , texto: '40|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||||||||.4.' + apinsumos[0].id
+                            });
 
-                        if (saved.success) {
                             for (let i = 0; i < volumes.length; i++) {
                                 await volumes[i].save();
                             }
@@ -6858,6 +6926,7 @@ let main = {
 
                         let saved = await next(obj);
                         if (saved.success) {
+                            apinsumo.integrado = false;
                             apinsumo.save();
                             volume.save();
                         }
@@ -6880,6 +6949,7 @@ let main = {
                         for (let i = 0; i < apsobras.length; i++) {
                             let apinsumo = await db.getModel('pcp_apinsumo').findOne({ where: { id: apsobras[i].idapinsumo } });
                             apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(apsobras[i].qtd)).toFixed(4);
+                            apinsumo.integrado = false;
                             apinsumo.save();
 
                             let volume = await db.getModel('est_volume').findOne({ where: { id: apinsumo.idvolume } });
@@ -7151,7 +7221,8 @@ let main = {
                         }
                         for (let k in selects) {
                             await db.getModel('pcp_apinsumo').create({
-                                iduser: mistura.iduser
+                                integrado: false
+                                , iduser: mistura.iduser
                                 , idvolume: volume.id
                                 , idoprecurso: oprecurso.id
                                 , datahora: moment()
@@ -9872,15 +9943,18 @@ let main = {
                         }
                         await db.getModel('ven_embarque').update({ confirmadacomercial: false }, { where: { id: { $in: obj.ids } }, iduser: obj.req.user.id });
                         application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                        let notificacao = await db.getModel('parameter').findOne({ where: { key: { $in: ['ven_embarque_comercial', 'ven_embarque_expedicao'] } } });
-                        if (notificacao) {
-                            notificacao = JSON.parse(notificacao.value);
-                            let embs = await main.platform.model.findAll('ven_embarque', { where: { id: { $in: obj.ids } } });
-                            for (let i = 0; i < embs.count; i++) {
-                                main.platform.notification.create(notificacao, {
-                                    title: 'Entrega Desconfirmada'
-                                    , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao}`
-                                });
+                        let pm = await db.getModel('parameter').findAll({ where: { key: { $in: ['ven_embarque_comercial', 'ven_embarque_expedicao'] } } });
+                        for (let i = 0; i < pm.length; i++) {
+                            let notificacao = pm[i];
+                            if (notificacao) {
+                                notificacao = JSON.parse(notificacao.value);
+                                let embs = await main.platform.model.findAll('ven_embarque', { where: { id: { $in: obj.ids } } });
+                                for (let i = 0; i < embs.count; i++) {
+                                    main.platform.notification.create(notificacao, {
+                                        title: 'Entrega Desconfirmada'
+                                        , description: `${embs.rows[i].previsaodata} @ ${embs.rows[i].idpedido} ${embs.rows[i].idversao} - ${obj.req.user.fullname}`
+                                    });
+                                }
                             }
                         }
                     } catch (err) {
