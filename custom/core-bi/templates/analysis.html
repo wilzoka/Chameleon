@@ -1,3 +1,41 @@
+<style>
+    .box {
+        margin-bottom: 10px;
+    }
+
+    .box-header {
+        padding: 5px;
+        text-align: center;
+    }
+
+    .ul-sortable {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .todo-list>li {
+        padding: 5px;
+        background: #ffffff;
+        margin: 2px;
+    }
+
+    .ul-horizontal {
+        padding: 0;
+    }
+
+    .ul-horizontal>li {
+        display: inline-block;
+    }
+
+    .drop-area {
+        overflow: auto;
+        padding: 2px;
+        min-height: 35px;
+        border: 1px solid #e6e7e8;
+    }
+</style>
+
 <div class="hidden">
     {{{hidden}}}
 </div>
@@ -12,69 +50,85 @@
     </div>
 </div>
 
-<div id="colfilter" class="col-md-12 hidden">
-    <div class="box collapsed-box">
+<div class="col-md-12">
+    <div class="box">
         <div class="box-header">
-            <i class="fa fa-filter"></i>
-            <h3 class="box-title">Filtros (0)</h3>
-            <div class="box-tools pull-right">
-                <button type="button" class="btn btn-sm btn-default" data-widget="collapse">
-                    <i class="fa fa-plus"></i>
-                </button>
-            </div>
+            <h3 class="box-title">Dimensões</h3>
         </div>
-        <div class="box-body" style="display: none;">
+        <div class="box-body">
             <div class="row">
-                <div class="col-md-4 no-padding">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Campo</label>
-                            <select name="campo" class="form-control" style="width: 100%;">
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Operador</label>
-                            <select name="operador" class="form-control" style="width: 100%;">
-                                <option></option>
-                                <option value="=">Igual</option>
-                                <option value="!=">Diferente</option>
-                                <option value="ilike">Contém</option> 
-                                <option value="?">Customizado</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Valor</label>
-                            <input name="valor" class="form-control" style="width: 100%;" />
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <button id="addfilter" type="button" class="btn btn-success btn-block" style="width: 100%;">
-                            <i class="fa fa-plus"></i>
-                        </button>
+                <div class="col-sm-12">
+                    <div class="drop-area">
+                        <ul id="dim" class="todo-list ui-sortable ul-horizontal">
+                        </ul>
                     </div>
                 </div>
-                <div class="col-md-8">
-                    <table id="tablefilter" class="table table-bordered table-hover dataTable" style="width: 100%;">
-                    </table>
-                </div>
-            </div>
-            <div id="zfilter" class="row">
-                {{{zfilter}}}
             </div>
         </div>
     </div>
 </div>
 
-<div id="colpivot" class="col-md-12 hidden">
+<div class="col-md-2 no-padding">
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">Medidas</h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <ul id="measure" class="todo-list ui-sortable">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">Linhas</h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="drop-area">
+                            <ul id="dimrow" class="todo-list ui-sortable">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-10 no-padding-left">
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Colunas</h3>
+        </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="drop-area">
+                        <ul id="dimcol" class="todo-list ui-sortable ul-horizontal">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-10 no-padding-left">
     <div class="box">
         <div class="box-body">
             <div class="row">
                 <div class="col-sm-12">
-                    <div class="pivotdiv">
+                    <div id="divtable" style="overflow: auto;">
+
                     </div>
                 </div>
             </div>
@@ -84,205 +138,83 @@
 
 <script type="text/javascript">
     $(function () {
-        application.functions.getCss([
-            '/public/assets/pivotjs/c3.min.css'
-            , '/public/assets/pivotjs/pivot.css'
-        ]);
         application.functions.getJs([
-            '/public/assets/jquery/jquery-ui.min.js'
-            , '/public/assets/pivotjs/jquery.ui.touch-punch.min.js'
-            , '/public/assets/pivotjs/pivot.js'
-            , '/public/assets/pivotjs/pivot.pt.js'
-            , '/public/assets/pivotjs/export_renderers.js'
-            , '/public/assets/pivotjs/c3.min.js'
-            , '/public/assets/pivotjs/c3_renderers.js'
-            , '/public/assets/pivotjs/d3.min.js'
-            , '/public/assets/pivotjs/d3_renderers.js'
+            '/public/assets/sortablejs/Sortable.min.js'
         ]);
-        var $pivot = $('.pivotdiv');
         var $idcube = $('select[name="idcube"]');
-        var $filter = $('textarea[name="filter"]');
-        var filter = JSON.parse($filter.val() || '[]');
-        var $filtercampo = $('select[name="campo"]');
-        var $filteroperador = $('select[name="operador"]');
-        var $filtervalor = $('input[name="valor"]');
-        var tablefilter = $('#tablefilter').DataTable({
-            dom: 't'
-            , columns: [
-                { title: "Campo", data: "campo", name: "campo" }
-                , {
-                    title: "Operador", data: "operador", name: "operador", render: function (data) {
-                        switch (data) {
-                            case '=':
-                                return 'Igual';
-                            case '!=':
-                                return 'Diferente';
-                            case 'ilike':
-                                return 'Contém';
-                            case '?':
-                                return 'Customizado';
-                            default:
-                                return '';
-                        }
-                    }
-                }
-                , {
-                    title: "Valor", data: "valor", name: "valor", render: function (data) {
-                        return data.split(';').join('<br>');
-                    }
-                }
-                , {
-                    title: "Opções", data: "opt", name: "opt", class: 'text-center', render: function () {
-                        return `
-                        <i class="fa fa-2x fa-edit" style="font-size: 20px; color: #3991dd; cursor: pointer; margin-right: 5px;"></i>
-                        <i class="fa fa-2x fa-trash" style="font-size: 20px; color: #dd4b39; cursor: pointer;"></i>
-                        `;
-                    }
-                }
-            ]
-            , pageLength: -1
-            , ordering: false
-        }).on('click', 'tbody td:last-child i', function (e) {
-            var data = tablefilter.row($(this).closest('tr')).data();
-            for (var i = 0; i < filter.length; i++) {
-                if (filter[i].campo == data.campo) {
-                    filter.splice(i, 1);
-                }
-            }
-            if ($(this).hasClass('fa-edit')) {
-                $filtercampo.val(data.campo);
-                $filteroperador.val(data.operador);
-                $filtervalor.val(data.valor);
-            }
-            renderTableFilter();
-            reloadPivot();
-        });;
-        $('#addfilter').click(function () {
-            if (!$filtercampo.val()) {
-                return application.notify.error('Informe um campo');
-            }
-            if (!$filteroperador.val()) {
-                return application.notify.error('Informe um operador');
-            }
-            if (!$filtervalor.val()) {
-                return application.notify.error('Informe um valor');
-            }
-            for (var i = 0; i < filter.length; i++) {
-                if (filter[i].campo == $filtercampo.val()) {
-                    return application.notify.error('Este campo já se encontra filtrado');
-                }
-            }
-            filter.push({
-                campo: $filtercampo.val()
-                , operador: $filteroperador.val()
-                , valor: $filtervalor.val()
+
+        function renderTable() {
+            var request = {
+                columns: []
+                , rows: []
+                , measures: []
+                , idcube: $idcube.val()
+            };
+            $('#dimrow > li').each(function () {
+                request.rows.push($(this).attr('data-key'));
             });
-            renderTableFilter();
-            reloadPivot();
-            $filtercampo.val('');
-            $filteroperador.val('');
-            $filtervalor.val('');
+            $('#dimcol > li').each(function () {
+                request.columns.push($(this).attr('data-key'));
+            });
+            $('input.checkmeasure').each(function () {
+                if ($(this).is(':checked')) {
+                    request.measures.push($(this).attr('data-key'));
+                }
+            });
+
+            application.jsfunction('platform.core_bi.js_executeAnalysis', request, function (response) {
+                if (response.success) {
+                    $('#divtable').children().remove();
+                    $('#divtable').append(response.data.table);
+                }
+            });
+        }
+
+        $(document).on('change', 'input.checkmeasure', function () {
+            renderTable();
         });
 
-        function reloadPivot() {
-            $filter.val(JSON.stringify(filter));
-            application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val(), filter: $filter.val() }, function (response) {
-                if (response.success) {
-                    renderPivot(response.data, false);
+        $(document).on('app-loadjs', function () {
+
+            var dims = ['dim', 'dimcol', 'dimrow'];
+            for (var i = 0; i < dims.length; i++) {
+                new Sortable(document.getElementById(dims[i]), {
+                    animation: 150
+                    , ghostClass: 'blue-background-class'
+                    , group: 'dims'
+                    , onEnd: function () {
+                        renderTable();
+                    }
+                });
+            }
+            new Sortable(document.getElementById('measure'), {
+                animation: 150
+                , ghostClass: 'blue-background-class'
+                , onEnd: function () {
+                    renderTable();
                 }
             });
-        }
 
-        function renderTableFilter() {
-            var f = filter;
-            for (var i = 0; i < filter.length; i++) {
-                f[i] = $.extend(f[i], { opt: '' });
-            }
-            tablefilter.clear();
-            tablefilter.rows.add(f).columns.adjust().draw();
-            $('#colfilter').find('h3').text('Filtros (' + filter.length + ')');
-        }
+            var measureTPL = '<li class="list-group-item">'
+                + '<input type="checkbox" class="checkmeasure" data-key="${key}">'
+                + '<span class="text">${name}</span>'
+                + '</li>';
+            var dimensionTPL = '<li class="list-group-item" data-key="${key}">'
+                + '<span class="text">${name}</span>'
+                + '</li>';
 
-        function createCampoOptions(options) {
-            $filtercampo.find('option').remove();
-            $filtercampo.append('<option></option>');
-            for (var i = 0; i < options.length; i++) {
-                $filtercampo.append('<option>' + options[i] + '</option>');
-            }
-        }
-
-        function renderPivot(obj, resetControls) {
-            $('#colfilter, #colpivot').removeClass('hidden');
-            if ($filtercampo.find('option').length <= 0) {
-                createCampoOptions(obj.filteravailable);
-            }
-            if (resetControls) {
-                createCampoOptions(obj.filteravailable);
-                $filter.val(''); filter = [];
-            }
-            renderTableFilter();
-            eval(obj.measures);
-            $pivot.pivotUI(
-                obj.data
-                , $.extend(
-                    {
-                        renderers: $.extend(
-                            $.pivotUtilities.renderers
-                            , $.pivotUtilities.c3_renderers
-                        )
-                        , aggregators: globalaggregator
-                        , hiddenAttributes: obj.hiddenAttributes
-                        , sorters: function (attr) {
-                            if (attr.indexOf("(Mes)") >= 0) {
-                                return $.pivotUtilities.sortAs([
-                                    "Janeiro", "Fevereiro", "Março",
-                                    "Abril", "Maio", "Junho",
-                                    "Julho", "Agosto", "Setembro",
-                                    "Outubro", "Novembro", "Dezembro"]);
-                            }
-                        }
-                        , onRefresh: function (config) {
-                            var keys = [
-                                'hiddenAttributes'
-                                , 'cols'
-                                , 'rows'
-                                , 'rowOrder'
-                                , 'colOrder'
-                                , 'exclusions'
-                                , 'inclusions'
-                                , 'inclusionsInfo'
-                                , 'rendererName'
-                                , 'aggregatorName'
-                            ];
-                            var config_copy = {};
-                            for (var i = 0; i < keys.length; i++) {
-                                config_copy[keys[i]] = config[keys[i]];
-                            }
-                            $('textarea[name="config"]').val(JSON.stringify(config_copy));
-                        }
-                    }
-                    , JSON.parse($('textarea[name="config"]').val() || '{}')
-                )
-                , resetControls
-                , 'pt'
-            );
-        }
-
-        $(document).on('app-loadjs', function () {
             $idcube.on('select2:select', function (e) {
                 application.jsfunction('platform.core_bi.js_getCube', { idcube: e.params.data.id }, function (response) {
                     if (response.success) {
-                        renderPivot(response.data, true);
+                        for (var i = 0; i < response.data.dimensions.length; i++) {
+                            $('#dim').append(dimensionTPL.replace('${name}', response.data.dimensions[i]).replace('${key}', response.data.dimensions[i]));
+                        }
+                        for (var i = 0; i < response.data.measures.length; i++) {
+                            $('#measure').append(measureTPL.replace('${name}', response.data.measures[i]).replace('${key}', response.data.measures[i]));
+                        }
                     }
                 });
             });
-            if (application.functions.getId() > 0) {
-                application.jsfunction('platform.core_bi.js_getCube', { idcube: $idcube.val(), filter: $filter.val() }, function (response) {
-                    if (response.success) {
-                        renderPivot(response.data, false);
-                    }
-                });
-            }
         });
     });
 
