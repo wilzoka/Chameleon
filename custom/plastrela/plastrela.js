@@ -7336,6 +7336,8 @@ let main = {
                                     return application.error(obj.res, { msg: 'Os apontamentos possuem diferença de ' + dif + '% a mais' });
                                 }
                             }
+                        } else {
+                            return application.error(obj.res, { msg: 'Nâo é possível encerrar uma OP sem insumos' });
                         }
 
                         if (tprecurso.codigo == 2) {
@@ -8778,7 +8780,7 @@ let main = {
                         await db.getModel('pcp_apperda').update({ integrado: false }, { where: { idoprecurso: obj.ids[0] } });
                         await db.getModel('pcp_apparada').update({ integrado: false }, { where: { idoprecurso: obj.ids[0] } });
                         await db.getModel('pcp_approducao').update({ integrado: false }, { where: { idoprecurso: obj.ids[0] } });
-                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ include: [{ all: true }], where: { id: obj.ids[0] } });                        
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ include: [{ all: true }], where: { id: obj.ids[0] } });
                         oprecurso.integrado = 'P';
                         await oprecurso.save({ iduser: obj.req.user.id });
                         return application.success(obj.res, { msg: application.message.success });

@@ -189,7 +189,8 @@ let bi = {
             return ret;
         }
 
-        let html = '<html><body><table border="1" style="border-collapse: collapse;">';
+        // Render Table
+        let html = '<table id="pivottable" border="1" style="border-collapse: collapse;">';
         for (let i = 0; i < structure.columns.length; i++) {
             html += `<tr>`;
             if (rows.length > 0 && i === 0) {
@@ -239,7 +240,6 @@ let bi = {
             html += '</tr>';
         }
         html += '';
-
         for (let r = 0; r < structure.r.length; r++) {
             html += `<tr>`;
             for (let i = 0; i < rows.length; i++) {
@@ -284,9 +284,70 @@ let bi = {
                 html += `</tr>`;
             }
         }
-        html += '</table></body></html>';
+        html += '</table>';
+
+        // Render Chart
+        let charts = [];
+        let categories = []
+        for (let i = 0; i < structure.r.length; i++) {
+            categories.push(structure.r[i].val);
+        }
+        if (structure.columns.length > 0) {
+            for (let m = 0; m < measures.length; m++) {
+                let series = [];
+                for (let c = 0; c < structure.c.length; c++) {
+                    seriesdata = [];
+                    for (let r = 0; r < structure.r.length; r++) {
+                        let sd = null;
+                        for (let i = 0; i < data.length; i++) {
+                            if (structure.c[c].val == data[i].column && structure.r[r].val == data[i].row) {
+                                sd = { name: data[i].row, y: parseFloat(data[i].measures[m]) };
+                                break;
+                            }
+                        }
+                        if (!sd) {
+                            sd = { name: '', y: 0 };
+                        }
+                        seriesdata.push(sd);
+                    }
+                    series.push({
+                        name: structure.c[c].val
+                        , data: seriesdata
+                    });
+                }
+                charts.push({
+                    title: measures[m]
+                    , categories: categories
+                    , series: series
+                });
+            }
+        } else {
+            let series = [];
+            for (let i = 0; i < measures.length; i++) {
+                let seriesdata = [];
+                for (let r = 0; r < structure.r.length; r++) {
+                    for (let z = 0; z < data.length; z++) {
+                        if (structure.r[r].val == data[z].row) {
+                            seriesdata.push({ name: data[z].row, y: parseFloat(data[z].measures[i]) });
+                            break;
+                        }
+                    }
+                }
+                series.push({
+                    name: measures[i]
+                    , data: seriesdata
+                });
+            }
+            charts.push({
+                categories: categories
+                , series: series
+            });
+        }
+
         return {
             html: html
+            , data: data
+            , charts: charts
         };
     }
     , js_executeAnalysis: async function (obj) {
@@ -331,13 +392,7 @@ let bi = {
             `
                 , { type: db.sequelize.QueryTypes.SELECT });
 
-            let pivot = bi.f_pivot(sql, obj.data);
-
-            let data = {
-                table: pivot.html
-            };
-
-            return application.success(obj.res, { data: data });
+            return application.success(obj.res, { data: bi.f_pivot(sql, obj.data) });
         } catch (err) {
             return application.fatal(obj.res, err);
         }

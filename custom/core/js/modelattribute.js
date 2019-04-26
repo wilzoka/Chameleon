@@ -35,6 +35,7 @@ $(function () {
                 case 'radio':
                     obj = {
                         options: []
+                        , renderAsSelect: false
                     };
                     break;
                 case 'textarea':

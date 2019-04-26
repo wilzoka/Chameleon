@@ -123,13 +123,41 @@
 </div>
 
 <div class="col-md-10 no-padding-left">
-    <div class="box">
-        <div class="box-body">
-            <div class="row">
-                <div class="col-sm-12">
-                    <div id="divtable" style="overflow: auto;">
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="#tab_table" data-toggle="tab"> Tabela</a>
+            </li>
+            <li>
+                <a href="#tab_chart" data-toggle="tab"> Gráfico</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="tab_table">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="divtable" style="overflow: auto;">
 
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="tab-pane" id="tab_chart">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <select name="chartype" class="form-control select2" style="width:100%;">
+                                <option value="line" selected>Linha</option>
+                                <option value="bar">Barra</option>
+                                <option value="pie">Pizza</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <hr style="margin: 5px 0;">
+                <div id="charts">
+
                 </div>
             </div>
         </div>
@@ -138,10 +166,18 @@
 
 <script type="text/javascript">
     $(function () {
+        var $idcube = $('select[name="idcube"]');
+        var chart = {
+            charts: []
+            , rendered: false
+        };
+
+        var hcseries = 'measures';
+
         application.functions.getJs([
             '/public/assets/sortablejs/Sortable.min.js'
+            , 'https://code.highcharts.com/highcharts.src.js'
         ]);
-        var $idcube = $('select[name="idcube"]');
 
         function renderTable() {
             var request = {
@@ -153,19 +189,103 @@
             $('#dimrow > li').each(function () {
                 request.rows.push($(this).attr('data-key'));
             });
+            $('input[name="rows"]').val(request.rows.join(','));
             $('#dimcol > li').each(function () {
                 request.columns.push($(this).attr('data-key'));
             });
+            $('input[name="columns"]').val(request.columns.join(','));
             $('input.checkmeasure').each(function () {
                 if ($(this).is(':checked')) {
                     request.measures.push($(this).attr('data-key'));
                 }
             });
+            $('input[name="measures"]').val(request.measures.join(','));
 
             application.jsfunction('platform.core_bi.js_executeAnalysis', request, function (response) {
                 if (response.success) {
                     $('#divtable').children().remove();
-                    $('#divtable').append(response.data.table);
+                    $('#divtable').append(response.data.html);
+                    chart.charts = response.data.charts;
+                    chart.rendered = false;
+                    renderCharts();
+                }
+            });
+        }
+
+        function renderCharts() {
+            if ($('#tab_chart').hasClass('active')) {
+                $('#charts').children().remove();
+                for (var i = 0; i < chart.charts.length; i++) {
+                    $('#charts').append('<div id="chart' + i + '"></div>')
+                    Highcharts.chart('chart' + i, {
+                        chart: {
+                            type: $('select[name="chartype"]').val()
+                        },
+                        title: {
+                            text: chart.charts[i].title || ''
+                        },
+                        yAxis: {
+                            title: {
+                                text: ''
+                            }
+                        },
+                        xAxis: {
+                            categories: chart.charts[i].categories
+                        },
+                        series: chart.charts[i].series
+                    });
+                }
+                chart.rendered = true;
+            }
+        }
+
+        function resetUI() {
+            $('input[name="rows"]').val('');
+            $('input[name="columns"]').val('');
+            $('input[name="measures"]').val('');
+        }
+
+        function renderUI(idcube) {
+            application.jsfunction('platform.core_bi.js_getCube', { idcube: idcube }, function (response) {
+                if (response.success) {
+                    var measureTPL = '<li class="list-group-item">'
+                        + '<input type="checkbox" class="checkmeasure" data-key="${key}" ${checked}>'
+                        + '<span class="text">${name}</span>'
+                        + '</li>';
+                    var dimensionTPL = '<li class="list-group-item" data-key="${key}">'
+                        + '<span class="text">${name}</span>'
+                        + '</li>';
+                    var rows = $('input[name="rows"]').val().split(',');
+                    var columns = $('input[name="columns"]').val().split(',');
+                    var measures = $('input[name="measures"]').val().split(',');
+                    for (var i = 0; i < response.data.dimensions.length; i++) {
+                        if (rows.indexOf(response.data.dimensions[i]) >= 0 || columns.indexOf(response.data.dimensions[i]) >= 0) {
+                            response.data.dimensions.splice(i, 1);
+                            i--;
+                        }
+                    }
+                    for (var i = 0; i < response.data.measures.length; i++) {
+                        if (measures.indexOf(response.data.measures[i]) >= 0) {
+                            response.data.measures.splice(i, 1);
+                            i--;
+                        }
+                    }
+                    for (let i = 0; i < rows.length; i++) {
+                        $('#dimrow').append(dimensionTPL.replace('${name}', rows[i]).replace('${key}', rows[i]));
+                    }
+                    for (let i = 0; i < columns.length; i++) {
+                        $('#dimcol').append(dimensionTPL.replace('${name}', columns[i]).replace('${key}', columns[i]));
+                    }
+                    for (var i = 0; i < response.data.dimensions.length; i++) {
+                        $('#dim').append(dimensionTPL.replace('${name}', response.data.dimensions[i]).replace('${key}', response.data.dimensions[i]));
+                    }
+                    for (let i = 0; i < measures.length; i++) {
+                        $('#measure').append(measureTPL.replace('${name}', measures[i]).replace('${key}', measures[i]).replace('${checked}', 'checked'));
+                    }
+                    for (var i = 0; i < response.data.measures.length; i++) {
+                        $('#measure').append(measureTPL.replace('${name}', response.data.measures[i]).replace('${key}', response.data.measures[i]).replace('${checked}', ''));
+                    }
+                    renderTable();
                 }
             });
         }
@@ -174,8 +294,18 @@
             renderTable();
         });
 
-        $(document).on('app-loadjs', function () {
+        $idcube.on('select2:select', function (e) {
+            renderUI(e.params.data.id);
+        });
 
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            if ($(e.target).attr("href") == '#tab_chart' && !chart.rendered) {
+                renderCharts();
+            }
+        });
+
+        $(document).on('app-loadjs', function () {
+            //Sortable
             var dims = ['dim', 'dimcol', 'dimrow'];
             for (var i = 0; i < dims.length; i++) {
                 new Sortable(document.getElementById(dims[i]), {
@@ -195,26 +325,9 @@
                 }
             });
 
-            var measureTPL = '<li class="list-group-item">'
-                + '<input type="checkbox" class="checkmeasure" data-key="${key}">'
-                + '<span class="text">${name}</span>'
-                + '</li>';
-            var dimensionTPL = '<li class="list-group-item" data-key="${key}">'
-                + '<span class="text">${name}</span>'
-                + '</li>';
-
-            $idcube.on('select2:select', function (e) {
-                application.jsfunction('platform.core_bi.js_getCube', { idcube: e.params.data.id }, function (response) {
-                    if (response.success) {
-                        for (var i = 0; i < response.data.dimensions.length; i++) {
-                            $('#dim').append(dimensionTPL.replace('${name}', response.data.dimensions[i]).replace('${key}', response.data.dimensions[i]));
-                        }
-                        for (var i = 0; i < response.data.measures.length; i++) {
-                            $('#measure').append(measureTPL.replace('${name}', response.data.measures[i]).replace('${key}', response.data.measures[i]));
-                        }
-                    }
-                });
-            });
+            if (application.functions.getId() > 0) {
+                renderUI($idcube.val());
+            }
         });
     });
 

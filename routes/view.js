@@ -301,14 +301,28 @@ const renderRadio = function (viewfield, register) {
         disabled = 'disabled="disabled"';
     }
 
-    return application.components.html.radio({
-        width: viewfield.width
-        , label: label
-        , name: viewfield.modelattribute.name
-        , value: value
-        , disabled: disabled
-        , options: json.options
-    });
+    if (json.renderAsSelect) {
+        if (value) {
+            option = '<option value="' + value + '" selected>' + value + '</option>';
+        }
+        return application.components.html.autocomplete({
+            width: viewfield.width
+            , label: label
+            , name: viewfield.modelattribute.name
+            , option: option
+            , disabled: disabled
+            , options: json.options
+        });
+    } else {
+        return application.components.html.radio({
+            width: viewfield.width
+            , label: label
+            , name: viewfield.modelattribute.name
+            , value: value
+            , disabled: disabled
+            , options: json.options
+        });
+    }
 }
 
 const renderSubView = function (viewsubview) {
