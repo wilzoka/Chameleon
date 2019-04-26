@@ -145,15 +145,7 @@
 
             <div class="tab-pane" id="tab_chart">
                 <div class="row">
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <select name="chartype" class="form-control select2" style="width:100%;">
-                                <option value="line" selected>Linha</option>
-                                <option value="bar">Barra</option>
-                                <option value="pie">Pizza</option>
-                            </select>
-                        </div>
-                    </div>
+                    {{{chart}}}
                 </div>
                 <hr style="margin: 5px 0;">
                 <div id="charts">
@@ -167,6 +159,7 @@
 <script type="text/javascript">
     $(function () {
         var $idcube = $('select[name="idcube"]');
+        var $charttype = $('select[name="charttype"]');
         var chart = {
             charts: []
             , rendered: false
@@ -212,6 +205,19 @@
             });
         }
 
+        function decodeChartType(type) {
+            switch (type) {
+                case 'Barra':
+                    return 'bar';
+                case 'Coluna':
+                    return 'column';
+                case 'Linha':
+                    return 'line';
+                case 'Pizza':
+                    return 'pie';
+            }
+        }
+
         function renderCharts() {
             if ($('#tab_chart').hasClass('active')) {
                 $('#charts').children().remove();
@@ -219,7 +225,7 @@
                     $('#charts').append('<div id="chart' + i + '"></div>')
                     Highcharts.chart('chart' + i, {
                         chart: {
-                            type: $('select[name="chartype"]').val()
+                            type: decodeChartType($('select[name="charttype"]').val())
                         },
                         title: {
                             text: chart.charts[i].title || ''
@@ -296,6 +302,10 @@
 
         $idcube.on('select2:select', function (e) {
             renderUI(e.params.data.id);
+        });
+
+        $charttype.on('select2:select', function (e) {
+            renderCharts();
         });
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {

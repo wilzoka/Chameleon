@@ -346,7 +346,6 @@ let bi = {
 
         return {
             html: html
-            , data: data
             , charts: charts
         };
     }

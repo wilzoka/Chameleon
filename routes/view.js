@@ -302,6 +302,7 @@ const renderRadio = function (viewfield, register) {
     }
 
     if (json.renderAsSelect) {
+        let option = '';
         if (value) {
             option = '<option value="' + value + '" selected>' + value + '</option>';
         }
@@ -309,7 +310,7 @@ const renderRadio = function (viewfield, register) {
             width: viewfield.width
             , label: label
             , name: viewfield.modelattribute.name
-            , option: option
+            , option: option 
             , disabled: disabled
             , options: json.options
         });
