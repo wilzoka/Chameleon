@@ -45,7 +45,6 @@ let main = {
 
                         if (obj.register.id == 0) {
                             obj.register.idusuario = obj.req.user.id;
-                            obj.register.datahora = moment();
                         } else {
                             if (obj.register.digitado) {
                                 return application.error(obj.res, { msg: 'Não é possível alterar uma venda concluída' });
@@ -121,6 +120,7 @@ let main = {
                                                             vendaformaspgto[i].vencimento ? moment(vendaformaspgto[i].vencimento, application.formatters.be.date_format).diff(moment(), 'd') + 1 : 7;
                                                         valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0;
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0;
+                                                        console.log(formaspgto[j].parcelas);
                                                         let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas;
                                                         let datavenc = moment().add(prazo, 'day');
                                                         if (totalparcelas > 0) {
@@ -204,6 +204,8 @@ let main = {
                                 return application.error(obj.res, {});
                                 break;
                         }
+                        obj.register.datahora = moment();
+                        obj.register.identregador = obj.req.user.id;
 
                         let saved = await next(obj);
 
@@ -222,18 +224,24 @@ let main = {
                 , js_historicoCompras: async function (obj) {
                     try {
                         let historico = await db.sequelize.query(
-                            `SELECT "com_venda"."id"
+                            `SELECT DISTINCT "com_venda"."id"
                                 , "com_venda"."datahora"
-                                , "item"."descricao" AS "item"
-                                , "fin_pgto"."descricao" AS "pagamento"
-                                , (select coalesce(trunc(sum(vi.qtd * vi.valorunitario),2),0.00) from com_vendaitem vi where vi.idvenda = com_venda.id) - coalesce(com_venda.desconto, 0) + coalesce(com_venda.acrescimo, 0)  AS "totalvenda"
-                                , (select coalesce(trunc(sum(valor),2),0.00) from fin_mov where idvenda = com_venda.id and quitado = false and (compensado = false or compensado is null)) AS "totalpendente"
-                            FROM "com_venda" AS "com_venda" 
-                            LEFT JOIN "cad_pessoa"        AS "cad_pessoa"     ON "com_venda"."idcliente" = "cad_pessoa"."id" 
-                            LEFT JOIN "com_vendaitem"	AS "v_item"			  ON "com_venda"."id" = "v_item"."idvenda"
-                            LEFT JOIN "cad_item"	AS "item"				  ON "v_item"."iditem" = "item"."id"
-                            LEFT JOIN "com_vendapagamento" AS "ven_pgto"	  ON "com_venda"."id" = "ven_pgto"."idvenda"
-                            LEFT JOIN "fin_formapgto" AS "fin_pgto" 	      ON "ven_pgto"."idformapgto" = "fin_pgto"."id"
+                                , (SELECT STRING_AGG(item.descricao, ' | ' ) 
+                                    FROM com_vendaitem vi 
+                                    LEFT JOIN "cad_item" AS "item" ON "vi"."iditem" = "item"."id" 
+                                    WHERE vi.idvenda = com_venda.id) AS "item"																												
+                                , (SELECT STRING_AGG(fin_pgto.descricao, ' | ') 
+                                    FROM "com_vendapagamento" AS "ven_pgto" 
+                                    LEFT JOIN "fin_formapgto" AS "fin_pgto" ON "ven_pgto"."idformapgto" = "fin_pgto"."id" 
+                                    WHERE ven_pgto.idvenda = com_venda.id) AS "pagamento"
+                                , (SELECT COALESCE(TRUNC(SUM(vi.qtd * vi.valorunitario),2),0.00) 
+                                    FROM com_vendaitem vi 
+                                    WHERE vi.idvenda = com_venda.id) - COALESCE(com_venda.desconto, 0) + COALESCE(com_venda.acrescimo, 0)  AS "totalvenda"
+                                , (SELECT COALESCE(TRUNC(SUM(valor),2),0.00) 
+                                    FROM fin_mov 
+                                    WHERE idvenda = com_venda.id and quitado = false and (compensado = false or compensado is null)) AS "totalpendente"
+                            FROM "com_venda" 				AS "com_venda" 
+                            LEFT JOIN "com_vendaitem"		AS "v_item"			ON "com_venda"."id" = "v_item"."idvenda"
                             WHERE com_venda.idcliente = :cliente
                             ORDER BY com_venda.datahora DESC
                             LIMIT 5`
@@ -262,8 +270,8 @@ let main = {
                             <tr>
                                 <td style="text-align:center;">  ${historico[i].id}   </td>    
                                 <td style="text-align:center;"> ${application.formatters.fe.date(historico[i].datahora)}   </td>
-                                <td style="text-align:center;">  ${historico[i].item}   </td>
-                                <td style="text-align:center;">  ${historico[i].pagamento}   </td>
+                                <td style="text-align:left;">  ${historico[i].item}   </td>
+                                <td style="text-align:left;">  ${historico[i].pagamento}   </td>
                                 <td style="text-align:center;">  ${historico[i].totalvenda}   </td>
                                 <td style="text-align:center;">  ${historico[i].totalpendente}   </td>
                             </tr>
@@ -434,7 +442,7 @@ let main = {
                                 <h4 align="center"> Pré-Vendas </h4>
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
                                     <tr>
-                                        <td style="text-align:center;"><strong>Entrega Programada</strong></td>
+                                        <td style="text-align:center;"><strong>Entregar em</strong></td>
                                         <td style="text-align:center;"><strong>Cliente</strong></td>
                                         <td style="text-align:center;"><strong>Itens</strong></td>
                                         <td style="text-align:center;"><strong>Ação</strong></td>
@@ -528,16 +536,7 @@ let main = {
                     if (obj.register.id == 0) {
                         let saved = await next(obj);
                         let evento = await db.getModel("eve_evento").findOne({ where: { id: saved.register.id } });
-                        let tarefatipoevento = await db.getModel('eve_tarefatipoevento').findAll({ where: { idevetipo: obj.register.idevetipo } });
-                        for (let i = 0; i < tarefatipoevento.length; i++) {
-                            let tarefa = await db.getModel("eve_tarefa").findOne({ where: { id: tarefatipoevento[i].idtarefa } });
-                            let tarefatipoevento2 = await db.getModel("eve_tarefatipoevento").findOne({ where: { idtarefa: tarefa.id, idevetipo: evento.idevetipo } });
-                            let eventotarefas = await db.getModel('eve_eventotarefa').create({
-                                idtarefa: tarefatipoevento[i].idtarefa
-                                , idevento: saved.register.id
-                                , prazo: tarefatipoevento2.previsaoinicio ? moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento2.previsaoinicio, 'day') : null
-                            })
-                        }
+                        main.platform.erp.evento.f_calcularPrazosTarefas(evento);
                     } else if (obj.register.id > 0) {
                         let saved = await next(obj);
                     } else {
@@ -547,9 +546,25 @@ let main = {
                     return application.fatal(obj.res, error);
                 }
             }
+            , f_recalculaPrazos: function () {
+
+            }
+            , f_calcularPrazosTarefas: async function (evento) {
+                console.log("ID: " + obj.id);
+                console.log("Data:" + data);
+                let tarefatipoevento = await db.getModel('eve_tarefatipoevento').findAll({ where: { idevetipo: evento.idevetipo } });
+                for (let i = 0; i < tarefatipoevento.length; i++) {
+                    let tarefa = await db.getModel("eve_tarefa").findOne({ where: { id: tarefatipoevento[i].idtarefa } });
+                    let tarefatipoevento2 = await db.getModel("eve_tarefatipoevento").findOne({ where: { idtarefa: tarefa.id, idevetipo: evento.idevetipo } });
+                    let eventotarefas = await db.getModel('eve_eventotarefa').create({
+                        idtarefa: tarefatipoevento[i].idtarefa
+                        , idevento: saved.register.id
+                        , prazo: tarefatipoevento2.previsaoinicio ? moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento2.previsaoinicio, 'day') : null
+                    })
+                }
+            }
             , e_buscarfornecedores: async function (obj) {
                 try {
-                    console.log(obj.id)
                     let eventotarefa = await db.getModel('eve_eventotarefa').findOne({ where: { id: obj.id } });
                     let fornecedores = await db.getModel('eve_fornecedorservico').findAll({ where: { idcategoria: eventotarefa.idcategoria } });
                     if (fornecedores.length > 0) {
@@ -711,8 +726,11 @@ let main = {
             , formapgto: {
                 onsave: async function (obj, next) {
                     try {
-                        if (obj.register.formarecebimento = 'Vale' && obj.register.iditem == null) {
+                        if (obj.register.formarecebimento == 'Vale') {
                             return application.error(obj.res, { msg: 'É obrigatório informar o item de troca.' });
+                        }
+                        if (obj.register.formarecebimento == 'a Prazo' && obj.register.parcelas == null) {
+                            return application.error(obj.res, { msg: 'É obrigatório informar no mínimo 1 parcela para contas a prazo' });
                         }
                         next(obj);
                     } catch (err) {
