@@ -5443,7 +5443,7 @@ let main = {
                 , ondelete: async function (obj, next) {
                     try {
                         let config = await db.getModel('pcp_config').findOne();
-                        let approducao = await db.getModel('pcp_apperda').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                        let approducao = await db.getModel('pcp_approducao').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
                         for (let i = 0; i < approducao.length; i++) {
                             if (approducao[i].pcp_oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível apagar apontamentos de OP encerrada' });
