@@ -166,10 +166,12 @@ var application = {
                 $('.pace').removeClass('pace-inactive').addClass('pace-active');
             });
             $(document).ajaxComplete(function (e, xhr) {
-                if (xhr.status == 401 && window.location.pathname != '/login') {
-                    window.location.href = '/login';
+                if (xhr.statusText != 'abort') {
+                    if (xhr.status == 401 && window.location.pathname != '/login') {
+                        window.location.href = '/login';
+                    }
+                    $('.pace').removeClass('pace-active').addClass('pace-inactive');
                 }
-                $('.pace').removeClass('pace-active').addClass('pace-inactive');
             });
             $('.nav-tabs a').click(function (e) {
                 application.functions.setPageCookie({
@@ -752,11 +754,21 @@ var application = {
                             , view: $(settings.nTable).attr('data-view')
                             , issubview: $(settings.nTable).attr('data-subview') || false
                         })
+                        , beforeSend: function (jqXHR) {
+                            if (tables[settings.sTableId]) {
+                                if (tables[settings.sTableId]._xhr) {
+                                    tables[settings.sTableId]._xhr.abort();
+                                }
+                                tables[settings.sTableId]._xhr = jqXHR;
+                            }
+                        }
                         , success: function (response) {
                             callback(response);
                         }
                         , error: function (response) {
-                            application.handlers.responseError(response);
+                            if (response.statusText != 'abort') {
+                                application.handlers.responseError(response);
+                            }
                         }
                     });
                 }

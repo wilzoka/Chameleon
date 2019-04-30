@@ -3736,6 +3736,14 @@ let main = {
                                 , multiple: 'multiple="multiple"'
                             });
 
+                            body += application.components.html.radio({
+                                width: '12'
+                                , label: 'Ordem'
+                                , name: 'ordem'
+                                , value: 'Grupo/Subgrupo'
+                                , options: ['Grupo/Subgrupo', 'Código']
+                            });
+
                             return application.success(obj.res, {
                                 modal: {
                                     form: true
@@ -3773,7 +3781,7 @@ let main = {
                                     and vol.iddeposito = :iddeposito
                                     ${grupo}
                                 group by 1,2,3
-                                order by 1,2,3) as x
+                                order by ${obj.req.body.ordem == 'Código' ? '3,1,2' : '1,2,3'}) as x
 
                                 union all
 
