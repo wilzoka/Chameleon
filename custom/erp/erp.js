@@ -120,7 +120,6 @@ let main = {
                                                             vendaformaspgto[i].vencimento ? moment(vendaformaspgto[i].vencimento, application.formatters.be.date_format).diff(moment(), 'd') + 1 : 7;
                                                         valortaxas += formaspgto[j].taxa != null ? parseFloat((parseFloat(vendaformaspgto[i].valor) * formaspgto[j].taxa) / 100) : 0;
                                                         totalparcelas += formaspgto[j].parcelas != null ? formaspgto[j].parcelas : 0;
-                                                        console.log(formaspgto[j].parcelas);
                                                         let valorparcela = totalparcelas == 0 ? vendaformaspgto[i].valor : (vendaformaspgto[i].valor - valortaxas) / totalparcelas;
                                                         let datavenc = moment().add(prazo, 'day');
                                                         if (totalparcelas > 0) {
@@ -156,12 +155,10 @@ let main = {
                                                     } else if (formaspgto[j].formarecebimento == 'Vale') {
                                                         let retorno = await main.erp.comercial.venda.f_atualizarValeColetado(formaspgto[j], obj.register);
                                                         if (!retorno) {
-                                                            return application.error(obj.res, { msg: `Vale não cadastrado. Solicitar cadastro` })
+                                                            return application.error(obj.res, { msg: `Vale não cadastrado. Solicitar cadastro` });
                                                         }
-                                                    } else {
-                                                        main.erp.suprimentos.estoque.f_atualizarSaldoItemTroca(formaspgto[j]);
                                                     }
-                                                    valorestante -= vendaformaspgto[i].valor
+                                                    valorestante -= vendaformaspgto[i].valor;
                                                 }
                                             }
                                         }
@@ -190,10 +187,33 @@ let main = {
                                         })
                                     }
 
-                                    /* if (atualizarEstoques) {
-                                        let vendaitens = await db.getModel('com_vendaitem').findAll({ where: { idvenda: obj.register.id } });
-                                        f_atualizarEstoque(vendaitens);
-                                    } */
+                                    let vendaitem = await db.getModel('com_vendaitem').findAll({ where: { idvenda: obj.register.id } });
+                                    let vendaretorno = await db.getModel('com_vendaretorno').findAll({ where: { idvenda: obj.register.id } });
+
+                                    for (let i = 0; i < vendaitem.length; i++) {
+                                        db.getModel('est_mov').create({
+                                            datahora: obj.register.datahora
+                                            , iditem: vendaitem[i].iditem
+                                            , quantidade: vendaitem[i].qtd
+                                            , iduser: obj.register.identregador
+                                            , tipo: 'Saída'
+                                            , detalhes: `Venda ID ${obj.register.id}`
+                                            , identificacao: `VENDA${obj.register.id}`
+                                        });
+                                    }
+
+                                    for (let i = 0; i < vendaretorno.length; i++) {
+                                        db.getModel('est_mov').create({
+                                            datahora: obj.register.datahora
+                                            , iditem: vendaretorno[i].item
+                                            , quantidade: vendaretorno[i].quantidade
+                                            , iduser: obj.register.identregador
+                                            , tipo: 'Entrada'
+                                            , detalhes: `Venda ID ${obj.register.id}`
+                                            , identificacao: `VENDA${obj.register.id}`
+                                        });
+                                    }
+
                                     obj._responseModifier = function (ret) {
                                         ret['redirect'] = '/r/painel_do_vendedor';
                                         return ret;
@@ -485,6 +505,24 @@ let main = {
                         </div>`;
 
                         return application.success(obj.res, { body });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_cancelarVenda: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        let venda = await db.getModel('com_venda').findOne({ where: { id: obj.ids[0] } });
+                        if (!venda) {
+                            return application.error(obj.res, { msg: 'Venda não encontrada' });
+                        }
+                        await db.getModel('fin_mov').destroy({ iduser: obj.req.user.id, where: { idvenda: venda.id } });
+                        await db.getModel('est_mov').destroy({ iduser: obj.req.user.id, where: { identificacao: 'VENDA' + venda.id } });
+                        venda.digitado = false;
+                        await venda.save();
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
