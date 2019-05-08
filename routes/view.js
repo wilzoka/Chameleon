@@ -310,8 +310,9 @@ const renderRadio = function (viewfield, register) {
             width: viewfield.width
             , label: label
             , name: viewfield.modelattribute.name
-            , option: option 
+            , option: option
             , disabled: disabled
+            , multiple: json.multiple ? 'multiple="multiple"' : ''
             , options: json.options
         });
     } else {

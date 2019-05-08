@@ -8,10 +8,10 @@ puppeteer.launch({ headless: false, slowMo: 10 }).then(async browser => {
     const page = await browser.newPage()
     // await page.goto('https://dfe-portal.sefazvirtual.rs.gov.br/Dfe/ConsultaPublicaDfe')
     // await page.type('#ChaveAcessoDfe', '43190491156471002516652020000411671000411672');
-    await page.goto('https://backoffice.airbitclub.com/en/login')
+    // await page.goto('https://backoffice.airbitclub.com/en/login')
     
-    await page.type('#user', 'wbach01');
-    await page.type('#password', 'Eusouocara69');
+    // await page.type('#user', 'wbach01');
+    // await page.type('#password', 'a');
 
     // That's it! 🎉
     // await page.solveRecaptchas()

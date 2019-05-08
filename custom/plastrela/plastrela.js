@@ -9007,7 +9007,8 @@ let main = {
                             from
                                 pcp_approducao app
                             left join pcp_oprecurso opr on (app.idoprecurso = opr.id)
-                            where opr.idrecurso = :v4)
+                            inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
+                            where apt.datafim >= :v1 and apt.datafim <= :v2 and opr.idrecurso = :v4)
                             select
                                 *
                                 , case when ultimaprod > 0 then (select sum(extract(epoch from apt.datafim - apt.dataini) / 60) from pcp_approducaotempo apt where apt.idapproducao = x.id) else null end as duracaototal
