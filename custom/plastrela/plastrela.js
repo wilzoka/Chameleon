@@ -6763,10 +6763,20 @@ let main = {
                         let deleted = await next(obj);
                         if (deleted.success) {
                             let gconfig = await db.getModel('config').findOne();
-                            db.getModel('pcp_apintegracao').create({
-                                integrado: false
-                                , texto: '40|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||||||||.4.' + apinsumos[0].id
-                            });
+                            let misturas = await db.getModel('est_volumemistura').findAll({ where: { idvolume: apinsumos[0].idvolume } });
+                            if (misturas.length > 0) {
+                                for (let i = 0; i < misturas.length; i++) {
+                                    await db.getModel('pcp_apintegracao').create({
+                                        integrado: false
+                                        , texto: '40|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||||||||.4.' + apinsumos[0].id + '-' + misturas[i].id
+                                    });
+                                }
+                            } else {
+                                await db.getModel('pcp_apintegracao').create({
+                                    integrado: false
+                                    , texto: '40|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||||||||.4.' + apinsumos[0].id
+                                });
+                            }
 
                             for (let i = 0; i < volumes.length; i++) {
                                 await volumes[i].save();
