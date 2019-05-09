@@ -227,31 +227,24 @@ let bi = {
         }
 
         // Format Values
-        let measureopts = {};
-        for (let i = 0; i < options.cubemeasures.length; i++) {
-            if (!measureopts[options.cubemeasures[i].sqlfield]) {
-                measureopts[options.cubemeasures[i].sqlfield] = {};
-            }
-            measureopts[options.cubemeasures[i].sqlfield] = { precision: options.cubemeasures[i].precision };
-        }
         for (let i = 0; i < data.length; i++) {
             for (let m = 0; m < measures.length; m++) {
-                data[i].measures[m] = data[i].measures[m] == null ? '' : application.formatters.fe.decimal(data[i].measures[m], measureopts[measures[m]].precision);
+                data[i].measures[m] = data[i].measures[m] == null ? '' : application.formatters.fe.decimal(data[i].measures[m], 2);
             }
         }
         for (let c = 0; c < structure.c.length; c++) {
             for (let m = 0; m < measures.length; m++) {
-                structure.c[c].total[m] = structure.c[c].total[m] == null ? '' : application.formatters.fe.decimal(structure.c[c].total[m], measureopts[measures[m]].precision);
+                structure.c[c].total[m] = structure.c[c].total[m] == null ? '' : application.formatters.fe.decimal(structure.c[c].total[m], 2);
             }
         }
         for (let r = 0; r < structure.r.length; r++) {
             for (let m = 0; m < measures.length; m++) {
-                structure.r[r].total[m] = structure.r[r].total[m] == null ? '' : application.formatters.fe.decimal(structure.r[r].total[m], measureopts[measures[m]].precision);
+                structure.r[r].total[m] = structure.r[r].total[m] == null ? '' : application.formatters.fe.decimal(structure.r[r].total[m], 2);
             }
         }
         if (structure.grandtotal) {
             for (let m = 0; m < measures.length; m++) {
-                structure.grandtotal[m] = structure.grandtotal[m] == null ? '' : application.formatters.fe.decimal(structure.grandtotal[m], measureopts[measures[m]].precision);
+                structure.grandtotal[m] = structure.grandtotal[m] == null ? '' : application.formatters.fe.decimal(structure.grandtotal[m], 2);
             }
         }
 
@@ -437,8 +430,7 @@ let bi = {
                 where
                     (${where.join(' or ')})
                     ${filter.length > 0 ? ' and ' + filter.join(' and ') : ''}
-                ${groupby.length > 0 ? 'group by ' + groupby.join(',') : ''}
-                `
+                ${groupby.length > 0 ? 'group by ' + groupby.join(',') : ''}`
                     , { type: db.sequelize.QueryTypes.SELECT });
 
                 let options = {
