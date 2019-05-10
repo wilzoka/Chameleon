@@ -9193,13 +9193,13 @@ let main = {
                                     , id: sql[i].id
                                     , op: sql[i].op
                                     , horario: moment(sql[i].dataini, application.formatters.be.datetime_format).format('DD/MM HH:mm') + ' - ' + moment(sql[i].datafim, application.formatters.be.datetime_format).format('DD/MM HH:mm')
-                                    , duracao: sql[i].ultimaprod == 1 ? application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm')) + ' / ' + application.formatters.fe.time(sql[i].duracaototal) : application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm'))
+                                    , duracao: sql[i].ultimaprod >= 1 ? application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm')) + ' / ' + application.formatters.fe.time(sql[i].duracaototal) : application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm'))
                                     , qtd: sql[i].peso ? application.formatters.fe.decimal(sql[i].peso, 4) + ' / ' + application.formatters.fe.decimal(sql[i].qtd, 4) : ''
                                     , adicionais: sql[i].adicionais
                                     , erro: ''
                                 });
 
-                                if (sql[i].ultimaprod == 1) {
+                                if (sql[i].ultimaprod >= 1) {
                                     data.producao.nro++;
                                     if (parseFloat(sql[i].peso)) {
                                         data.producao.pesoliquido += parseFloat(sql[i].peso);
