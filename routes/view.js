@@ -304,8 +304,18 @@ const renderRadio = function (viewfield, register) {
     if (json.renderAsSelect) {
         let option = '';
         if (value) {
-            option = '<option value="' + value + '" selected>' + value + '</option>';
+            if (json.multiple) {
+                value = value.split(',');
+                for (let i = 0; i < value.length; i++) {
+                    option += '<option value="' + value[i] + '" selected>' + value[i] + '</option>';
+                }
+            } else {
+                option = '<option value="' + value + '" selected>' + value + '</option>';
+            }
+        } else {
+            option = '<option></option>';
         }
+
         return application.components.html.autocomplete({
             width: viewfield.width
             , label: label
@@ -458,7 +468,11 @@ const modelate = function (obj) {
                 break;
             case 'radio':
                 if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    if (Array.isArray(obj.req.body[obj.viewfields[i].modelattribute.name])) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name].sort().join(',');
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    }
                 } else {
                     obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
@@ -970,7 +984,7 @@ module.exports = function (app) {
                             });
                             break;
                         case 'radio':
-                            filtername += separator + 'i' + virtual;
+                            filtername += separator + (j.multiple ? 's' : 'i') + virtual;
                             filter += application.components.html.autocomplete({
                                 width: 12
                                 , label: viewfields[i].modelattribute.label
