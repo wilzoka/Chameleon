@@ -87,7 +87,7 @@ let main = {
                                     }
                                     let vendaformaspgto = await db.getModel('com_vendapagamento').findAll({ where: { idvenda: obj.register.id } });
                                     let formaspgto = await db.getModel('fin_formapgto').findAll({ where: { disp_venda: true } });
-                                    let conta = await db.getModel('users').findOne({ where: { id: obj.register.identregador } })
+                                    let conta = await db.getModel('fin_usersconta').findOne({ where: { iduser: obj.register.identregador } })
                                     let valorestante = totalvenda
                                     if (vendaformaspgto.length > 0) {
                                         for (let i = 0; i < vendaformaspgto.length; i++) {
