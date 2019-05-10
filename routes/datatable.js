@@ -92,6 +92,16 @@ const getFilter = function (cookie, modelattributes, req) {
                 case 'integer':
                     cookie[i][k] = cookie[i][k].substring(0, 8);
                     break;
+                case 'radio':
+                    for (let z = 0; z < modelattributes.length; z++) {
+                        if (field[0] == modelattributes[z].name) {
+                            let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                            if (j.multiple) {
+                                cookie[i][k] = '%' + cookie[i][k].val.sort().join('%') + '%';
+                            }
+                        }
+                    }
+                    break;
             }
             let o = {};
             switch (field[2]) {
@@ -290,7 +300,7 @@ module.exports = function (app) {
     app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
-            
+
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 

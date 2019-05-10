@@ -6763,10 +6763,20 @@ let main = {
                         let deleted = await next(obj);
                         if (deleted.success) {
                             let gconfig = await db.getModel('config').findOne();
-                            db.getModel('pcp_apintegracao').create({
-                                integrado: false
-                                , texto: '40|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||||||||.4.' + apinsumos[0].id
-                            });
+                            let misturas = await db.getModel('est_volumemistura').findAll({ where: { idvolume: apinsumos[0].idvolume } });
+                            if (misturas.length > 0) {
+                                for (let i = 0; i < misturas.length; i++) {
+                                    await db.getModel('pcp_apintegracao').create({
+                                        integrado: false
+                                        , texto: '40|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||||||||.4.' + apinsumos[0].id + '-' + misturas[i].id
+                                    });
+                                }
+                            } else {
+                                await db.getModel('pcp_apintegracao').create({
+                                    integrado: false
+                                    , texto: '40|' + (gconfig.cnpj == '90816133000557' ? 1 : 2) + '|||||||||||||||.4.' + apinsumos[0].id
+                                });
+                            }
 
                             for (let i = 0; i < volumes.length; i++) {
                                 await volumes[i].save();
@@ -9007,7 +9017,8 @@ let main = {
                             from
                                 pcp_approducao app
                             left join pcp_oprecurso opr on (app.idoprecurso = opr.id)
-                            where opr.idrecurso = :v4)
+                            inner join pcp_approducaotempo apt on (apt.idapproducao = app.id)
+                            where apt.datafim >= :v1 and apt.datafim <= :v2 and opr.idrecurso = :v4)
                             select
                                 *
                                 , case when ultimaprod > 0 then (select sum(extract(epoch from apt.datafim - apt.dataini) / 60) from pcp_approducaotempo apt where apt.idapproducao = x.id) else null end as duracaototal
@@ -9182,13 +9193,13 @@ let main = {
                                     , id: sql[i].id
                                     , op: sql[i].op
                                     , horario: moment(sql[i].dataini, application.formatters.be.datetime_format).format('DD/MM HH:mm') + ' - ' + moment(sql[i].datafim, application.formatters.be.datetime_format).format('DD/MM HH:mm')
-                                    , duracao: sql[i].ultimaprod == 1 ? application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm')) + ' / ' + application.formatters.fe.time(sql[i].duracaototal) : application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm'))
+                                    , duracao: sql[i].ultimaprod >= 1 ? application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm')) + ' / ' + application.formatters.fe.time(sql[i].duracaototal) : application.formatters.fe.time(moment(sql[i].datafim, application.formatters.be.datetime_format).diff(moment(sql[i].dataini, application.formatters.be.datetime_format), 'm'))
                                     , qtd: sql[i].peso ? application.formatters.fe.decimal(sql[i].peso, 4) + ' / ' + application.formatters.fe.decimal(sql[i].qtd, 4) : ''
                                     , adicionais: sql[i].adicionais
                                     , erro: ''
                                 });
 
-                                if (sql[i].ultimaprod == 1) {
+                                if (sql[i].ultimaprod >= 1) {
                                     data.producao.nro++;
                                     if (parseFloat(sql[i].peso)) {
                                         data.producao.pesoliquido += parseFloat(sql[i].peso);

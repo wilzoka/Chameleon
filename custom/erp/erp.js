@@ -224,8 +224,10 @@ let main = {
                                 return application.error(obj.res, {});
                                 break;
                         }
-                        obj.register.datahora = moment();
-                        obj.register.identregador = obj.req.user.id;
+                        if (!obj.register.editado) {
+                            obj.register.datahora = moment();
+                            obj.register.identregador = obj.req.user.id;
+                        }
 
                         let saved = await next(obj);
 
@@ -246,11 +248,11 @@ let main = {
                         let historico = await db.sequelize.query(
                             `SELECT DISTINCT "com_venda"."id"
                                 , "com_venda"."datahora"
-                                , (SELECT STRING_AGG(item.descricao, ' | ' ) 
+                                , (SELECT COALESCE(STRING_AGG(item.descricao, ' + ' ),'')
                                     FROM com_vendaitem vi 
                                     LEFT JOIN "cad_item" AS "item" ON "vi"."iditem" = "item"."id" 
                                     WHERE vi.idvenda = com_venda.id) AS "item"																												
-                                , (SELECT STRING_AGG(fin_pgto.descricao, ' | ') 
+                                , (SELECT COALESCE(STRING_AGG(fin_pgto.descricao, ' + '),'')
                                     FROM "com_vendapagamento" AS "ven_pgto" 
                                     LEFT JOIN "fin_formapgto" AS "fin_pgto" ON "ven_pgto"."idformapgto" = "fin_pgto"."id" 
                                     WHERE ven_pgto.idvenda = com_venda.id) AS "pagamento"
@@ -278,11 +280,11 @@ let main = {
                                 <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse; width:100%">
                                     <tr>
                                         <td style="text-align:center;"><strong>ID</strong></td>
-                                        <td style="text-align:center;"><strong>Data/Hora</strong></td>
+                                        <td style="text-align:center;"><strong>Data</strong></td>
                                         <td style="text-align:center;"><strong>Item</strong></td>
-                                        <td style="text-align:center;"><strong>Forma</strong></td>
-                                        <td style="text-align:center;"><strong>Total Venda</strong></td>
-                                        <td style="text-align:center;"><strong>Pendente</strong></td>
+                                        <td style="text-align:center;"><strong>Pgto</strong></td>
+                                        <td style="text-align:center;"><strong>Total</strong></td>
+                                        <td style="text-align:center;"><strong>Aberto</strong></td>
                                     </tr>
                                     `;
                         for (let i = 0; i < historico.length; i++) {
@@ -521,6 +523,7 @@ let main = {
                         await db.getModel('fin_mov').destroy({ iduser: obj.req.user.id, where: { idvenda: venda.id } });
                         await db.getModel('est_mov').destroy({ iduser: obj.req.user.id, where: { identificacao: 'VENDA' + venda.id } });
                         venda.digitado = false;
+                        venda.editado = true;
                         await venda.save();
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
