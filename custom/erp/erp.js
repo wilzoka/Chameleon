@@ -131,7 +131,7 @@ let main = {
                                                                     , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
                                                                     , quitado: false
                                                                     , compensando: false
-                                                                    , preformapgto: vendaformaspgto[i].idformapgto
+                                                                    , idformapgto: vendaformaspgto[i].idformapgto
                                                                     , idpessoa: obj.register.idcliente
                                                                     , idvenda: obj.register.id
                                                                     , detalhe: `Venda ID ${obj.register.id}`
@@ -146,7 +146,7 @@ let main = {
                                                                 , parcela: totalparcelas == 0 ? null : (l + 1) + '/' + totalparcelas
                                                                 , quitado: false
                                                                 , compensando: false
-                                                                , preformapgto: vendaformaspgto[i].idformapgto
+                                                                , idformapgto: vendaformaspgto[i].idformapgto
                                                                 , idpessoa: obj.register.idcliente
                                                                 , idvenda: obj.register.id
                                                                 , detalhe: `Venda ID ${obj.register.id}`
@@ -715,7 +715,7 @@ let main = {
                         left join fin_categoria cat on(m.idcategoria = cat.id)
                         where
                         mp.idconta = c.id
-                        and mp.datahora > (select sa.datahora from saldoanterior sa where sa.id = mp.idconta)`
+                        and mp.datahora > (select sa.datahora from saldoanterior sa where sa.id = mp.idconta))`
                         , { type: db.sequelize.QueryTypes.UPDATE });
                 }
                 , js_saldoData: async function (obj) {
@@ -730,15 +730,15 @@ let main = {
                             left join fin_movparc mp on(m.id = mp.idmov)
                             left join fin_categoria c on(m.idcategoria = c.id)
                             where
-                            mp.idconta = : conta
-                            and mp.data > : dataini
-                            and mp.data <= : datafim `
+                            mp.idconta = :conta
+                            and mp.datahora > :dataini
+                            and mp.datahora <= :datafim`
                             , {
                                 type: db.sequelize.QueryTypes.SELECT
                                 , replacements: {
                                     conta: obj.data.idconta
-                                    , dataini: saldoanterior ? saldoanterior.data : '1900-01-01'
-                                    , datafim: application.formatters.be.date(obj.data.data)
+                                    , dataini: saldoanterior ? saldoanterior.datahora : '1900-01-01 00:00:00'
+                                    , datafim: application.formatters.be.date(obj.data.datahora)
                                 }
                             });
                         if (sql.length > 0 && sql[0].soma) {
@@ -787,25 +787,6 @@ let main = {
                             if (obj.ids.length <= 0) {
                                 return application.error(obj.res, { msg: application.message.selectOneEvent });
                             }
-                            let count = 0
-                            let formapgto = null
-                            let aux = null
-                            if (obj.ids.length > 1) {
-                                for (let i = 0; i < obj.ids.length; i++) {
-                                    aux = await db.getModel('fin_mov').findOne({ where: { id: obj.ids[i] } });
-                                    if (aux.preformapgto != null) {
-                                        count++;
-                                    }
-                                }
-                                if (count > 1) {
-                                    return application.error(obj.res, { msg: 'Existem títulos com forma de pagamento pré definidas. Esses devem ser baixados individualmente.' });
-                                }
-                            } else {
-                                aux = await db.getModel('fin_mov').findOne({ where: { id: obj.ids[0] } });
-                                if (aux.preformapgto) {
-                                    formapgto = await db.getModel('fin_formapgto').findOne({ where: { id: aux.preformapgto } });
-                                }
-                            }
                             let body = '';
                             body += '<div class="row no-margin">';
                             body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
@@ -822,14 +803,6 @@ let main = {
                                 , model: 'fin_conta'
                                 , attribute: 'descricao'
                             });
-                            /* body += application.components.html.autocomplete({
-                                width: '4'
-                                , label: 'Forma de Pagamento*'
-                                , name: 'idformapgto'
-                                , model: 'fin_formapgto'
-                                , attribute: 'descricao'
-                                , option: formapgto ? '<option value="' + formapgto + '" selected>' + formapgto.descricao + '</option>' : ''
-                            }); */
                             body += '</div><hr>';
 
                             let valortotalselecionado = 0;
@@ -864,11 +837,20 @@ let main = {
                                 });
 
                                 body += application.components.html.text({
-                                    width: '4'
+                                    width: '3'
                                     , label: 'Pessoa'
                                     , name: 'cliente' + obj.ids[i]
                                     , value: mov.cad_pessoa ? mov.cad_pessoa.nome : ''
                                     , disabled: 'disabled="disabled"'
+                                });
+
+                                body += application.components.html.autocomplete({
+                                    width: '3'
+                                    , label: 'Forma de Pagamento*'
+                                    , name: 'idformapgto'
+                                    , model: 'fin_formapgto'
+                                    , attribute: 'descricao'
+                                    , option: mov.fin_formapgto ? '<option value="' + mov.fin_formapgto.id + '" selected>' + mov.fin_formapgto.descricao + '</option>' : ''
                                 });
 
                                 body += application.components.html.decimal({
@@ -880,14 +862,14 @@ let main = {
                                 });
 
                                 body += application.components.html.decimal({
-                                    width: '2'
+                                    width: '1'
                                     , label: 'Juro'
                                     , name: 'juro' + obj.ids[i]
                                     , precision: 2
                                 });
 
                                 body += application.components.html.decimal({
-                                    width: '2'
+                                    width: '1'
                                     , label: 'Desconto'
                                     , name: 'desconto' + obj.ids[i]
                                     , precision: 2
