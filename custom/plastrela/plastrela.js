@@ -7431,7 +7431,7 @@ let main = {
                                     <tr>
                                         <td style="text-align:center;"><strong>Atributo</strong></td>
                                         <td style="text-align:center;"><strong>Setor</strong></td>
-                                        <td style="text-align:center;"><strong>Nível Mínimo</strong></td>
+                                        <td style="text-align:center;"><strong>Exigência</strong></td>
                                         <td style="text-align:center;"><strong>Quantidade de pessoas à conferir</strong></td>
                                     </tr>
                             `;
@@ -7440,7 +7440,7 @@ let main = {
                                 <tr>
                                     <td style="text-align:left;"> ${sql[i].atributo}   </td>
                                     <td style="text-align:left;">  ${sql[i].grupo}   </td>
-                                    <td style="text-align:center;">  ${sql[i].nivelminimo}   </td>
+                                    <td style="text-align:center;">  ${sql[i].nivelminimo == '1' ? 'Operador/CQ' : 'Encarregado ou Superior'}   </td>
                                     <td style="text-align:center;">   ${parseInt(sql[i].qtdpessoas) - parseInt(sql[i].qtd)}   </td>
                                 </tr>
                             `;
