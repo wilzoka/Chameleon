@@ -7412,7 +7412,8 @@ let main = {
                                 left join cad_cargo c on (u.c_idcargo = c.id)
                                 where oprc.idoprecurso = ${oprecurso.id}
                                 and u.idgroupusers = acg.idgroupusers
-                                and c.nivel >= acg.nivelminimo) as qtd
+                                and c.nivel >= acg.nivelminimo
+                                and oprc.idatributoconferencia = ac.id) as qtd
                             from
                                 pcp_atributoconferencia ac
                             inner join pcp_atributoconferenciagrupo acg on (ac.id = acg.idatributoconferencia)
