@@ -204,7 +204,7 @@
 
         application.functions.getJs([
             '/public/assets/sortablejs/Sortable.min.js'
-            , 'https://code.highcharts.com/highcharts.src.js'
+            , '/public/assets/highcharts/highcharts.js'
             , '/public/assets/datatables/dataTables.buttons.min.js'
         ]);
 
@@ -260,10 +260,19 @@
                     return 'line';
                 case 'Pizza':
                     return 'pie';
+                default:
+                    return 'line';
             }
         }
 
         function renderCharts() {
+            Highcharts.setOptions({
+                lang: {
+                    decimalPoint: ','
+                    , thousandsSep: ','
+                }
+            });
+
             if ($('#tab_chart').hasClass('active')) {
                 $('#charts').children().remove();
                 for (var i = 0; i < chart.charts.length; i++) {
@@ -294,6 +303,11 @@
             $('input[name="rows"]').val('');
             $('input[name="columns"]').val('');
             $('input[name="measures"]').val('');
+            $('#dimrow').children().remove();
+            $('#dimcol').children().remove();
+            $('#dim').children().remove();
+            $('#measure').children().remove();
+            $filter.val('');
         }
 
         function renderUI(idcube) {
@@ -349,6 +363,7 @@
         });
 
         $idcube.on('select2:select', function (e) {
+            resetUI();
             renderUI(e.params.data.id);
         });
 

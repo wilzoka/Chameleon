@@ -210,7 +210,7 @@ let bi = {
                 for (let r = 0; r < structure.r.length; r++) {
                     for (let z = 0; z < data.length; z++) {
                         if (structure.r[r].val == data[z].row) {
-                            seriesdata.push({ name: data[z].row, y: parseFloat(data[z].measures[i]) });
+                            seriesdata.push({ name: data[z].row, y: parseFloat(parseFloat(data[z].measures[i]).toFixed(2)) });
                             break;
                         }
                     }
@@ -437,7 +437,6 @@ let bi = {
                     rows: obj.data.rows
                     , columns: obj.data.columns
                     , measures: obj.data.measures
-                    , cubemeasures: measures
                 }
 
                 return application.success(obj.res, { data: bi.f_pivot(sql, options) });
