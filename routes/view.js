@@ -1060,6 +1060,7 @@ module.exports = function (app) {
                 return application.render(res, __dirname + '/../views/templates/viewtable.html', {
                     title: view.name
                     , view: view.url
+                    , js: view.js ? `<script type="text/javascript">${fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8')}</script>` : ''
                 });
             } else {
                 return application.forbidden(res);
@@ -1140,16 +1141,12 @@ module.exports = function (app) {
                         zoneobj[viewsubviews[i].templatezone.name] += renderSubView(viewsubviews[i]);
                     }
                 }
-                let js = '';
-                if (view.js) {
-                    js = '<script type="text/javascript">' + fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8') + '</script>';
-                }
                 res.setHeader('Cache-Control', 'no-cache, no-store');
                 return application.render(res, __dirname + '/../views/templates/viewregister.html', {
                     id: register ? register.id : 0
                     , title: view.name
                     , template: getTemplate(view.template.name)(zoneobj)
-                    , js: js
+                    , js: view.js ? `<script type="text/javascript">${fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8')}</script>` : ''
                 });
             } else {
                 return application.forbidden(res);

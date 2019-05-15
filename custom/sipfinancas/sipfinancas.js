@@ -332,13 +332,17 @@ let main = {
                                     , name: 'valor' + obj.ids[i]
                                     , precision: 2
                                     , value: valoraberto
+                                    , add: `data-v="${valoraberto}" data-t="Valor" data-i="${obj.ids[i]}"`
                                 });
+
+                                body += '<div class="col-md-6 no-padding">';
 
                                 body += application.components.html.decimal({
                                     width: '2'
                                     , label: 'Juro'
                                     , name: 'juro' + obj.ids[i]
                                     , precision: 2
+                                    , add: `data-t="Juro" data-i="${obj.ids[i]}"`
                                 });
 
                                 body += application.components.html.decimal({
@@ -346,6 +350,7 @@ let main = {
                                     , label: 'Desconto'
                                     , name: 'desconto' + obj.ids[i]
                                     , precision: 2
+                                    , add: `data-t="Desconto" data-i="${obj.ids[i]}"`
                                 });
 
                                 body += application.components.html.decimal({
@@ -353,16 +358,78 @@ let main = {
                                     , label: 'Devolução'
                                     , name: 'devolucao' + obj.ids[i]
                                     , precision: 2
+                                    , add: `data-t="Devolução" data-i="${obj.ids[i]}"`
                                 });
 
-                                body += '</div><hr>';
+                                body += application.components.html.decimal({
+                                    width: '3'
+                                    , label: 'Total'
+                                    , name: 'total' + obj.ids[i]
+                                    , precision: 2
+                                    , disabled: 'disabled="disabled"'
+                                    , value: valoraberto
+                                });
+
+                                body += application.components.html.decimal({
+                                    width: '3'
+                                    , label: 'Em Aberto'
+                                    , name: 'aberto' + obj.ids[i]
+                                    , precision: 2
+                                    , disabled: 'disabled="disabled"'
+                                    , value: '0,00'
+                                });
+
+                                body += '</div></div><hr>';
 
                             }
 
+                            body += '<div class="row no-margin"><div class="col-md-9"></div>';
+                            body += application.components.html.decimal({
+                                width: '3'
+                                , label: 'Valor Total'
+                                , name: 'valortotal'
+                                , precision: 2
+                                , disabled: 'disabled="disabled"'
+                                , value: application.formatters.fe.decimal(valortotalselecionado, 2)
+                            });
+                            body += '</div><hr>';
+
+
                             body += '<div class="row no-margin">';
+                            body += application.components.html.integer({
+                                width: '1'
+                                , label: 'Quantidade'
+                                , name: 'chequeqtd'
+                                , value: '1'
+                            });
                             body += application.components.html.autocomplete({
-                                width: '10'
-                                , label: 'Cheques <a target="_blank" href="/v/cheque/0"><button style="padding: 0px 5px;" type="button" class="btn btn-success"><i class="fa fa-plus"></i></button></a>'
+                                width: '5'
+                                , label: 'Correntista'
+                                , name: 'chequeidcorrentista'
+                                , model: 'cad_corr'
+                                , attribute: 'nomecompleto'
+                            });
+                            body += application.components.html.date({
+                                width: '3'
+                                , label: 'Data Compensação'
+                                , name: 'chequedata'
+                            });
+                            body += application.components.html.decimal({
+                                width: '2'
+                                , label: 'Valor'
+                                , name: 'chequevalor'
+                                , precision: 2
+                            });
+                            body += `<div class="col-md-1"><div class="form-group">
+                                <label style="color:white;">A</label>
+                                <button id="chequeadd" type="button" class="btn btn-block btn-success"><i class="fa fa-plus"></i></button></div>
+                            </div></div>`;
+
+                            body += '<div class="row no-margin">';
+
+                            body += application.components.html.autocomplete({
+                                width: '9'
+                                , label: 'Cheques'
                                 , name: 'idcheques'
                                 , model: 'fin_cheque'
                                 , attribute: 'descricaocompleta'
@@ -370,12 +437,11 @@ let main = {
                                 , where: 'utilizado is false'
                             });
                             body += application.components.html.decimal({
-                                width: '2'
-                                , label: 'Total Valor'
-                                , name: 'valortotal'
+                                width: '3'
+                                , label: 'Total Selecionado'
+                                , name: 'chequetotal'
                                 , precision: 2
                                 , disabled: 'disabled="disabled"'
-                                , value: application.formatters.fe.decimal(valortotalselecionado, 2)
                             });
                             body += '</div>';
 
@@ -987,6 +1053,48 @@ let main = {
                             });
                         }
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_chequeAdd: async function (obj) {
+                    try {
+                        let invalidfields = application.functions.getEmptyFields(obj.data, ['chequeqtd', 'chequeidcorrentista', 'chequedata', 'chequevalor']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
+                        let cheques = [];
+                        for (let i = 0; i < parseInt(obj.data.chequeqtd); i++) {
+                            let cheque = await db.getModel('fin_cheque').create({
+                                idcliente: obj.data.chequeidcorrentista
+                                , datacompensacao: application.formatters.be.date(obj.data.chequedata)
+                                , valor: application.formatters.be.decimal(obj.data.chequevalor)
+                                , utilizado: false
+                            });
+                            cheques.push(cheque.id);
+                        }
+                        await db.sequelize.query("update fin_cheque set descricaocompleta = id::text || ' - ' || coalesce((select cc.nome from cad_corr cc where cc.id = idcliente), ' SEM CLIENTE ') || ' - R$ ' || valor;", { type: db.sequelize.QueryTypes.UPDATE });
+                        cheques = await db.getModel('fin_cheque').findAll({ where: { id: { $in: cheques } } });
+                        let data = [];
+                        for (let i = 0; i < cheques.length; i++) {
+                            data.push({
+                                id: cheques[i].id
+                                , value: cheques[i].descricaocompleta
+                            });
+                        }
+                        return application.success(obj.res, { msg: application.message.success, data: data });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_chequeSoma: async function (obj) {
+                    try {
+                        let cheques = await db.getModel('fin_cheque').findAll({ where: { id: { $in: obj.data ? obj.data.idcheques : [] } } });
+                        let total = 0.0;
+                        for (let i = 0; i < cheques.length; i++) {
+                            total += parseFloat(cheques[i].valor);
+                        }
+                        return application.success(obj.res, { data: application.formatters.fe.decimal(total, 2) });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

@@ -100,7 +100,6 @@ var application = {
                     , data: $this.serialize()
                     , beforeSend: function () {
                         $this.find('button:submit').prop('disabled', true);
-                        $this.find('div.has-error').removeClass('has-error');
                     }
                     , success: function (response) {
                         if (response.success) {
@@ -252,6 +251,8 @@ var application = {
             }
         }
     }
+    , isTableview: false
+    , isRegisterview: false
     , components: {
         renderAll: function () {
             application.components.date($('input[data-type="date"]'));
@@ -1133,6 +1134,13 @@ var application = {
         , getPageCookie: function () {
             return Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
         }
+        , parseFloat: function (value) {
+            if (value == '') {
+                return 0.0;
+            } else {
+                return parseFloat(value.replace(/\./g, '').replace(',', '.'));
+            }
+        }
         , setPageCookie: function (conf) {
             var pagecookie = application.functions.getPageCookie();
             pagecookie = $.extend(pagecookie, conf);
@@ -1141,6 +1149,7 @@ var application = {
     }
     , handlers: {
         responseSuccess: function (response) {
+            $('div.form-group.has-error').removeClass('has-error');
             if (response.success) {
 
                 if ('localstorage' in response) {

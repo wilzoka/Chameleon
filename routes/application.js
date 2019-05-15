@@ -71,6 +71,7 @@ let application = {
 					, precision: '2'
 					, disabled: ''
 					, placeholder: ''
+					, add: ''
 				}, obj);
 				return `
 				<div class="col-md-${obj.width}">
@@ -78,7 +79,7 @@ let application = {
 						<label>${obj.label}</label>
 						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" placeholder="${obj.placeholder}" style="text-align:right;"
 							data-type="decimal"
-							data-precision="${obj.precision}" ${obj.disabled}>
+							data-precision="${obj.precision}" ${obj.add} ${obj.disabled}>
 					</div>
 				</div>`;
 			}
@@ -331,12 +332,16 @@ let application = {
 	, functions: {
 		getEmptyFields: function (data, fieldsrequired) {
 			let invalidfields = [];
-			for (let i = 0; i < fieldsrequired.length; i++) {
-				if (!(fieldsrequired[i] in data && data[fieldsrequired[i]])) {
-					invalidfields.push(fieldsrequired[i]);
+			if (!data) {
+				return fieldsrequired;
+			} else {
+				for (let i = 0; i < fieldsrequired.length; i++) {
+					if (!(fieldsrequired[i] in data && data[fieldsrequired[i]])) {
+						invalidfields.push(fieldsrequired[i]);
+					}
 				}
+				return invalidfields;
 			}
-			return invalidfields;
 		}
 		, singleSpace: function (value) {
 			return value.replace(/\s\s+/g, ' ');

@@ -1,0 +1,26 @@
+[
+    {
+        "description": "Business Intelligence",
+        "icon": "fa fa-line-chart",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Business Intelligence"
+    },
+    {
+        "description": "Análises",
+        "icon": "fa fa-bar-chart",
+        "menuparent": "Business Intelligence",
+        "view": "Análise",
+        "url": null,
+        "tree": "Business Intelligence - Análises"
+    },
+    {
+        "description": "Cubos",
+        "icon": "fa fa-cube",
+        "menuparent": "Business Intelligence",
+        "view": "Cubo",
+        "url": null,
+        "tree": "Business Intelligence - Cubos"
+    }
+]

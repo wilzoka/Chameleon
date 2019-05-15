@@ -1,0 +1,237 @@
+[
+    {
+        "name": "Análise",
+        "namecomplete": "BI - Análise",
+        "js": null,
+        "wherefixed": "iduser = $user",
+        "orderfixed": null,
+        "supressid": false,
+        "template": "core-bi/templates/analysis",
+        "model": "bi_analysis",
+        "module": "BI",
+        "url": "analise",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "hidden",
+                "modelattribute": "rows",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "hidden",
+                "modelattribute": "measures",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "hidden",
+                "modelattribute": "columns",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "hidden",
+                "modelattribute": "filter",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "zheader",
+                "modelattribute": "idcube",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "zheader",
+                "modelattribute": "description",
+                "width": 8,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "chart",
+                "modelattribute": "charttype",
+                "width": 2,
+                "order": 101,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idcube",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Cubo",
+        "namecomplete": "BI - Cubo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12-6-6",
+        "model": "bi_cube",
+        "module": "BI",
+        "url": "cubo",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "sql",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Cubo - Dimensão",
+                "templatezone": "z2",
+                "description": "Dimensões"
+            },
+            {
+                "subview": "Cubo - Medida",
+                "templatezone": "z3",
+                "description": "Medidas"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Cubo - Dimensão",
+        "namecomplete": "BI - Cubo - Dimensão",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "bi_cubedimension",
+        "module": "BI",
+        "url": "cubo_-_dimensao",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "sqlfield",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "sqlfield",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Cubo - Medida",
+        "namecomplete": "BI - Cubo - Medida",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "bi_cubemeasure",
+        "module": "BI",
+        "url": "cubo_-_medida",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "sqlfield",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "aggregator",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "sqlfield",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "aggregator",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    }
+]
