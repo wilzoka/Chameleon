@@ -1,36 +1,40 @@
 // Datatable
-$.extend(true, $.fn.dataTable.defaults, {
-    language: {
-        search: ''
-        , paginate: {
-            next: 'Próximo'
-            , previous: 'Anterior'
+if ($.fn.dataTable) {
+    $.extend(true, $.fn.dataTable.defaults, {
+        language: {
+            search: ''
+            , paginate: {
+                next: 'Próximo'
+                , previous: 'Anterior'
+            }
+            , sInfo: '_TOTAL_ Registros'
+            , sInfoEmpty: ''
+            , sInfoFiltered: '(filtrado de _MAX_ registros)'
+            , sLengthMenu: '_MENU_'
+            , sLoadingRecords: 'Carregando...'
+            , sProcessing: 'Processando...'
+            , sSearch: 'Pesquisar: '
+            , sZeroRecords: 'Nenhum registro correspondente foi encontrado'
+            , sEmptyTable: 'Vazio'
         }
-        , sInfo: '_TOTAL_ Registros'
-        , sInfoEmpty: ''
-        , sInfoFiltered: '(filtrado de _MAX_ registros)'
-        , sLengthMenu: '_MENU_'
-        , sLoadingRecords: 'Carregando...'
-        , sProcessing: 'Processando...'
-        , sSearch: 'Pesquisar: '
-        , sZeroRecords: 'Nenhum registro correspondente foi encontrado'
-        , sEmptyTable: 'Vazio'
-    }
-});
-$.extend(true, $.fn.dataTable.ext.classes, {
-    sFilterInput: 'form-control'
-});
+    });
+    $.extend(true, $.fn.dataTable.ext.classes, {
+        sFilterInput: 'form-control'
+    });
+}
 // Dropzone
-Dropzone.autoDiscover = false;
-Dropzone.prototype.defaultOptions.dictCancelUpload = "Cancelar Upload";
-Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "Você tem certeza que deseja cancelar este envio?";
-Dropzone.prototype.defaultOptions.dictFallbackMessage = "Seu navegador não suporta fazer upload via drag'n'drop.";
-Dropzone.prototype.defaultOptions.dictFallbackText = "Por favor utilize o formulário abaixo para fazer upload do arquivo como nos velhos tempos.";
-Dropzone.prototype.defaultOptions.dictFileTooBig = "Arquivo é grande demais ({{filesize}}MB). Tamanho máximo: {{maxFilesize}}MB.";
-Dropzone.prototype.defaultOptions.dictInvalidFileType = "Você não pode enviar arquivos deste tipo.";
-Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este arquivo não será salvo.";
-Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
-Dropzone.prototype.defaultOptions.dictResponseError = "Servidor respondeu com {{statusCode}} código.";
+if (window.Dropzone) {
+    Dropzone.autoDiscover = false;
+    Dropzone.prototype.defaultOptions.dictCancelUpload = "Cancelar Upload";
+    Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "Você tem certeza que deseja cancelar este envio?";
+    Dropzone.prototype.defaultOptions.dictFallbackMessage = "Seu navegador não suporta fazer upload via drag'n'drop.";
+    Dropzone.prototype.defaultOptions.dictFallbackText = "Por favor utilize o formulário abaixo para fazer upload do arquivo como nos velhos tempos.";
+    Dropzone.prototype.defaultOptions.dictFileTooBig = "Arquivo é grande demais ({{filesize}}MB). Tamanho máximo: {{maxFilesize}}MB.";
+    Dropzone.prototype.defaultOptions.dictInvalidFileType = "Você não pode enviar arquivos deste tipo.";
+    Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "Limite excedido. Este arquivo não será salvo.";
+    Dropzone.prototype.defaultOptions.dictRemoveFile = "Remover Arquivo";
+    Dropzone.prototype.defaultOptions.dictResponseError = "Servidor respondeu com {{statusCode}} código.";
+}
 // Global Vars
 var maps = [];
 var notifications = [];
@@ -352,13 +356,13 @@ var application = {
                 + '<span data-dz-errormessage></span>'
                 + '</div>'
                 + '<div class="dz-success-mark">'
-                + '<i class="fa fa-3x fa-check-circle-o"></i>'
+                + '<i class="fa fa-3x fa-check-circle"></i>'
                 + '</div>'
                 + '<div class="dz-error-mark">'
                 + '<i class="fa fa-3x fa-times"></i>'
                 + '</div>'
                 + '<div class="col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-xs btn-block" title="Download"><i class="fa fa-2x fa-download"></i></button></a></div>'
-                + '<div class="col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash"></i></button></a></div>'
+                + '<div class="col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash-alt"></i></button></a></div>'
                 + '</div>';
             $obj.each(function () {
                 dzs[$(this).attr('data-name')] = new Dropzone(this, {
@@ -619,7 +623,7 @@ var application = {
                     }
                     var deleteButton = '';
                     if ($('#' + sTableId).attr('data-deletable') == 'true') {
-                        deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash"></i></button>';
+                        deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash-alt"></i></button>';
                     }
                     $('#' + sTableId + '_buttons').append('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
                 }

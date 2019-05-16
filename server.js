@@ -28,6 +28,7 @@ if (cluster.isMaster) {
         , passport = require('passport')
         , bodyParser = require('body-parser')
         , cookieParser = require('cookie-parser')
+        , compression = require('compression')
         , session = require('express-session')
         , app = express()
         , http = require('http').Server(app)
@@ -50,6 +51,8 @@ if (cluster.isMaster) {
     sequelizeStore.sync();
     app.use(appSession);
     //Middlewares
+    app.use(compression());
+    app.use(cookieParser());
     app.use(cookieParser());
     app.use(bodyParser.json({ limit: '5mb' }));
     app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 100000 }));

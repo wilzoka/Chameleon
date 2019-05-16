@@ -114,6 +114,9 @@ ul.dropdown-menu > li > a > i {
 , .navbar-nav > .tasks-menu > .dropdown-menu > li .menu {
     max-height: 350px;
 }
+.main-header .sidebar-toggle:before {
+    content: "";
+}
 
 /* Bootstrap */
 @media (min-width: 768px) {
@@ -245,6 +248,9 @@ div.dz-image img {
 }
 .dropzone .dz-preview .dz-error-message:after {
     content: none;
+}
+.dropzone .dz-preview.dz-success .dz-success-mark {
+    color: green
 }
 .dropzone .dz-preview.dz-error .dz-error-mark {
     color: red

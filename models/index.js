@@ -184,19 +184,23 @@ sequelize.query(`
 sequelize.query('select * from config', { type: Sequelize.QueryTypes.SELECT }).then(config => {
   if (config) {
     require('../custom/' + config[0].customfile);
-    if (config[0].favicon) {
-      const favicon = JSON.parse(config[0].favicon)[0];
-      application.Handlebars.registerPartial('parts/favicon', '/files/' + favicon.id + '.' + favicon.type);
-    } else {
-      application.Handlebars.registerPartial('parts/favicon', '/public/images/favicon.ico');
-    }
 
-    if (config[0].loginimage) {
-      const loginimage = JSON.parse(config[0].loginimage)[0];
-      application.Handlebars.registerPartial('parts/loginimage', `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="width: 100%; margin-bottom: 10px;">`);
-    } else {
-      application.Handlebars.registerPartial('parts/loginimage', '');
+    const favicon = config[0].favicon ? JSON.parse(config[0].favicon)[0] : null;
+    application.Handlebars.registerPartial('parts/favicon', favicon ? '/files/' + favicon.id + '.' + favicon.type : '/public/images/favicon.ico');
+
+    const loginimage = config[0].loginimage ? JSON.parse(config[0].loginimage)[0] : null;
+    application.Handlebars.registerPartial('parts/loginimage', loginimage ? `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="width: 100%; margin-bottom: 10px;">` : '');
+
+    const loginbackground = config[0].loginbackground ? JSON.parse(config[0].loginbackground)[0] : null;
+    let loginbackgroundstr = '';
+    if (loginbackground) {
+      if (['png', 'jpg', 'jpeg'].indexOf(loginbackground.type) >= 0) {
+        loginbackgroundstr = `<img class="fullbg" src="/files/${loginbackground.id}.${loginbackground.type}">`;
+      } else if (['mp4'].indexOf(loginbackground.type) >= 0) {
+        loginbackgroundstr = `<video autoplay="" muted="" loop="" class="fullbg"><source src="/files/${loginbackground.id}.${loginbackground.type}" type="video/mp4"></video>`;
+      }
     }
+    application.Handlebars.registerPartial('parts/loginbackground', loginbackground ? loginbackgroundstr : ' ');
   }
 });
 
