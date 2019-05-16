@@ -1240,6 +1240,33 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , js_registrarponto: async function (obj) {
+                    try {
+                        let invalidfields = application.functions.getEmptyFields(obj.data, ['id', 'datahora']);
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
+
+                        let datahorafimnull = await db.getModel('adm_viagemhorario').findOne({ where: { idviagem: obj.data.id, datahorafim: null } });
+                        if (datahorafimnull) {
+                            datahorafimnull.datahorafim = application.formatters.be.datetime(obj.data.datahora);
+                            datahorafimnull.observacao = datahorafimnull.observacao ? datahorafimnull.observacao + ' | ' + obj.data.observacao : obj.data.observacao || null;
+                            await datahorafimnull.save({ iduser: obj.req.user.id });
+                        } else {
+                            await db.getModel('adm_viagemhorario').create({
+                                iduser: obj.req.user.id,
+                                idviagem: obj.data.id,
+                                datahoraini: application.formatters.be.datetime(obj.data.datahora),
+                                observacao: obj.data.observacao || null
+                            });
+                        }
+
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
         }
         , cadastro: {
