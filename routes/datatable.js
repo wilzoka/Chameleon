@@ -304,7 +304,7 @@ module.exports = function (app) {
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
 
-            let where = {};
+            let where = { '$and': {} };
 
             if (view.wherefixed) {
                 view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
@@ -321,6 +321,25 @@ module.exports = function (app) {
                 });
                 if (modelattributeparent) {
                     where[modelattributeparent.name] = req.body.id;
+                }
+            }
+
+            if (view.idfastsearch && req.body.fastsearch) {
+                let j = application.modelattribute.parseTypeadd(view.fastsearch.typeadd);
+                switch (view.fastsearch.type) {
+                    case 'autocomplete':
+                        if (j.query) {
+                            where['$and'][view.fastsearch.name] = db.Sequelize.literal(j.query + "::text ilike '%" + req.body.fastsearch + "%'");
+                        } else {
+                            where['$and'][view.fastsearch.name] = db.Sequelize.literal((j.as || j.model) + '.' + j.attribute + "::text ilike '%" + req.body.fastsearch + "%'");
+                        }
+                        break;
+                    case 'virtual':
+                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(j.subquery + "::text ilike '%" + req.body.fastsearch + "%'");
+                        break;
+                    default:
+                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(view.model.name + '.' + view.fastsearch.name + "::text ilike '%" + req.body.fastsearch + "%'");
+                        break;
                 }
             }
 

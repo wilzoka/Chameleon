@@ -1,7 +1,7 @@
 [
     {
         "description": "Business Intelligence",
-        "icon": "fa fa-line-chart",
+        "icon": "fa fa-chart-line",
         "menuparent": null,
         "view": null,
         "url": null,
@@ -9,7 +9,7 @@
     },
     {
         "description": "Análises",
-        "icon": "fa fa-bar-chart",
+        "icon": "fa fa-chart-bar",
         "menuparent": "Business Intelligence",
         "view": "Análise",
         "url": null,

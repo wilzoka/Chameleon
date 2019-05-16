@@ -9,7 +9,7 @@
     },
     {
         "description": "Agendamentos",
-        "icon": "fa fa-clock-o",
+        "icon": "fa fa-clock",
         "menuparent": "Plataforma",
         "view": "Agendamento",
         "url": null,
@@ -17,7 +17,7 @@
     },
     {
         "description": "Arquivos",
-        "icon": "fa fa-file-archive-o",
+        "icon": "fa fa-file-archive",
         "menuparent": "Plataforma",
         "view": "Arquivo",
         "url": null,
@@ -41,7 +41,7 @@
     },
     {
         "description": "Mensageiros",
-        "icon": "fa fa-comments-o",
+        "icon": "fa fa-comments",
         "menuparent": "Plataforma",
         "view": "Mensageiro",
         "url": null,
@@ -89,7 +89,7 @@
     },
     {
         "description": "Relatórios",
-        "icon": "fa fa-file-pdf-o",
+        "icon": "fa fa-file-pdf",
         "menuparent": "Plataforma",
         "view": "Relatório",
         "url": null,
@@ -97,7 +97,7 @@
     },
     {
         "description": "Rotas",
-        "icon": "fa fa-refresh",
+        "icon": "fa fa-sync",
         "menuparent": "Plataforma",
         "view": "Rota",
         "url": null,
@@ -105,7 +105,7 @@
     },
     {
         "description": "Templates",
-        "icon": "fa fa-newspaper-o",
+        "icon": "fa fa-newspaper",
         "menuparent": "Plataforma",
         "view": "Template",
         "url": null,
@@ -121,7 +121,7 @@
     },
     {
         "description": "Views",
-        "icon": "fa fa-television",
+        "icon": "fa fa-tv",
         "menuparent": "Plataforma",
         "view": "View",
         "url": null,

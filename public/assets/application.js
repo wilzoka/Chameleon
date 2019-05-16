@@ -210,7 +210,6 @@ var application = {
 
                 application.tables.saveFilter(table);
                 tables[table].ajax.reload();
-                application.tables.reloadFooter(table);
 
                 $modal.modal('hide');
             });
@@ -790,6 +789,7 @@ var application = {
                         $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
                     }
                     tables[settings.sTableId].columns.adjust();
+                    application.tables.reloadFooter(settings.sTableId);
                 }
                 , initComplete: function (settings) {
                     var $table = $(settings.nTable);
@@ -802,7 +802,6 @@ var application = {
                     } else if (subview && application.functions.getId() > 0) {
                         createButtons(settings.sTableId);
                     }
-                    application.tables.reloadFooter(settings.sTableId);
                     $(document).trigger('app-datatable', settings.sTableId);
                 }
                 , ordering: data.permissions.orderable
@@ -903,6 +902,7 @@ var application = {
                         , view: $this.attr('data-view')
                         , idmodelattribute: $this.attr('data-attribute')
                         , issubview: $('#' + idtable).attr('data-subview') || false
+                        , fastsearch: $('#' + idtable + '_filter').find('input[type="search"]').val() || ''
                     }
                     , success: function (response) {
                         if (response.success) {
