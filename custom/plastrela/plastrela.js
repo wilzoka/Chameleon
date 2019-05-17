@@ -7864,6 +7864,8 @@ let main = {
                                         , observacao: montagens[i].observacao
                                         , idcamisa: montagens[i].idcamisa
                                         , camerondistancia: montagens[i].camerondistancia
+                                        , idanilox: montagens[i].idanilox
+                                        , viscosidade: montagens[i].viscosidade
                                     });
                                     let secagem = await db.getModel('pcp_apclichemontsecagem').findOne({ where: { idapclichemontagem: montagens[i].id }, order: [['datahora', 'desc']] });
                                     if (secagem) {
@@ -7939,7 +7941,7 @@ let main = {
                                 });
                                 let montagens = await db.getModel('pcp_apclichemontagem').findAll({ where: { idapcliche: apcliche.id } });
                                 for (let i = 0; i < montagens.length; i++) {
-                                    await db.getModel('pcp_apclichemontagem').create({
+                                    let apcm = await db.getModel('pcp_apclichemontagem').create({
                                         idapcliche: apc.id
                                         , cliche: montagens[i].cliche
                                         , estacao: montagens[i].estacao
@@ -7950,6 +7952,18 @@ let main = {
                                         , idanilox: montagens[i].idanilox
                                         , viscosidade: montagens[i].viscosidade
                                     });
+                                    let secagem = await db.getModel('pcp_apclichemontsecagem').findOne({ where: { idapclichemontagem: montagens[i].id }, order: [['datahora', 'desc']] });
+                                    if (secagem) {
+                                        await db.getModel('pcp_apclichemontagem').create({
+                                            datahora: secagem.datahora
+                                            , idapclichemontagem: apcm.id
+                                            , observacao: secagem.observacao
+                                            , retardador: secagem.retardador
+                                            , secagem: secagem.secagem
+                                            , temperatura: secagem.temperatura
+                                            , umidade: secagem.umidade
+                                        });
+                                    }
                                 }
                             }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
