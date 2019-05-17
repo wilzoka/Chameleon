@@ -260,6 +260,9 @@ div.dz-image img {
     border-radius: 0px;
     height: 105px;
 }
+.dropzone .dz-message {
+    margin: 3em 0;
+}
 
 /* Custom */
 @media (min-width: 992px) {

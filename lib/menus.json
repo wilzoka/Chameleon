@@ -1,13 +1,5 @@
 [
     {
-        "description": "Plataforma",
-        "icon": "fa fa-cogs",
-        "menuparent": null,
-        "view": null,
-        "url": null,
-        "tree": "Plataforma"
-    },
-    {
         "description": "Agendamentos",
         "icon": "fa fa-clock",
         "menuparent": "Plataforma",
@@ -38,6 +30,14 @@
         "view": "Configuração da Plataforma",
         "url": "/v/configuracao_da_plataforma/1",
         "tree": "Plataforma - Configurações"
+    },
+    {
+        "description": "Grupos de Usuário",
+        "icon": "fa fa-users",
+        "menuparent": "Plataforma",
+        "view": "Grupo de Usuário",
+        "url": null,
+        "tree": "Plataforma - Grupos de Usuário"
     },
     {
         "description": "Mensageiros",
@@ -113,7 +113,7 @@
     },
     {
         "description": "Usuários",
-        "icon": "fa fa-users",
+        "icon": "fa fa-user",
         "menuparent": "Plataforma",
         "view": "Usuário",
         "url": null,

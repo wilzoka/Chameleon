@@ -429,6 +429,14 @@
                 "disablefilter": false
             },
             {
+                "templatezone": "customization",
+                "modelattribute": "loginbackground",
+                "width": 4,
+                "order": 206,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
                 "templatezone": "email",
                 "modelattribute": "emailconf",
                 "width": 6,
@@ -446,6 +454,42 @@
             }
         ],
         "_table": [],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Grupo de Usuário",
+        "namecomplete": "Plataforma - Grupo de Usuário",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "description,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "groupusers",
+        "module": "Plataforma",
+        "url": "grupo_de_usuario",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
         "_subview": [],
         "_event": []
     },
@@ -631,13 +675,19 @@
         "_event": [
             {
                 "description": "Exportar",
-                "icon": "fa fa-cloud-upload",
+                "icon": "fa fa-angle-down",
                 "function": "platform.menu.e_export",
                 "parameters": null
             },
             {
+                "description": "Exportar Tudo",
+                "icon": "fa fa-angle-double-down",
+                "function": "platform.menu.e_export",
+                "parameters": "{\"all\": true}"
+            },
+            {
                 "description": "Importar",
-                "icon": "fa fa-cloud-download",
+                "icon": "fa fa-angle-up",
                 "function": "platform.menu.e_import",
                 "parameters": null
             }
@@ -734,19 +784,25 @@
         "_event": [
             {
                 "description": "Exportar",
-                "icon": "fa fa-cloud-upload",
+                "icon": "fa fa-angle-down",
                 "function": "platform.model.e_export",
                 "parameters": null
             },
             {
+                "description": "Exportar Tudo",
+                "icon": "fa fa-angle-double-down",
+                "function": "platform.model.e_export",
+                "parameters": "{\"all\": true}"
+            },
+            {
                 "description": "Importar",
-                "icon": "fa fa-cloud-download",
+                "icon": "fa fa-angle-up",
                 "function": "platform.model.e_import",
                 "parameters": null
             },
             {
                 "description": "Sincronizar",
-                "icon": "fa fa-refresh",
+                "icon": "fa fa-sync",
                 "function": "platform.model.e_syncAll",
                 "parameters": null
             }
@@ -1454,25 +1510,33 @@
             },
             {
                 "templatezone": "z1",
+                "modelattribute": "idgroupusers",
+                "width": 6,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "c_idcargo",
+                "width": 6,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
                 "modelattribute": "idmenu",
                 "width": 12,
-                "order": 6,
+                "order": 8,
                 "disabled": false,
                 "disablefilter": false
             }
         ],
         "_table": [
             {
-                "modelattribute": "active",
-                "ordertable": 1,
-                "orderable": true,
-                "render": "boolean",
-                "totalize": false,
-                "class": null
-            },
-            {
                 "modelattribute": "fullname",
-                "ordertable": 2,
+                "ordertable": 1,
                 "orderable": true,
                 "render": null,
                 "totalize": null,
@@ -1480,7 +1544,7 @@
             },
             {
                 "modelattribute": "username",
-                "ordertable": 3,
+                "ordertable": 2,
                 "orderable": true,
                 "render": null,
                 "totalize": false,
@@ -1488,9 +1552,33 @@
             },
             {
                 "modelattribute": "email",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idgroupusers",
                 "ordertable": 4,
                 "orderable": true,
                 "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "c_idcargo",
+                "ordertable": 5,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "active",
+                "ordertable": 6,
+                "orderable": true,
+                "render": "boolean",
                 "totalize": false,
                 "class": null
             }
@@ -1644,13 +1732,19 @@
         "_event": [
             {
                 "description": "Exportar",
-                "icon": "fa fa-cloud-upload",
+                "icon": "fa fa-angle-down",
                 "function": "platform.view.e_export",
                 "parameters": null
             },
             {
+                "description": "Exportar Tudo",
+                "icon": "fa fa-angle-double-down",
+                "function": "platform.view.e_export",
+                "parameters": "{\"all\": true}"
+            },
+            {
                 "description": "Importar",
-                "icon": "fa fa-cloud-download",
+                "icon": "fa fa-angle-up",
                 "function": "platform.view.e_import",
                 "parameters": null
             }

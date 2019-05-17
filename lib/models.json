@@ -6,11 +6,25 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "changes",
+                "label": "Alterações",
+                "type": "textarea",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
                 "name": "datetime",
                 "label": "Data/Hora",
                 "type": "datetime",
                 "notnull": true,
                 "typeadd": null
+            },
+            {
+                "name": "idmodel",
+                "label": "Modelo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\"cascade\": true, \"model\": \"model\", \"attribute\": \"description\"}"
             },
             {
                 "name": "iduser",
@@ -27,25 +41,11 @@
                 "typeadd": null
             },
             {
-                "name": "changes",
-                "label": "Alterações",
-                "type": "textarea",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "type",
                 "label": "Tipo",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
-            },
-            {
-                "name": "idmodel",
-                "label": "Modelo",
-                "type": "autocomplete",
-                "notnull": true,
-                "typeadd": "{\"cascade\": true, \"model\": \"model\", \"attribute\": \"description\"}"
             }
         ]
     },
@@ -126,6 +126,13 @@
                 "typeadd": null
             },
             {
+                "name": "loginbackground",
+                "label": "Fundo de Login",
+                "type": "file",
+                "notnull": false,
+                "typeadd": "{\r\n\"acceptedfiles\": \"\"\r\n , \"maxfiles\": 1\r\n }"
+            },
+            {
                 "name": "loginimage",
                 "label": "Imagem de Login",
                 "type": "file",
@@ -162,30 +169,9 @@
                 "typeadd": null
             },
             {
-                "name": "size",
-                "label": "Size",
-                "type": "integer",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "datetime",
                 "label": "Data/Hora",
                 "type": "datetime",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
-                "name": "mimetype",
-                "label": "Mime Type",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
-                "name": "type",
-                "label": "Tipo",
-                "type": "text",
                 "notnull": true,
                 "typeadd": null
             },
@@ -211,11 +197,47 @@
                 "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
             },
             {
+                "name": "mimetype",
+                "label": "Mime Type",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
                 "name": "modelid",
                 "label": "ID",
                 "type": "integer",
                 "notnull": false,
                 "typeadd": null
+            },
+            {
+                "name": "size",
+                "label": "Size",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "type",
+                "label": "Tipo",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "groupusers",
+        "description": "Grupo de Usuários",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": "{\r\n}"
             }
         ]
     },
@@ -226,20 +248,6 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "idview",
-                "label": "View",
-                "type": "autocomplete",
-                "notnull": false,
-                "typeadd": "{\"model\": \"view\", \"attribute\": \"namecomplete\", \"cascade\": true}"
-            },
-            {
-                "name": "icon",
-                "label": "Ícone",
-                "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
                 "name": "description",
                 "label": "Descrição",
                 "type": "text",
@@ -247,15 +255,8 @@
                 "typeadd": null
             },
             {
-                "name": "url",
-                "label": "URL",
-                "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
-                "name": "tree",
-                "label": "Tree",
+                "name": "icon",
+                "label": "Ícone",
                 "type": "text",
                 "notnull": false,
                 "typeadd": null
@@ -266,6 +267,27 @@
                 "type": "autocomplete",
                 "notnull": false,
                 "typeadd": "{\"as\":\"parentmenu\", \"model\": \"menu\", \"attribute\": \"tree\", \"where\": \"url is null and idview is null\"}"
+            },
+            {
+                "name": "idview",
+                "label": "View",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"view\", \"attribute\": \"namecomplete\", \"cascade\": true}"
+            },
+            {
+                "name": "tree",
+                "label": "Tree",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "url",
+                "label": "URL",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
             }
         ]
     },
@@ -319,6 +341,13 @@
         "ondelete": "platform.model.ondelete",
         "_attribute": [
             {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
                 "name": "name",
                 "label": "Nome",
                 "type": "text",
@@ -338,13 +367,6 @@
                 "type": "text",
                 "notnull": false,
                 "typeadd": null
-            },
-            {
-                "name": "description",
-                "label": "Descrição",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
             }
         ]
     },
@@ -355,15 +377,22 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "name",
-                "label": "Nome",
+                "name": "idmodel",
+                "label": "Model",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\"model\": \"model\", \"cascade\": true}"
+            },
+            {
+                "name": "label",
+                "label": "Label",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
             },
             {
-                "name": "label",
-                "label": "Label",
+                "name": "name",
+                "label": "Nome",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
@@ -376,18 +405,11 @@
                 "typeadd": null
             },
             {
-                "name": "idmodel",
-                "label": "Model",
-                "type": "parent",
-                "notnull": true,
-                "typeadd": "{\"model\": \"model\", \"cascade\": true}"
-            },
-            {
                 "name": "type",
                 "label": "Tipo",
                 "type": "radio",
                 "notnull": true,
-                "typeadd": "{\r\n\"options\": [\"autocomplete\",\"boolean\",\"date\",\"datetime\",\"decimal\",\"file\",\"georeference\",\"integer\",\"parent\",\"radio\",\"text\",\"textarea\",\"time\",\"virtual\"]\r\n}"
+                "typeadd": "{\r\n\"options\": [\"autocomplete\",\"boolean\",\"date\",\"datetime\",\"decimal\",\"file\",\"georeference\",\"integer\",\"parent\",\"radio\",\"text\",\"textarea\",\"time\",\"virtual\"]\r\n , \"renderAsSelect\": false\r\n}"
             },
             {
                 "name": "typeadd",
@@ -420,6 +442,20 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "datetime",
+                "label": "Data/Hora",
+                "type": "datetime",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
                 "name": "iduser",
                 "label": "Usuário",
                 "type": "autocomplete",
@@ -427,15 +463,8 @@
                 "typeadd": "{\"model\": \"users\", \"attribute\": \"fullname\"}"
             },
             {
-                "name": "title",
-                "label": "Título",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
-                "name": "description",
-                "label": "Descrição",
+                "name": "link",
+                "label": "Link",
                 "type": "text",
                 "notnull": false,
                 "typeadd": null
@@ -448,16 +477,9 @@
                 "typeadd": null
             },
             {
-                "name": "link",
-                "label": "Link",
+                "name": "title",
+                "label": "Título",
                 "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
-                "name": "datetime",
-                "label": "Data/Hora",
-                "type": "datetime",
                 "notnull": true,
                 "typeadd": null
             }
@@ -499,20 +521,6 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "insertable",
-                "label": "Inserir",
-                "type": "boolean",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
-                "name": "editable",
-                "label": "Editar",
-                "type": "boolean",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "deletable",
                 "label": "Excluir",
                 "type": "boolean",
@@ -520,8 +528,8 @@
                 "typeadd": null
             },
             {
-                "name": "visible",
-                "label": "Visualizar",
+                "name": "editable",
+                "label": "Editar",
                 "type": "boolean",
                 "notnull": true,
                 "typeadd": null
@@ -546,6 +554,20 @@
                 "type": "autocomplete",
                 "notnull": true,
                 "typeadd": "{\r\n\"model\": \"users\"\r\n, \"attribute\": \"fullname\"\r\n, \"cascade\": true\r\n, \"where\": \"active\"\r\n}"
+            },
+            {
+                "name": "insertable",
+                "label": "Inserir",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "visible",
+                "label": "Visualizar",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
             }
         ]
     },
@@ -556,10 +578,10 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "name",
-                "label": "Nome",
-                "type": "text",
-                "notnull": true,
+                "name": "fontsize",
+                "label": "Tamanho da Fonte",
+                "type": "integer",
+                "notnull": false,
                 "typeadd": null
             },
             {
@@ -577,10 +599,10 @@
                 "typeadd": null
             },
             {
-                "name": "fontsize",
-                "label": "Tamanho da Fonte",
-                "type": "integer",
-                "notnull": false,
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
                 "typeadd": null
             }
         ]
@@ -592,6 +614,13 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
                 "name": "file",
                 "label": "Arquivo Interno",
                 "type": "text",
@@ -599,10 +628,10 @@
                 "typeadd": null
             },
             {
-                "name": "description",
-                "label": "Descrição",
+                "name": "function",
+                "label": "Função",
                 "type": "text",
-                "notnull": true,
+                "notnull": false,
                 "typeadd": null
             },
             {
@@ -617,13 +646,6 @@
                 "label": "Requer Permissão?",
                 "type": "boolean",
                 "notnull": true,
-                "typeadd": null
-            },
-            {
-                "name": "function",
-                "label": "Função",
-                "type": "text",
-                "notnull": false,
                 "typeadd": null
             },
             {
@@ -642,15 +664,15 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "description",
-                "label": "Descrição",
-                "type": "text",
-                "notnull": true,
+                "name": "active",
+                "label": "Ativo",
+                "type": "boolean",
+                "notnull": false,
                 "typeadd": null
             },
             {
-                "name": "settings",
-                "label": "Configurações",
+                "name": "description",
+                "label": "Descrição",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
@@ -663,10 +685,10 @@
                 "typeadd": null
             },
             {
-                "name": "active",
-                "label": "Ativo",
-                "type": "boolean",
-                "notnull": false,
+                "name": "settings",
+                "label": "Configurações",
+                "type": "text",
+                "notnull": true,
                 "typeadd": null
             }
         ]
@@ -678,17 +700,17 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "name",
-                "label": "Nome",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "comment",
                 "label": "Comentário",
                 "type": "text",
                 "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
                 "typeadd": null
             }
         ]
@@ -700,18 +722,18 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "name",
-                "label": "Nome",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
                 "name": "idtemplate",
                 "label": "ID Template",
                 "type": "parent",
                 "notnull": true,
                 "typeadd": "{\"model\": \"template\", \"cascade\": true}"
+            },
+            {
+                "name": "name",
+                "label": "Nome",
+                "type": "text",
+                "notnull": true,
+                "typeadd": null
             }
         ]
     },
@@ -722,8 +744,36 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "active",
+                "label": "Ativo?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": null
+            },
+            {
+                "name": "c_codigosenior",
+                "label": "Código Senior",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
                 "name": "c_funcao",
                 "label": "Função",
+                "type": "text",
+                "notnull": false,
+                "typeadd": null
+            },
+            {
+                "name": "c_idcargo",
+                "label": "Cargo",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\r\n\"cascade\": false\r\n , \"model\": \"cad_cargo\"\r\n , \"attribute\": \"descricao\"\r\n }"
+            },
+            {
+                "name": "c_local",
+                "label": "Local",
                 "type": "text",
                 "notnull": false,
                 "typeadd": null
@@ -736,18 +786,25 @@
                 "typeadd": null
             },
             {
-                "name": "active",
-                "label": "Ativo?",
-                "type": "boolean",
+                "name": "fullname",
+                "label": "Nome Completo",
+                "type": "text",
                 "notnull": true,
                 "typeadd": null
             },
             {
-                "name": "c_local",
-                "label": "Local",
-                "type": "text",
+                "name": "idgroupusers",
+                "label": "Grupo",
+                "type": "autocomplete",
                 "notnull": false,
-                "typeadd": null
+                "typeadd": "{\r\n\"cascade\": false\r\n , \"model\": \"groupusers\"\r\n , \"attribute\": \"description\"\r\n }"
+            },
+            {
+                "name": "idmenu",
+                "label": "Página Inicial",
+                "type": "autocomplete",
+                "notnull": false,
+                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\"}"
             },
             {
                 "name": "password",
@@ -757,32 +814,11 @@
                 "typeadd": null
             },
             {
-                "name": "fullname",
-                "label": "Nome Completo",
-                "type": "text",
-                "notnull": true,
-                "typeadd": null
-            },
-            {
-                "name": "c_codigosenior",
-                "label": "Código Senior",
-                "type": "integer",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
                 "name": "username",
                 "label": "Username",
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
-            },
-            {
-                "name": "idmenu",
-                "label": "Página Inicial",
-                "type": "autocomplete",
-                "notnull": false,
-                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\"}"
             }
         ]
     },
@@ -796,7 +832,7 @@
                 "name": "idfastsearch",
                 "label": "Pesquisa Rápida",
                 "type": "autocomplete",
-                "notnull": false,
+                "notnull": true,
                 "typeadd": "{\r\n\"as\": \"fastsearch\"\r\n , \"cascade\": true\r\n , \"model\": \"modelattribute\"\r\n , \"attribute\": \"label\"\r\n }"
             },
             {
