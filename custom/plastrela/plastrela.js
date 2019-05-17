@@ -9605,6 +9605,48 @@ let main = {
                 }
             }
         }
+        , rh: {
+            curriculo: {
+                onsave: async function (obj, next) {
+                    try {
+                        let invalidfields = [];
+
+                        if (obj.register['possui_filhos'] == 'Sim' && !obj.register['quantidade_filhos']) {
+                            invalidfields.push('quantidade_filhos');
+                        }
+                        if (obj.register['possui_cnh'] == 'Sim' && !obj.register['categoria_cnh']) {
+                            invalidfields.push('categoria_cnh');
+                        }
+                        if (obj.register['deficiente'] == 'Sim' && !obj.register['deficiente_descricao']) {
+                            invalidfields.push('deficiente_descricao');
+                        }
+                        if (obj.register['escolaridade'].match(/Superior.*/) && !obj.register['curso']) {
+                            invalidfields.push('curso');
+                        }
+                        if (obj.register['estudando'] == 'Sim' && !obj.register['horario_estudo']) {
+                            invalidfields.push('horario_estudo');
+                        }
+                        if (obj.register['trabalhou_plastrela'] == 'Sim' && !obj.register['motivo_saida']) {
+                            invalidfields.push('motivo_saida');
+                        }
+                        if (obj.register['conhecido_plastrela'] == 'Sim' && !obj.register['conhecido_relacao']) {
+                            invalidfields.push('conhecido_relacao');
+                        }  
+                        if (obj.register['conhecido_plastrela'] == 'Sim' && !obj.register['conhecido_identificacao']) {
+                            invalidfields.push('conhecido_identificacao');
+                        } 
+
+                        if (invalidfields.length > 0) {
+                            return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
+
+                        let saved = await next(obj);
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+            }
+        }
         , ti: {
             equipamento: {
                 onsave: async (obj, next) => {
