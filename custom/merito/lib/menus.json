@@ -1,0 +1,394 @@
+[
+    {
+        "description": "Cadastros",
+        "icon": "fa fa-book",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Cadastros"
+    },
+    {
+        "description": "Clientes",
+        "icon": "fa fa-users",
+        "menuparent": "Cadastros",
+        "view": "Cliente",
+        "url": null,
+        "tree": "Cadastros - Clientes"
+    },
+    {
+        "description": "Configurações",
+        "icon": "fa fa-cog",
+        "menuparent": "Cadastros",
+        "view": null,
+        "url": null,
+        "tree": "Cadastros - Configurações"
+    },
+    {
+        "description": "Unidades",
+        "icon": null,
+        "menuparent": "Cadastros - Configurações",
+        "view": "Unidade",
+        "url": null,
+        "tree": "Cadastros - Configurações - Unidades"
+    },
+    {
+        "description": "Fornecedores",
+        "icon": "fa fa-handshake-o",
+        "menuparent": "Cadastros",
+        "view": "Fornecedor",
+        "url": null,
+        "tree": "Cadastros - Fornecedores"
+    },
+    {
+        "description": "Itens",
+        "icon": "fa fa-gift",
+        "menuparent": "Cadastros",
+        "view": "Item",
+        "url": null,
+        "tree": "Cadastros - Itens"
+    },
+    {
+        "description": "Comercial",
+        "icon": "fa fa-shopping-bag",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Comercial"
+    },
+    {
+        "description": "Painel do Vendedor",
+        "icon": null,
+        "menuparent": "Comercial",
+        "view": null,
+        "url": "/r/painel_do_vendedor",
+        "tree": "Comercial - Painel do Vendedor"
+    },
+    {
+        "description": "Tipo de Venda",
+        "icon": null,
+        "menuparent": "Comercial",
+        "view": "Tipo de Venda",
+        "url": null,
+        "tree": "Comercial - Tipo de Venda"
+    },
+    {
+        "description": "Vendas",
+        "icon": "fa fa-location-arrow",
+        "menuparent": "Comercial",
+        "view": "Venda",
+        "url": null,
+        "tree": "Comercial - Vendas"
+    },
+    {
+        "description": "Compras",
+        "icon": "fa fa-shopping-basket",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Compras"
+    },
+    {
+        "description": "Estoques",
+        "icon": "fa fa-cube",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Estoques"
+    },
+    {
+        "description": "Configurações",
+        "icon": null,
+        "menuparent": "Estoques",
+        "view": null,
+        "url": null,
+        "tree": "Estoques - Configurações"
+    },
+    {
+        "description": "Eventos",
+        "icon": "fa fa-calendar",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Eventos"
+    },
+    {
+        "description": "Categoria",
+        "icon": "fa fa-flag",
+        "menuparent": "Eventos",
+        "view": "Categoria do Evento",
+        "url": null,
+        "tree": "Eventos - Categoria"
+    },
+    {
+        "description": "Evento",
+        "icon": "fa fa-plus",
+        "menuparent": "Eventos",
+        "view": "Evento",
+        "url": null,
+        "tree": "Eventos - Evento"
+    },
+    {
+        "description": "Fornecedor",
+        "icon": null,
+        "menuparent": "Eventos",
+        "view": "Fornecedores",
+        "url": null,
+        "tree": "Eventos - Fornecedor"
+    },
+    {
+        "description": "Meus Eventos",
+        "icon": "fa fa-check",
+        "menuparent": "Eventos",
+        "view": "Meus Eventos",
+        "url": null,
+        "tree": "Eventos - Meus Eventos"
+    },
+    {
+        "description": "Orçamentos",
+        "icon": "fa fa-file-text-o",
+        "menuparent": "Eventos",
+        "view": "Orçamento",
+        "url": null,
+        "tree": "Eventos - Orçamentos"
+    },
+    {
+        "description": "Tarefa",
+        "icon": "fa fa-tasks",
+        "menuparent": "Eventos",
+        "view": "Tarefa",
+        "url": null,
+        "tree": "Eventos - Tarefa"
+    },
+    {
+        "description": "Tipo Evento",
+        "icon": "fa fa-check-square-o",
+        "menuparent": "Eventos",
+        "view": "Tipo de Evento",
+        "url": null,
+        "tree": "Eventos - Tipo Evento"
+    },
+    {
+        "description": "Financeiro",
+        "icon": "fa fa-usd",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Financeiro"
+    },
+    {
+        "description": "Configurações",
+        "icon": null,
+        "menuparent": "Financeiro",
+        "view": null,
+        "url": null,
+        "tree": "Financeiro - Configurações"
+    },
+    {
+        "description": "Categoria",
+        "icon": null,
+        "menuparent": "Financeiro - Configurações",
+        "view": "Categoria",
+        "url": null,
+        "tree": "Financeiro - Configurações - Categoria"
+    },
+    {
+        "description": "Conta",
+        "icon": null,
+        "menuparent": "Financeiro - Configurações",
+        "view": "Conta",
+        "url": null,
+        "tree": "Financeiro - Configurações - Conta"
+    },
+    {
+        "description": "Formas de Pagamento",
+        "icon": null,
+        "menuparent": "Financeiro - Configurações",
+        "view": "Forma de Pagamento",
+        "url": null,
+        "tree": "Financeiro - Configurações - Formas de Pagamento"
+    },
+    {
+        "description": "Contas a Pagar",
+        "icon": null,
+        "menuparent": "Financeiro",
+        "view": "Título a Pagar",
+        "url": null,
+        "tree": "Financeiro - Contas a Pagar"
+    },
+    {
+        "description": "Contas a Receber",
+        "icon": null,
+        "menuparent": "Financeiro",
+        "view": "Título a Receber",
+        "url": null,
+        "tree": "Financeiro - Contas a Receber"
+    },
+    {
+        "description": "Movimentações",
+        "icon": "fa fa-exchange",
+        "menuparent": "Financeiro",
+        "view": "Movimentação",
+        "url": null,
+        "tree": "Financeiro - Movimentações"
+    },
+    {
+        "description": "Plataforma",
+        "icon": "fa fa-cogs",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Plataforma"
+    },
+    {
+        "description": "Agendamentos",
+        "icon": "fa fa-clock",
+        "menuparent": "Plataforma",
+        "view": "Agendamento",
+        "url": null,
+        "tree": "Plataforma - Agendamentos"
+    },
+    {
+        "description": "Área da Tarefa",
+        "icon": null,
+        "menuparent": "Plataforma",
+        "view": "Area da Tarefa",
+        "url": null,
+        "tree": "Plataforma - Área da Tarefa"
+    },
+    {
+        "description": "Arquivos",
+        "icon": "fa fa-file-archive",
+        "menuparent": "Plataforma",
+        "view": "Arquivo",
+        "url": null,
+        "tree": "Plataforma - Arquivos"
+    },
+    {
+        "description": "Auditoria",
+        "icon": "fa fa-eye",
+        "menuparent": "Plataforma",
+        "view": "Auditoria",
+        "url": null,
+        "tree": "Plataforma - Auditoria"
+    },
+    {
+        "description": "Configurações",
+        "icon": "fa fa-cog",
+        "menuparent": "Plataforma",
+        "view": "Configuração da Plataforma",
+        "url": "/v/configuracao_da_plataforma/1",
+        "tree": "Plataforma - Configurações"
+    },
+    {
+        "description": "Grupos de Usuário",
+        "icon": "fa fa-users",
+        "menuparent": "Plataforma",
+        "view": "Grupo de Usuário",
+        "url": null,
+        "tree": "Plataforma - Grupos de Usuário"
+    },
+    {
+        "description": "Mensageiros",
+        "icon": "fa fa-comments",
+        "menuparent": "Plataforma",
+        "view": "Mensageiro",
+        "url": null,
+        "tree": "Plataforma - Mensageiros"
+    },
+    {
+        "description": "Menus",
+        "icon": "fa fa-list-ul",
+        "menuparent": "Plataforma",
+        "view": "Menu",
+        "url": null,
+        "tree": "Plataforma - Menus"
+    },
+    {
+        "description": "Modelos",
+        "icon": "fa fa-asterisk",
+        "menuparent": "Plataforma",
+        "view": "Modelo",
+        "url": null,
+        "tree": "Plataforma - Modelos"
+    },
+    {
+        "description": "Módulos",
+        "icon": "fa fa-cubes",
+        "menuparent": "Plataforma",
+        "view": "Módulo",
+        "url": null,
+        "tree": "Plataforma - Módulos"
+    },
+    {
+        "description": "Parâmetros",
+        "icon": "fa fa-code",
+        "menuparent": "Plataforma",
+        "view": "Parâmetros",
+        "url": null,
+        "tree": "Plataforma - Parâmetros"
+    },
+    {
+        "description": "Permissões",
+        "icon": "fa fa-lock",
+        "menuparent": "Plataforma",
+        "view": "Permissão",
+        "url": null,
+        "tree": "Plataforma - Permissões"
+    },
+    {
+        "description": "Relatórios",
+        "icon": "fa fa-file-pdf",
+        "menuparent": "Plataforma",
+        "view": "Relatório",
+        "url": null,
+        "tree": "Plataforma - Relatórios"
+    },
+    {
+        "description": "Rotas",
+        "icon": "fa fa-sync",
+        "menuparent": "Plataforma",
+        "view": "Rota",
+        "url": null,
+        "tree": "Plataforma - Rotas"
+    },
+    {
+        "description": "Tarefas",
+        "icon": "fa fa-tasks",
+        "menuparent": "Plataforma",
+        "view": "Tarefas",
+        "url": null,
+        "tree": "Plataforma - Tarefas"
+    },
+    {
+        "description": "Templates",
+        "icon": "fa fa-newspaper",
+        "menuparent": "Plataforma",
+        "view": "Template",
+        "url": null,
+        "tree": "Plataforma - Templates"
+    },
+    {
+        "description": "Usuários",
+        "icon": "fa fa-user",
+        "menuparent": "Plataforma",
+        "view": "Usuário",
+        "url": null,
+        "tree": "Plataforma - Usuários"
+    },
+    {
+        "description": "Views",
+        "icon": "fa fa-tv",
+        "menuparent": "Plataforma",
+        "view": "View",
+        "url": null,
+        "tree": "Plataforma - Views"
+    },
+    {
+        "description": "RH",
+        "icon": "fa fa-users",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "RH"
+    }
+]

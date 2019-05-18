@@ -1,0 +1,4844 @@
+[
+    {
+        "name": "Agendamento",
+        "namecomplete": "Plataforma - Agendamento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "schedule",
+        "module": "Plataforma",
+        "url": "agendamento",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "settings",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "active",
+                "ordertable": 1,
+                "orderable": true,
+                "render": "booleancircle",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "settings",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Ativar",
+                "icon": "fa fa-check",
+                "function": "platform.schedule._active",
+                "parameters": null
+            },
+            {
+                "description": "Desativar",
+                "icon": "fa fa-times",
+                "function": "platform.schedule._desactive",
+                "parameters": null
+            },
+            {
+                "description": "Executar",
+                "icon": "fa fa-cog",
+                "function": "platform.schedule._execute",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Area da Tarefa",
+        "namecomplete": "Plataforma - Area da Tarefa",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12",
+        "model": "taskarea",
+        "module": "Plataforma",
+        "url": "area_da_tarefa",
+        "pagelength": null,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Arquivo",
+        "namecomplete": "Plataforma - Arquivo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "datetime,desc",
+        "supressid": false,
+        "template": "box-12",
+        "model": "file",
+        "module": "Plataforma",
+        "url": "arquivo",
+        "pagelength": null,
+        "fastsearch": "filename",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "datetime",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "filename",
+                "width": 6,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "size",
+                "width": 2,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 2,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "mimetype",
+                "width": 2,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "bounded",
+                "width": 3,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "modelid",
+                "width": 3,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 6,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datetime",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "filename",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "size",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "bounded",
+                "ordertable": 4,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Auditoria",
+        "namecomplete": "Plataforma - Auditoria",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "datetime,desc",
+        "supressid": true,
+        "template": "box-12",
+        "model": "audit",
+        "module": "Plataforma",
+        "url": "auditoria",
+        "pagelength": null,
+        "fastsearch": "changes",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "datetime",
+                "width": 6,
+                "order": 1,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 6,
+                "order": 2,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 6,
+                "order": 3,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "modelid",
+                "width": 6,
+                "order": 4,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 12,
+                "order": 5,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "changes",
+                "width": 12,
+                "order": 6,
+                "disabled": true,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datetime",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "iduser",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "type",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idmodel",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "modelid",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "changes",
+                "ordertable": 6,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Categoria",
+        "namecomplete": "Financeiro - Categoria",
+        "js": "erp/financeiro/js.categoria.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "fin_categoria",
+        "module": "Financeiro",
+        "url": "categoria",
+        "pagelength": null,
+        "fastsearch": "descricaocompleta",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoriapai",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricaocompleta",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "dc",
+                "ordertable": 2,
+                "orderable": false,
+                "render": "fin_categoria_dc",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Categoria do Evento",
+        "namecomplete": "Eventos - Categoria do Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "eve_categoria",
+        "module": "Eventos",
+        "url": "categoria_do_evento",
+        "pagelength": 30,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Cliente",
+        "namecomplete": "Cadastro - Cliente",
+        "js": null,
+        "wherefixed": "cad_pessoa.cliente = true",
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12-12",
+        "model": "cad_pessoa",
+        "module": "Cadastro",
+        "url": "cliente",
+        "pagelength": 30,
+        "fastsearch": "fantasia",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "cpfcnpj",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "fantasia",
+                "width": 3,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "cidade",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "bairro",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "logradouro",
+                "width": 6,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "numero",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "complemento",
+                "width": 3,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "email",
+                "width": 6,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "telefone1",
+                "width": 3,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "telefone2",
+                "width": 3,
+                "order": 10,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "fantasia",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "cidade",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "bairro",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "telefone1",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Usuário",
+                "templatezone": "z2",
+                "description": "Usuário Vinculado"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Configuração da Plataforma",
+        "namecomplete": "Plataforma - Configuração da Plataforma",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "tpl_config",
+        "model": "config",
+        "module": "Plataforma",
+        "url": "configuracao_da_plataforma",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "system",
+                "modelattribute": "customfile",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "system",
+                "modelattribute": "googlemapskey",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "razaosocial",
+                "width": 4,
+                "order": 101,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "fantasia",
+                "width": 4,
+                "order": 102,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "company",
+                "modelattribute": "cnpj",
+                "width": 4,
+                "order": 103,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "descriptionmenu",
+                "width": 6,
+                "order": 201,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "descriptionmenumini",
+                "width": 6,
+                "order": 202,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "favicon",
+                "width": 4,
+                "order": 203,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "loginimage",
+                "width": 4,
+                "order": 204,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "reportimage",
+                "width": 4,
+                "order": 205,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "customization",
+                "modelattribute": "loginbackground",
+                "width": 4,
+                "order": 206,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "email",
+                "modelattribute": "emailconf",
+                "width": 6,
+                "order": 301,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "email",
+                "modelattribute": "emailsignature",
+                "width": 6,
+                "order": 302,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Conta",
+        "namecomplete": "Financeiro - Conta",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "fin_conta",
+        "module": "Financeiro",
+        "url": "conta",
+        "pagelength": null,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 8,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "saldoatual",
+                "width": 4,
+                "order": 2,
+                "disabled": true,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "saldoatual",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Conta - Saldo",
+        "namecomplete": "Financeiro - Conta - Saldo",
+        "js": "erp/financeiro/js.mov.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "fin_contasaldo",
+        "module": "Financeiro",
+        "url": "conta_-_saldo",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "datahora",
+                "width": 2,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 2,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datahora",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valor",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Evento",
+        "namecomplete": "Eventos - Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "merito/template/eve_evento",
+        "model": "eve_evento",
+        "module": "Eventos",
+        "url": "evento",
+        "pagelength": null,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "geral",
+                "modelattribute": "data_evento",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "descricao",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "idevetipo",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "idpessoa",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "valor_evento",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "valor_recebido",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "concluido",
+                "width": 3,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "arquivos",
+                "width": 12,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "galeria",
+                "modelattribute": "publicar",
+                "width": 12,
+                "order": 302,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "galeria",
+                "modelattribute": "fotocapa",
+                "width": 4,
+                "order": 303,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "galeria",
+                "modelattribute": "fotopublicar",
+                "width": 8,
+                "order": 304,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "data_evento",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "descricao",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idpessoa",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Tarefa do Evento",
+                "templatezone": "tarefa",
+                "description": "Tarefas do Evento"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Forma de Pagamento",
+        "namecomplete": "Financeiro - Forma de Pagamento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12",
+        "model": "fin_formapgto",
+        "module": "Financeiro",
+        "url": "forma_de_pagamento",
+        "pagelength": null,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "prazo",
+                "width": 3,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "taxa",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "parcelas",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "disp_venda",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "formarecebimento",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iditem",
+                "width": 6,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "formarecebimento",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "prazo",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "taxa",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "parcelas",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "disp_venda",
+                "ordertable": 6,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Fornecedor",
+        "namecomplete": "Cadastro - Fornecedor",
+        "js": null,
+        "wherefixed": "cad_pessoa.fornecedor = true",
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12-6-6",
+        "model": "cad_pessoa",
+        "module": "Cadastro",
+        "url": "fornecedor",
+        "pagelength": 30,
+        "fastsearch": "fantasia",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "cpfcnpj",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "banco",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "agencia",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "fantasia",
+                "width": 3,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "conta",
+                "width": 4,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "nome",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "proprietario",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "cidade",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "bairro",
+                "width": 3,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "logradouro",
+                "width": 3,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "complemento",
+                "width": 3,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "numero",
+                "width": 3,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "telefone1",
+                "width": 3,
+                "order": 10,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "telefone2",
+                "width": 3,
+                "order": 11,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "email",
+                "width": 3,
+                "order": 12,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "cpfcnpj",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "fantasia",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "telefone1",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Serviço Prestado",
+                "templatezone": "z3",
+                "description": "Serviços Prestados"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Fornecedores",
+        "namecomplete": "Eventos - Fornecedores",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12-6-6",
+        "model": "eve_fornecedor",
+        "module": "Eventos",
+        "url": "fornecedores",
+        "pagelength": 20,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "cnpj",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "banco",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "agencia",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "proprietario",
+                "width": 4,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "conta",
+                "width": 4,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "endereco",
+                "width": 4,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "telefone",
+                "width": 4,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "email",
+                "width": 4,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "telefone",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Serviço Prestado",
+                "templatezone": "z3",
+                "description": "Serviços Prestados"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Grupo de Usuário",
+        "namecomplete": "Plataforma - Grupo de Usuário",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "description,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "groupusers",
+        "module": "Plataforma",
+        "url": "grupo_de_usuario",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Item",
+        "namecomplete": "Cadastro - Item",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "erp/cadastro/cad_item",
+        "model": "cad_item",
+        "module": "Cadastro",
+        "url": "item",
+        "pagelength": null,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "geral",
+                "modelattribute": "descricao",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "idunidade",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "estoque",
+                "modelattribute": "estoqueminimo",
+                "width": 3,
+                "order": 101,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "estoque",
+                "modelattribute": "estoqueatual",
+                "width": 3,
+                "order": 102,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "estoque",
+                "modelattribute": "estoqueproprio",
+                "width": 3,
+                "order": 103,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idunidade",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "estoqueminimo",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "estoqueatual",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "estoqueproprio",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Mensageiro",
+        "namecomplete": "Plataforma - Mensageiro",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "messenger",
+        "module": "Plataforma",
+        "url": "mensageiro",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "conf",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "ongathering",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "active",
+                "ordertable": 1,
+                "orderable": true,
+                "render": "booleancircle",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "type",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "ongathering",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Ativar",
+                "icon": "fa fa-check",
+                "function": "platform.messenger.e_active",
+                "parameters": null
+            },
+            {
+                "description": "Desativar",
+                "icon": "fa fa-times",
+                "function": "platform.messenger.e_desactive",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Menu",
+        "namecomplete": "Plataforma - Menu",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "tree,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "menu",
+        "module": "Plataforma",
+        "url": "menu",
+        "pagelength": null,
+        "fastsearch": "tree",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "icon",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmenuparent",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idview",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "url",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "tree",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "icon",
+                "ordertable": 2,
+                "orderable": false,
+                "render": "icon",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "url",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Exportar",
+                "icon": "fa fa-angle-down",
+                "function": "platform.menu.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Exportar Tudo",
+                "icon": "fa fa-angle-double-down",
+                "function": "platform.menu.e_export",
+                "parameters": "{\"all\": true}"
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-angle-up",
+                "function": "platform.menu.e_import",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Meus Eventos",
+        "namecomplete": "Eventos - Meus Eventos",
+        "js": null,
+        "wherefixed": "eve_evento.idpessoa = (select idcliente from users where id = $user)",
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12-12",
+        "model": "eve_evento",
+        "module": "Eventos",
+        "url": "meus_eventos",
+        "pagelength": null,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "data_evento",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "concluido",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idevetipo",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idpessoa",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor_evento",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor_recebido",
+                "width": 3,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "arquivos",
+                "width": 12,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "data_evento",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "descricao",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Tarefa do Evento",
+                "templatezone": "z2",
+                "description": "Tarefas do Evento"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Modelo",
+        "namecomplete": "Plataforma - Modelo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "name,asc",
+        "supressid": false,
+        "template": "box-12-12",
+        "model": "model",
+        "module": "Plataforma",
+        "url": "modelo",
+        "pagelength": null,
+        "fastsearch": "name",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "onsave",
+                "width": 6,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "ondelete",
+                "width": 6,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "onsave",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "ondelete",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Modelo - Atributo",
+                "templatezone": "z2",
+                "description": "Atributos"
+            }
+        ],
+        "_event": [
+            {
+                "description": "Exportar",
+                "icon": "fa fa-angle-down",
+                "function": "platform.model.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Exportar Tudo",
+                "icon": "fa fa-angle-double-down",
+                "function": "platform.model.e_export",
+                "parameters": "{\"all\": true}"
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-angle-up",
+                "function": "platform.model.e_import",
+                "parameters": null
+            },
+            {
+                "description": "Sincronizar",
+                "icon": "fa fa-sync",
+                "function": "platform.model.e_syncAll",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Modelo - Atributo",
+        "namecomplete": "Plataforma - Modelo - Atributo",
+        "js": "core/js/modelattribute.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "modelattribute",
+        "module": "Plataforma",
+        "url": "modelo_-_atributo",
+        "pagelength": -1,
+        "fastsearch": "label",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "label",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "notnull",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "type",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "typeadd",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "label",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "notnull",
+                "ordertable": 3,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "type",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "typeadd",
+                "ordertable": 5,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Módulo",
+        "namecomplete": "Plataforma - Módulo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "module",
+        "module": "Plataforma",
+        "url": "modulo",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Módulos",
+        "namecomplete": "Plataforma - Módulos",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "module",
+        "module": "Plataforma",
+        "url": "modulos",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Movimentação",
+        "namecomplete": "Financeiro - Movimentação",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "datahora,desc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "fin_movparc",
+        "module": "Financeiro",
+        "url": "movimentacao",
+        "pagelength": null,
+        "fastsearch": "categoria",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "datahora",
+                "width": 12,
+                "order": 1,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idconta",
+                "width": 12,
+                "order": 2,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "categoria",
+                "width": 12,
+                "order": 3,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idformapgto",
+                "width": 12,
+                "order": 4,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "pessoa",
+                "width": 12,
+                "order": 5,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "juro",
+                "width": 4,
+                "order": 6,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "desconto",
+                "width": 4,
+                "order": 7,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 4,
+                "order": 8,
+                "disabled": true,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datahora",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "dc",
+                "ordertable": 2,
+                "orderable": false,
+                "render": "fin_categoria_dc",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idconta",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "categoria",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "pessoa",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "detalhe",
+                "ordertable": 6,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idformapgto",
+                "ordertable": 7,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valorquitado",
+                "ordertable": 8,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Transferência",
+                "icon": "fa fa-exchange",
+                "function": "erp.financeiro.movparc.e_transferencia",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Orçamento",
+        "namecomplete": "Eventos - Orçamento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "data,desc",
+        "supressid": false,
+        "template": "box-12-12",
+        "model": "eve_orcamento",
+        "module": "Eventos",
+        "url": "orcamento",
+        "pagelength": 30,
+        "fastsearch": "cliente",
+        "_field": [
+            {
+                "templatezone": "z2",
+                "modelattribute": "motivonaocontratacao",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "data",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "cliente",
+                "width": 9,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "observacoes",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtipo",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "origemcontato",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "finalizado",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "data",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "cliente",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idtipo",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valor",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            },
+            {
+                "modelattribute": "finalizado",
+                "ordertable": 6,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Orçamento Fornecedor",
+        "namecomplete": "Eventos - Orçamento Fornecedor",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "eve_eventotarefaorca",
+        "module": "Eventos",
+        "url": "orcamento_fornecedor",
+        "pagelength": null,
+        "fastsearch": "idfornecedor",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idfornecedor",
+                "width": 8,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valororcamento",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idfornecedor",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valororcamento",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Buscar Fornecedores",
+                "icon": "fa fa-check",
+                "function": "erp.evento.e_buscarfornecedores",
+                "parameters": null
+            },
+            {
+                "description": "Solicitar Orçamento",
+                "icon": "fa fa-check",
+                "function": "erp.evento.e_solicitarorcamento",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Parâmetros",
+        "namecomplete": "Plataforma - Parâmetros",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-12",
+        "model": "parameter",
+        "module": "Plataforma",
+        "url": "parametros",
+        "pagelength": null,
+        "fastsearch": "key",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "key",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "value",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "key",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "value",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Permissão",
+        "namecomplete": "Plataforma - Permissão",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "permission",
+        "module": "Plataforma",
+        "url": "permissao",
+        "pagelength": null,
+        "fastsearch": "idmenu",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmenu",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "visible",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "insertable",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "editable",
+                "width": 3,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "deletable",
+                "width": 3,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "hidelisting",
+                "width": 12,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "iduser",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "idmenu",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "visible",
+                "ordertable": 3,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "insertable",
+                "ordertable": 4,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "editable",
+                "ordertable": 5,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "deletable",
+                "ordertable": 6,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "hidelisting",
+                "ordertable": 7,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Relatório",
+        "namecomplete": "Plataforma - Relatório",
+        "js": "core/js/report.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6-12",
+        "model": "report",
+        "module": "Plataforma",
+        "url": "relatorio",
+        "pagelength": null,
+        "fastsearch": "name",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "fontsize",
+                "width": 4,
+                "order": 101,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "landscape",
+                "width": 4,
+                "order": 102,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z3",
+                "modelattribute": "html",
+                "width": 12,
+                "order": 201,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Pré-Visualizar",
+                "icon": "fa fa-search",
+                "function": "platform.report.e_preview",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Rota",
+        "namecomplete": "Plataforma - Rota",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "route",
+        "module": "Plataforma",
+        "url": "rota",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "file",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "needauth",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "needperm",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "file",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "needauth",
+                "ordertable": 4,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "needperm",
+                "ordertable": 5,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Exportar",
+                "icon": "fa fa-cloud-upload",
+                "function": "platform.route.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-cloud-download",
+                "function": "platform.route.e_import",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Serviço Prestado",
+        "namecomplete": "Eventos - Serviço Prestado",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "eve_fornecedorservico",
+        "module": "Eventos",
+        "url": "servico_prestado",
+        "pagelength": null,
+        "fastsearch": "idcategoria",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoria",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idcategoria",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Tarefa",
+        "namecomplete": "Eventos - Tarefa",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6-6",
+        "model": "eve_tarefa",
+        "module": "Eventos",
+        "url": "tarefa",
+        "pagelength": 30,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoria",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idcategoria",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Tarefa - Tipo",
+                "templatezone": "z2",
+                "description": "Tipo de Evento"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Tarefa - Tipo",
+        "namecomplete": "Eventos - Tarefa - Tipo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "eve_tarefatipoevento",
+        "module": "Eventos",
+        "url": "tarefa_-_tipo",
+        "pagelength": null,
+        "fastsearch": "idevetipo",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idevetipo",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "previsaoinicio",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idevetipo",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "previsaoinicio",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Tarefa do Evento",
+        "namecomplete": "Eventos - Tarefa do Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "prazo,asc",
+        "supressid": true,
+        "template": "box-12-12-12-12",
+        "model": "eve_eventotarefa",
+        "module": "Eventos",
+        "url": "tarefa_do_evento",
+        "pagelength": null,
+        "fastsearch": "idtarefa",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "concluida",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "emailassunto",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "prazo",
+                "width": 3,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z4",
+                "modelattribute": "valor",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z4",
+                "modelattribute": "documentos",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z2",
+                "modelattribute": "emailtexto",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtarefa",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoria",
+                "width": 3,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "prazo",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idtarefa",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valor",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            },
+            {
+                "modelattribute": "concluida",
+                "ordertable": 4,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Orçamento Fornecedor",
+                "templatezone": "z3",
+                "description": "Fornecedores Orçamento"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Tarefas",
+        "namecomplete": "Plataforma - Tarefas",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-12",
+        "model": "task",
+        "module": "Plataforma",
+        "url": "tarefas",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "prioridade",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtaskarea",
+                "width": 3,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "file",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "concluida",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "prioridade",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idtaskarea",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "descricao",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "concluida",
+                "ordertable": 4,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Template",
+        "namecomplete": "Plataforma - Template",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6",
+        "model": "template",
+        "module": "Plataforma",
+        "url": "template",
+        "pagelength": null,
+        "fastsearch": "name",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "comment",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "comment",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Template - Zona",
+                "templatezone": "z2",
+                "description": "Zonas"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Template - Zona",
+        "namecomplete": "Plataforma - Template - Zona",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "templatezone",
+        "module": "Plataforma",
+        "url": "template_-_zona",
+        "pagelength": null,
+        "fastsearch": "name",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "name",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "name",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Tipo de Evento",
+        "namecomplete": "Eventos - Tipo de Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "descricao,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "eve_tipo",
+        "module": "Eventos",
+        "url": "tipo_de_evento",
+        "pagelength": 20,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 8,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "ativo",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "ativo",
+                "ordertable": 2,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Tipo de Venda",
+        "namecomplete": "Comercial - Tipo de Venda",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "com_tipovenda",
+        "module": "Comercial",
+        "url": "tipo_de_venda",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoria",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "active",
+                "width": 2,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idcategoria",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "active",
+                "ordertable": 3,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Título - Movimentação",
+        "namecomplete": "Financeiro - Título - Movimentação",
+        "js": "erp/financeiro/js.movparc.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "fin_movparc",
+        "module": "Financeiro",
+        "url": "titulo_-_movimentacao",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "datahora",
+                "width": 4,
+                "order": 1,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idformapgto",
+                "width": 4,
+                "order": 2,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idconta",
+                "width": 4,
+                "order": 3,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "desconto",
+                "width": 4,
+                "order": 4,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "juro",
+                "width": 4,
+                "order": 5,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 4,
+                "order": 6,
+                "disabled": true,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datahora",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idformapgto",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idconta",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valorquitado",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Título a Pagar",
+        "namecomplete": "Financeiro - Título a Pagar",
+        "js": "erp/financeiro/js.mov_pag.js",
+        "wherefixed": "fin_mov.quitado = false and fin_categoria.dc = 1",
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6",
+        "model": "fin_mov",
+        "module": "Financeiro",
+        "url": "titulo_a_pagar",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idpessoa",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "datavcto",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoria",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "parcela",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "detalhe",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datavcto",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idpessoa",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idcategoria",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valoraberto",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            },
+            {
+                "modelattribute": "parcela",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "detalhe",
+                "ordertable": 6,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Título - Movimentação",
+                "templatezone": "z2",
+                "description": "Movimentação"
+            }
+        ],
+        "_event": [
+            {
+                "description": "Pagar",
+                "icon": "fa fa-usd",
+                "function": "erp.financeiro.mov.e_baixarTitulos",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Título a Receber",
+        "namecomplete": "Financeiro - Título a Receber",
+        "js": "erp/financeiro/js.mov_rec.js",
+        "wherefixed": "fin_mov.quitado = false and fin_categoria.dc = 2",
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6-6",
+        "model": "fin_mov",
+        "module": "Financeiro",
+        "url": "titulo_a_receber",
+        "pagelength": null,
+        "fastsearch": "idcategoria",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idpessoa",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "datavcto",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoria",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "parcela",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "detalhe",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idpessoa",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "datavcto",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idcategoria",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valoraberto",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            },
+            {
+                "modelattribute": "parcela",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "detalhe",
+                "ordertable": 6,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Título - Movimentação",
+                "templatezone": "z2",
+                "description": "Movimentação"
+            }
+        ],
+        "_event": [
+            {
+                "description": "Receber",
+                "icon": "fa fa-usd",
+                "function": "erp.financeiro.mov.e_baixarTitulos",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "Unidade",
+        "namecomplete": "Cadastro - Unidade",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "cad_unidade",
+        "module": "Cadastro",
+        "url": "unidade",
+        "pagelength": null,
+        "fastsearch": "descricao",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "descricao",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "descricao",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Usuário",
+        "namecomplete": "Plataforma - Usuário",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "users",
+        "module": "Plataforma",
+        "url": "usuario",
+        "pagelength": null,
+        "fastsearch": "fullname",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "active",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "username",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "password",
+                "width": 6,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "fullname",
+                "width": 6,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "email",
+                "width": 6,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idgroupusers",
+                "width": 6,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmenu",
+                "width": 12,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "fullname",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "username",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "email",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idgroupusers",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "active",
+                "ordertable": 6,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Venda",
+        "namecomplete": "Comercial - Venda",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "datahora,desc",
+        "supressid": false,
+        "template": "erp/comercial/com_venda",
+        "model": "com_venda",
+        "module": "Comercial",
+        "url": "venda",
+        "pagelength": null,
+        "fastsearch": "identregador",
+        "_field": [
+            {
+                "templatezone": "hidden",
+                "modelattribute": "idusuario",
+                "width": 12,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "hidden",
+                "modelattribute": "digitado",
+                "width": 12,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "cliente",
+                "modelattribute": "idtipovenda",
+                "width": 4,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "hidden",
+                "modelattribute": "datahora",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "produtoadd",
+                "modelattribute": "desconto",
+                "width": 3,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "cliente",
+                "modelattribute": "idcliente",
+                "width": 4,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "produtoadd",
+                "modelattribute": "acrescimo",
+                "width": 3,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "cliente",
+                "modelattribute": "identregador",
+                "width": 4,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "pagamento",
+                "modelattribute": "totalvenda",
+                "width": 3,
+                "order": 101,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "datahora",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idtipovenda",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idcliente",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "totalvenda",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            },
+            {
+                "modelattribute": "identregador",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "digitado",
+                "ordertable": 6,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Venda - Item",
+                "templatezone": "produto",
+                "description": "Itens"
+            },
+            {
+                "subview": "Venda - Pagamento",
+                "templatezone": "pagamento",
+                "description": "Pagamento"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Venda - Item",
+        "namecomplete": "Comercial - Venda - Item",
+        "js": "erp/comercial/js.venda-item.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-12",
+        "model": "com_vendaitem",
+        "module": "Comercial",
+        "url": "venda_-_item",
+        "pagelength": null,
+        "fastsearch": "iditem",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "qtd",
+                "width": 2,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iditem",
+                "width": 8,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valorunitario",
+                "width": 2,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "qtd",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "iditem",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valorunitario",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valortotal",
+                "ordertable": 5,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Venda - Pagamento",
+        "namecomplete": "Comercial - Venda - Pagamento",
+        "js": "erp/comercial/js.venda-pagamento.js",
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-12-12",
+        "model": "com_vendapagamento",
+        "module": "Comercial",
+        "url": "venda_-_pagamento",
+        "pagelength": null,
+        "fastsearch": "idformapgto",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idformapgto",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 3,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "vencimento",
+                "width": 3,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idformapgto",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valor",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Venda - Parcela",
+        "namecomplete": "Comercial - Venda - Parcela",
+        "js": null,
+        "wherefixed": "idpedido = $id",
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "fin_mov",
+        "module": "Comercial",
+        "url": "venda_-_parcela",
+        "pagelength": null,
+        "fastsearch": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "parcela",
+                "width": 2,
+                "order": 1,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "datavcto",
+                "width": 5,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "valor",
+                "width": 5,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcategoria",
+                "width": 12,
+                "order": 4,
+                "disabled": true,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "parcela",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "datavcto",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "valor",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": true,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "View",
+        "namecomplete": "Plataforma - View",
+        "js": "core/js/view.js",
+        "wherefixed": null,
+        "orderfixed": "namecomplete,asc",
+        "supressid": false,
+        "template": "tpl_view",
+        "model": "view",
+        "module": "Plataforma",
+        "url": "view",
+        "pagelength": null,
+        "fastsearch": "namecomplete",
+        "_field": [
+            {
+                "templatezone": "view",
+                "modelattribute": "name",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idtemplate",
+                "width": 6,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idmodel",
+                "width": 6,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idmodule",
+                "width": 6,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "idfastsearch",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "js",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "wherefixed",
+                "width": 12,
+                "order": 7,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "orderfixed",
+                "width": 6,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "pagelength",
+                "width": 6,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "supressid",
+                "width": 6,
+                "order": 10,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "namecomplete",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "js",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "url",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "View - Atributo",
+                "templatezone": "viewfield",
+                "description": "Atributos"
+            },
+            {
+                "subview": "View - Tabela",
+                "templatezone": "viewtable",
+                "description": "Campos da Tabela"
+            },
+            {
+                "subview": "View - Evento",
+                "templatezone": "viewevent",
+                "description": "Eventos"
+            },
+            {
+                "subview": "View - Subview",
+                "templatezone": "viewsubview",
+                "description": "Subviews"
+            }
+        ],
+        "_event": [
+            {
+                "description": "Exportar",
+                "icon": "fa fa-angle-down",
+                "function": "platform.view.e_export",
+                "parameters": null
+            },
+            {
+                "description": "Exportar Tudo",
+                "icon": "fa fa-angle-double-down",
+                "function": "platform.view.e_export",
+                "parameters": "{\"all\": true}"
+            },
+            {
+                "description": "Importar",
+                "icon": "fa fa-angle-up",
+                "function": "platform.view.e_import",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "View - Atributo",
+        "namecomplete": "Plataforma - View - Atributo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "order,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "viewfield",
+        "module": "Plataforma",
+        "url": "view_-_atributo",
+        "pagelength": -1,
+        "fastsearch": "idmodelattribute",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodelattribute",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtemplatezone",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "order",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "width",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "disabled",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "disablefilter",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idmodelattribute",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idtemplatezone",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "order",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "width",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "disabled",
+                "ordertable": 5,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "disablefilter",
+                "ordertable": 6,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Alterar Zona",
+                "icon": "fa fa-exchange",
+                "function": "platform.viewfield.e_changezone",
+                "parameters": null
+            },
+            {
+                "description": "Decrementar Ordem",
+                "icon": "fa fa-minus",
+                "function": "platform.viewfield.e_decrementorder",
+                "parameters": null
+            },
+            {
+                "description": "Incrementar Ordem",
+                "icon": "fa fa-plus",
+                "function": "platform.viewfield.e_incrementorder",
+                "parameters": null
+            }
+        ]
+    },
+    {
+        "name": "View - Evento",
+        "namecomplete": "Plataforma - View - Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "description,asc",
+        "supressid": false,
+        "template": "box-6",
+        "model": "viewevent",
+        "module": "Plataforma",
+        "url": "view_-_evento",
+        "pagelength": null,
+        "fastsearch": "description",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "icon",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "function",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "parameters",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "icon",
+                "ordertable": 2,
+                "orderable": false,
+                "render": "icon",
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "function",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "parameters",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": null,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "View - Subview",
+        "namecomplete": "Plataforma - View - Subview",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "template": "box-6",
+        "model": "viewsubview",
+        "module": "Plataforma",
+        "url": "view_-_subview",
+        "pagelength": null,
+        "fastsearch": "idsubview",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idsubview",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idtemplatezone",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idsubview",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "idtemplatezone",
+                "ordertable": 3,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "View - Tabela",
+        "namecomplete": "Plataforma - View - Tabela",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "ordertable,asc",
+        "supressid": true,
+        "template": "box-6",
+        "model": "viewtable",
+        "module": "Plataforma",
+        "url": "view_-_tabela",
+        "pagelength": -1,
+        "fastsearch": "idmodelattribute",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodelattribute",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "ordertable",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "orderable",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "render",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "totalize",
+                "width": 12,
+                "order": 5,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "class",
+                "width": 12,
+                "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idmodelattribute",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "ordertable",
+                "ordertable": 2,
+                "orderable": true,
+                "render": null,
+                "totalize": null,
+                "class": null
+            },
+            {
+                "modelattribute": "orderable",
+                "ordertable": 3,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "render",
+                "ordertable": 4,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "totalize",
+                "ordertable": 5,
+                "orderable": true,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": [
+            {
+                "description": "Decrementar Ordem",
+                "icon": "fa fa-minus",
+                "function": "platform.viewtable.e_decrementorder",
+                "parameters": null
+            },
+            {
+                "description": "Incrementar Ordem",
+                "icon": "fa fa-plus",
+                "function": "platform.viewtable.e_incrementorder",
+                "parameters": null
+            }
+        ]
+    }
+]
