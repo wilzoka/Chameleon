@@ -751,34 +751,6 @@
                 "typeadd": null
             },
             {
-                "name": "c_codigosenior",
-                "label": "Código Senior",
-                "type": "integer",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
-                "name": "c_funcao",
-                "label": "Função",
-                "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
-                "name": "c_idcargo",
-                "label": "Cargo",
-                "type": "autocomplete",
-                "notnull": false,
-                "typeadd": "{\r\n\"cascade\": false\r\n , \"model\": \"cad_cargo\"\r\n , \"attribute\": \"descricao\"\r\n }"
-            },
-            {
-                "name": "c_local",
-                "label": "Local",
-                "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
                 "name": "email",
                 "label": "Email",
                 "type": "text",

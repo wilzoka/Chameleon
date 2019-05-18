@@ -1518,14 +1518,6 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "c_idcargo",
-                "width": 6,
-                "order": 7,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
                 "modelattribute": "idmenu",
                 "width": 12,
                 "order": 8,
@@ -1561,14 +1553,6 @@
             {
                 "modelattribute": "idgroupusers",
                 "ordertable": 4,
-                "orderable": true,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "c_idcargo",
-                "ordertable": 5,
                 "orderable": true,
                 "render": null,
                 "totalize": false,
