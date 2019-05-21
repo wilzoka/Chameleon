@@ -1294,7 +1294,7 @@ let main = {
                                 let notificationUsers = JSON.parse(param.value);
                                 main.platform.notification.create(notificationUsers, {
                                     title: 'Novo Transfer agendado!'
-                                    , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}` 
+                                    , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}`
                                     , link: '/v/transfers/' + saved.register.id
                                 });
                             }
@@ -9672,6 +9672,11 @@ let main = {
 
                         if (invalidfields.length > 0) {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                        }
+
+                        obj._responseModifier = function (ret) {
+                            ret['msg'] = 'Seu currículo foi recebido com sucesso. Será analisado e arquivado em nosso banco de dados. No momento que tivermos uma oportunidade e seu perfil for compatível com o desejado, entraremos em contato. Obrigado por ter enviado seu currículo para a Plastrela.';
+                            return ret;
                         }
 
                         let saved = await next(obj);
