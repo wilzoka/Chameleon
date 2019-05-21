@@ -1268,6 +1268,25 @@ let main = {
                     }
                 }
             }
+            , reserva: {
+                onsave: async function (obj, next) {
+
+                    let invalidfields = application.functions.getEmptyFields(obj.register, ['local2', 'data2', 'hora1']);
+                    if (obj.register.tipo == 'Passagem Aérea' && obj.register.local2 == null) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    if (obj.register.tipo == 'Hospedagem' && obj.register.data2 == null) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    if (obj.register.tipo == 'Carro' && (obj.register.hora1 == null || obj.register.local2 == null || obj.register.data2 == null)) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    if (obj.register.tipo == 'Transfer' && (obj.register.hora1 == null || obj.register.local2 == null)) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    next(obj);
+                }
+            }
         }
         , cadastro: {
             vinculacaolicenca: {
@@ -9631,10 +9650,10 @@ let main = {
                         }
                         if (obj.register['conhecido_plastrela'] == 'Sim' && !obj.register['conhecido_relacao']) {
                             invalidfields.push('conhecido_relacao');
-                        }  
+                        }
                         if (obj.register['conhecido_plastrela'] == 'Sim' && !obj.register['conhecido_identificacao']) {
                             invalidfields.push('conhecido_identificacao');
-                        } 
+                        }
 
                         if (invalidfields.length > 0) {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
