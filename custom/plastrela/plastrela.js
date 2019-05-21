@@ -1295,7 +1295,7 @@ let main = {
                                 main.platform.notification.create(notificationUsers, {
                                     title: 'Novo Transfer agendado!'
                                     , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}` 
-                                    , link: '/v/viagem_-_reserva/' + saved.register.id
+                                    , link: '/v/transfers/' + saved.register.id
                                 });
                             }
                         }
