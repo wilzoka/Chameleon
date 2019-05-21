@@ -88,7 +88,7 @@ module.exports = function (app) {
                 if (defaultmenu.url) {
                     redirect = defaultmenu.url;
                 } else if (defaultmenu.idview) {
-                    redirect = '/v/' + defaultmenu.view.url;
+                    redirect = defaultmenu.url || '/v/' + defaultmenu.view.url;
                 }
             }
 
