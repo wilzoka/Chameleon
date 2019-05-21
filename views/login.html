@@ -23,7 +23,6 @@
     <link rel="stylesheet" type="text/css" href="/public/assets/theme.css" />
 
     <style>
-
         .fullbg {
             position: absolute;
             top: 0;
@@ -90,8 +89,7 @@
 <body>
     <div class="container">
         <form class="form-signin xhr" method="POST">
-            {{> parts/loginbackground }}
-            {{> parts/loginimage }}
+            {{> parts/loginbackground }} {{> parts/loginimage }}
             <input id="inputUsername" name="username" class="form-control" type="text" placeholder="Usuário" autocomplete="off" required
                 autofocus>
             <input id="inputPassword" name="password" class="form-control" type="password" placeholder="Senha" required>
@@ -109,6 +107,12 @@
             Cookies.remove(k);
         }
         localStorage.clear();
+        var al = application.functions.getUrlParameter('al');
+        if (al) {
+            $('#inputUsername').val(application.functions.getUrlParameter('un'));
+            $('#inputPassword').val(application.functions.getUrlParameter('pa'));
+            $('form').submit();
+        }
     </script>
 </body>
 

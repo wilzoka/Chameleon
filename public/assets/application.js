@@ -1183,7 +1183,7 @@ var application = {
                 }
 
                 if ('redirect' in response) {
-                    var redirect = response.redirect + window.location.search;
+                    var redirect = response.redirect;
                     if (application.functions.getId() == 0)
                         window.history.replaceState(null, null, redirect);
                     return window.location.href = redirect;

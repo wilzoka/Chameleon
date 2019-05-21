@@ -41,7 +41,7 @@ module.exports = function (app) {
         }
     });
 
-    app.post('/login', passport.authenticate('local', {}), async (req, res) => {
+    app.post('/login', passport.authenticate('local'), async (req, res) => {
         try {
             let menu = await db.getModel('menu').findAll({
                 include: { all: true }
