@@ -1284,7 +1284,22 @@ let main = {
                     if (obj.register.tipo == 'Transfer' && (obj.register.hora1 == null || obj.register.local2 == null)) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
-                    next(obj);
+
+                    let saved = await next(obj);
+
+                    if (saved.success) {
+                        if (obj.register.tipo == 'Transfer') {
+                            let param = await db.getModel('parameter').findOne({ where: { key: 'adm_viagens_transferNotificationUsers' } });
+                            if (param) {
+                                let notificationUsers = JSON.parse(param.value);
+                                main.platform.notification.create(notificationUsers, {
+                                    title: 'Novo Transfer agendado!'
+                                    , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}` 
+                                    , link: '/v/viagem_-_reserva/' + saved.register.id
+                                });
+                            }
+                        }
+                    }
                 }
             }
         }
