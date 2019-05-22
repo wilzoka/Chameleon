@@ -1,6 +1,6 @@
 const lodash = require('lodash')
 	, moment = require('moment')
-	, fs = require('fs')
+	, fs = require('fs-extra')
 	;
 
 let application = {

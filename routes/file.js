@@ -2,7 +2,7 @@ const application = require('./application')
     , db = require('../models')
     , multer = require('multer')
     , mv = require('mv')
-    , fs = require('fs')
+    , fs = require('fs-extra')
     , lodash = require('lodash')
     , moment = require('moment')
     ;
@@ -29,35 +29,7 @@ let fileupload = multer({ storage: storage }).single('file');
 
 module.exports = function (app) {
 
-    app.get('/file/preview/:id', application.IsAuthenticated, function (req, res) {
-
-        db.getModel('file').findOne({ where: { id: req.params.id } }).then(file => {
-            if (file) {
-                let body = '';
-                if (file.mimetype.match(/image.*/)) {
-                    body = '<div class="text-center"><img src="/files/' + file.id + '.' + file.type + ' " style="max-width: 100%;"></div>';
-                } else if (file.mimetype == 'application/pdf') {
-                    body = '<iframe src="/file/download/' + file.id + '" style="width: 100%; height: 400px;"></iframe>';
-                } else {
-                    body = '<div class="text-center"><i class="fa fa-3x fa-eye-slash" aria-hidden="true"></i></div>';
-                }
-                return application.success(res, {
-                    modal: {
-                        id: 'modalpreview'
-                        , fullscreen: true
-                        , title: '<div class="col-sm-12" style="text-align: center;">' + file.filename + '</div>'
-                        , body: body
-                        , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/file/download/' + file.id + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                    }
-                });
-            } else {
-                return application.error(res, { msg: 'Arquivo não encontrado' });
-            }
-        });
-
-    });
-
-    app.get('/file/download/:id', application.IsAuthenticated, async (req, res) => {
+    app.get('/file/:id', application.IsAuthenticated, async (req, res) => {
         try {
             if (isNaN(req.params.id)) {
                 return res.send('Arquivo inválido');
@@ -66,7 +38,7 @@ module.exports = function (app) {
             if (!file) {
                 return res.send('Arquivo inválido');
             }
-            let filepath = __dirname + '/../files/' + file.id + '.' + file.type;
+            let filepath = `${__dirname}/../files/${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
                 let filestream = fs.createReadStream(filepath);
                 let attachment = 'attachment';
@@ -114,7 +86,7 @@ module.exports = function (app) {
                     , datetime: moment()
                     , iduser: req.user.id
                 });
-                let path = __dirname + '/../files/' + file.id + '.' + file.type;
+                let path = `${__dirname}/../files/${file.id}.${file.type}`;
                 mv(req.file.path, path, function (err) {
                     if (err) {
                         fs.unlink(req.file.path);

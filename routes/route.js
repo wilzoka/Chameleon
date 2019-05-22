@@ -1,6 +1,6 @@
 const application = require('./application')
     , db = require('../models')
-    , fs = require('fs')
+    , fs = require('fs-extra')
     ;
 
 let routes = {}

@@ -1,6 +1,6 @@
 const db = require('../models')
     , moment = require('moment')
-    , fs = require('fs')
+    , fs = require('fs-extra')
     , schedule = require('../routes/schedule')
     , messenger = require('../routes/messenger')
     , lodash = require('lodash')
@@ -770,16 +770,10 @@ let platform = {
                 if (obj.ids.length != 1) {
                     return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                 }
-                let file = await platform.report.f_generate(obj.ids[0], {});
-                if (file) {
+                let filename = await platform.report.f_generate(obj.ids[0], {});
+                if (filename) {
                     return application.success(obj.res, {
-                        modal: {
-                            id: 'modalevt'
-                            , fullscreen: true
-                            , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                            , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                            , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                        }
+                        openurl: '/download/' + filename
                     });
                 } else {
                     return application.error(obj.res, { msg: 'ops' });
@@ -2085,13 +2079,7 @@ let platform = {
                     doc.end();
                     stream.on('finish', function () {
                         return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                            }
+                            openurl: '/download/' + filename
                         });
                     });
                 } catch (err) {

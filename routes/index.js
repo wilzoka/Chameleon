@@ -1,5 +1,5 @@
 const application = require('./application')
-	, fs = require('fs')
+	, fs = require('fs-extra')
 	;
 
 module.exports = function (app) {

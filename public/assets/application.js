@@ -385,14 +385,14 @@ var application = {
                         });
                         $hidden.val(JSON.stringify(value));
                         $(file.previewElement).attr('data-id', response.data.id);
-                        $(file.previewElement).find('a').attr('href', '/file/download/' + response.data.id);
+                        $(file.previewElement).find('a').attr('href', '/file/' + response.data.id);
                     }
                     , parallelUploads: 1
                     , timeout: null
                 });
                 dzs[$(this).attr('data-name')].on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
-                    $(file.previewElement).find('a').attr('href', '/file/download/' + file.id);
+                    $(file.previewElement).find('a').attr('href', '/file/' + file.id);
                 });
                 dzs[$(this).attr('data-name')].on('removedfile', function (file) {
                     if (file.accepted) {

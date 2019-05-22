@@ -1,7 +1,7 @@
 const application = require('../../routes/application')
     , db = require('../../models')
     , moment = require('moment')
-    , fs = require('fs')
+    , fs = require('fs-extra')
     , lodash = require('lodash')
     , schedule = require('node-schedule')
     ;
@@ -1628,16 +1628,10 @@ let main = {
                             </table>
                             `;
 
-                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                         return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                            }
-                        });
+                                openurl: '/download/' + filename
+                            });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -2724,13 +2718,7 @@ let main = {
                         doc.end();
                         stream.on('finish', function () {
                             return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevt'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
+                                openurl: '/download/' + filename
                             });
                         });
                     } catch (err) {
@@ -3626,13 +3614,7 @@ let main = {
                                     doc.end();
                                     stream.on('finish', function () {
                                         return application.success(obj.res, {
-                                            modal: {
-                                                id: 'modalevt'
-                                                , fullscreen: true
-                                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                                , body: '<iframe src="/download/' + filename + '" style="width: 100%; height: 700px;"></iframe>'
-                                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + filename + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                            }
+                                            openurl: '/download/' + filename
                                         });
                                     });
                                 } catch (error) {
@@ -3892,15 +3874,9 @@ let main = {
                             </table>
                             `;
 
-                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                             return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevt'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
+                                openurl: '/download/' + filename
                             });
                         }
                     } catch (err) {
@@ -4426,15 +4402,9 @@ let main = {
                             </table>
                             `;
 
-                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                             return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevt'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
+                                openurl: '/download/' + filename
                             });
                         }
 
@@ -5376,15 +5346,9 @@ let main = {
                             report.__table += `
                             </table>
                             `;
-                            let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                            let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                             return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevt'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
+                                openurl: '/download/' + filename
                             });
                         }
                     } catch (err) {
@@ -7829,15 +7793,9 @@ let main = {
                         </table>
                         `;
 
-                        let file = await main.platform.report.f_generate('PCP - Resumo Produção OP', report);
+                        let filename = await main.platform.report.f_generate('PCP - Resumo Produção OP', report);
                         return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                            }
+                            openurl: '/download/' + filename
                         });
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -9013,15 +8971,9 @@ let main = {
                         </table>
                         `;
 
-                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                         return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                            }
+                            openurl: '/download/' + filename
                         });
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -9624,15 +9576,9 @@ let main = {
                         </table>
                     `;
 
-                    let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
+                    let filename = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
                     return application.success(obj.res, {
-                        modal: {
-                            id: 'modalevt'
-                            , fullscreen: true
-                            , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                            , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                            , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                        }
+                        openurl: '/download/' + filename
                     });
                 } catch (err) {
                     return application.fatal(obj.res, err);
@@ -9814,15 +9760,9 @@ let main = {
                         </table>
                         `;
 
-                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                         return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                            }
+                            openurl: '/download/' + filename
                         });
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -9905,15 +9845,9 @@ let main = {
                             report.__table += `</table>`;
                         }
 
-                        let file = await main.platform.report.f_generate('Geral - Listagem', report);
+                        let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                         return application.success(obj.res, {
-                            modal: {
-                                id: 'modalevt'
-                                , fullscreen: true
-                                , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                , body: '<iframe src="/download/' + file + '" style="width: 100%; height: 700px;"></iframe>'
-                                , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                            }
+                            openurl: '/download/' + filename
                         });
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -10922,13 +10856,7 @@ let main = {
                         let file = await main.plastrela.venda.proposta.f_geraEspelho(obj.ids[0]);
                         if (file.success) {
                             return application.success(obj.res, {
-                                modal: {
-                                    id: 'modalevt'
-                                    , fullscreen: true
-                                    , title: '<div class="col-sm-12" style="text-align: center;">Visualização</div>'
-                                    , body: '<iframe src="/download/' + file.file + '" style="width: 100%; height: 700px;"></iframe>'
-                                    , footer: '<button type="button" class="btn btn-default" style="margin-right: 5px;" data-dismiss="modal">Voltar</button><a href="/download/' + file.file + '" target="_blank"><button type="button" class="btn btn-primary">Download do Arquivo</button></a>'
-                                }
+                                openurl: '/download/' + file.file
                             });
                         } else {
                             return application.error(obj.res, {

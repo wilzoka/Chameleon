@@ -2,7 +2,7 @@ const application = require('./application')
     , db = require('../models')
     , lodash = require('lodash')
     , moment = require('moment')
-    , fs = require('fs')
+    , fs = require('fs-extra')
     , escape = require('escape-html')
     ;
 

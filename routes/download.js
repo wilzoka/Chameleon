@@ -1,5 +1,5 @@
 const application = require('./application')
-    , fs = require('fs')
+    , fs = require('fs-extra')
     ;
 
 module.exports = function (app) {
@@ -20,6 +20,7 @@ module.exports = function (app) {
                     res.download(filepath);
                     break;
             }
+            fs.unlinkSync(filepath);
         } else {
             res.send('Arquivo inexistente');
         }
