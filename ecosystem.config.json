@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "name": "app1",
+      "script": "./server.js",
+      "watch": true,
+      "env": {
+        "NODE_ENV": "production",
+        "NODE_APPNAME": "app1",
+        "NODE_PORT": 8080,
+        "NODE_DBC": "U2FsdGVkX1/L7iF3Wm7PkOxGMuvAaZro90hf0ZIhj6TU4CC5e+yxo7GFoRkeL/Zt+xwxiMUfQAt9xQOv1qImEw=="
+      }
+    }
+  ]
+}

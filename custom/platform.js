@@ -6,6 +6,7 @@ const db = require('../models')
     , lodash = require('lodash')
     , application = require('../routes/application')
     , pdf = require('html-pdf')
+    , Cyjs = require("crypto-js")
     ;
 
 let platform = {
@@ -13,7 +14,7 @@ let platform = {
         onsave: async (obj, next) => {
             try {
                 let saved = await next(obj);
-                if (saved.success) {
+                if (saved.success) { 
                     if (saved.register.favicon) {
                         const favicon = JSON.parse(saved.register.favicon)[0];
                         application.Handlebars.registerPartial('parts/favicon', '/files/' + favicon.id + '.' + favicon.type);
@@ -546,6 +547,46 @@ let platform = {
                 return application.error(obj.res, { msg: err });
             }
         }
+        , e_generateConnection: async function (obj) {
+            try {
+                if (obj.req.method == 'GET') {
+                    let body = '';
+                    body += '<div class="row no-margin">';
+                    body += application.components.html.text({
+                        width: '12'
+                        , name: 'uri'
+                        , label: 'URI'
+                        , value: 'postgres://postgres:postgres@127.0.0.1:5432/db'
+                    });
+                    body += '</div>';
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , id: 'modalevt'
+                            , action: '/event/' + obj.event.id
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                        }
+                    });
+                } else {
+                    let body = '';
+                    body += '<div class="col-md-12" style="word-break: break-all;">';
+                    body += Cyjs.AES.encrypt(obj.req.body.uri || '', application.sk).toString();
+                    body += '</div>';
+                    return application.success(obj.res, {
+                        modal: {
+                            id: 'modalevt2'
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
+                        }
+                    });
+                }
+            } catch (err) {
+                return application.error(obj.res, { msg: err });
+            }
+        }
         , findAll: function (modelname, options) {
             return new Promise((resolve, reject) => {
                 const fixResults = function (registers, modelattributes) {
@@ -655,12 +696,8 @@ let platform = {
                     , read: false
                 }).then(notification => {
                     notification = notification.dataValues;
-                    notification.duration = application.functions.duration(moment().diff(moment(notification.datetime), 'minutes'))
-                    process.send({
-                        pid: process.pid
-                        , type: 'socket:notification'
-                        , data: notification
-                    });
+                    notification.duration = application.functions.duration(moment().diff(moment(notification.datetime), 'minutes'));
+                    io.to(notification.iduser).emit('notification', notification);
                 });
             }
         }
@@ -672,13 +709,7 @@ let platform = {
                 }
                 notification.read = true;
                 notification.save();
-                process.send({
-                    pid: process.pid
-                    , type: 'socket:notification:read'
-                    , data: {
-                        iduser: obj.req.user.id
-                    }
-                });
+                io.to(notification.iduser).emit('notification:read');
                 return application.success(obj.res, {});
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -687,13 +718,7 @@ let platform = {
         , js_readAll: async function (obj) {
             try {
                 await db.getModel('notification').update({ read: true }, { where: { iduser: obj.req.user.id } });
-                process.send({
-                    pid: process.pid
-                    , type: 'socket:notification:read'
-                    , data: {
-                        iduser: obj.req.user.id
-                    }
-                });
+                io.to(obj.req.user.id).emit('notification:read');
                 return application.success(obj.res, {});
             } catch (err) {
                 return application.fatal(obj.res, err);

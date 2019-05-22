@@ -520,6 +520,7 @@ let application = {
 			}
 		}
 	}
+	, sk: '$H!T'
 	, success: function (res, obj) {
 		if (!res.headersSent) {
 			res.json(lodash.extend({ success: true }, obj));
