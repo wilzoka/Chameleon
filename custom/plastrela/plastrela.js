@@ -9643,6 +9643,10 @@ let main = {
             curriculo: {
                 onsave: async function (obj, next) {
                     try {
+                        if (obj.register.id == 0) {
+                            obj.register.data_inclusao = moment();
+                        }
+
                         let invalidfields = [];
 
                         if (obj.register['possui_filhos'] == 'Sim' && !obj.register['quantidade_filhos']) {
