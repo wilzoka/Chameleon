@@ -13,6 +13,7 @@
     "escape-html": "1.0.3",
     "express": "4.16.4",
     "express-session": "1.16.1",
+    "fs-extra": "^8.0.1",
     "handlebars": "4.1.2",
     "html-pdf": "^2.2.0",
     "jquery": "^3.3.1",

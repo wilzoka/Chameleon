@@ -1,6 +1,7 @@
 const application = require('../../routes/application')
     , db = require('../../models')
     , moment = require('moment')
+    , fs = require('fs-extra')
     ;
 
 let main = {
@@ -9,14 +10,9 @@ let main = {
         evento: {
             onsave: async function (obj, next) {
                 try {
-                    if (obj.register.id == 0) {
-                        let saved = await next(obj);
-                        let evento = await db.getModel("eve_evento").findOne({ where: { id: saved.register.id } });
-                        main.platform.erp.evento.f_calcularPrazosTarefas(evento);
-                    } else if (obj.register.id > 0) {
-                        let saved = await next(obj);
-                    } else {
-                        return application.error(obj.res, { msg: 'Não foram encontradas tarefas para esse tipo de evento.' });
+                    let saved = await next(obj);
+                    if (saved.register._isInsert) {
+                        main.platform.erp.evento.f_calcularPrazosTarefas(saved.register);
                     }
                 } catch (error) {
                     return application.fatal(obj.res, error);
@@ -77,6 +73,51 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
+            , e_publicarFotos: async function (obj) {
+                try {
+                    let eventos = await db.getModel('eve_evento').findAll({ where: { publicar: true } });
+                    for (let i = 0; i < eventos.length; i++) {
+                        let fotocapa = JSON.parse(eventos[i].fotocapa || '[]');
+                        let fotopublicar = JSON.parse(eventos[i].fotopublicar || '[]');
+                        let fm = fotocapa.concat(fotopublicar);
+                        for (let z = 0; z < fm.length; z++) {
+                            fs.copy(`${__dirname}/../../files/${fm[z].id}.${fm[z].type}`, `${__dirname}/../../public/files/site/${fm[z].id}.${fm[z].type}`, (err) => {
+                                if (err) console.error(err);
+                            });
+                        }
+                    }
+                    return application.success(obj.res, { msg: application.message.success });
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
+    }
+    , api: async function (obj) {
+        try {
+            if (obj.req.params.function == 'getEvents') {
+                let eventos = await db.getModel('eve_evento').findAll({ where: { publicar: true } });
+                let data = [];
+                for (let i = 0; i < eventos.length; i++) {
+                    let fotocapa = JSON.parse(eventos[i].fotocapa || '[{}]')[0];
+                    let fotopublicar = JSON.parse(eventos[i].fotopublicar || '[]');
+                    let fp = [];
+                    for (let z = 0; z < fotopublicar.length; z++) {
+                        fp.push(`${fotopublicar[z].id}.${fotopublicar[z].type}`)
+                    }
+                    data.push({
+                        id: eventos[i].id
+                        , description: eventos[i].descricao
+                        , capa: `${fotocapa.id}.${fotocapa.type}`
+                        , fotos: fp
+                    });
+                }
+                return application.success(obj.res, { data: data });
+            } else {
+                return application.error(obj.res, {});
+            }
+        } catch (err) {
+            return application.fatal(obj.res, err);
         }
     }
 }
