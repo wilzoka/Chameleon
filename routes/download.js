@@ -1,5 +1,6 @@
 const application = require('./application')
     , fs = require('fs-extra')
+    , mime = require('mime-types')
     ;
 
 module.exports = function (app) {
@@ -8,19 +9,15 @@ module.exports = function (app) {
         let filename = req.params.filename;
         let fsplited = filename.split('.');
         let type = fsplited[fsplited.length - 1];
-        let filepath = __dirname + '/../tmp/' + filename;
+        let filepath = `${__dirname}/../tmp/${filename}`;
         if (fs.existsSync(filepath)) {
-            switch (type) {
-                case 'pdf':
-                    let file = fs.readFileSync(filepath);
-                    res.setHeader('Content-type', 'application/pdf');
-                    res.send(file);
-                    break;
-                default:
-                    res.download(filepath);
-                    break;
-            }
-            fs.unlinkSync(filepath);
+            let filestream = fs.createReadStream(filepath);
+            res.setHeader('Content-type', mime.lookup(type));
+            res.setHeader('Content-Disposition', `;filename=${filename}`);
+            let stream = filestream.pipe(res);
+            stream.on('finish', function () {
+                fs.unlink(filepath);
+            });
         } else {
             res.send('Arquivo inexistente');
         }
