@@ -3,7 +3,7 @@
     {
       "name": "app1",
       "script": "./server.js",
-      "watch": true,
+      "watch": false,
       "env": {
         "NODE_ENV": "production",
         "NODE_APPNAME": "app1",
