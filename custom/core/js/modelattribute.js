@@ -24,6 +24,7 @@ $(function () {
                         acceptedfiles: ''
                         , maxfiles: -1
                         , sizeTotal: -1
+                        , public: false
                     };
                     break;
                 case 'parent':
