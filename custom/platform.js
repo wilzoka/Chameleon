@@ -15,19 +15,20 @@ let platform = {
             try {
                 let saved = await next(obj);
                 if (saved.success) {
-                    if (saved.register.favicon) {
-                        const favicon = JSON.parse(saved.register.favicon)[0];
-                        application.Handlebars.registerPartial('parts/favicon', `/file/${process.env.NODE_APPNAME}/${favicon.id}.${favicon.type}`);
-                    } else {
-                        application.Handlebars.registerPartial('parts/favicon', '/public/images/favicon.ico');
+                    const favicon = saved.register.favicon ? JSON.parse(saved.register.favicon)[0] : null;
+                    application.Handlebars.registerPartial('parts/favicon', favicon ? `/file/${favicon.id}.${favicon.type}` : '/public/images/favicon.ico');
+                    const loginimage = saved.register.loginimage ? JSON.parse(saved.register.loginimage)[0] : null;
+                    application.Handlebars.registerPartial('parts/loginimage', loginimage ? `<img src="/file/${loginimage.id}" style="width: 100%; margin-bottom: 10px;">` : '');
+                    const loginbackground = saved.register.loginbackground ? JSON.parse(saved.register.loginbackground)[0] : null;
+                    let loginbackgroundstr = '';
+                    if (loginbackground) {
+                        if (['png', 'jpg', 'jpeg'].indexOf(loginbackground.type) >= 0) {
+                            loginbackgroundstr = `<img class="fullbg" src="/file/${loginbackground.id}">`;
+                        } else if (['mp4'].indexOf(loginbackground.type) >= 0) {
+                            loginbackgroundstr = `<video autoplay="" muted="" loop="" class="fullbg"><source src="/file/${loginbackground.id}" type="video/mp4"></video>`;
+                        }
                     }
-
-                    if (saved.register.loginimage) {
-                        const loginimage = JSON.parse(saved.register.loginimage)[0];
-                        application.Handlebars.registerPartial('parts/loginimage', `<img src="/file/${loginimage.id}.${loginimage.type}" alt="" style="width: 100%; margin-bottom: 10px;">`);
-                    } else {
-                        application.Handlebars.registerPartial('parts/loginimage', '');
-                    }
+                    application.Handlebars.registerPartial('parts/loginbackground', loginbackgroundstr);
                 }
             } catch (err) {
                 return application.fatal(obj.res, err);
