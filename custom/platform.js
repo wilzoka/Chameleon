@@ -16,7 +16,7 @@ let platform = {
                 let saved = await next(obj);
                 if (saved.success) {
                     const favicon = saved.register.favicon ? JSON.parse(saved.register.favicon)[0] : null;
-                    application.Handlebars.registerPartial('parts/favicon', favicon ? `/file/${favicon.id}.${favicon.type}` : '/public/images/favicon.ico');
+                    application.Handlebars.registerPartial('parts/favicon', favicon ? `/file/${favicon.id}` : '/public/images/favicon.ico');
                     const loginimage = saved.register.loginimage ? JSON.parse(saved.register.loginimage)[0] : null;
                     application.Handlebars.registerPartial('parts/loginimage', loginimage ? `<img src="/file/${loginimage.id}" style="width: 100%; margin-bottom: 10px;">` : '');
                     const loginbackground = saved.register.loginbackground ? JSON.parse(saved.register.loginbackground)[0] : null;

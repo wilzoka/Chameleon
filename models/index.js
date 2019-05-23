@@ -182,7 +182,7 @@ sequelize.query('select * from config', { type: Sequelize.QueryTypes.SELECT }).t
     if (config) {
         require('../custom/' + config[0].customfile);
         const favicon = config[0].favicon ? JSON.parse(config[0].favicon)[0] : null;
-        application.Handlebars.registerPartial('parts/favicon', favicon ? `/file/${favicon.id}.${favicon.type}` : '/public/images/favicon.ico');
+        application.Handlebars.registerPartial('parts/favicon', favicon ? `/file/${favicon.id}` : '/public/images/favicon.ico');
         const loginimage = config[0].loginimage ? JSON.parse(config[0].loginimage)[0] : null;
         application.Handlebars.registerPartial('parts/loginimage', loginimage ? `<img src="/file/${loginimage.id}" style="width: 100%; margin-bottom: 10px;">` : '');
         const loginbackground = config[0].loginbackground ? JSON.parse(config[0].loginbackground)[0] : null;
