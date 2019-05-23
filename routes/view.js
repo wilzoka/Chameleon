@@ -542,17 +542,14 @@ const validate = function (obj) {
 }
 
 const boundFiles = function (obj) {
-    let idsToBound = [];
     for (let i = 0; i < obj.modelattributes.length; i++) {
         if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined && obj.register[obj.modelattributes[i].name] != '') {
             let j = JSON.parse(obj.register[obj.modelattributes[i].name]);
+            let typeadd = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
             for (let z = 0; z < j.length; z++) {
-                idsToBound.push(j[z].id);
+                db.getModel('file').update({ bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id, public: typeadd.public == true ? true : false }, { where: { id: j[z].id } });
             }
         }
-    }
-    if (idsToBound.length > 0) {
-        db.getModel('file').update({ bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id }, { where: { id: { $in: idsToBound } } });
     }
 }
 
@@ -564,14 +561,14 @@ const save = function (obj) {
                 if (obj.modelattributes[i].type == 'file' && obj.register._changed[obj.modelattributes[i].name]) {
                     let previousIds = [];
                     let currentIds = [];
-                    let j = {};
+                    let j = [];
                     // previous
-                    j = obj.register._previousDataValues[obj.modelattributes[i].name] ? JSON.parse(obj.register._previousDataValues[obj.modelattributes[i].name]) : [];
+                    j = JSON.parse(obj.register._previousDataValues[obj.modelattributes[i].name] || '[]');
                     for (let z = 0; z < j.length; z++) {
                         previousIds.push(j[z].id);
                     }
                     // current
-                    j = obj.register[obj.modelattributes[i].name] ? JSON.parse(obj.register[obj.modelattributes[i].name]) : [];
+                    j = JSON.parse(obj.register[obj.modelattributes[i].name] || '[]');
                     for (let z = 0; z < j.length; z++) {
                         currentIds.push(j[z].id);
                     }
@@ -581,9 +578,7 @@ const save = function (obj) {
                             z--;
                         }
                     }
-                    if (previousIds.length > 0) {
-                        db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
-                    }
+                    db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
                 }
             }
         }

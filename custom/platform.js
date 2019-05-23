@@ -17,14 +17,14 @@ let platform = {
                 if (saved.success) {
                     if (saved.register.favicon) {
                         const favicon = JSON.parse(saved.register.favicon)[0];
-                        application.Handlebars.registerPartial('parts/favicon', '/files/' + favicon.id + '.' + favicon.type);
+                        application.Handlebars.registerPartial('parts/favicon', `/file/${process.env.NODE_APPNAME}/${favicon.id}.${favicon.type}`);
                     } else {
                         application.Handlebars.registerPartial('parts/favicon', '/public/images/favicon.ico');
                     }
 
                     if (saved.register.loginimage) {
                         const loginimage = JSON.parse(saved.register.loginimage)[0];
-                        application.Handlebars.registerPartial('parts/loginimage', `<img src="/files/${loginimage.id}.${loginimage.type}" alt="" style="width: 100%; margin-bottom: 10px;">`);
+                        application.Handlebars.registerPartial('parts/loginimage', `<img src="/file/${loginimage.id}.${loginimage.type}" alt="" style="width: 100%; margin-bottom: 10px;">`);
                     } else {
                         application.Handlebars.registerPartial('parts/loginimage', '');
                     }
@@ -103,7 +103,7 @@ let platform = {
                 let signature = JSON.parse(config.emailsignature);
                 mailOptions.attachments.push({
                     filename: signature[0].filename,
-                    path: __dirname + `/../files/${signature[0].id}.${signature[0].type}`,
+                    path: `${__dirname}/../files/${process.env.NODE_APPNAME}/${signature[0].id}.${signature[0].type}`,
                     cid: 'unique@signature'
                 });
             }
@@ -152,7 +152,7 @@ let platform = {
                     bounded = false`
                     , { type: db.Sequelize.QueryTypes.SELECT }).then(sql => {
                         for (let i = 0; i < sql.length; i++) {
-                            let file = __dirname + '/../files/' + sql[i].id + '.' + sql[i].type;
+                            let file = `${__dirname}/../files/${process.env.NODE_APPNAME}/${sql[i].id}.${sql[i].type}`;
                             fs.unlink(file, (err) => { });
                             db.getModel('file').destroy({ where: { id: sql[i].id } });
                         }
@@ -258,7 +258,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let menus = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
+                    let menus = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
                     console.log('----------SYNC MENUS----------');
                     for (let i = 0; i < menus.length; i++) {
                         console.log('MENU ' + menus[i].tree);
@@ -496,7 +496,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let models = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
+                    let models = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
                     console.log('----------SYNC MODELS---------');
                     for (let i = 0; i < models.length; i++) {
                         console.log('MODEL ' + models[i].name);
@@ -799,7 +799,7 @@ let platform = {
                             replaces.__reportimage = '';
                             if (config.reportimage) {
                                 let reportimage = JSON.parse(config.reportimage);
-                                replaces.__reportimage = __dirname + '/../files/' + reportimage[0].id + '.' + reportimage[0].type;
+                                replaces.__reportimage = `${__dirname}/../files/${process.env.NODE_APPNAME}/${reportimage[0].id}.${reportimage[0].type}`;
                             }
                             replaces.__datetime = moment().format(application.formatters.fe.datetime_format);
                             let html = `
@@ -923,7 +923,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let routes = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
+                    let routes = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
                     console.log('----------SYNC ROUTES---------');
                     for (let i = 0; i < routes.length; i++) {
                         console.log('ROUTE ' + routes[i].description);
@@ -1235,7 +1235,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let views = JSON.parse(fs.readFileSync(__dirname + '/../files/' + file.id + '.' + file.type, 'utf8'));
+                    let views = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
                     console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
                         console.log('VIEW ' + views[i].name);
@@ -2052,7 +2052,7 @@ let platform = {
                                     heights: 60
                                     , widths: [150, '*', 80]
                                     , body: [[
-                                        fs.existsSync(__dirname + '/../files/' + image.id + '.' + image.type) ? { image: __dirname + '/../files/' + image.id + '.' + image.type, fit: [150, 100], alignment: 'center', border: [true, true, false, true] } : { text: '', border: [true, true, false, true] }
+                                        fs.existsSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`) ? { image: `${__dirname}/../files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`, fit: [150, 100], alignment: 'center', border: [true, true, false, true] } : { text: '', border: [true, true, false, true] }
                                         , { text: parameters.title, alignment: 'center', border: [false, true, false, true], bold: true }
                                         , { text: '\n\n' + moment().format(application.formatters.fe.date_format) + '\n' + moment().format('HH:mm'), alignment: 'center', border: [false, true, true, true], fontSize: 9 }
                                     ]]

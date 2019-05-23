@@ -73,36 +73,38 @@ const findView = function (url) {
 
 module.exports = function (app) {
 
-    app.get('/file/:id', application.IsAuthenticated, async (req, res) => {
+    app.get('/file/:id', async (req, res) => {
         try {
             if (isNaN(req.params.id)) {
                 return res.send('Arquivo inválido');
-            }
-            let viewparam = req.query.view ? req.query.view.split('/') : [];
-            if (viewparam.length != 4) {
-                return application.forbidden(res);
-            }
-            let view = await findView(viewparam[2]);
-            if (!view) {
-                return application.forbidden(res);
-            }
-            const permission = await hasPermission(req.user.id, view.id);
-            if (!permission.visible) {
-                return application.forbidden(res);
-            }
-            if (view.wherefixed) {
-                let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
-                let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: viewparam[3], $col: db.Sequelize.literal(wherefixed) } });
-                if (exists <= 0) {
-                    return application.forbidden(res);
-                }
             }
             let file = await db.getModel('file').findOne({ where: { id: req.params.id } });
             if (!file) {
                 return res.send('Arquivo inválido');
             }
-            if (file.idmodel != view.idmodel) {
-                return application.forbidden(res);
+            if (!file.public) {
+                let viewparam = req.query.view ? req.query.view.split('/') : [];
+                if (viewparam.length != 4) {
+                    return application.forbidden(res);
+                }
+                let view = await findView(viewparam[2]);
+                if (!view) {
+                    return application.forbidden(res);
+                }
+                const permission = await hasPermission(req.user.id, view.id);
+                if (!permission.visible) {
+                    return application.forbidden(res);
+                }
+                if (view.wherefixed) {
+                    let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
+                    let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: viewparam[3], $col: db.Sequelize.literal(wherefixed) } });
+                    if (exists <= 0) {
+                        return application.forbidden(res);
+                    }
+                }
+                if (file.idmodel != view.idmodel) {
+                    return application.forbidden(res);
+                }
             }
             let filepath = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {

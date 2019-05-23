@@ -29,7 +29,7 @@ app.use(compression());
 app.use(cookieParser());
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '5mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 100000 }));
+app.use(bodyParser.urlencoded({ limit: '5mb', extended: true, parameterLimit: 10000 }));
 app.use(passport.initialize());
 app.use(passport.session());
 //Socket
@@ -38,9 +38,6 @@ io = require('socket.io')(http).use(function (socket, next) {
 });
 //Static Content
 app.use('/public', express.static(__dirname + '/public', {
-    maxAge: 3600000
-}));
-app.use('/files', express.static(__dirname + '/files', {
     maxAge: 3600000
 }));
 //Routes
