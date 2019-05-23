@@ -144,7 +144,7 @@ module.exports = function (app) {
                 let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
                 mv(req.file.path, path, function (err) {
                     if (err) {
-                        fs.unlink(req.file.path);
+                        fs.unlinkSync(req.file.path);
                         return application.fatal(res, err);
                     }
                     return res.json({ success: true, data: file });

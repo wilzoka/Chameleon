@@ -16,7 +16,7 @@ module.exports = function (app) {
             res.setHeader('Content-Disposition', `;filename=${filename}`);
             let stream = filestream.pipe(res);
             stream.on('finish', function () {
-                fs.unlink(filepath);
+                fs.unlinkSync(filepath);
             });
         } else {
             res.send('Arquivo inexistente');
