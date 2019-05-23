@@ -83,7 +83,7 @@ module.exports = function (app) {
                 return res.send('Arquivo inválido');
             }
             if (!file.public) {
-                if (!req.IsAuthenticated()) {
+                if (!req.isAuthenticated()) {
                     return application.forbidden(res);
                 }
                 let viewparam = req.query.view ? req.query.view.split('/') : [];
