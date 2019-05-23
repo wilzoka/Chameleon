@@ -255,6 +255,24 @@ let application = {
 			}
 		}
 	}
+	, config: {
+		setPartials: function (config) {
+			const favicon = config.favicon ? JSON.parse(config.favicon)[0] : null;
+			application.Handlebars.registerPartial('parts/favicon', favicon ? `/file/${favicon.id}` : '/public/images/favicon.ico');
+			const loginimage = config.loginimage ? JSON.parse(config.loginimage)[0] : null;
+			application.Handlebars.registerPartial('parts/loginimage', loginimage ? `<img src="/file/${loginimage.id}" style="width: 100%; margin-bottom: 10px;">` : '');
+			const loginbackground = config.loginbackground ? JSON.parse(config.loginbackground)[0] : null;
+			let loginbackgroundstr = '';
+			if (loginbackground) {
+				if (['png', 'jpg', 'jpeg'].indexOf(loginbackground.type) >= 0) {
+					loginbackgroundstr = `<img class="fullbg" src="/file/${loginbackground.id}">`;
+				} else if (['mp4'].indexOf(loginbackground.type) >= 0) {
+					loginbackgroundstr = `<video autoplay="" muted="" loop="" class="fullbg"><source src="/file/${loginbackground.id}" type="video/mp4"></video>`;
+				}
+			}
+			application.Handlebars.registerPartial('parts/loginbackground', loginbackgroundstr);
+		}
+	}
 	, error: function (res, json) {
 		if (!res.headersSent) {
 			res.json(lodash.extend({ success: false }, json));

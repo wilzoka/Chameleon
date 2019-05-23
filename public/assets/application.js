@@ -389,14 +389,14 @@ var application = {
                         $(file.previewElement).attr('data-id', response.data.id);
                         $(file.previewElement).find('.dz-dldiv').remove();
                         $(file.previewElement).find('.dz-deldiv').removeClass('col-xs-6').addClass('col-xs-12');
-                        $(file.previewElement).find('a').attr('href', '/file/' + response.data.id + '?view=' + window.location.pathname);
+                        $(file.previewElement).find('a').attr('href', '/file/' + response.data.id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent'));
                     }
                     , parallelUploads: 1
                     , timeout: null
                 });
                 dzs[$(this).attr('data-name')].on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
-                    $(file.previewElement).find('a').attr('href', file.id ? '/file/' + file.id + '?view=' + window.location.pathname : 'javascript:void(0)');
+                    $(file.previewElement).find('a').attr('href', file.id ? '/file/' + file.id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') : 'javascript:void(0)');
                 });
                 dzs[$(this).attr('data-name')].on('removedfile', function (file) {
                     if (file.accepted) {
@@ -421,7 +421,7 @@ var application = {
                     var mockFile = { id: obj[i].id, name: obj[i].filename, size: obj[i].size, type: obj[i].mimetype, accepted: true };
                     dzs[$(this).attr('data-name')].emit("addedfile", mockFile);
                     if (obj[i].mimetype.match(/image.*/)) {
-                        dzs[$(this).attr('data-name')].emit("thumbnail", mockFile, '/file/' + obj[i].id + '?view=' + window.location.pathname);
+                        dzs[$(this).attr('data-name')].emit("thumbnail", mockFile, '/file/' + obj[i].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent'));
                     }
                     dzs[$(this).attr('data-name')].emit("complete", mockFile);
                     dzs[$(this).attr('data-name')].files.push(mockFile);
