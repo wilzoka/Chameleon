@@ -9,7 +9,7 @@ const application = require('./application')
 
 let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, __dirname + '/../tmp/');
+        cb(null, `${__dirname}/../tmp/`);
     },
     filename: function (req, file, cb) {
         cb(null, file.originalname);
@@ -27,6 +27,50 @@ for (let i = 0; i < requiredFolders.length; i++) {
 }
 let fileupload = multer({ storage: storage }).single('file');
 
+const hasPermission = function (iduser, idview) {
+    return new Promise((resolve) => {
+        let permissionquery = 'select p.*, v.id as idview from permission p left join menu m on (p.idmenu = m.id) left join view v on (m.idview = v.id) where p.iduser = :iduser';
+        let getChilds = function (idview, subviews) {
+            let returnsubviews = [];
+            for (let i = 0; i < subviews.length; i++) {
+                if (idview == subviews[i].idview) {
+                    returnsubviews.push(subviews[i].idsubview);
+                    let moresubviews = getChilds(subviews[i].idsubview, subviews);
+                    for (let z = 0; z < moresubviews.length; z++) {
+                        returnsubviews.push(moresubviews[z]);
+                    }
+                }
+            }
+            return returnsubviews;
+        }
+        db.sequelize.query(permissionquery, {
+            replacements: { iduser: iduser }
+            , type: db.sequelize.QueryTypes.SELECT
+        }).then(permissions => {
+            for (let i = 0; i < permissions.length; i++) {
+                if (permissions[i].idview == idview) {
+                    return resolve(permissions[i]);
+                }
+            }
+            db.getModel('viewsubview').findAll({ raw: true }).then(subviews => {
+                for (let i = 0; i < permissions.length; i++) {
+                    permissions[i].childs = getChilds(permissions[i].idview, subviews);
+                    for (let x = 0; x < permissions[i].childs.length; x++) {
+                        if (permissions[i].childs[x] == idview) {
+                            return resolve(permissions[i]);
+                        }
+                    }
+                }
+                return resolve(false);
+            });
+        });
+    });
+}
+
+const findView = function (url) {
+    return db.getModel('view').findOne({ include: [{ all: true }], where: { url: url } });
+}
+
 module.exports = function (app) {
 
     app.get('/file/:id', application.IsAuthenticated, async (req, res) => {
@@ -34,29 +78,38 @@ module.exports = function (app) {
             if (isNaN(req.params.id)) {
                 return res.send('Arquivo inválido');
             }
-            let file = await db.getModel('file').findOne({ where: { id: req.params.id } })
+            let viewparam = req.query.view ? req.query.view.split('/') : [];
+            if (viewparam.length != 4) {
+                return application.forbidden(res);
+            }
+            let view = await findView(viewparam[2]);
+            if (!view) {
+                return application.forbidden(res);
+            }
+            const permission = await hasPermission(req.user.id, view.id);
+            if (!permission.visible) {
+                return application.forbidden(res);
+            }
+            if (view.wherefixed) {
+                let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
+                let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: viewparam[3], $col: db.Sequelize.literal(wherefixed) } });
+                if (exists <= 0) {
+                    return application.forbidden(res);
+                }
+            }
+            let file = await db.getModel('file').findOne({ where: { id: req.params.id } });
             if (!file) {
                 return res.send('Arquivo inválido');
+            }
+            if (file.idmodel != view.idmodel) {
+                return application.forbidden(res);
             }
             let filepath = `${__dirname}/../files/${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
                 let filestream = fs.createReadStream(filepath);
-                let attachment = 'attachment';
-                let previewTypes = [
-                    'application/pdf'
-                    , 'application/javascript'
-                    , 'application/json'
-                    , 'text/plain'
-                    , 'image/'
-                ];
-                for (let i = 0; i < previewTypes.length; i++) {
-                    if (file.mimetype.indexOf(previewTypes[i]) >= 0) {
-                        attachment = '';
-                        break;
-                    }
-                }
+                res.setHeader('Content-Length', file.size);
                 res.setHeader('Content-type', file.mimetype);
-                res.setHeader('Content-Disposition', attachment + ';filename=' + file.filename);
+                res.setHeader('Content-Disposition', `;filename=${file.filename}`);
                 return filestream.pipe(res);
             } else {
                 res.send('Arquivo inexistente');

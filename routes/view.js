@@ -248,11 +248,11 @@ const renderFile = function (viewfield, register) {
     let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
     let maxfiles = j.maxfiles || '';
     let acceptedfiles = j.acceptedfiles || '';
-    let sizeTotal = j.sizeTotal || '';
+    let sizetotal = j.sizeTotal || '';
 
     let label = viewfield.modelattribute.label;
-    if (sizeTotal) {
-        label += ' (' + sizeTotal + ' MB)';
+    if (sizetotal) {
+        label += ' (' + sizetotal + ' MB)';
     }
     if (viewfield.modelattribute.notnull) {
         label += '*';
@@ -264,6 +264,7 @@ const renderFile = function (viewfield, register) {
         , label: label
         , value: value
         , maxfiles: maxfiles
+        , sizetotal: sizetotal
         , acceptedfiles: acceptedfiles
     });
 }

@@ -229,7 +229,9 @@ table.dataTable tbody td.select-checkbox, table.dataTable tbody th.select-checkb
     min-height: 180px;
 }
 div.dz-image img {
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .dropzone .dz-preview .dz-success-mark, .dropzone .dz-preview .dz-error-mark {
     left: 59%;

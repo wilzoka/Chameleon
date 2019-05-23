@@ -3,7 +3,13 @@
     {
       "name": "app1",
       "script": "./server.js",
-      "watch": false,
+      "watch": true,
+      "ignore_watch": [
+        "files",
+        "node_modules",
+        "public/files",
+        "tmp"
+      ],
       "env": {
         "NODE_ENV": "production",
         "NODE_APPNAME": "app1",

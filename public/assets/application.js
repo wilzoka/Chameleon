@@ -360,8 +360,8 @@ var application = {
                 + '<div class="dz-error-mark">'
                 + '<i class="fa fa-3x fa-times"></i>'
                 + '</div>'
-                + '<div class="col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-xs btn-block" title="Download"><i class="fa fa-2x fa-download"></i></button></a></div>'
-                + '<div class="col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash-alt"></i></button></a></div>'
+                + '<div class="dz-dldiv col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-xs btn-block" title="Download"><i class="fa fa-2x fa-download"></i></button></a></div>'
+                + '<div class="dz-deldiv col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash-alt"></i></button></a></div>'
                 + '</div>';
             $obj.each(function () {
                 dzs[$(this).attr('data-name')] = new Dropzone(this, {
@@ -369,6 +369,7 @@ var application = {
                     , dictDefaultMessage: $(this).attr('data-message') || 'Clique aqui para adicionar arquivos'
                     , previewTemplate: previewTemplate
                     , maxFiles: $(this).attr('data-maxfiles') || null
+                    , maxFilesize: $(this).attr('data-sizetotal') || null
                     , acceptedFiles: $(this).attr('data-acceptedfiles') || null
                     , success: function (file, response) {
                         if (file.previewElement) {
@@ -385,14 +386,16 @@ var application = {
                         });
                         $hidden.val(JSON.stringify(value));
                         $(file.previewElement).attr('data-id', response.data.id);
-                        $(file.previewElement).find('a').attr('href', '/file/' + response.data.id);
+                        $(file.previewElement).find('.dz-dldiv').remove();
+                        $(file.previewElement).find('.dz-deldiv').removeClass('col-xs-6').addClass('col-xs-12');
+                        $(file.previewElement).find('a').attr('href', '/file/' + response.data.id + '?view=' + window.location.pathname);
                     }
                     , parallelUploads: 1
                     , timeout: null
                 });
                 dzs[$(this).attr('data-name')].on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
-                    $(file.previewElement).find('a').attr('href', '/file/' + file.id);
+                    $(file.previewElement).find('a').attr('href', file.id ? '/file/' + file.id + '?view=' + window.location.pathname : 'javascript:void(0)');
                 });
                 dzs[$(this).attr('data-name')].on('removedfile', function (file) {
                     if (file.accepted) {
