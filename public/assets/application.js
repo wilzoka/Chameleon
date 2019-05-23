@@ -131,7 +131,9 @@ var application = {
                         Cookies.set('sidebar-collapse', true);
                     }
                 }
-                window.dispatchEvent(new Event('resize'));
+                setTimeout(function () {
+                    window.dispatchEvent(new Event('resize'));
+                }, 500);
             });
             $(document).on('click', 'a.btnevent', function () {
                 var table = $(this).attr('data-table');
