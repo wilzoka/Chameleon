@@ -9,16 +9,16 @@ const application = require('./application')
 
 let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, `${__dirname}/../tmp/`);
+        cb(null, `${__dirname}/../tmp/${process.env.NODE_APPNAME}/`);
     },
     filename: function (req, file, cb) {
         cb(null, file.originalname);
     }
 });
-const basepath = __dirname + '/../';
+const basepath = __dirname + '/..';
 const requiredFolders = [
-    basepath + 'tmp'
-    , basepath + 'files'
+    `${basepath}/tmp/${process.env.NODE_APPNAME}`
+    , `${basepath}/files/${process.env.NODE_APPNAME}`
 ];
 for (let i = 0; i < requiredFolders.length; i++) {
     if (!fs.existsSync(requiredFolders[i])) {
@@ -104,7 +104,7 @@ module.exports = function (app) {
             if (file.idmodel != view.idmodel) {
                 return application.forbidden(res);
             }
-            let filepath = `${__dirname}/../files/${file.id}.${file.type}`;
+            let filepath = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
                 let filestream = fs.createReadStream(filepath);
                 res.setHeader('Content-Length', file.size);
@@ -139,7 +139,7 @@ module.exports = function (app) {
                     , datetime: moment()
                     , iduser: req.user.id
                 });
-                let path = `${__dirname}/../files/${file.id}.${file.type}`;
+                let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
                 mv(req.file.path, path, function (err) {
                     if (err) {
                         fs.unlink(req.file.path);

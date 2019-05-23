@@ -9,7 +9,7 @@ module.exports = function (app) {
         let filename = req.params.filename;
         let fsplited = filename.split('.');
         let type = fsplited[fsplited.length - 1];
-        let filepath = `${__dirname}/../tmp/${filename}`;
+        let filepath = `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`;
         if (fs.existsSync(filepath)) {
             let filestream = fs.createReadStream(filepath);
             res.setHeader('Content-type', mime.lookup(type));

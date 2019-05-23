@@ -352,7 +352,7 @@ let main = {
                                 for (let i = 0; i < j.length; i++) {
                                     attachments.push({
                                         filename: j[i].filename
-                                        , path: __dirname + `/../../files/${j[i].id}.${j[i].type}`
+                                        , path: `${__dirname}/../../files/${process.env.NODE_APPNAME}/${j[i].id}.${j[i].type}`
                                     });
                                 }
                             }
@@ -1015,11 +1015,11 @@ let main = {
                                         , idmodel: modelatv.id
                                     });
                                     var attach = email.attachments[i];
-                                    fs.writeFile(`${__dirname}/../../files/${file.id}.${type}`, attach.content, function (err) { });
+                                    fs.writeFile(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${file.id}.${type}`, attach.content, function (err) { });
                                     if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
                                         files.push(file);
                                     }
-                                    html = html.replace('cid:' + email.attachments[i].contentId, `/files/${file.id}.${type}`);
+                                    html = html.replace('cid:' + email.attachments[i].contentId, `/files/${process.env.NODE_APPNAME}/${file.id}.${type}`);
                                 }
                                 const jsdom = require("jsdom");
                                 const { JSDOM } = jsdom;
@@ -1124,11 +1124,11 @@ let main = {
                                     , idmodel: modelatv.id
                                 });
                                 var attach = email.attachments[i];
-                                fs.writeFile(`${__dirname}/../../files/${file.id}.${type}`, attach.content, function (err) { });
+                                fs.writeFile(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${file.id}.${type}`, attach.content, function (err) { });
                                 if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
                                     files.push(file);
                                 }
-                                html = html.replace('cid:' + email.attachments[i].contentId, `/files/${file.id}.${type}`);
+                                html = html.replace('cid:' + email.attachments[i].contentId, `/files/${process.env.NODE_APPNAME}/${file.id}.${type}`);
                             }
                             atividade.descricao = html;
                             if (files.length > 0) {
@@ -1395,7 +1395,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
                             let file = JSON.parse(obj.req.body.file)[0];
-                            let lines = fs.readFileSync(__dirname + '/../../files/' + file.id + '.' + file.type, 'ucs-2').split(/\n/);
+                            let lines = fs.readFileSync(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'ucs-2').split(/\n/);
                             // Limpa softwares
                             let sql = await db.sequelize.query(`select vl.id from cad_vinculacaosoftware vl left join cad_software s on (vl.idsoftware = s.id) 
                             where vl.idequipamento = ${obj.req.body.id} and (s.so is null or s.so = false)`, { type: db.Sequelize.QueryTypes.SELECT });
@@ -1630,8 +1630,8 @@ let main = {
 
                         let filename = await main.platform.report.f_generate('Geral - Listagem', report);
                         return application.success(obj.res, {
-                                openurl: '/download/' + filename
-                            });
+                            openurl: '/download/' + filename
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -2151,7 +2151,7 @@ let main = {
                         let config = await db.getModel('config').findOne({ raw: true });
                         let image = JSON.parse(config.reportimage)[0];
                         let filename = process.hrtime()[1] + '.pdf';
-                        let stream = doc.pipe(fs.createWriteStream(__dirname + '/../../tmp/' + filename));
+                        let stream = doc.pipe(fs.createWriteStream(`${__dirname}/../../tmp/${process.env.NODE_APPNAME}/${filename}`));
 
                         let volumes = await db.getModel('est_volume').findAll({ where: { id: { $in: obj.ids } }, include: [{ all: true }], raw: true });
                         for (let i = 0; i < volumes.length; i++) {
@@ -2241,8 +2241,8 @@ let main = {
                                     .lineTo(25, 25) //bottom
                                     .stroke();
 
-                                if (fs.existsSync(__dirname + '/../../files/' + image.id + '.' + image.type)) {
-                                    doc.image(__dirname + '/../../files/' + image.id + '.' + image.type, 35, 33, { width: 20 });
+                                if (fs.existsSync(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`)) {
+                                    doc.image(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`, 35, 33, { width: 20 });
                                 }
 
                                 doc.moveTo(25, 60)
@@ -2635,8 +2635,8 @@ let main = {
                                 ;
 
                             // Title
-                            if (fs.existsSync('files/' + image.id + '.' + image.type)) {
-                                doc.image('files/' + image.id + '.' + image.type, 35, 467, { width: 50 });
+                            if (fs.existsSync(`files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`)) {
+                                doc.image(`files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`, 35, 467, { width: 50 });
                             }
 
                             doc.moveTo(25, 510)
@@ -3610,7 +3610,7 @@ let main = {
 
                                     let doc = printer.createPdfKitDocument(dd);
                                     let filename = process.hrtime()[1] + '.pdf';
-                                    let stream = doc.pipe(fs.createWriteStream(__dirname + '/../../tmp/' + filename));
+                                    let stream = doc.pipe(fs.createWriteStream(`${__dirname}/../../tmp/${process.env.NODE_APPNAME}/${filename}`));
                                     doc.end();
                                     stream.on('finish', function () {
                                         return application.success(obj.res, {
@@ -3951,7 +3951,7 @@ let main = {
                         });
                         let filename = process.hrtime()[1] + '.xls';
                         wb.Sheets['Sheet1'] = ws;
-                        XLSX.writeFile(wb, __dirname + '/../../tmp/' + filename);
+                        XLSX.writeFile(wb, `${__dirname}/../../tmp/${process.env.NODE_APPNAME}/${filename}`);
                         return application.success(obj.res, { openurl: '/download/' + filename });
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -10767,11 +10767,7 @@ let main = {
                                         to: [saved.register.users.email]
                                         , subject: `Proposta Número ${saved.register.id}`
                                         , html: `Segue em anexo o espelho da proposta.`
-                                        , attachments: [
-                                            {
-                                                path: __dirname + '/../../tmp/' + file.file
-                                            }
-                                        ]
+                                        , attachments: [{ path: `${__dirname}/../../tmp/${process.env.NODE_APPNAME}/${file.file}` }]
                                     })
                                 }
                             }

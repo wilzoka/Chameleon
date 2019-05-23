@@ -420,7 +420,7 @@ var application = {
                     var mockFile = { id: obj[i].id, name: obj[i].filename, size: obj[i].size, type: obj[i].mimetype, accepted: true };
                     dzs[$(this).attr('data-name')].emit("addedfile", mockFile);
                     if (obj[i].mimetype.match(/image.*/)) {
-                        dzs[$(this).attr('data-name')].emit("thumbnail", mockFile, '/files/' + obj[i].id + '.' + obj[i].type);
+                        dzs[$(this).attr('data-name')].emit("thumbnail", mockFile, '/file/' + obj[i].id + '?view=' + window.location.pathname);
                     }
                     dzs[$(this).attr('data-name')].emit("complete", mockFile);
                     dzs[$(this).attr('data-name')].files.push(mockFile);

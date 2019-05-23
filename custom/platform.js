@@ -14,7 +14,7 @@ let platform = {
         onsave: async (obj, next) => {
             try {
                 let saved = await next(obj);
-                if (saved.success) { 
+                if (saved.success) {
                     if (saved.register.favicon) {
                         const favicon = JSON.parse(saved.register.favicon)[0];
                         application.Handlebars.registerPartial('parts/favicon', '/files/' + favicon.id + '.' + favicon.type);
@@ -118,12 +118,12 @@ let platform = {
     , maintenance: {
         f_clearTemporaryFiles: function () {
             try {
-                fs.readdir(__dirname + '/../tmp', function (err, files) {
+                fs.readdir(`${__dirname}/../tmp/${process.env.NODE_APPNAME}`, function (err, files) {
                     if (err) {
                         return;
                     }
                     for (var i = 0; i < files.length; i++) {
-                        let file = __dirname + '/../tmp/' + files[i];
+                        let file = `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${files[i]}`;
                         fs.stat(file, function (err, stats) {
                             if (err) {
                                 return;
@@ -220,7 +220,7 @@ let platform = {
                     });
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -458,7 +458,7 @@ let platform = {
                     }
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -844,7 +844,7 @@ let platform = {
                             }
                             let filename = process.hrtime()[1] + '.pdf';
 
-                            pdf.create(html, options).toFile(__dirname + '/../tmp/' + filename, function (err, res) {
+                            pdf.create(html, options).toFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, function (err, res) {
                                 if (err) {
                                     return reject(err);
                                 }
@@ -885,7 +885,7 @@ let platform = {
                     });
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -1197,7 +1197,7 @@ let platform = {
                     }
                 }
                 let filename = process.hrtime()[1] + '.json';
-                fs.writeFile(__dirname + '/../tmp/' + filename, JSON.stringify(j), function (err) {
+                fs.writeFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, JSON.stringify(j), function (err) {
                     if (err) {
                         return application.error(obj.res, { msg: err });
                     }
@@ -1951,7 +1951,7 @@ let platform = {
 
                     let filename = process.hrtime()[1] + '.xls';
                     wb.Sheets['Sheet1'] = ws;
-                    XLSX.writeFile(wb, __dirname + '/../tmp/' + filename);
+                    XLSX.writeFile(wb, `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`);
 
                     return application.success(obj.res, { openurl: '/download/' + filename });
                 } catch (err) {
@@ -2075,7 +2075,7 @@ let platform = {
 
                     let doc = printer.createPdfKitDocument(dd);
                     let filename = process.hrtime()[1] + '.pdf';
-                    let stream = doc.pipe(fs.createWriteStream(__dirname + '/../tmp/' + filename));
+                    let stream = doc.pipe(fs.createWriteStream(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`));
                     doc.end();
                     stream.on('finish', function () {
                         return application.success(obj.res, {
