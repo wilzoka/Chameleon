@@ -1247,11 +1247,17 @@ let main = {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                         }
 
-                        let datahorafimnull = await db.getModel('adm_viagemhorario').findOne({ where: { idviagem: obj.data.id, datahorafim: null } });
-                        if (datahorafimnull) {
-                            datahorafimnull.datahorafim = application.formatters.be.datetime(obj.data.datahora);
-                            datahorafimnull.observacao = datahorafimnull.observacao ? datahorafimnull.observacao + ' | ' + obj.data.observacao : obj.data.observacao || null;
-                            await datahorafimnull.save({ iduser: obj.req.user.id });
+                        let registro = await db.getModel('adm_viagemhorario').findOne({ where: { idviagem: obj.data.id, datahorafim: null } });
+                        if (registro) {
+                            let datahoraini = moment(registro.datahoraini, application.formatters.be.datetime_format);
+                            let datahorafim = moment(obj.data.datahora, application.formatters.fe.datetime_format);
+                            if (datahorafim.diff(datahoraini, 'h') <= 10) {
+                                registro.datahorafim = application.formatters.be.datetime(obj.data.datahora);
+                                registro.observacao = registro.observacao ? registro.observacao + ' | ' + obj.data.observacao : obj.data.observacao || null;
+                                await registro.save({ iduser: obj.req.user.id });
+                            } else {
+                                return application.error(obj.res, { msg: "Tempo registrado é muito extenso. Possivelmente foram registrados horários incorretos. Favor verificar." });
+                            }
                         } else {
                             await db.getModel('adm_viagemhorario').create({
                                 iduser: obj.req.user.id,
