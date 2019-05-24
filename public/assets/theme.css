@@ -117,6 +117,10 @@ ul.dropdown-menu > li > a > i {
 .main-header .sidebar-toggle:before {
     content: "";
 }
+.treeview-menu > li > a > .fa, .treeview-menu > li > a > .far, .treeview-menu > li > a > .fas, .treeview-menu > li > a > .fal 
+, .sidebar-menu > li > a > .fa, .sidebar-menu > li > a > .far, .sidebar-menu > li > a > .fas, .sidebar-menu > li > a > .fal {
+    width: 20px;
+}
 
 /* Bootstrap */
 @media (min-width: 768px) {
