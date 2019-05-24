@@ -9640,7 +9640,7 @@ let main = {
                             let notificationDescription = `Un: ${saved.register.unidade_interesse} - ${saved.register.nomecompleto}`;
                             let param = await db.getModel('parameter').findOne({ where: { key: 'rh_curriculoNotificationSystemRS' } });
 
-                            if (saved.register.unidade_interesse = 'Estrela - RS') {                                
+                            if (saved.register.unidade_interesse = 'Estrela - RS') {
                                 if (param) {
                                     let notificationUsers = JSON.parse(param.value);
                                     main.platform.notification.create(notificationUsers, {
@@ -9649,14 +9649,13 @@ let main = {
                                         , link: '/v/curriculo/' + saved.register.id
                                     });
                                 }
-                            }
-                            if (saved.register.unidade_interesse = 'Aparecida do Taboado - MS') {
+                            } else {
                                 let notificationUsers = JSON.parse(param.value);
-                                    main.platform.notification.create(notificationUsers, {
-                                        title: 'Novo currículo cadastrado!'
-                                        , description: notificationDescription
-                                        , link: '/v/curriculo/' + saved.register.id
-                                    });
+                                main.platform.notification.create(notificationUsers, {
+                                    title: 'Novo currículo cadastrado!'
+                                    , description: notificationDescription
+                                    , link: '/v/curriculo/' + saved.register.id
+                                });
                                 let param2 = await db.getModel('parameter').findOne({ where: { key: 'rh_curriculoNotificationEmailMS' } });
                                 main.platform.mail.f_sendmail({
                                     to: JSON.parse(param2.value)
