@@ -446,7 +446,7 @@ let bi = {
         }
         , js_getCube: async function (obj) {
             try {
-                let cube = await db.getModel('bi_cube').find({ raw: true, where: { id: obj.data.idcube } });
+                let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
                 let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
                 let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
                 let data = {
@@ -459,7 +459,6 @@ let bi = {
                 for (let i = 0; i < measures.length; i++) {
                     data.measures.push(measures[i].sqlfield);
                 }
-
                 return application.success(obj.res, { data: data });
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -467,17 +466,14 @@ let bi = {
         }
         , js_getFilter: async function (obj) {
             try {
-                let cube = await db.getModel('bi_cube').find({ raw: true, where: { id: obj.data.idcube } });
-
+                let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
                 let sql = await db.sequelize.query(`
                 select distinct
                     "${obj.data.key}" as option
                 from
                     (${cube.sql}) as x
                 order by 1
-                `
-                    , { type: db.sequelize.QueryTypes.SELECT });
-
+                `, { type: db.sequelize.QueryTypes.SELECT });
                 let html = `<div class="row"><div class="col-md-12"><table id="tablefilter" class="table table-bordered table-hover dataTable no-footer" width="100%">
                 <thead>
                     <tr>
@@ -485,17 +481,13 @@ let bi = {
                         <td>${obj.data.key}</td>
                     </tr>
                 </thead>
-                <tbody>
-                `
+                <tbody>`;
                 for (let i = 0; i < sql.length; i++) {
                     html += `<tr>`;
-
                     html += `<td></td> <td>${sql[i].option}</td>`;
-
                     html += `</tr>`;
                 }
                 html += `</tbody></table></div></div>`;
-
                 return application.success(obj.res, { data: { html: html } });
             } catch (err) {
                 return application.fatal(obj.res, err);
