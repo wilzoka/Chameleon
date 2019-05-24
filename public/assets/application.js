@@ -949,7 +949,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-height: 100px;">';
+                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 100px;">';
                     } else if (j[0].type == 'pdf') {
                         return '<i class="fa fa-file-pdf-o"></i>';
                     } else {
@@ -963,7 +963,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-height: 100px;">';
+                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 100px;">';
                     } else {
                         return '';
                     }
@@ -975,7 +975,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-height: 150px;">';
+                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 150px;">';
                     } else {
                         return '';
                     }
@@ -987,7 +987,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/files/' + j[0].id + '.' + j[0].type + ' " style="max-height: 200px;">';
+                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 200px;">';
                     } else {
                         return '';
                     }
