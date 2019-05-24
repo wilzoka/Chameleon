@@ -9660,7 +9660,7 @@ let main = {
                                 let param2 = await db.getModel('parameter').findOne({ where: { key: 'rh_curriculoNotificationEmailMS' } });
                                 main.platform.mail.f_sendmail({
                                     to: JSON.parse(param2.value)
-                                    , subject: `Novo currículo cadastrado - notificationDescription`
+                                    , subject: `Novo currículo cadastrado - ${notificationDescription}`
                                     , html: `<a href="http://intranet.plastrela.com.br:8084/v/curriculo/${saved.register.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/curriculo</a>`
                                 });
                             }
