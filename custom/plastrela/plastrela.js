@@ -9597,6 +9597,7 @@ let main = {
                     try {
                         if (obj.register.id == 0) {
                             obj.register.data_inclusao = moment();
+                            obj.register.validade = moment().add(365, 'd');
                         }
 
                         let invalidfields = [];
@@ -9628,11 +9629,6 @@ let main = {
 
                         if (invalidfields.length > 0) {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                        }
-
-                        if (!obj.register.validade) {
-                            let validade = moment().add(365, 'd');
-                            obj.register.validade = validade;
                         }
 
                         obj._responseModifier = function (ret) {
