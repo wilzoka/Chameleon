@@ -89,11 +89,13 @@ let platform = {
             if (config.emailsignature) {
                 mailOptions.html += '</br></br><img src="cid:unique@signature"/>';
                 let signature = JSON.parse(config.emailsignature);
-                mailOptions.attachments.push({
-                    filename: signature[0].filename,
-                    path: `${__dirname}/../files/${process.env.NODE_APPNAME}/${signature[0].id}.${signature[0].type}`,
-                    cid: 'unique@signature'
-                });
+                if (fs.existsSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${signature[0].id}.${signature[0].type}`)) {
+                    mailOptions.attachments.push({
+                        filename: signature[0].filename,
+                        path: `${__dirname}/../files/${process.env.NODE_APPNAME}/${signature[0].id}.${signature[0].type}`,
+                        cid: 'unique@signature'
+                    });
+                }
             }
             mailOptions.html = `<div class="system_content">${mailOptions.html}</div>`;
             transporter.sendMail(mailOptions, (err, info) => {

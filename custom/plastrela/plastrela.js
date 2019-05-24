@@ -9641,7 +9641,7 @@ let main = {
                             let notificationDescription = `Un: ${saved.register.unidade_interesse} - ${saved.register.nomecompleto}`;
                             let param = await db.getModel('parameter').findOne({ where: { key: 'rh_curriculoNotificationSystemRS' } });
 
-                            if (saved.register.unidade_interesse = 'Estrela - RS') {
+                            if (saved.register.unidade_interesse == 'Estrela - RS') {
                                 if (param) {
                                     let notificationUsers = JSON.parse(param.value);
                                     main.platform.notification.create(notificationUsers, {
@@ -9658,11 +9658,13 @@ let main = {
                                     , link: '/v/curriculo/' + saved.register.id
                                 });
                                 let param2 = await db.getModel('parameter').findOne({ where: { key: 'rh_curriculoNotificationEmailMS' } });
-                                main.platform.mail.f_sendmail({
-                                    to: JSON.parse(param2.value)
-                                    , subject: `Novo currículo cadastrado - ${notificationDescription}`
-                                    , html: `<a href="http://intranet.plastrela.com.br:8084/v/curriculo/${saved.register.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/curriculo</a>`
-                                });
+                                if (param2) {
+                                    main.platform.mail.f_sendmail({
+                                        to: JSON.parse(param2.value)
+                                        , subject: `Novo currículo cadastrado - ${notificationDescription}`
+                                        , html: `<a href="http://intranet.plastrela.com.br:8084/v/curriculo/${saved.register.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/curriculo</a>`
+                                    });
+                                }
                             }
                         }
                     } catch (err) {
