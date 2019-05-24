@@ -9630,6 +9630,11 @@ let main = {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                         }
 
+                        if (!obj.register.validade) {
+                            let validade = moment().add(365, 'd');
+                            obj.register.validade = validade;
+                        }
+
                         obj._responseModifier = function (ret) {
                             ret['msg'] = 'Seu currículo foi recebido com sucesso. Será analisado e arquivado em nosso banco de dados. No momento que tivermos uma oportunidade e seu perfil for compatível com o desejado, entraremos em contato. Obrigado por ter enviado seu currículo para a Plastrela.';
                             return ret;
@@ -9667,6 +9672,9 @@ let main = {
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
+                }
+                , f_validadeCurriculos: function () {
+                    db.getModel('rh_curriculo').destroy({ where: { validade: { $lt: moment() } } });
                 }
             }
         }
