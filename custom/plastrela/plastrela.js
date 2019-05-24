@@ -9597,6 +9597,7 @@ let main = {
                     try {
                         if (obj.register.id == 0) {
                             obj.register.data_inclusao = moment();
+                            obj.register.validade = moment().add(365, 'd');
                         }
 
                         let invalidfields = [];
@@ -9667,6 +9668,9 @@ let main = {
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
+                }
+                , f_validadeCurriculos: function () {
+                    db.getModel('rh_curriculo').destroy({ where: { validade: { $lt: moment() } } });
                 }
             }
         }
