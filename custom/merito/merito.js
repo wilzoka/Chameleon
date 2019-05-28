@@ -12,7 +12,7 @@ let main = {
                 try {
                     let saved = await next(obj);
                     if (saved.register._isInsert) {
-                        main.platform.erp.evento.f_calcularPrazosTarefas(saved.register);
+                        main.merito.evento.f_calcularPrazosTarefas(saved.register);
                     }
                 } catch (error) {
                     return application.fatal(obj.res, error);
