@@ -80,8 +80,15 @@
                 "name": "sql",
                 "label": "SQL",
                 "type": "textarea",
-                "notnull": true,
+                "notnull": false,
                 "typeadd": "{\r\n\"rows\": 10\r\n , \"placeholder\": \"\"\r\n }"
+            },
+            {
+                "name": "virtual",
+                "label": "Virtual?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": "{\r\n}"
             }
         ]
     },
@@ -133,6 +140,28 @@
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
+            }
+        ]
+    },
+    {
+        "name": "bi_cubevirtual",
+        "description": "Cubo Virtual",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "idcube",
+                "label": "ID Cubo",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\r\n\"cascade\": false\r\n , \"model\": \"bi_cube\"\r\n }"
+            },
+            {
+                "name": "idcubev",
+                "label": "Cubo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\r\n\"as\": \"virtual\"\r\n , \"cascade\": false\r\n , \"model\": \"bi_cube\"\r\n , \"attribute\": \"description\"\r\n , \"where\": \"bi_cube.virtual = false\"\r\n }"
             }
         ]
     }

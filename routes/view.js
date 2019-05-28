@@ -340,7 +340,7 @@ const renderRadio = function (viewfield, register) {
 
 const renderSubView = function (viewsubview) {
     return `
-    <div class="col-md-12">
+    <div class="col-md-12 divsubview${viewsubview.subview.url}">
         <h4 class="title_subview">${viewsubview.description || ''}</h4>
         <table id="tableview${viewsubview.subview.url}" class="table table-bordered table-hover dataTable" width="100%"
         data-subview="true"
@@ -386,7 +386,6 @@ const render = function (viewfield, register) {
 const modelate = function (obj) {
 
     for (let i = 0; i < obj.viewfields.length; i++) {
-
         switch (obj.viewfields[i].modelattribute.type) {
             case 'text':
                 if (obj.req.body[obj.viewfields[i].modelattribute.name]) {

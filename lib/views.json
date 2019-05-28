@@ -158,7 +158,7 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "bounded",
+                "modelattribute": "public",
                 "width": 3,
                 "order": 7,
                 "disabled": false,
@@ -166,7 +166,7 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "modelid",
+                "modelattribute": "bounded",
                 "width": 3,
                 "order": 8,
                 "disabled": false,
@@ -174,9 +174,17 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "idmodel",
-                "width": 6,
+                "modelattribute": "modelid",
+                "width": 3,
                 "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idmodel",
+                "width": 3,
+                "order": 10,
                 "disabled": false,
                 "disablefilter": false
             }
@@ -209,6 +217,14 @@
             {
                 "modelattribute": "bounded",
                 "ordertable": 4,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "public",
+                "ordertable": 5,
                 "orderable": false,
                 "render": "boolean",
                 "totalize": false,
@@ -793,6 +809,12 @@
                 "icon": "fa fa-angle-double-down",
                 "function": "platform.model.e_export",
                 "parameters": "{\"all\": true}"
+            },
+            {
+                "description": "Gerar Conexão",
+                "icon": "fa fa-database",
+                "function": "platform.model.e_generateConnection",
+                "parameters": null
             },
             {
                 "description": "Importar",

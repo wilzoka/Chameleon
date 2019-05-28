@@ -211,6 +211,13 @@
                 "typeadd": null
             },
             {
+                "name": "public",
+                "label": "Público?",
+                "type": "boolean",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            },
+            {
                 "name": "size",
                 "label": "Size",
                 "type": "integer",

@@ -1,0 +1,57 @@
+<div class="hidden">
+    {{{hidden}}}
+</div>
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-body">
+            <div class="row">
+                {{{header}}}
+            </div>
+            <div id="divvirtual" class="row hidden">
+                {{{virtual}}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="divdimension" class="col-md-6">
+    <div class="box box-primary">
+        <div class="box-body">
+            <div class="row">
+                {{{dimension}}}
+            </div>
+        </div>
+    </div>
+</div>
+<div id="divmeasure" class="col-md-6">
+    <div class="box box-primary">
+        <div class="box-body">
+            <div class="row">
+                {{{measure}}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        function controllerVirtual() {
+            if ($('input[name="virtual"]').is(':checked')) {
+                $('textarea[name="sql"]').parent().parent().addClass('hidden');
+                $('#divdimension').addClass('hidden');
+                $('#divmeasure').addClass('hidden');
+                $('#divvirtual').removeClass('hidden');
+            } else {
+                $('textarea[name="sql"]').parent().parent().removeClass('hidden');
+                $('#divdimension').removeClass('hidden');
+                $('#divmeasure').removeClass('hidden');
+                $('#divvirtual').addClass('hidden');
+            }
+        }
+
+        $('input[name="virtual"]').change(controllerVirtual);
+
+        controllerVirtual();
+    });
+</script>

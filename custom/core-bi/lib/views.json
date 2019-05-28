@@ -15,14 +15,6 @@
         "_field": [
             {
                 "templatezone": "hidden",
-                "modelattribute": "rows",
-                "width": 0,
-                "order": 0,
-                "disabled": false,
-                "disablefilter": true
-            },
-            {
-                "templatezone": "hidden",
                 "modelattribute": "measures",
                 "width": 0,
                 "order": 0,
@@ -32,6 +24,14 @@
             {
                 "templatezone": "hidden",
                 "modelattribute": "columns",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "hidden",
+                "modelattribute": "rows",
                 "width": 0,
                 "order": 0,
                 "disabled": false,
@@ -98,26 +98,34 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
-        "template": "box-12-6-6",
+        "template": "core-bi/templates/cube",
         "model": "bi_cube",
         "module": "BI",
         "url": "cubo",
         "pagelength": null,
-        "fastsearch": null,
+        "fastsearch": "description",
         "_field": [
             {
-                "templatezone": "z1",
+                "templatezone": "header",
                 "modelattribute": "description",
-                "width": 12,
+                "width": 10,
                 "order": 1,
                 "disabled": false,
                 "disablefilter": false
             },
             {
-                "templatezone": "z1",
+                "templatezone": "header",
+                "modelattribute": "virtual",
+                "width": 2,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "header",
                 "modelattribute": "sql",
                 "width": 12,
-                "order": 2,
+                "order": 3,
                 "disabled": false,
                 "disablefilter": false
             }
@@ -135,13 +143,18 @@
         "_subview": [
             {
                 "subview": "Cubo - Dimensão",
-                "templatezone": "z2",
+                "templatezone": "dimension",
                 "description": "Dimensões"
             },
             {
                 "subview": "Cubo - Medida",
-                "templatezone": "z3",
+                "templatezone": "measure",
                 "description": "Medidas"
+            },
+            {
+                "subview": "Cubo - Virtual",
+                "templatezone": "virtual",
+                "description": "Virtual"
             }
         ],
         "_event": []
@@ -225,6 +238,42 @@
             {
                 "modelattribute": "aggregator",
                 "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Cubo - Virtual",
+        "namecomplete": "BI - Cubo - Virtual",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": false,
+        "template": "box-6",
+        "model": "bi_cubevirtual",
+        "module": "BI",
+        "url": "cubo_-_virtual",
+        "pagelength": null,
+        "fastsearch": "idcubev",
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcubev",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idcubev",
+                "ordertable": 1,
                 "orderable": false,
                 "render": null,
                 "totalize": false,

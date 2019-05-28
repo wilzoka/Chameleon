@@ -14,7 +14,7 @@ let bi = {
         let row_total = true;
         let column_total = true;
 
-        let delimiter = '.';
+        let delimiter = '->';
 
         let data = [];
         for (let i = 0; i < sql.length; i++) {
@@ -318,6 +318,8 @@ let bi = {
                         for (let m = 0; m < measures.length; m++) {
                             td += `<td class="pvtVal">${data[z].measures[m]}</td>`;
                         }
+                        data.splice(z, 1);
+                        z--;
                         break;
                     }
                 }
@@ -374,71 +376,132 @@ let bi = {
                 return application.fatal(obj.res, err);
             }
         }
-        , js_executeAnalysis: async function (obj) {
-            try {
+        , f_getQuery: async function (idcube, options) {
+            let cube = await db.getModel('bi_cube').findOne({ where: { id: idcube } });
+            let columnsAndRows = [];
+            columnsAndRows = columnsAndRows.concat(options.columns || []);
+            columnsAndRows = columnsAndRows.concat(options.rows || []);
 
-                let cube = await db.getModel('bi_cube').findOne({ where: { id: obj.data.idcube } });
-                let measures = await db.getModel('bi_cubemeasure').findAll({ where: { idcube: cube.id } });
-
-                let sqlcolumns = [];
-                if (obj.data.columns) {
-                    for (let i = 0; i < obj.data.columns.length; i++) {
-                        sqlcolumns.push('"' + obj.data.columns[i] + '"');
+            if (cube.virtual) {
+                options.virtual = true;
+                let cubes = await db.getModel('bi_cubevirtual').findAll({
+                    raw: true, include: [{ all: true }], where: { idcube: cube.id }
+                });
+                let query = 'with ';
+                let cubesjoined = [];
+                for (let i = 0; i < cubes.length; i++) {
+                    let currentquery = await bi.analysis.f_getQuery(cubes[i].idcubev, options);
+                    if (currentquery) {
+                        query += (cubesjoined.length > 0 ? ', ' : '') + cubes[i]['virtual.description'] + ' as (' + currentquery + ')';
+                        cubesjoined.push(cubes[i]['virtual.description']);
                     }
                 }
-                if (obj.data.rows) {
-                    for (let i = 0; i < obj.data.rows.length; i++) {
-                        sqlcolumns.push('"' + obj.data.rows[i] + '"');
+                let joins = cubesjoined[0];
+                if (columnsAndRows.length > 0) {
+                    for (let i = 1; i < cubesjoined.length; i++) {
+                        joins += ` full outer join ${cubesjoined[i]} on (`;
+                        for (let z = 0; z < columnsAndRows.length; z++) {
+                            joins += `${z > 0 ? ' and' : ''} ${cubesjoined[i - 1]}."${columnsAndRows[z]}"::text = ${cubesjoined[i]}."${columnsAndRows[z]}"::text`;
+                        }
+                        joins += `)`;
+                    }
+                } else {
+                    joins = cubesjoined.join(',');
+                }
+                let vcolumns = [];
+                for (let i = 0; i < columnsAndRows.length; i++) {
+                    let c = [];
+                    for (let z = 0; z < cubesjoined.length; z++) {
+                        c.push(`${cubesjoined[z]}."${columnsAndRows[i]}"::text`);
+                    }
+                    vcolumns.push(`coalesce(${c.join(',')}) as "${columnsAndRows[i]}"`);
+                }
+                let vmeasures = [];
+                if (options.measures) {
+                    for (let i = 0; i < options.measures.length; i++) {
+                        vmeasures.push(`"${options.measures[i]}"`)
                     }
                 }
-                let sqlmeasures = [];
-                if (obj.data.measures) {
-                    for (let i = 0; i < obj.data.measures.length; i++) {
-                        for (let z = 0; z < measures.length; z++) {
-                            if (obj.data.measures[i] == measures[z].sqlfield) {
-                                sqlmeasures.push(`${measures[z].aggregator}("${measures[z].sqlfield}") as "${measures[z].sqlfield}"`)
-                                break;
-                            }
+                const fs = require('fs-extra');
+                fs.writeFile('tmp/text.sql', `${query} select ${vcolumns.concat(vmeasures)} from ${joins}`);
+                return `${query} select ${vcolumns.concat(vmeasures)} from ${joins}`;
+            }
+
+            let dimensions = await db.getModel('bi_cubedimension').findAll({ where: { idcube: cube.id } });
+            let measures = await db.getModel('bi_cubemeasure').findAll({ where: { idcube: cube.id } });
+
+            let sqlcolumns = [];
+            for (let i = 0; i < columnsAndRows.length; i++) {
+                let found = false;
+                for (let z = 0; z < dimensions.length; z++) {
+                    if (columnsAndRows[i] == dimensions[z].sqlfield) {
+                        sqlcolumns.push('"' + columnsAndRows[i] + '"');
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    sqlcolumns.push(`'' as "${columnsAndRows[i]}"`);
+                }
+            }
+
+            let where = [];
+            let sqlmeasures = [];
+            if (options.measures) {
+                for (let i = 0; i < options.measures.length; i++) {
+                    for (let z = 0; z < measures.length; z++) {
+                        if (options.measures[i] == (options.virtual ? cube.description + '.' : '') + measures[z].sqlfield) {
+                            sqlmeasures.push(`${measures[z].aggregator}("${measures[z].sqlfield}") as "${options.virtual ? `${cube.description}.` : ''}${measures[z].sqlfield}"`)
+                            where.push(`"${measures[z].sqlfield}" is not null`);
+                            break;
                         }
                     }
                 }
-                let where = [];
-                for (let i = 0; i < obj.data.measures.length; i++) {
-                    where.push(`"${obj.data.measures[i]}" is not null`);
-                }
-                let groupby = [];
-                for (let i = 0; i < sqlcolumns.length; i++) {
-                    groupby.push(i + 1);
-                }
+            }
 
-                let filterobj = JSON.parse(obj.data.filter || '{}');
-                let filter = [];
-                for (let k in filterobj) {
-                    let arr = filterobj[k];
-                    for (let i = 0; i < arr.length; i++) {
-                        arr[i] = `'${arr[i]}'`;
+            let groupby = [];
+            for (let i = 0; i < sqlcolumns.length; i++) {
+                groupby.push(i + 1);
+            }
+            groupby = groupby.length > 0 ? `group by ${groupby.join(',')}` : '';
+
+            let filterobj = JSON.parse(options.filter || '{}');
+            let filter = [];
+            for (let k in filterobj) {
+                for (let z = 0; z < dimensions.length; z++) {
+                    if (k == dimensions[z].sqlfield) {
+                        let arr = filterobj[k];
+                        for (let i = 0; i < arr.length; i++) {
+                            arr[i] = `'${arr[i]}'`;
+                        }
+                        filter.push(`"${k}" in (${arr.join(',')})`);
+                        break;
                     }
-                    filter.push(`"${k}" in (${arr.join(',')})`)
                 }
+            }
+            filter = filter.length > 0 ? ` and ${filter.join(' and ')}` : ''
 
-
-                let sql = await db.sequelize.query(`
+            return where.length > 0 ? `
                 select
                     ${sqlcolumns.concat(sqlmeasures).join(', ')}
                 from
                     (${cube.sql}) as x
                 where
                     (${where.join(' or ')})
-                    ${filter.length > 0 ? ' and ' + filter.join(' and ') : ''}
-                ${groupby.length > 0 ? 'group by ' + groupby.join(',') : ''}`
-                    , { type: db.sequelize.QueryTypes.SELECT });
+                    ${filter}
+                    ${groupby}` : '';
 
+        }
+        , js_executeAnalysis: async function (obj) {
+            try {
+                // let query = 'select x.*,  ("Perda.Peso" / ("Perda.Peso" + "Produção.Peso"))*100 as "Teste" from (' + (await bi.analysis.f_getQuery(obj.data.idcube, obj.data)) + ') as x';
+                let query = await bi.analysis.f_getQuery(obj.data.idcube, obj.data);
+                let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 let options = {
                     rows: obj.data.rows
                     , columns: obj.data.columns
-                    , measures: obj.data.measures
-                }
-
+                    , measures: obj.data.measures.concat(['Teste'])
+                };
                 return application.success(obj.res, { data: bi.f_pivot(sql, options) });
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -447,17 +510,36 @@ let bi = {
         , js_getCube: async function (obj) {
             try {
                 let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
-                let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
-                let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
                 let data = {
                     dimensions: []
                     , measures: []
-                }
-                for (let i = 0; i < dimensions.length; i++) {
-                    data.dimensions.push(dimensions[i].sqlfield);
-                }
-                for (let i = 0; i < measures.length; i++) {
-                    data.measures.push(measures[i].sqlfield);
+                };
+                if (cube.virtual) {
+                    let cubes = await db.getModel('bi_cubevirtual').findAll({
+                        raw: true, include: [{ all: true }], where: { idcube: cube.id }
+                    });
+                    for (let i = 0; i < cubes.length; i++) {
+                        let vcube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: cubes[i]['virtual.id'] } });
+                        let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: vcube.id } });
+                        let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: vcube.id } });
+                        for (let z = 0; z < dimensions.length; z++) {
+                            if (data.dimensions.indexOf(dimensions[z].sqlfield) == -1) {
+                                data.dimensions.push(dimensions[z].sqlfield);
+                            }
+                        }
+                        for (let z = 0; z < measures.length; z++) {
+                            data.measures.push(`${vcube.description}.${measures[z].sqlfield}`);
+                        }
+                    }
+                } else {
+                    let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
+                    let measures = await db.getModel('bi_cubemeasure').findAll({ raw: true, where: { idcube: cube.id }, order: [['sqlfield', 'asc']] });
+                    for (let i = 0; i < dimensions.length; i++) {
+                        data.dimensions.push(dimensions[i].sqlfield);
+                    }
+                    for (let i = 0; i < measures.length; i++) {
+                        data.measures.push(measures[i].sqlfield);
+                    }
                 }
                 return application.success(obj.res, { data: data });
             } catch (err) {
@@ -467,13 +549,31 @@ let bi = {
         , js_getFilter: async function (obj) {
             try {
                 let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
-                let sql = await db.sequelize.query(`
-                select distinct
-                    "${obj.data.key}" as option
-                from
-                    (${cube.sql}) as x
-                order by 1
-                `, { type: db.sequelize.QueryTypes.SELECT });
+                let sql = [];
+                if (cube.virtual) {
+                    let cubes = await db.getModel('bi_cubevirtual').findAll({
+                        raw: true, include: [{ all: true }], where: { idcube: cube.id }
+                    });
+                    let unions = []
+                    for (let i = 0; i < cubes.length; i++) {
+                        let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cubes[i]['virtual.id'] } });
+                        for (let z = 0; z < dimensions.length; z++) {
+                            if (dimensions[z].sqlfield == obj.data.key) {
+                                unions.push(`select distinct "${obj.data.key}" as option from (${cubes[i]['virtual.sql']}) as x`);
+                            }
+                        }
+                    }
+                    let query = `select * from (${unions.join(' union ')}) as x order by 1`;
+                    sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
+                } else {
+                    sql = await db.sequelize.query(`
+                    select distinct
+                        "${obj.data.key}" as option
+                    from
+                        (${cube.sql}) as x
+                    order by 1
+                    `, { type: db.sequelize.QueryTypes.SELECT });
+                }
                 let html = `<div class="row"><div class="col-md-12"><table id="tablefilter" class="table table-bordered table-hover dataTable no-footer" width="100%">
                 <thead>
                     <tr>
