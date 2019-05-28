@@ -2266,7 +2266,7 @@ let main = {
                         let filename = process.hrtime()[1] + '.pdf';
 
                         const pdf = require('html-pdf');
-                        pdf.create(htmlfinal, options).toFile(__dirname + '/../../tmp/' + filename, function (err, res) {
+                        pdf.create(htmlfinal, options).toFile(`${__dirname}/../../tmp/${process.env.NODE_APPNAME}/${filename}`, function (err, res) {
                             if (err) {
                                 return reject(err);
                             }
