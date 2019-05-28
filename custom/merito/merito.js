@@ -108,7 +108,7 @@ let main = {
                     data.push({
                         id: eventos[i].id
                         , description: eventos[i].descricao
-                        , capa: `${fotocapa.id}.${fotocapa.type}`
+                        , capa: fotocapa ? `${fotocapa.id}.${fotocapa.type}` : null
                         , fotos: fp
                     });
                 }
