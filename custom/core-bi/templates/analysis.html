@@ -246,7 +246,7 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label>Clique para Editar Medidas Criadas</label>
+                                                <label>Medidas Criadas</label>
                                                 <ul id="calculatedmeasures" class="list-unstyled">
                                                 </ul>
                                             </div>
@@ -275,8 +275,20 @@
             charts: []
             , rendered: false
         };
-        var currentmeasures = [];
+        var current = {
+            measures: []
+        }
         var tablefilter;
+        var measureTPL = '<li class="list-group-item">'
+            + '<input type="checkbox" class="checkmeasure" data-key="${key}" ${checked}>'
+            + '<span class="text">${name}</span>'
+            + '</li>';
+        var dimensionTPL = '<li class="list-group-item" data-key="${key}">'
+            + '<span class="text">${name}</span>'
+            + '<div class="tools dimfilter" style="display: inline-block; color: #888888;">'
+            + '<i class="fa fa-filter"></i>'
+            + '</div>'
+            + '</li>';
 
         application.functions.getCss([
             '/public/assets/pivotjs/pivot.css'
@@ -291,10 +303,11 @@
 
         function renderTable() {
             var request = {
-                columns: []
+                idcube: $idcube.val()
+                , columns: []
                 , rows: []
                 , measures: []
-                , idcube: $idcube.val()
+                , calculatedmeasures: $calculatedmeasures.val() || '{}'
                 , filter: $filter.val() || '{}'
             };
             $('#dimrow > li').each(function () {
@@ -384,43 +397,27 @@
             $('input[name="rows"]').val('');
             $('input[name="columns"]').val('');
             $('input[name="measures"]').val('');
-            $('#dimrow').children().remove();
-            $('#dimcol').children().remove();
-            $('#dim').children().remove();
-            $('#measure').children().remove();
             $filter.val('');
         }
 
         function renderUI(idcube) {
             application.jsfunction('platform.core_bi.analysis.js_getCube', { idcube: idcube }, function (response) {
                 if (response.success) {
-                    var measureTPL = '<li class="list-group-item">'
-                        + '<input type="checkbox" class="checkmeasure" data-key="${key}" ${checked}>'
-                        + '<span class="text">${name}</span>'
-                        + '</li>';
-                    var dimensionTPL = '<li class="list-group-item" data-key="${key}">'
-                        + '<span class="text">${name}</span>'
-                        + '<div class="tools dimfilter" style="display: inline-block; color: #888888;">'
-                        + '<i class="fa fa-filter"></i>'
-                        + '</div>'
-                        + '</li>';
+                    $('#dimrow').children().remove();
+                    $('#dimcol').children().remove();
+                    $('#dim').children().remove();
+                    $('#measure').children().remove();
                     var rows = $('input[name="rows"]').val() ? $('input[name="rows"]').val().split(',') : [];
                     var columns = $('input[name="columns"]').val() ? $('input[name="columns"]').val().split(',') : [];
                     var measures = $('input[name="measures"]').val() ? $('input[name="measures"]').val().split(',') : [];
+                    var measurescalculated = JSON.parse($calculatedmeasures.val() || '{}');
                     for (var i = 0; i < response.data.dimensions.length; i++) {
                         if (rows.indexOf(response.data.dimensions[i]) >= 0 || columns.indexOf(response.data.dimensions[i]) >= 0) {
                             response.data.dimensions.splice(i, 1);
                             i--;
                         }
                     }
-                    currentmeasures = [];
-                    for (var i = 0; i < response.data.measures.length; i++) {
-                        currentmeasures.push(response.data.measures[i]);
-                        if (measures.indexOf(response.data.measures[i]) >= 0) {
-                            response.data.measures.splice(i, 1);
-                            i--;
-                        }
-                    }
+                    current.measures = response.data.measures;
                     for (let i = 0; i < rows.length; i++) {
                         $('#dimrow').append(dimensionTPL.replace('${name}', rows[i]).replace('${key}', rows[i]));
                     }
@@ -430,11 +427,11 @@
                     for (var i = 0; i < response.data.dimensions.length; i++) {
                         $('#dim').append(dimensionTPL.replace('${name}', response.data.dimensions[i]).replace('${key}', response.data.dimensions[i]));
                     }
-                    for (let i = 0; i < measures.length; i++) {
-                        $('#measure').append(measureTPL.replace('${name}', measures[i]).replace('${key}', measures[i]).replace('${checked}', 'checked'));
+                    for (let i = 0; i < response.data.measures.length; i++) {
+                        $('#measure').append(measureTPL.replace('${name}', response.data.measures[i]).replace('${key}', response.data.measures[i]).replace('${checked}', measures.indexOf(response.data.measures[i]) >= 0 ? 'checked' : ''));
                     }
-                    for (var i = 0; i < response.data.measures.length; i++) {
-                        $('#measure').append(measureTPL.replace('${name}', response.data.measures[i]).replace('${key}', response.data.measures[i]).replace('${checked}', ''));
+                    for (var k in measurescalculated) {
+                        $('#measure').append(measureTPL.replace('${name}', k).replace('${key}', k).replace('${checked}', measures.indexOf(k) >= 0 ? 'checked' : ''));
                     }
                     renderTable();
                 }
@@ -539,15 +536,27 @@
             }
         });
 
+        $(document).on('click', '.calculatedmeasureremove', function () {
+            var key = $(this).siblings('a.calculatedmeasure').text();
+            var calculatedmeasures = JSON.parse($calculatedmeasures.val() || '{}');
+            if (key in calculatedmeasures) {
+                delete calculatedmeasures[key];
+            }
+            $calculatedmeasures.val(JSON.stringify(calculatedmeasures));
+            renderCalculateMeasureUI();
+            renderUI($idcube.val());
+        });
+
         function renderCalculateMeasureUI() {
             $('#calculatemeasuresavailable').children().remove();
-            for (var i = 0; i < currentmeasures.length; i++) {
-                $('#calculatemeasuresavailable').append('<li><a class="calculatemeasureadd" href="javascript:void(0)">' + currentmeasures[i] + '</a></li>');
+            for (var i = 0; i < current.measures.length; i++) {
+                $('#calculatemeasuresavailable').append('<li><a class="calculatemeasureadd" href="javascript:void(0)">' + current.measures[i] + '</a></li>');
             }
             $('#calculatedmeasures').children().remove();
             var calculatedmeasures = JSON.parse($calculatedmeasures.val() || '{}');
             for (var k in calculatedmeasures) {
-                $('#calculatedmeasures').append('<li><a class="calculatedmeasure" href="javascript:void(0)">' + k + '</a></li>');
+                $('#calculatedmeasures').append('<li><i class="fa fa-trash calculatedmeasureremove" style="color:#ff4f4f;padding:5px;"></i><a class="calculatedmeasure" href="javascript:void(0)">' + k + '</a></li>');
+                $calculatemeasurename.val();
             }
         }
 
@@ -558,6 +567,7 @@
             $calculatemeasurename.val('');
             $calculatemeasureformula.val('');
             renderCalculateMeasureUI();
+            renderUI($idcube.val());
         });
 
         $('#measureconf').click(function () {

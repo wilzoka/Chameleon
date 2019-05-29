@@ -15,11 +15,27 @@
         "_field": [
             {
                 "templatezone": "hidden",
+                "modelattribute": "filter",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "hidden",
                 "modelattribute": "measures",
                 "width": 0,
                 "order": 0,
                 "disabled": false,
                 "disablefilter": true
+            },
+            {
+                "templatezone": "hidden",
+                "modelattribute": "calculatedmeasures",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": false
             },
             {
                 "templatezone": "hidden",
@@ -36,14 +52,6 @@
                 "order": 0,
                 "disabled": false,
                 "disablefilter": true
-            },
-            {
-                "templatezone": "hidden",
-                "modelattribute": "filter",
-                "width": 0,
-                "order": 0,
-                "disabled": false,
-                "disablefilter": false
             },
             {
                 "templatezone": "zheader",

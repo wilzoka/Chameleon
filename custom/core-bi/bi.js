@@ -389,11 +389,16 @@ let bi = {
                 });
                 let query = 'with ';
                 let cubesjoined = [];
+                let allmeasures = [];
                 for (let i = 0; i < cubes.length; i++) {
                     let currentquery = await bi.analysis.f_getQuery(cubes[i].idcubev, options);
                     if (currentquery) {
                         query += (cubesjoined.length > 0 ? ', ' : '') + cubes[i]['virtual.description'] + ' as (' + currentquery + ')';
                         cubesjoined.push(cubes[i]['virtual.description']);
+                        let measures = await db.getModel('bi_cubemeasure').findAll({ where: { idcube: cubes[i].idcubev } });
+                        for (let z = 0; z < measures.length; z++) {
+                            allmeasures.push(`${cubes[i]['virtual.description']}.${measures[z].sqlfield}`);
+                        }
                     }
                 }
                 let joins = cubesjoined[0];
@@ -417,13 +422,9 @@ let bi = {
                     vcolumns.push(`coalesce(${c.join(',')}) as "${columnsAndRows[i]}"`);
                 }
                 let vmeasures = [];
-                if (options.measures) {
-                    for (let i = 0; i < options.measures.length; i++) {
-                        vmeasures.push(`"${options.measures[i]}"`)
-                    }
+                for (let i = 0; i < allmeasures.length; i++) {
+                    vmeasures.push(`"${allmeasures[i]}"`);
                 }
-                const fs = require('fs-extra');
-                fs.writeFile('tmp/text.sql', `${query} select ${vcolumns.concat(vmeasures)} from ${joins}`);
                 return `${query} select ${vcolumns.concat(vmeasures)} from ${joins}`;
             }
 
@@ -445,18 +446,9 @@ let bi = {
                 }
             }
 
-            let where = [];
             let sqlmeasures = [];
-            if (options.measures) {
-                for (let i = 0; i < options.measures.length; i++) {
-                    for (let z = 0; z < measures.length; z++) {
-                        if (options.measures[i] == (options.virtual ? cube.description + '.' : '') + measures[z].sqlfield) {
-                            sqlmeasures.push(`${measures[z].aggregator}("${measures[z].sqlfield}") as "${options.virtual ? `${cube.description}.` : ''}${measures[z].sqlfield}"`)
-                            where.push(`"${measures[z].sqlfield}" is not null`);
-                            break;
-                        }
-                    }
-                }
+            for (let z = 0; z < measures.length; z++) {
+                sqlmeasures.push(`${measures[z].aggregator}("${measures[z].sqlfield}") as "${options.virtual ? `${cube.description}.` : ''}${measures[z].sqlfield}"`)
             }
 
             let groupby = [];
@@ -479,28 +471,41 @@ let bi = {
                     }
                 }
             }
-            filter = filter.length > 0 ? ` and ${filter.join(' and ')}` : ''
+            filter = filter.length > 0 ? ` where ${filter.join(' and ')}` : ''
 
-            return where.length > 0 ? `
-                select
-                    ${sqlcolumns.concat(sqlmeasures).join(', ')}
-                from
-                    (${cube.sql}) as x
-                where
-                    (${where.join(' or ')})
-                    ${filter}
-                    ${groupby}` : '';
+            return `
+            select
+                ${sqlcolumns.concat(sqlmeasures).join(', ')}
+            from
+                (${cube.sql}) as x
+                ${filter}
+                ${groupby}`;
 
         }
         , js_executeAnalysis: async function (obj) {
             try {
-                // let query = 'select x.*,  ("Perda.Peso" / ("Perda.Peso" + "Produção.Peso"))*100 as "Teste" from (' + (await bi.analysis.f_getQuery(obj.data.idcube, obj.data)) + ') as x';
                 let query = await bi.analysis.f_getQuery(obj.data.idcube, obj.data);
+                let calculatedmeasures = JSON.parse(obj.data.calculatedmeasures);
+                let cm = [];
+                for (let k in calculatedmeasures) {
+                    cm.push(`(${calculatedmeasures[k]}) as "${k}"`);
+                }
+                query = `select * from (select x.* ${cm.length > 0 ? ',' + cm.join(',') : ''} from (${query}) as x) as x`;
+                for (let i = 0; i < obj.data.measures.length; i++) {
+                    if (i == 0) {
+                        query += ` where "${obj.data.measures[i]}" is not null`;
+                    } else {
+                        query += ` or "${obj.data.measures[i]}" is not null`;
+                    }
+                }
+
+                const fs = require('fs-extra');
+                fs.writeFile('tmp/text.sql', query);
                 let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 let options = {
                     rows: obj.data.rows
                     , columns: obj.data.columns
-                    , measures: obj.data.measures.concat(['Teste'])
+                    , measures: obj.data.measures
                 };
                 return application.success(obj.res, { data: bi.f_pivot(sql, options) });
             } catch (err) {

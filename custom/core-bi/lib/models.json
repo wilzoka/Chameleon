@@ -6,6 +6,13 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "calculatedmeasures",
+                "label": "Medidas Calculadas",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": "{\r\n\"rows\": 3\r\n , \"placeholder\": \"\"\r\n }"
+            },
+            {
                 "name": "charttype",
                 "label": "Tipo de Gráfico",
                 "type": "radio",
