@@ -498,9 +498,7 @@ let bi = {
                         query += ` or "${obj.data.measures[i]}" is not null`;
                     }
                 }
-
-                const fs = require('fs-extra');
-                fs.writeFile('tmp/text.sql', query);
+                // require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
                 let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 let options = {
                     rows: obj.data.rows
