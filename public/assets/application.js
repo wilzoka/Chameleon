@@ -391,14 +391,14 @@ var application = {
                         $(file.previewElement).attr('data-id', response.data.id);
                         $(file.previewElement).find('.dz-dldiv').remove();
                         $(file.previewElement).find('.dz-deldiv').removeClass('col-xs-6').addClass('col-xs-12');
-                        $(file.previewElement).find('a').attr('href', '/file/' + response.data.id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent'));
+                        $(file.previewElement).find('a').attr('href', '/file/' + response.data.id);
                     }
                     , parallelUploads: 1
                     , timeout: null
                 });
                 dzs[$(this).attr('data-name')].on('addedfile', function (file) {
                     $(file.previewElement).attr('data-id', file.id);
-                    $(file.previewElement).find('a').attr('href', file.id ? '/file/' + file.id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') : 'javascript:void(0)');
+                    $(file.previewElement).find('a').attr('href', file.id ? '/file/' + file.id : 'javascript:void(0)');
                 });
                 dzs[$(this).attr('data-name')].on('removedfile', function (file) {
                     if (file.accepted) {
@@ -423,7 +423,7 @@ var application = {
                     var mockFile = { id: obj[i].id, name: obj[i].filename, size: obj[i].size, type: obj[i].mimetype, accepted: true };
                     dzs[$(this).attr('data-name')].emit("addedfile", mockFile);
                     if (obj[i].mimetype.match(/image.*/)) {
-                        dzs[$(this).attr('data-name')].emit("thumbnail", mockFile, '/file/' + obj[i].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent'));
+                        dzs[$(this).attr('data-name')].emit("thumbnail", mockFile, '/file/' + obj[i].id);
                     }
                     dzs[$(this).attr('data-name')].emit("complete", mockFile);
                     dzs[$(this).attr('data-name')].files.push(mockFile);
@@ -949,7 +949,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 100px;">';
+                        return '<img src="/file/' + j[0].id + '" style="max-height: 100px;">';
                     } else if (j[0].type == 'pdf') {
                         return '<i class="fa fa-file-pdf-o"></i>';
                     } else {
@@ -963,7 +963,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 100px;">';
+                        return '<img src="/file/' + j[0].id + '" style="max-height: 100px;">';
                     } else {
                         return '';
                     }
@@ -975,7 +975,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 150px;">';
+                        return '<img src="/file/' + j[0].id + '" style="max-height: 150px;">';
                     } else {
                         return '';
                     }
@@ -987,7 +987,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '?view=' + window.location.pathname + '&parent=' + application.functions.getUrlParameter('parent') + '" style="max-height: 200px;">';
+                        return '<img src="/file/' + j[0].id + '" style="max-height: 200px;">';
                     } else {
                         return '';
                     }

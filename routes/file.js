@@ -86,26 +86,25 @@ module.exports = function (app) {
                 if (!req.isAuthenticated()) {
                     return application.forbidden(res);
                 }
-                let viewparam = req.query.view ? req.query.view.split('/') : [];
-                if (viewparam.length != 4) {
-                    return application.forbidden(res);
-                }
-                let view = await findView(viewparam[2]);
-                if (!view) {
-                    return application.forbidden(res);
-                }
-                const permission = await hasPermission(req.user.id, view.id);
-                if (!permission.visible) {
-                    return application.forbidden(res);
-                }
-                if (view.wherefixed) {
-                    let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
-                    let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: viewparam[3], $col: db.Sequelize.literal(wherefixed) } });
-                    if (exists <= 0) {
-                        return application.forbidden(res);
+                let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { idmodel: file.idmodel } });
+                let allow = false;
+                for (let i = 0; i < views.length; i++) {
+                    const permission = await hasPermission(req.user.id, views[i].id);
+                    if (permission.visible) {
+                        if (views[i].wherefixed) {
+                            let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, file.modelid);
+                            let exists = await db.getModel(views[i].model.name).count({ raw: true, where: { id: views[i].id, $col: db.Sequelize.literal(wherefixed) } });
+                            if (exists > 0) {
+                                allow = true;
+                                break;
+                            }
+                        } else {
+                            allow = true;
+                            break;
+                        }
                     }
                 }
-                if (file.idmodel != view.idmodel) {
+                if (!allow) {
                     return application.forbidden(res);
                 }
             }

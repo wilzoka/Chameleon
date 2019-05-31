@@ -322,7 +322,7 @@ let main = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let privada = obj.data.nota_privada == 'true';
-                    await db.getModel('atv_atividadenota').create({
+                    let atvnota = await db.getModel('atv_atividadenota').create({
                         idatividade: atividade.id
                         , datahora: moment()
                         , iduser: obj.req.user.id
@@ -331,6 +331,13 @@ let main = {
                         , tempo: obj.data.nota_tempo == '' ? null : application.formatters.be.time(obj.data.nota_tempo)
                         , privada: privada
                     });
+                    let anexos = JSON.parse(obj.data.nota_anexos || '[]');
+                    if (anexos.length > 0) {
+                        let modelatv = await db.getModel('model').findOne({ where: { name: 'atv_atividadenota' } });
+                        for (let i = 0; i < anexos.length; i++) {
+                            db.getModel('file').update({ idmodel: modelatv.id, modelid: atvnota.id, public: false, bounded: true }, { where: { id: anexos[i].id } });
+                        }
+                    }
                     await db.getModel('atv_atividadetempo').destroy({
                         iduser: obj.req.user.id
                         , where: {
@@ -1019,7 +1026,7 @@ let main = {
                                     if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
                                         files.push(file);
                                     }
-                                    html = html.replace('cid:' + email.attachments[i].contentId, `/files/${process.env.NODE_APPNAME}/${file.id}.${type}`);
+                                    html = html.replace('cid:' + email.attachments[i].contentId, `/file/${file.id}`);
                                 }
                                 const jsdom = require("jsdom");
                                 const { JSDOM } = jsdom;
@@ -9611,7 +9618,7 @@ let main = {
                         if (obj.register['deficiente'] == 'Sim' && !obj.register['deficiente_descricao']) {
                             invalidfields.push('deficiente_descricao');
                         }
-                        if (obj.register['escolaridade'].match(/Superior.*/) && !obj.register['curso']) {
+                        if (obj.register['escolaridade'] && obj.register['escolaridade'].match(/Superior.*/) && !obj.register['curso']) {
                             invalidfields.push('curso');
                         }
                         if (obj.register['estudando'] == 'Sim' && !obj.register['horario_estudo']) {
