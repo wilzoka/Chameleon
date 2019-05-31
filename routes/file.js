@@ -92,7 +92,7 @@ module.exports = function (app) {
                     const permission = await hasPermission(req.user.id, views[i].id);
                     if (permission.visible) {
                         if (views[i].wherefixed) {
-                            let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, file.modelid);
+                            let wherefixed = views[i].wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, file.modelid);
                             let exists = await db.getModel(views[i].model.name).count({ raw: true, where: { id: views[i].id, $col: db.Sequelize.literal(wherefixed) } });
                             if (exists > 0) {
                                 allow = true;

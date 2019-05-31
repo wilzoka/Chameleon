@@ -1020,6 +1020,7 @@ let main = {
                                         , modelid: atividade.id
                                         , iduser: user ? user.id : null
                                         , idmodel: modelatv.id
+                                        , public: false
                                     });
                                     var attach = email.attachments[i];
                                     fs.writeFile(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${file.id}.${type}`, attach.content, function (err) { });
