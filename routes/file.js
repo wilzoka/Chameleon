@@ -1,9 +1,7 @@
 const application = require('./application')
     , db = require('../models')
     , multer = require('multer')
-    , mv = require('mv')
     , fs = require('fs-extra')
-    , lodash = require('lodash')
     , moment = require('moment')
     ;
 
@@ -65,10 +63,6 @@ const hasPermission = function (iduser, idview) {
             });
         });
     });
-}
-
-const findView = function (url) {
-    return db.getModel('view').findOne({ include: [{ all: true }], where: { url: url } });
 }
 
 module.exports = function (app) {
@@ -144,13 +138,8 @@ module.exports = function (app) {
                     , iduser: req.user.id
                 });
                 let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
-                mv(req.file.path, path, function (err) {
-                    if (err) {
-                        fs.unlinkSync(req.file.path);
-                        return application.fatal(res, err);
-                    }
-                    return res.json({ success: true, data: file });
-                });
+                fs.renameSync(req.file.path, path);
+                return res.json({ success: true, data: file });
             });
         } catch (err) {
             return application.fatal(res, err);

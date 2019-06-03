@@ -232,7 +232,14 @@
             }
         ],
         "_subview": [],
-        "_event": []
+        "_event": [
+            {
+                "description": "Baixar",
+                "icon": "fa fa-download",
+                "function": "platform.file.e_download",
+                "parameters": null
+            }
+        ]
     },
     {
         "name": "Auditoria",

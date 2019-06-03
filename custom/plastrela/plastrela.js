@@ -962,7 +962,7 @@ let main = {
             }
             , f_treeAll: function () {
                 let getChildren = function (current, childs) {
-                    for (var i = 0; i < childs.length; i++) {
+                    for (let i = 0; i < childs.length; i++) {
                         if (current.idtipopai == childs[i].id) {
                             if (childs[i].idtipopai) {
                                 return getChildren(childs[i], childs) + childs[i].descricao + ' - ';
@@ -1022,7 +1022,7 @@ let main = {
                                         , idmodel: modelatv.id
                                         , public: false
                                     });
-                                    var attach = email.attachments[i];
+                                    let attach = email.attachments[i];
                                     fs.writeFile(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${file.id}.${type}`, attach.content, function (err) { });
                                     if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
                                         files.push(file);
@@ -1131,7 +1131,7 @@ let main = {
                                     , iduser: user ? user.id : null
                                     , idmodel: modelatv.id
                                 });
-                                var attach = email.attachments[i];
+                                let attach = email.attachments[i];
                                 fs.writeFile(`${__dirname}/../../files/${process.env.NODE_APPNAME}/${file.id}.${type}`, attach.content, function (err) { });
                                 if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
                                     files.push(file);
@@ -1666,7 +1666,7 @@ let main = {
                 , treeAll: function () {
 
                     let getChildren = function (current, childs) {
-                        for (var i = 0; i < childs.length; i++) {
+                        for (let i = 0; i < childs.length; i++) {
                             if (current.idgrupopai == childs[i].id) {
                                 if (childs[i].idgrupopai) {
                                     return getChildren(childs[i], childs) + childs[i].descricao + ' - ';

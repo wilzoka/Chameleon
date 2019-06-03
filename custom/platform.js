@@ -31,6 +31,18 @@ let platform = {
         }
     }
     , core_bi: require('./core-bi/bi.js')
+    , file: {
+        e_download: async function (obj) {
+            try {
+                if (obj.ids.length != 1) {
+                    return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                }
+                return application.success(obj.res, { openurl: `/file/${obj.ids[0]}` });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+    }
     , kettle: {
         f_runTransformation: function (filepath) {
             db.getModel('config').findOne().then(config => {
