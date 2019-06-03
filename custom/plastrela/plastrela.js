@@ -1136,7 +1136,7 @@ let main = {
                                 if (html.indexOf('cid:' + email.attachments[i].contentId) < 0) {
                                     files.push(file);
                                 }
-                                html = html.replace('cid:' + email.attachments[i].contentId, `/files/${process.env.NODE_APPNAME}/${file.id}.${type}`);
+                                html = html.replace('cid:' + email.attachments[i].contentId, `/file/${file.id}`);
                             }
                             atividade.descricao = html;
                             if (files.length > 0) {
