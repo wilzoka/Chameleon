@@ -5777,7 +5777,7 @@ let main = {
 
                             let qtd = saved.register.qtd;
                             let metragem = null;
-                            if ([1, 2, 3, 5].indexOf(tprecurso.codigo) >= 0) {
+                            if ([1, 2, 3, 5, 8].indexOf(tprecurso.codigo) >= 0) {
                                 qtd = saved.register.pesoliquido;
                                 metragem = saved.register.qtd;
                             }
