@@ -9378,14 +9378,14 @@ let main = {
                         select
                                 x.*
                                 , case when x.tipo_recurso = 1 then 
-                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.peso / ((x.tempoprod - x.parada - x.acerto)/60), 2) end
+                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.peso / ((x.tempoprod - x.parada - x.acerto)/60), 4) end
                                     else
-                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.qtd / (x.tempoprod - x.parada - x.acerto), 2) end
+                                    case when x.tempoprod - x.parada - x.acerto = 0 then 0 else round(x.qtd / (x.tempoprod - x.parada - x.acerto), 4) end
                                 end as produtividade
                                 , case when x.tipo_recurso = 1 then 
-                                    case when x.tempoprod = 0 then 0 else round(x.peso / ((x.tempoprod)/60), 2) end
+                                    case when x.tempoprod = 0 then 0 else round(x.peso / ((x.tempoprod)/60), 4) end
                                     else
-                                    case when x.tempoprod = 0 then 0 else round(x.qtd / (x.tempoprod), 2) end
+                                    case when x.tempoprod = 0 then 0 else round(x.qtd / (x.tempoprod), 4) end
                                 end as produtividademedia
                                 , round(case when x.peso + x.perda = 0 then 0 else x.perda / (x.peso + x.perda) end, 4) * 100 as percperdido
                         from
