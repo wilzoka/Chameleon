@@ -7397,7 +7397,7 @@ let main = {
                             return application.error(obj.res, { msg: 'Nâo é possível encerrar uma OP sem insumos' });
                         }
 
-                        if (tprecurso.codigo == 2) {
+                        if (tprecurso.codigo == 2) { // Impressão
                             let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: oprecurso.id } });
                             if (!apcliche) {
                                 return application.error(obj.res, { msg: 'Não é possível encerrar uma OP de Impressão sem clichês montados' });
@@ -7430,6 +7430,9 @@ let main = {
                                 if (msg.length > 0) {
                                     return application.error(obj.res, { msg: `Campos obrigatórios na Estação ${montagens[i].estacao} não preenchidos: ` + msg.join(', ') });
                                 }
+                            }
+                            if (!Number.isInteger(parseInt(oprecurso.qtdlavagens))) {
+                                return application.error(obj.res, { msg: 'Favor informar a Quantidade de Lavagens e salvar antes do encerramento da OP' });
                             }
                         }
 
