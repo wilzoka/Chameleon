@@ -369,6 +369,12 @@ var application = {
             $obj.each(function () {
                 dzs[$(this).attr('data-name')] = new Dropzone(this, {
                     url: "/file"
+                    , init: function () {
+                        this.on("sending", function (file, xhr, formData) {
+                            formData.append("forcejpg", $(file.previewTemplate.parentElement).attr('data-forcejpg'));
+                            formData.append("maxwh", $(file.previewTemplate.parentElement).attr('data-maxwh'));
+                        });
+                    }
                     , dictDefaultMessage: $(this).attr('data-message') || 'Clique aqui para adicionar arquivos'
                     , previewTemplate: previewTemplate
                     , maxFiles: $(this).attr('data-maxfiles') || null

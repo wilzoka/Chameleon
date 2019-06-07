@@ -22,8 +22,10 @@ $(function () {
                 case 'file':
                     obj = {
                         acceptedfiles: ''
-                        , maxfiles: -1
-                        , sizeTotal: -1
+                        , maxfiles: ''
+                        , sizeTotal: ''
+                        , forcejpg: false
+                        , maxwh: ''
                         , public: false
                     };
                     break;

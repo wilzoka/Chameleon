@@ -3,6 +3,7 @@ const application = require('./application')
     , multer = require('multer')
     , fs = require('fs-extra')
     , moment = require('moment')
+    , sharp = require('sharp')
     ;
 
 let storage = multer.diskStorage({
@@ -127,7 +128,7 @@ module.exports = function (app) {
                     return application.fatal(res, 'No file given');
                 }
                 let filenamesplited = req.file.filename.split('.');
-                let type = filenamesplited[filenamesplited.length - 1];
+                let type = filenamesplited[filenamesplited.length - 1].toLowerCase();
                 let file = await db.getModel('file').create({
                     filename: req.file.filename
                     , mimetype: req.file.mimetype
@@ -137,8 +138,36 @@ module.exports = function (app) {
                     , datetime: moment()
                     , iduser: req.user.id
                 });
-                let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
-                fs.renameSync(req.file.path, path);
+                let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/`;
+                if (file.mimetype.match(/image.*/)) {
+                    const quality = 80;
+                    const maxwh = parseInt(req.body.maxwh || 0);
+                    const forcejpg = req.body.forcejpg == 'true' ? true : false;
+                    let sharped = sharp(req.file.path);
+                    if (maxwh > 0) {
+                        sharped.resize(maxwh, maxwh, { fit: 'inside' });
+                    }
+                    if (forcejpg) {
+                        let newfilename = file.filename.split('.');
+                        newfilename.splice(newfilename.length - 1, 1);
+                        file.filename = `${newfilename.join('.')}.jpg`;
+                        file.type = 'jpg';
+                        file.mimetype = 'image/jpeg';
+                    }
+                    if (['jpeg', 'jpg'].indexOf(file.type) >= 0) {
+                        sharped.jpeg({ quality: quality, chromaSubsampling: '4:4:4' });
+                    } else if (['png'].indexOf(file.type) >= 0) {
+                        sharped.png({ quality: quality });
+                    }
+                    path += `${file.id}.${file.type}`;
+                    const fileinfo = await sharped.toFile(path);
+                    file.size = fileinfo.size;
+                    fs.unlinkSync(req.file.path);
+                } else {
+                    path += `${file.id}.${file.type}`;
+                    fs.renameSync(req.file.path, path);
+                }
+                await file.save();
                 return res.json({ success: true, data: file });
             });
         } catch (err) {

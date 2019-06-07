@@ -198,13 +198,20 @@ let application = {
 					, maxfiles: ''
 					, sizetotal: ''
 					, acceptedfiles: ''
+					, forcejpg: ''
+					, maxwh: ''
 				}, obj);
 				return `
 				<div class="col-md-${obj.width}">
 					<div class="form-group">
 						<label>${obj.label}</label>
-						<div class="dropzone" data-name="${obj.name}" data-type="file" data-maxfiles="${obj.maxfiles}" data-sizetotal="${obj.sizetotal}" data-acceptedfiles="${obj.acceptedfiles}">
-							<input name="${obj.name}" type="hidden" value="${obj.value}">
+						<div class="dropzone" data-name="${obj.name}" data-type="file"
+							data-maxfiles="${obj.maxfiles}"
+							data-sizetotal="${obj.sizetotal}"
+							data-acceptedfiles="${obj.acceptedfiles}"
+							data-forcejpg="${obj.forcejpg}"
+							data-maxwh="${obj.maxwh}"
+							><input name="${obj.name}" type="hidden" value="${obj.value}">
 						</div>
 					</div>
 				</div>`;
