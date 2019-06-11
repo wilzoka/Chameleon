@@ -5643,7 +5643,7 @@ let main = {
                             let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
-                        if (!user.c_codigosenior) {
+                        if (!user.code) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
                         if (obj.register.qtd <= 0) {
@@ -5924,7 +5924,7 @@ let main = {
                                 , name: 'iduser'
                                 , model: 'users'
                                 , attribute: 'fullname'
-                                , where: 'active and c_codigosenior is not null'
+                                , where: 'active and code is not null'
                                 , option: usuarioultimoap.id ? `<option value="${usuarioultimoap.id}" selected>${usuarioultimoap.text}</option>` : ''
                             });
                             body += application.components.html.integer({
@@ -6438,7 +6438,7 @@ let main = {
                         , name: 'iduser'
                         , model: 'users'
                         , attribute: 'fullname'
-                        , where: 'active and c_codigosenior is not null'
+                        , where: 'active and code is not null'
                     });
 
                     let letters = ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
@@ -6673,7 +6673,7 @@ let main = {
                         if (qtd > qtdreal) {
                             return application.error(obj.res, { msg: 'Verifique a quantidade apontada', invalidfields: ['qtd'] });
                         }
-                        if (!user.c_codigosenior) {
+                        if (!user.code) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
 
@@ -7444,17 +7444,14 @@ let main = {
                             (select
                                 ac.descricao as atributo
                                 , g.description as grupo
-                                , acg.nivelminimo
                                 , acg.qtdpessoas
                                 , (select
                                     count(*)
                                 from
                                     pcp_oprecursoconferencia oprc
                                 left join users u on (oprc.iduser = u.id)
-                                left join cad_cargo c on (u.c_idcargo = c.id)
                                 where oprc.idoprecurso = ${oprecurso.id}
                                 and u.idgroupusers = acg.idgroupusers
-                                and c.nivel >= acg.nivelminimo
                                 and oprc.idatributoconferencia = ac.id) as qtd
                             from
                                 pcp_atributoconferencia ac
@@ -7473,7 +7470,6 @@ let main = {
                                     <tr>
                                         <td style="text-align:center;"><strong>Atributo</strong></td>
                                         <td style="text-align:center;"><strong>Setor</strong></td>
-                                        <td style="text-align:center;"><strong>Exigência</strong></td>
                                         <td style="text-align:center;"><strong>Quantidade de pessoas à conferir</strong></td>
                                     </tr>
                             `;
@@ -7482,7 +7478,6 @@ let main = {
                                 <tr>
                                     <td style="text-align:left;"> ${sql[i].atributo}   </td>
                                     <td style="text-align:left;">  ${sql[i].grupo}   </td>
-                                    <td style="text-align:center;">  ${sql[i].nivelminimo == '1' ? 'Operador/CQ' : 'Encarregado ou Superior'}   </td>
                                     <td style="text-align:center;">   ${parseInt(sql[i].qtdpessoas) - parseInt(sql[i].qtd)}   </td>
                                 </tr>
                             `;

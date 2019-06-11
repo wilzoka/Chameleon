@@ -1,5 +1,13 @@
 [
     {
+        "description": "Plataforma",
+        "icon": "fa fa-cogs",
+        "menuparent": null,
+        "view": null,
+        "url": null,
+        "tree": "Plataforma"
+    },
+    {
         "description": "Agendamentos",
         "icon": "fa fa-clock",
         "menuparent": "Plataforma",

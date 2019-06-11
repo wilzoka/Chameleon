@@ -141,8 +141,8 @@ module.exports = function (app) {
                 let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/`;
                 if (file.mimetype.match(/image.*/)) {
                     const quality = 80;
-                    const maxwh = parseInt(req.body.maxwh || 0);
-                    const forcejpg = req.body.forcejpg == 'true' ? true : false;
+                    let maxwh = parseInt(req.body.maxwh || 0);
+                    let forcejpg = req.body.forcejpg == 'true' ? true : false;
                     let sharped = sharp(req.file.path);
                     if (maxwh > 0) {
                         sharped.resize(maxwh, maxwh, { fit: 'inside' });
@@ -160,7 +160,7 @@ module.exports = function (app) {
                         sharped.png({ quality: quality });
                     }
                     path += `${file.id}.${file.type}`;
-                    const fileinfo = await sharped.toFile(path);
+                    let fileinfo = await sharped.toFile(path);
                     file.size = fileinfo.size;
                     fs.unlinkSync(req.file.path);
                 } else {

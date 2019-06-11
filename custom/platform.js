@@ -118,44 +118,12 @@ let platform = {
         }
     }
     , maintenance: {
-        f_clearTemporaryFiles: function () {
+        f_clearUnboundFiles: function () {
             try {
-                fs.readdir(`${__dirname}/../tmp/${process.env.NODE_APPNAME}`, function (err, files) {
-                    if (err) {
-                        return;
-                    }
-                    for (var i = 0; i < files.length; i++) {
-                        let file = `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${files[i]}`;
-                        fs.stat(file, function (err, stats) {
-                            if (err) {
-                                return;
-                            }
-                            let bt = moment(stats.birthtime);
-                            let diff = moment().diff(bt, 'days');
-                            if (diff > 0) {
-                                fs.unlink(file, (err) => { });
-                            }
-                        });
-                    }
-                });
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        , f_clearUnboundFiles: function () {
-            try {
-                db.sequelize.query(`
-                select
-                    *
-                from
-                    file 
-                where
-                    datetime < now()::date -1 and
-                    bounded = false`
+                db.sequelize.query(`select * from file where datetime < now()::date -1 and bounded = false`
                     , { type: db.Sequelize.QueryTypes.SELECT }).then(sql => {
                         for (let i = 0; i < sql.length; i++) {
-                            let file = `${__dirname}/../files/${process.env.NODE_APPNAME}/${sql[i].id}.${sql[i].type}`;
-                            fs.unlink(file, (err) => { });
+                            fs.unlinkSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${sql[i].id}.${sql[i].type}`);
                             db.getModel('file').destroy({ where: { id: sql[i].id } });
                         }
                     });
@@ -1069,28 +1037,16 @@ let platform = {
         }
     }
     , users: {
-        e_mylink: async (obj) => {
-            try {
-                let url = `http://${obj.req.headers.host}?user=${obj.req.user.username}`;
-                return application.success(obj.res, {
-                    modal: {
-                        id: 'modalevt' + obj.event.id
-                        , title: obj.event.description
-                        , body: `<div class="col-sm-12 text-center"> <a href="${url}" target="_blank">${url}</a></div>`
-                        , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
-                    }
-                });
-            } catch (err) {
-                return application.fatal(obj.res, err);
-            }
-        }
-        , onsave: async (obj, next) => {
+        onsave: async (obj, next) => {
             try {
                 let user = await db.getModel('users').findOne({ where: { id: { $ne: obj.register.id }, username: obj.register.username } });
                 if (user) {
                     return application.error(obj.res, { msg: 'Já existe um usuário com este Username', invalidfields: ['username'] });
                 }
-
+                if (obj.register.newpassword) {
+                    obj.register.password = Cyjs.SHA3(`${application.sk}${obj.register.newpassword}${application.sk}`).toString();
+                    obj.register.newpassword = null;
+                }
                 next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);

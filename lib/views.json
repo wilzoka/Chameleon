@@ -1515,7 +1515,7 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "password",
+                "modelattribute": "newpassword",
                 "width": 6,
                 "order": 3,
                 "disabled": false,
@@ -1542,6 +1542,14 @@
                 "modelattribute": "idgroupusers",
                 "width": 6,
                 "order": 6,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "code",
+                "width": 6,
+                "order": 7,
                 "disabled": false,
                 "disablefilter": false
             },

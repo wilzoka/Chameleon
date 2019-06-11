@@ -109,7 +109,7 @@
                 "label": "Favicon",
                 "type": "file",
                 "notnull": false,
-                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
+                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n , \"public\": true\r\n }"
             },
             {
                 "name": "googlemapskey",
@@ -130,14 +130,14 @@
                 "label": "Fundo de Login",
                 "type": "file",
                 "notnull": false,
-                "typeadd": "{\r\n\"acceptedfiles\": \"\"\r\n , \"maxfiles\": 1\r\n }"
+                "typeadd": "{\r\n\"acceptedfiles\": \"\"\r\n , \"maxfiles\": 1\r\n , \"public\": true\r\n }"
             },
             {
                 "name": "loginimage",
                 "label": "Imagem de Login",
                 "type": "file",
                 "notnull": false,
-                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n}"
+                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n, \"maxfiles\": 1\r\n , \"public\": true\r\n}"
             },
             {
                 "name": "razaosocial",
@@ -553,7 +553,7 @@
                 "label": "Menu",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\", \"where\": \"idmenuparent is not null\", \"cascade\": true}"
+                "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\", \"where\": \"\", \"cascade\": true}"
             },
             {
                 "name": "iduser",
@@ -747,7 +747,7 @@
     {
         "name": "users",
         "description": "Usuário",
-        "onsave": null,
+        "onsave": "platform.users.onsave",
         "ondelete": null,
         "_attribute": [
             {
@@ -756,6 +756,13 @@
                 "type": "boolean",
                 "notnull": true,
                 "typeadd": null
+            },
+            {
+                "name": "code",
+                "label": "Código",
+                "type": "text",
+                "notnull": false,
+                "typeadd": "{\r\n}"
             },
             {
                 "name": "email",
@@ -784,6 +791,13 @@
                 "type": "autocomplete",
                 "notnull": false,
                 "typeadd": "{\"model\": \"menu\", \"attribute\": \"tree\"}"
+            },
+            {
+                "name": "newpassword",
+                "label": "Nova Senha",
+                "type": "text",
+                "notnull": false,
+                "typeadd": "{\r\n}"
             },
             {
                 "name": "password",

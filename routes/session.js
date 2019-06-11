@@ -2,6 +2,7 @@ const passport = require('passport')
     , LocalStrategy = require('passport-local').Strategy
     , db = require('../models')
     , application = require('./application')
+    , Cyjs = require("crypto-js")
     ;
 
 // Serialize Sessions
@@ -20,7 +21,7 @@ passport.use(new LocalStrategy(function (username, password, done) {
         where: {
             active: true
             , $or: [{ username: username }, { email: username }]
-            , password: password
+            , password: Cyjs.SHA3(`${application.sk}${password}${application.sk}`).toString()
         }
     }).then(register => {
         if (register) {
