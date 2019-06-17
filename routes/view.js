@@ -707,7 +707,7 @@ const findView = function (url) {
 
 module.exports = function (app) {
 
-    app.post('/v/:view/config', application.IsAuthenticated, async (req, res) => {
+    app.get('/v/:view/config', application.IsAuthenticated, async (req, res) => {
         try {
             const decodeClass = function (type) {
                 switch (type) {
@@ -732,11 +732,6 @@ module.exports = function (app) {
                     , order: [['ordertable', 'ASC']]
                     , include: [{ all: true }]
                 });
-                const viewfields = await db.getModel('viewfield').findAll({
-                    where: { idview: view.id, disablefilter: false }
-                    , order: [['order', 'ASC']]
-                    , include: [{ all: true }]
-                });
                 const viewevents = await db.getModel('viewevent').findAll({
                     where: { idview: view.id }
                     , order: [['description', 'ASC']]
@@ -747,7 +742,6 @@ module.exports = function (app) {
                 let needfooter = false;
                 let footer = '';
                 let permissions = {};
-                let filter = '';
                 // Permissions
                 permissions.insertable = permission.insertable;
                 permissions.editable = permission.editable;
@@ -759,7 +753,6 @@ module.exports = function (app) {
                         id: viewevents[i].id
                         , description: viewevents[i].description
                         , icon: viewevents[i].icon
-                        , function: viewevents[i].function
                     });
                 }
                 // Columns
@@ -769,7 +762,6 @@ module.exports = function (app) {
                         , data: 'id'
                         , name: 'id'
                         , width: 37
-                        , orderable: view.orderfixed ? false : true
                     });
                 }
                 for (let i = 0; i < viewtables.length; i++) {
@@ -777,7 +769,6 @@ module.exports = function (app) {
                         title: viewtables[i].modelattribute.label
                         , data: viewtables[i].modelattribute.name
                         , name: viewtables[i].modelattribute.name
-                        , orderable: view.orderfixed ? false : viewtables[i].orderable
                         , render: viewtables[i].render
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
@@ -803,6 +794,36 @@ module.exports = function (app) {
                     }
                     footer += '</tr></tfoot>';
                 }
+                return application.success(res, {
+                    name: view.url
+                    , columns: columns
+                    , footer: footer
+                    , events: events
+                    , permissions: permissions
+                    , fastsearch: view.idfastsearch ? view.fastsearch.label : false
+                });
+            } else {
+                return application.forbidden(res);
+            }
+        } catch (err) {
+            return application.fatal(res, err);
+        }
+    });
+
+    app.get('/v/:view/filter', application.IsAuthenticated, async (req, res) => {
+        try {
+            const view = await findView(req.params.view);
+            if (!view) {
+                return application.error(res, {});
+            }
+            const permission = await hasPermission(req.user.id, view.id);
+            if (permission.visible) {
+                const viewfields = await db.getModel('viewfield').findAll({
+                    where: { idview: view.id, disablefilter: false }
+                    , order: [['order', 'ASC']]
+                    , include: [{ all: true }]
+                });
+                let filter = '';
                 //Filter
                 const getFilterValue = function (name, cookiefilter) {
                     if (name in cookiefilter) {
@@ -1023,17 +1044,11 @@ module.exports = function (app) {
                 filter += '</div>';
                 return application.success(res, {
                     name: view.url
-                    , columns: columns
-                    , footer: footer
-                    , events: events
-                    , permissions: permissions
                     , filter: {
                         count: cookiefiltercount
                         , html: application.functions.singleSpace(filter)
                         , available: viewfields.length
                     }
-                    , pageLength: view.pagelength || 15
-                    , fastsearch: view.idfastsearch ? view.fastsearch.label : false
                 });
             } else {
                 return application.forbidden(res);

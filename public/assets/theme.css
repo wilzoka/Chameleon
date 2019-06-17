@@ -121,6 +121,12 @@ ul.dropdown-menu > li > a > i {
 , .sidebar-menu > li > a > .fa, .sidebar-menu > li > a > .far, .sidebar-menu > li > a > .fas, .sidebar-menu > li > a > .fal {
     width: 20px;
 }
+/* .main-sidebar, .main-header .logo, .main-header .navbar, .content-wrapper, .main-footer {
+    -webkit-transition: none;
+    -moz-transition: none;
+    -o-transition: none;
+    transition: none;
+} */
 
 /* Bootstrap */
 @media (min-width: 768px) {
@@ -165,6 +171,11 @@ ul.dropdown-menu > li > a > i {
         text-align: center;
     }
 }
+@media (max-width: 640px) {
+    div.dt-buttons {
+        text-align: left;
+    }
+}
 .table-bordered {
     border: 1px solid #ddd;
 }
@@ -204,6 +215,11 @@ table.dataTable tr.selected td.select-checkbox:after, table.dataTable tr.selecte
 }
 table.dataTable tbody td.select-checkbox, table.dataTable tbody th.select-checkbox{
     width: 20px;
+}
+div.dt-button-collection {
+    width: auto;
+    max-height: 400px;
+    overflow: auto;    
 }
 
 /* Select2 */
@@ -282,7 +298,7 @@ div.dz-image img {
         padding-right: 0;
     }
     .checkbox{
-        min-height: 44px;
+        min-height: 39px;
     }  
 }
 a.btnevent i.fa {
@@ -299,4 +315,10 @@ a.btnevent i.fa {
 }
 .overflow-auto {
     overflow: auto;
+}
+.text-left {
+    text-align: left;
+}
+.dt-button-divisor {
+    padding: 1px;
 }

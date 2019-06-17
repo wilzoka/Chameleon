@@ -33,10 +33,6 @@ $(function () {
             });
         }
 
-        function customTable(table) {
-            $('#' + table + '_wrapper').css('height', '350px');
-        }
-
         if ($('input[name="etapa"]').val() == '70') {
             $('#col-insumo').removeClass('col-md-3').addClass('col-md-7');
             $('#col-producao').removeClass('col-md-4 no-padding-right').addClass('col-md-5');
@@ -84,26 +80,14 @@ $(function () {
 
             switch (table) {
                 case 'tableviewapontamento_de_producao_-_insumo':// Insumo
-                    customTable(table);
-                    $('#' + table + '_events').find('button').remove();
-                    $('button#' + table + '_insert').unbind().click(addinsumo);
+                    tables[table].button($('.btn-success')).action(addinsumo);
                     break;
                 case 'tableviewapontamento_de_producao_-_producao':// Produção
-                    customTable(table);
-                    $('#' + table + '_events').find('button').remove();
-                    $('#' + table + '_insert').unbind().click(function (e) {
+                    tables[table].button($('.btn-success')).action(function (e) {
                         application.jsfunction('plastrela.pcp.approducao.__adicionar', { idoprecurso: application.functions.getId() }, function (response) {
                             application.handlers.responseSuccess(response);
                         });
                     });
-                    break;
-                case 'tableviewapontamento_de_producao_-_perda':// Perda
-                    customTable(table);
-                    $('#' + table + '_events').find('button').remove();
-                    break;
-                case 'tableviewapontamento_de_producao_-_parada':// Parada
-                    customTable(table);
-                    $('#' + table + '_events').find('button').remove();
                     break;
             }
 

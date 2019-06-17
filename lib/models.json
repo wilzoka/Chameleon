@@ -825,7 +825,7 @@
                 "name": "idfastsearch",
                 "label": "Pesquisa Rápida",
                 "type": "autocomplete",
-                "notnull": true,
+                "notnull": false,
                 "typeadd": "{\r\n\"as\": \"fastsearch\"\r\n , \"cascade\": true\r\n , \"model\": \"modelattribute\"\r\n , \"attribute\": \"label\"\r\n }"
             },
             {

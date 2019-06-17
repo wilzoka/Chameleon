@@ -21,6 +21,7 @@ if ($.fn.dataTable) {
     $.extend(true, $.fn.dataTable.ext.classes, {
         sFilterInput: 'form-control'
     });
+    $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-sm'
 }
 // Dropzone
 if (window.Dropzone) {
@@ -38,6 +39,7 @@ if (window.Dropzone) {
 // Global Vars
 var maps = [];
 var notifications = [];
+var searchtimeout = null;
 var tables = [];
 var dzs = {};
 var app = false;
@@ -91,7 +93,7 @@ var application = {
                     window.location.reload();
                 }
             });
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $(document).on('shown.bs.modal shown.bs.tab', function (e) {
                 $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
             });
             $(document).on('submit', 'form.xhr', function (e) {
@@ -133,40 +135,14 @@ var application = {
                 }
                 setTimeout(function () {
                     window.dispatchEvent(new Event('resize'));
-                }, 500);
-            });
-            $(document).on('click', 'a.btnevent', function () {
-                var table = $(this).attr('data-table');
-                var idevent = $(this).attr('data-event');
-                var ids = $('#' + table).attr('data-selected');
-                $.ajax({
-                    url: '/event/' + idevent
-                    , type: 'GET'
-                    , dataType: 'json'
-                    , data: {
-                        id: application.functions.getId()
-                        , ids: ids
-                        , parent: application.functions.getUrlParameter('parent')
-                    }
-                    , success: function (response) {
-                        application.handlers.responseSuccess(response);
-                    }
-                    , error: function (response) {
-                        application.handlers.responseError(response);
-                    }
-                });
+                }, 350);
             });
             $('#view-return').click(function () {
-                window.history.back();
-            });
-            $(document).on('click', 'a.btndeselectall', function () {
-                var $table = $(this).parent().parent().parent().parent().find('table');
-                var selected = $table.attr('data-selected').split(',');
-                for (var i = 0; i < selected.length; i++) {
-                    tables[$table[0].id].row('tr#' + selected[i]).deselect();
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.close();
                 }
-                $table.attr('data-selected', '');
-                $('#' + $table[0].id + '_info').find('a').remove();
             });
             $(document).ajaxStart(function () {
                 $('.pace').removeClass('pace-inactive').addClass('pace-active');
@@ -191,29 +167,78 @@ var application = {
                 application.jsfunction('platform.notification.js_read', { id: $(this).attr('data-notification-id') });
                 e.stopPropagation();
             });
+            document.addEventListener('scroll', function (e) {
+                if (e.target.className == 'dataTables_scrollBody') {
+                    var $table = $(e.target).find('table');
+                    var scrollPosition = $(e.target).scrollTop() + $(e.target).height();
+                    var scrollHeight = $table.height();
+                    if ($table.attr('data-lazycomplete') == 'true') {
+                        return;
+                    }
+                    var lazyloadperc = 0;
+                    var totalrows = tables[$table[0].id].rows().count();
+                    if (totalrows < 500) {
+                        lazyloadperc = 0.9;
+                    } else if (totalrows < 1000) {
+                        lazyloadperc = 0.95;
+                    } else {
+                        lazyloadperc = 0.98;
+                    }
+                    if (scrollPosition / scrollHeight > lazyloadperc) {
+                        application.tables.getData($table[0].id);
+                    }
+                }
+            }, true);
+            $(document).ready(function () {
+                if (localStorage.getItem('msg')) {
+                    application.notify.success(localStorage.getItem('msg'));
+                    localStorage.removeItem('msg');
+                }
+            });
         }
         //Filter
         {
             $(document).on('click', 'button.btnfilter', function () {
-                var $this = $(this);
-                var table = $this.attr('data-table');
-                $('#' + table + 'filter').modal('show');
-                if (!application.functions.isMobile()) {
-                    $('#' + table + 'filter').on('shown.bs.modal', function () {
-                        setTimeout(function () {
-                            $(this).find('button.close').focus();
-                        }.apply(this), 200);
-                        $('#' + table + 'filter').unbind('shown.bs.modal');
+                var $table = $('#' + $(this).attr('data-table'));
+                var $filtermodal = $('#' + $table[0].id + 'filter');
+                if ($filtermodal.length) {
+                    $filtermodal.modal('show');
+                } else {
+                    $.ajax({
+                        url: '/v/' + $table.attr('data-view') + '/filter'
+                        , type: 'GET'
+                        , dataType: 'json'
+                        , data: {
+                            issubview: $table.attr('data-subview') || false
+                        }
+                        , success: function (response) {
+                            if (response.success) {
+                                $('body').append(application.modal.create({
+                                    id: 'tableview' + response.name + 'filter'
+                                    , fullscreen: response.filter.available > 8
+                                    , title: 'Filtro'
+                                    , body: response.filter.html
+                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="button" class="btn btncleanfilter btn-default">Limpar</button> <button type="button" class="btn btngofilter btn-primary">Filtrar</button>'
+                                    , attr: [
+                                        { key: 'data-table', value: 'tableview' + response.name }
+                                        , { key: 'data-role', value: 'filter' }
+                                    ]
+                                }));
+                                application.components.renderInside($('#tableview' + response.name + 'filter'));
+                                $('#tableview' + response.name + 'filter').modal('show');
+                            } else {
+                                application.notify.error('Não foi possível carregar o filtro');
+                            }
+                        }
                     });
                 }
             });
-            $(document).on('click', 'button.btngofilter', function (e) {
+            $(document).on('click', 'button.btngofilter', function () {
                 var $modal = $(this).closest('div.modal');
                 var table = $modal.attr('data-table');
 
                 application.tables.saveFilter(table);
-                tables[table].ajax.reload();
-
+                application.tables.reload(table, true);
                 $modal.modal('hide');
             });
             $(document).on('click', 'button.btncleanfilter', function () {
@@ -225,11 +250,24 @@ var application = {
                     $(this).find('button.btngofilter').trigger('click');
                 }
             });
-            $(document).ready(function (e) {
-                if (localStorage.getItem('msg')) {
-                    application.notify.success(localStorage.getItem('msg'));
-                    localStorage.removeItem('msg');
+            $(document).on('keydown', '.modal[data-role="filter"]', function (e) {
+                if (e.which == 13) {
+                    $(this).find('button.btngofilter').trigger('click');
                 }
+            });
+            $(document).on('keyup', '.dt-search', function (e) {
+                clearTimeout(searchtimeout);
+                searchtimeout = setTimeout(function () {
+                    var cookiename = $(this).attr('data-table') + 'fs';
+                    var cookie = Cookies.get(cookiename);
+                    var fastsearch = $(this).val();
+                    if (fastsearch) {
+                        Cookies.set(cookiename, fastsearch);
+                    } else {
+                        Cookies.remove(cookiename);
+                    }
+                    application.tables.reload($(this).attr('data-table'), true);
+                }.bind(this), 300);
             });
         }
         //Notifications
@@ -593,14 +631,13 @@ var application = {
                     } else {
                         $.ajax({
                             url: '/v/' + $this.attr('data-view') + '/config'
-                            , type: 'POST'
+                            , type: 'GET'
                             , dataType: 'json'
                             , data: {
                                 issubview: $this.attr('data-subview') || false
                             }
                             , success: function (response) {
-                                //problema cache filtro
-                                //localStorage.setItem('DTconfig_' + window.location.pathname + '_' + $this.attr('data-view'), JSON.stringify(response));
+                                localStorage.setItem('DTconfig_' + window.location.pathname + '_' + $this.attr('data-view'), JSON.stringify(response));
                                 application.tables.create(response);
                             }
                             , error: function (response) {
@@ -619,60 +656,43 @@ var application = {
     }
     , tables: {
         create: function (data) {
-
-            var createButtons = function (sTableId) {
-                var insertButton = '';
-                if ($('#' + sTableId).attr('data-readonly') != 'true') {
-                    if ($('#' + sTableId).attr('data-insertable') == 'true') {
-                        insertButton = '<button id="' + sTableId + '_insert" type="button" class="btn btn-success btn-biggermobile" data-table="' + sTableId + '" title="Incluir"><i class="fa fa-plus"></i></button>';
-                    }
-                    var editButton = '';
-                    if ($('#' + sTableId).attr('data-editable') == 'true') {
-                        editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-edit"></i></button>';
-                    } else {
-                        editButton = '<button id="' + sTableId + '_edit" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '" title="Editar"><i class="fa fa-search"></i></button>';
-                    }
-                    var deleteButton = '';
-                    if ($('#' + sTableId).attr('data-deletable') == 'true') {
-                        deleteButton = '<button id="' + sTableId + '_delete" type="button" class="btn btn-default btn-biggermobile" data-table="' + sTableId + '"  title="Excluir"><i class="fa fa-trash-alt"></i></button>';
-                    }
-                    $('#' + sTableId + '_buttons').append('<div class="btn-group">' + insertButton + editButton + deleteButton + '</div>');
+            // Renders
+            for (var i = 0; i < data.columns.length; i++) {
+                if (data.columns[i].render) {
+                    data.columns[i].render = application.tables.renders[data.columns[i].render];
                 }
-                $('button#' + sTableId + '_insert').click(function () {
-                    var tableid = $(this).attr('data-table');
-                    var view = $('#' + tableid).attr('data-view');
-                    var subview = $('#' + tableid).attr('data-subview');
-                    var add = '';
-                    if (subview) {
-                        add = '?parent=' + application.functions.getId()
-                    }
-                    window.location.href = '/v/' + view + '/0' + add;
-                });
-                $('button#' + sTableId + '_edit').click(function (e) {
-                    var tableid = $(this).attr('data-table');
-                    var view = $('#' + tableid).attr('data-view');
-                    var subview = $('#' + tableid).attr('data-subview');
-                    var add = '';
-                    if (subview) {
-                        add = '?parent=' + application.functions.getId()
-                    }
-                    var selected = $('#' + tableid).attr('data-selected');
+            }
+            // Footer
+            if (data.footer) {
+                $('#tableview' + data.name).append(data.footer);
+            }
+
+            var eventButtons = [{
+                text: '<i class="fa fa-edit"></i> Editar'
+                , className: 'btn-block btn-warning text-left'
+                , action: function (e, dt, node, config) {
+                    var $table = $('#' + dt.settings()[0].sTableId);
+                    var view = $table.attr('data-view');
+                    var subview = $table.attr('data-subview');
+                    var selected = $table.attr('data-selected');
                     if (selected) {
                         selected = selected.split(',');
-                        var href = '/v/' + view + '/' + selected[selected.length - 1] + add;
-                        window.location.href = href;
+                        window.location.href = '/v/' + view + '/' + selected[selected.length - 1] + (subview ? '?parent=' + application.functions.getId() : '');
                     } else {
                         application.notify.info('Selecione um registro para Editar');
                     }
-                });
-                $('button#' + sTableId + '_delete').click(function () {
-                    var tableid = $(this).attr('data-table');
-                    var selected = $('#' + tableid).attr('data-selected');
-                    var view = $('#' + tableid).attr('data-view');
+                }
+            }, {
+                text: '<i class="fa fa-trash-alt"></i> Excluir'
+                , className: 'btn-block btn-danger text-left'
+                , action: function (e, dt, node, config) {
+                    var $table = $('#' + dt.settings()[0].sTableId);
+                    var view = $table.attr('data-view');
+                    var selected = $table.attr('data-selected');
                     if (selected) {
-                        selectedsplited = selected.split(',');
+                        selected = selected.split(',');
                         var msg = '';
-                        if (selectedsplited.length > 1) {
+                        if (selected.length > 1) {
                             msg = 'Os registros selecionados serão Excluídos. Continuar?';
                         } else {
                             msg = 'O registro selecionado será Excluído. Continuar?';
@@ -682,7 +702,7 @@ var application = {
                                 url: '/v/' + view + '/delete'
                                 , type: 'POST'
                                 , dataType: 'json'
-                                , data: { ids: selected }
+                                , data: { ids: selected.join(',') }
                                 , success: function (response) {
                                     application.handlers.responseSuccess(response);
                                     if (response.success) {
@@ -695,195 +715,215 @@ var application = {
                             });
                         });
                     } else {
-                        application.notify.error('Selecione um registro para Excluir');
+                        application.notify.info('Selecione um registro para Excluir');
                     }
-                });
-
-                var html = '<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">'
-                    + '<i class="fa fa-caret-down"></i>'
-                    + '</button>'
-                    + '<ul class="dropdown-menu">';
-                for (var i = 0; i < tables[sTableId]._config.events.length; i++) {
-                    html += '<li><a class="btnevent" href="javascript:void(0)" data-table="tableview' + tables[sTableId]._config.name + '" data-event="' + tables[sTableId]._config.events[i].id + '"><i class="' + tables[sTableId]._config.events[i].icon + '"></i> ' + tables[sTableId]._config.events[i].description + '</a></li>';
                 }
-                html += '</ul>';
-                $('#tableview' + tables[sTableId]._config.name + '_events').prepend(html);
-
-                $('#tableview' + tables[sTableId]._config.name + '_filter').append(
-                    '<div class="input-group input-group-sm"><span class="input-group-btn"><button type="button" class="btn btnfilter '
-                    + (tables[sTableId]._config.filter.count > 0 ? 'btn-primary' : 'btn-default')
-                    + '" data-table="tableview' + tables[sTableId]._config.name + '"><i class="fa fa-search fa-flip-horizontal"></i></button></span></div>'
-                );
-                $('#tableview' + tables[sTableId]._config.name + '_filter input').prependTo($('#tableview' + tables[sTableId]._config.name + '_filter .input-group'));
-                var $fastsearch = $('#tableview' + tables[sTableId]._config.name + '_filter input');
-                if (tables[sTableId]._config.fastsearch) {
-                    $fastsearch.attr('placeholder', tables[sTableId]._config.fastsearch);
-                } else {
-                    // $fastsearch.prop('disabled', true);
-                    $fastsearch.addClass('hidden');
-                    $fastsearch.parent().siblings('label').addClass('hidden');
+            }, {
+                text: '<i class="fa fa-times"></i> Desmarcar Selecionados'
+                , className: 'btn-block btn-info text-left'
+                , action: function (e, dt, node, config) {
+                    dt.rows({ selected: true }).deselect();
+                    var $table = $('#' + dt.settings()[0].sTableId);
+                    var $dtSelectCount = $table.closest('.dataTables_wrapper').find('.dt-select-count');
+                    $table.attr('data-selected', '');
+                    $dtSelectCount.text('');
+                    $dtSelectCount.closest('button').removeClass('btn-primary').addClass('btn-default');
                 }
-
-            }
-
-            // Renders
-            for (var i = 0; i < data.columns.length; i++) {
-                if (data.columns[i].render) {
-                    data.columns[i].render = application.tables.renders[data.columns[i].render];
-                }
-            }
-
-            // Footer
-            if (data.footer) {
-                $('#tableview' + data.name).append(data.footer);
-            }
-
-            // Filter Modal
-            $('body').append(application.modal.create({
-                id: 'tableview' + data.name + 'filter'
-                , fullscreen: data.filter.available > 8
-                , title: 'Filtro'
-                , body: data.filter.html
-                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="button" class="btn btncleanfilter btn-default">Limpar</button> <button type="button" class="btn btngofilter btn-primary">Filtrar</button>'
-                , attr: [
-                    { key: 'data-table', value: 'tableview' + data.name }
-                    , { key: 'data-role', value: 'filter' }
-                ]
-            }));
-            application.components.renderInside($('#tableview' + data.name + 'filter'));
-
-            // Permissions
-            $('#tableview' + data.name).attr('data-insertable', data.permissions.insertable);
-            $('#tableview' + data.name).attr('data-editable', data.permissions.editable);
-            $('#tableview' + data.name).attr('data-deletable', data.permissions.deletable);
-
-            var dom = '<"row no-margin"<"#tableview' + data.name + '_events.col-sm-6 no-padding"i><"col-sm-6 text-center no-padding"f>>'
-                + '<"hr"><"row no-margin overflow-auto"t>r<"#tableview' + data.name + '_buttons.col-md-6 no-padding col-sm-center"><"col-md-6 no-padding"p>';
-            // Datatable
-            tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
-                ajax: function (data, callback, settings) {
-                    $.ajax({
-                        url: '/datatables'
-                        , type: 'POST'
-                        , data: $.extend({}, data, {
-                            id: application.functions.getId()
-                            , view: $(settings.nTable).attr('data-view')
-                            , issubview: $(settings.nTable).attr('data-subview') || false
-                        })
-                        , beforeSend: function (jqXHR) {
-                            if (tables[settings.sTableId]) {
-                                if (tables[settings.sTableId]._xhr) {
-                                    tables[settings.sTableId]._xhr.abort();
-                                }
-                                tables[settings.sTableId]._xhr = jqXHR;
-                            }
-                        }
-                        , success: function (response) {
-                            callback(response);
-                        }
-                        , error: function (response) {
-                            if (response.statusText != 'abort') {
-                                application.handlers.responseError(response);
-                            }
-                        }
+            }];
+            for (var i = 0; i < data.events.length; i++) {
+                if (i == 0) {
+                    eventButtons.push({
+                        text: ''
+                        , className: 'btn-block btn-default dt-button-divisor'
                     });
                 }
+                eventButtons.push({
+                    text: '<i class="' + data.events[i].icon + '"></i> ' + data.events[i].description
+                    , className: 'btn-block btn-default text-left'
+                    , idevent: data.events[i].id
+                    , action: function (e, dt, node, config) {
+                        $.ajax({
+                            url: '/event/' + config.idevent
+                            , type: 'GET'
+                            , dataType: 'json'
+                            , data: {
+                                id: application.functions.getId()
+                                , ids: $('#' + dt.settings()[0].sTableId).attr('data-selected')
+                                , parent: application.functions.getUrlParameter('parent')
+                            }
+                            , success: function (response) {
+                                application.handlers.responseSuccess(response);
+                            }
+                            , error: function (response) {
+                                application.handlers.responseError(response);
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Datatable
+            $('#tableview' + data.name).attr('data-fastsearch', data.fastsearch || '');
+            tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
+                dom: '<"col-xs-6 no-padding"B><"col-xs-6 dt-filter-div no-padding text-right">t'
+                , buttons: [
+                    {
+                        extend: 'collection'
+                        , text: '<i class="fa fa-chevron-down"></i><span class="dt-select-count"></span>'
+                        , className: 'btn-default'
+                        , autoClose: true
+                        , buttons: eventButtons
+                    }
+                    , {
+                        text: '<i class="fa fa-plus"></i>'
+                        , className: 'btn-success'
+                        , autoClose: true
+                        , action: function (e, dt, node, config) {
+                            var $table = $('#' + dt.settings()[0].sTableId);
+                            var view = $table.attr('data-view');
+                            var subview = $table.attr('data-subview');
+                            window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
+                        }
+                    }
+                ]
                 , columns: data.columns
-                , dom: $('#tableview' + data.name).attr('data-subview') == 'true' && application.functions.getId() <= 0 ? 't' : dom
+                , deferRender: true
                 , drawCallback: function (settings) {
                     var selected = $(settings.nTable).attr('data-selected');
                     if (selected) {
                         selected = selected.split(',');
                         for (var i = 0; i < selected.length; i++) {
-                            tables[settings.sInstance].row('tr#' + selected[i]).select();
+                            this.api().row('tr#' + selected[i]).select();
                         }
-                        $('#' + settings.sInstance + '_info').find('a').remove();
-                        $('#' + settings.sInstance + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
                     }
-                    tables[settings.sTableId].columns.adjust();
-                    application.tables.reloadFooter(settings.sTableId);
+                    this.api().columns.adjust();
                 }
                 , initComplete: function (settings) {
+                    application.tables.getData(settings.sTableId);
+                    application.tables.reloadFooter(settings.sTableId);
                     var $table = $(settings.nTable);
-                    var subview = $table.attr('data-subview');
-                    if (!subview) {
-                        createButtons(settings.sTableId);
-                        if (!application.functions.isMobile()) {
-                            $('#' + settings.sTableId + '_filter input').focus();
-                        }
-                    } else if (subview && application.functions.getId() > 0) {
-                        createButtons(settings.sTableId);
-                    }
-                    $(document).trigger('app-datatable', settings.sTableId);
+                    var filter = Cookies.get(settings.sTableId + 'filter');
+                    var isFiltered = filter ? true : false;
+                    var filterhtml = '<div class="input-group input-group-sm">' +
+                        '<input type="text" class="form-control dt-search ' + ($table.attr('data-fastsearch') == '' ? 'hidden' : '') + '" placeholder="' + $table.attr('data-fastsearch') + '" ' +
+                        'data-table="' + ($table.attr('id')) + '" value="' + (Cookies.get($table.attr('id') + 'fs') || '') + '"/>' +
+                        '<span class="input-group-btn">' +
+                        '<button type="button" class="btn btnfilter ' + (isFiltered ? 'btn-primary' : 'btn-default') + '" data-table="' + settings.sTableId + '">' +
+                        '<i class="fa fa-search fa-flip-horizontal"></i>' +
+                        '</button>' +
+                        '</span>' +
+                        '</div>';
+                    $table.closest('.dataTables_wrapper').find('.dt-filter-div').append(filterhtml);
+                    setTimeout(function () {
+                        $(document).trigger('app-datatable', this.sTableId);
+                    }.bind(settings), 250);
                 }
-                , ordering: data.permissions.orderable
-                , pageLength: data.pageLength
-                , paging: data.pageLength > 0
-                , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
-                , processing: true
+                , ordering: false
+                , order: []
+                , paging: false
                 , rowId: 'id'
-                , searchDelay: 250
+                , scrollCollapse: true
+                , scrollX: true
+                , scrollY: application.functions.isMobile() ? '350px' : '500px'
                 , select: {
                     style: 'multi'
                     , info: false
                 }
-                , serverSide: true
+                , serverSide: false
                 , stateSave: true
             }).on('select', function (e, dt, type, indexes) {
-                var $this = $(this);
-                var rowData = tables[$this[0].id].rows(indexes).data().toArray()[0];
-                var id = '' + rowData.id;
-                var selected = $this.attr('data-selected');
-                if (selected) {
-                    selected = selected.split(',');
+                var $table = $('#' + dt.settings()[0].sTableId);
+                var $dtSelectCount = $table.closest('.dataTables_wrapper').find('.dt-select-count');
+                var id = '' + dt.rows(indexes).data()[0].id;
+                var selected = $table.attr('data-selected') ? $table.attr('data-selected').split(',') : [];
+                if (selected.length > 0) {
                     if ($.inArray(id, selected) === -1) {
                         selected.push(id);
                     }
                 } else {
                     selected = [id];
                 }
-                $this.attr('data-selected', selected);
-                $('#' + $this[0].id + '_info').find('a').remove();
-                $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
+                $table.attr('data-selected', selected);
+                if (selected.length > 0) {
+                    $dtSelectCount.text(' (' + selected.length + ')');
+                    $dtSelectCount.closest('button').removeClass('btn-default').addClass('btn-primary');
+                } else {
+                    $dtSelectCount.text('');
+                    $dtSelectCount.closest('button').removeClass('btn-primary').addClass('btn-default');
+                }
             }).on('deselect', function (e, dt, type, indexes) {
-                var $this = $(this);
-                var rowData = tables[$this[0].id].rows(indexes).data().toArray()[0];
-                var id = '' + rowData.id;
-                var selected = $this.attr('data-selected');
-                if (selected) {
-                    selected = selected.split(',');
+                var $table = $('#' + dt.settings()[0].sTableId);
+                var $dtSelectCount = $table.closest('.dataTables_wrapper').find('.dt-select-count');
+                var id = '' + dt.rows(indexes).data()[0].id;
+                var selected = $table.attr('data-selected') ? $table.attr('data-selected').split(',') : [];
+                if (selected.length > 0) {
                     var index = $.inArray(id, selected);
                     selected.splice(index, 1);
-
-                    $('#' + $this[0].id + '_info').find('a').remove();
-                    if (selected.length > 0) {
-                        $('#' + $this[0].id + '_info').append('<a class="btndeselectall" href="javascript:void(0)"> - Desmarcar ' + selected.length + ' Sel.</a>');
-                    }
                 }
-                $this.attr('data-selected', selected);
+                $table.attr('data-selected', selected);
+                if (selected.length > 0) {
+                    $dtSelectCount.text(' (' + selected.length + ')');
+                    $dtSelectCount.closest('button').removeClass('btn-default').addClass('btn-primary');
+                } else {
+                    $dtSelectCount.text('');
+                    $dtSelectCount.closest('button').removeClass('btn-primary').addClass('btn-default');
+                }
             }).on('dblclick', 'tbody tr', function (e) {
                 var $table = $(e.delegateTarget);
+                var view = $table.attr('data-view');
+                var subview = $table.attr('data-subview');
                 var tableid = $table[0].id;
-                if ($('#' + tableid).attr('data-readonly') == 'true') {
+                if ($table.attr('data-readonly') == 'true') {
                     return;
                 }
-                if (application.functions.isMobile()) {
-                } else {
-                    var view = $('#' + tableid).attr('data-view');
-                    var subview = $('#' + tableid).attr('data-subview');
-                    var add = '';
-                    if (subview) {
-                        add = '?parent=' + application.functions.getId()
-                    }
-                    var href = '/v/' + view + '/' + tables[tableid].row(this).data().id + add
-                    if (e.ctrlKey) {
+                var selected = application.functions.getKeyFromArrayObject(tables[tableid].rows({ selected: true }).data(), 'id');
+                if (!application.functions.isMobile()) {
+                    var href = '/v/' + view + '/' + tables[tableid].row(this).data().id + (subview ? '?parent=' + application.functions.getId() : '')
+                    if (e.ctrlKey || selected.length > 1) {
                         window.open(href);
                     } else {
                         window.location.href = href;
                     }
                 }
             });
-            tables['tableview' + data.name]._config = data;
+        }
+        , getData: function (idtable) {
+            var $table = $('#' + idtable);
+            if ($table.attr('data-lazyloading') == 'true') {
+                return;
+            }
+            $.ajax({
+                url: '/datatables'
+                , type: 'POST'
+                , data: $.extend({}, {
+                    id: application.functions.getId()
+                    , table: $table[0].id
+                    , view: $table.attr('data-view')
+                    , issubview: $table.attr('data-subview') || false
+                    , issubview: $table.attr('data-subview') || false
+                    , start: $table.attr('data-start') || 0
+                    , length: 50
+                })
+                , beforeSend: function () {
+                    $table.attr('data-lazyloading', 'true');
+                }
+                , success: function (response) {
+                    var $table = $('#' + response.table);
+                    if (response.data.length <= 0) {
+                        $table.attr('data-lazycomplete', 'true');
+                    }
+                    $table.attr('data-start', parseInt($table.attr('data-start') || 0) + 50);
+                    tables[response.table].rows.add(response.data).draw(false);
+                }
+                , error: function (response) {
+                    if (response.statusText != 'abort') {
+                        application.handlers.responseError(response);
+                    }
+                }
+                , complete: function () {
+                    $table.attr('data-lazyloading', 'false');
+                }
+            });
         }
         , deselectAll: function (idtable) {
             tables[idtable].rows().deselect();
@@ -893,7 +933,10 @@ var application = {
             if (!keepSelection) {
                 application.tables.deselectAll(idtable);
             }
-            tables[idtable].ajax.reload(null, false);
+            $('#' + idtable).attr('data-start', '0').attr('data-lazycomplete', 'false');
+            tables[idtable].clear();
+            $('.dataTables_scrollBody').scrollTop(0);
+            application.tables.getData(idtable);
             application.tables.reloadFooter(idtable);
             $(document).trigger('app-datatable-reload', idtable);
         }
@@ -914,13 +957,13 @@ var application = {
                         , view: $this.attr('data-view')
                         , idmodelattribute: $this.attr('data-attribute')
                         , issubview: $('#' + idtable).attr('data-subview') || false
-                        , fastsearch: $('#' + idtable + '_filter').find('input[type="search"]').val() || ''
                     }
                     , success: function (response) {
+                        var $totalize = $('.totalize[data-view="' + response.view + '"][data-attribute="' + response.attribute + '"]');
                         if (response.success) {
-                            $this.html(response.data);
+                            $totalize.html(response.data);
                         } else {
-                            $this.html('?');
+                            $totalize.html('?');
                         }
                     }
                     , error: function (response) {
@@ -965,66 +1008,11 @@ var application = {
                     return '';
                 }
             }
-            , image100: function (value) {
-                if (value) {
-                    var j = JSON.parse(value);
-                    if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '" style="max-height: 100px;">';
-                    } else {
-                        return '';
-                    }
-                } else {
-                    return '';
-                }
-            }
-            , image150: function (value) {
-                if (value) {
-                    var j = JSON.parse(value);
-                    if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '" style="max-height: 150px;">';
-                    } else {
-                        return '';
-                    }
-                } else {
-                    return '';
-                }
-            }
-            , image200: function (value) {
-                if (value) {
-                    var j = JSON.parse(value);
-                    if (j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '" style="max-height: 200px;">';
-                    } else {
-                        return '';
-                    }
-                } else {
-                    return '';
-                }
-            }
-            , colors: function (value) {
-                if (value == 'Azul') {
-                    return '<span class="label label-info">' + value + '</span>';
-                } else if (value == 'Vermelho') {
-                    return '<span class="label label-danger">' + value + '</span>';
-                } else {
-                    return value;
-                }
-            }
-            , meucustomrender: function (value) {
-                return '<span class="label label-success">' + value + '</span>';
-            }
             , url: function (value) {
                 if (value) {
                     return '<a target="_blank" href="' + value + '">' + value + '</a>';
                 } else {
                     return '';
-                }
-            }
-            , iconawesome: function (value) {
-                if (value) {
-                    return value + '<i class="fa fa-check"></i>'
-                } else {
-                    return '<i class="fa fa-check"></i>'
                 }
             }
             , fin_categoria_dc: function (value) {
@@ -1074,7 +1062,6 @@ var application = {
 
                 });
             }
-
             var $button = $('button.btnfilter[data-table="' + idtable + '"]');
             if (cookie.length > 0) {
                 $button.removeClass('btn-default').addClass('btn-primary');
@@ -1083,7 +1070,6 @@ var application = {
                 $button.removeClass('btn-primary').addClass('btn-default');
                 Cookies.remove($modal[0].id);
             }
-
         }
     }
     , functions: {
@@ -1161,6 +1147,13 @@ var application = {
             var pagecookie = application.functions.getPageCookie();
             pagecookie = $.extend(pagecookie, conf);
             Cookies.set(window.location.href, JSON.stringify(pagecookie));
+        }
+        , getKeyFromArrayObject: function (o, k) {
+            let array = [];
+            for (var i = 0; i < o.length; i++) {
+                array.push(o[i][k]);
+            }
+            return array;
         }
     }
     , handlers: {
