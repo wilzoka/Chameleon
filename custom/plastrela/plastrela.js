@@ -1230,7 +1230,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br']
+                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Sem Valor'
                                 , html: body
                             });
@@ -1298,7 +1298,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br']
+                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Balanço'
                                 , html: body
                             });
@@ -1366,7 +1366,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br']
+                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Balanço'
                                 , html: body
                             });
@@ -1443,7 +1443,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br']
+                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Requisições e Transferências'
                                 , html: body
                             });
