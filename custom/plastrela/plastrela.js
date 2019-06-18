@@ -1172,6 +1172,287 @@ let main = {
             , notificacaoReserva: function () {
                 main.platform.kettle.f_runJob('plastrela/jobs/notificacaoReserva/Job.kjb');
             }
+            , s_analiseMovimentacoesSemValor: async () => {
+                try {
+                    let empresas = [1, 2];
+                    let needle = require('needle');
+                    let query = null;
+                    for (let i = 0; i < empresas.length; i++) {
+                        query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                            function: 'PLAIniflexSQL', param: JSON.stringify([`
+                        SELECT mov.empresa, mov.data_movto, ite.grupo, mov.item, mov.quantidade, mov.valor, mov.origem, mov.tipo_movto, mov.deposito 
+                        FROM estmovim mov 
+                        LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
+                        WHERE mov.empresa = ${empresas[i]} 
+                        AND ite.grupo in (504)
+                        AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
+                        AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
+                        AND mov.valor = 0
+                        ORDER BY mov.data_movto ASC
+                        `])
+                        });
+                        query = JSON.parse(query.body);
+                        if (query.count > 0) {
+                            let body = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Empresa</strong></td>  
+                                    <td style="text-align:center;"><strong>Data_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Grupo</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
+                                    <td style="text-align:center;"><strong>Origem</strong></td>
+                                    <td style="text-align:center;"><strong>Tipo_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Depósito</strong></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                            for (let i = 0; i < query.count; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                </tr>
+                            `;
+                            }
+                            body += `
+                            </tbody>
+                        </table>
+                        `;
+                            return main.platform.mail.f_sendmail({
+                                to: ['julio@plastrela.com.br']
+                                , subject: 'SIP-Análise Movimentações Estoque - Sem Valor'
+                                , html: body
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            , s_analiseMovimentacoesBalanco: async () => {
+                try {
+                    let empresas = [1, 2];
+                    let needle = require('needle');
+                    let query = null;
+                    for (let i = 0; i < empresas.length; i++) {
+                        query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                            function: 'PLAIniflexSQL', param: JSON.stringify([`
+                        SELECT mov.empresa, mov.data_movto, ite.grupo, mov.item, mov.quantidade, mov.valor, mov.origem, mov.tipo_movto, mov.deposito 
+                        FROM estmovim mov 
+                        LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
+                        WHERE mov.empresa = ${empresas[i]} 
+                        AND ite.grupo in (504)
+                        AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
+                        AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
+                        AND mov.origem LIKE '%BAL%
+                        ORDER BY mov.data_movto ASC
+                        `])
+                        });
+                        query = JSON.parse(query.body);
+                        if (query.count > 0) {
+                            let body = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Empresa</strong></td>  
+                                    <td style="text-align:center;"><strong>Data_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Grupo</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
+                                    <td style="text-align:center;"><strong>Origem</strong></td>
+                                    <td style="text-align:center;"><strong>Tipo_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Depósito</strong></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                            for (let i = 0; i < query.count; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                </tr>
+                            `;
+                            }
+                            body += `
+                            </tbody>
+                        </table>
+                        `;
+                            return main.platform.mail.f_sendmail({
+                                to: ['julio@plastrela.com.br']
+                                , subject: 'SIP-Análise Movimentações Estoque - Balanço'
+                                , html: body
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            , s_analiseMovimentacoesTiposMovto: async () => {
+                try {
+                    let empresas = [1, 2];
+                    let needle = require('needle');
+                    let query = null;
+                    for (let i = 0; i < empresas.length; i++) {
+                        query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                            function: 'PLAIniflexSQL', param: JSON.stringify([`
+                        SELECT mov.empresa, mov.data_movto, ite.grupo, mov.item, mov.quantidade, mov.valor, mov.origem, mov.tipo_movto, mov.deposito 
+                        FROM estmovim mov 
+                        LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
+                        WHERE mov.empresa = ${empresas[i]} 
+                        AND ite.grupo in (504)
+                        AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
+                        AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
+                        AND mov.tipo_movto IN (1,3,9,10,11)
+                        ORDER BY mov.data_movto ASC
+                        `])
+                        });
+                        query = JSON.parse(query.body);
+                        if (query.count > 0) {
+                            let body = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Empresa</strong></td>  
+                                    <td style="text-align:center;"><strong>Data_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Grupo</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
+                                    <td style="text-align:center;"><strong>Origem</strong></td>
+                                    <td style="text-align:center;"><strong>Tipo_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Depósito</strong></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                            for (let i = 0; i < query.count; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                </tr>
+                            `;
+                            }
+                            body += `
+                            </tbody>
+                        </table>
+                        `;
+                            return main.platform.mail.f_sendmail({
+                                to: ['julio@plastrela.com.br']
+                                , subject: 'SIP-Análise Movimentações Estoque - Balanço'
+                                , html: body
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            , s_analiseMovimentacoesTransferencias: async () => {
+                try {
+                    let empresas = [1, 2];
+                    let needle = require('needle');
+                    let query = null;
+                    for (let i = 0; i < empresas.length; i++) {
+                        query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                            function: 'PLAIniflexSQL', param: JSON.stringify([`
+                        SELECT * FROM (SELECT mov.empresa, mov.data_movto, ite.grupo, mov.item, mov.quantidade, mov.valor, mov.origem, mov.tipo_movto, mov.deposito 
+                           ,(SELECT COUNT(origem) FROM estmovim 
+                                WHERE empresa = ${empresas[i]} 
+                                AND ite.grupo in (504)
+                                AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
+                                AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
+                                AND origem = mov.origem) as "MOVIMENTOS"
+                        FROM estmovim mov 
+                        LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
+                        WHERE mov.empresa = ${empresas[i]} 
+                        AND ite.grupo in (504)
+                        AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
+                        AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
+                        AND (mov.origem LIKE '%REQ%' OR mov.origem LIKE '%TRF%')) x
+                        WHERE MOD(x.movimentos,2) = 1
+                        ORDER BY x.data_movto ASC
+                        `])
+                        });
+                        query = JSON.parse(query.body);
+                        if (query.count > 0) {
+                            let body = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Empresa</strong></td>  
+                                    <td style="text-align:center;"><strong>Data_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Grupo</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    <td style="text-align:center;"><strong>Valor</strong></td>
+                                    <td style="text-align:center;"><strong>Origem</strong></td>
+                                    <td style="text-align:center;"><strong>Tipo_Movto</strong></td>
+                                    <td style="text-align:center;"><strong>Depósito</strong></td>
+                                    <td style="text-align:center;"><strong>Movimentos</strong></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                            for (let i = 0; i < query.count; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['MOVIMENTOS'][i]} </td>
+                                </tr>
+                            `;
+                            }
+                            body += `
+                            </tbody>
+                        </table>
+                        `;
+                            return main.platform.mail.f_sendmail({
+                                to: ['julio@plastrela.com.br']
+                                , subject: 'SIP-Análise Movimentações Estoque - Requisições e Transferências'
+                                , html: body
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
             , s_conferenciaItensTransferencia: async () => {
                 try {
                     let needle = require('needle');
@@ -2143,7 +2424,6 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
-
             , est_volume: {
 
                 _imprimirEtiqueta: async function (obj) {
@@ -9668,7 +9948,7 @@ let main = {
                                     main.platform.mail.f_sendmail({
                                         to: JSON.parse(param2.value)
                                         , subject: `Novo currículo cadastrado - ${notificationDescription}`
-                                        , html: `<a href="http://intranet.plastrela.com.br:8084/v/curriculo/${saved.register.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/curriculo</a>`
+                                        , html: `<a href="http://intranet.plastrela.com.br:8084/v/curriculo_ms/${saved.register.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/curriculo_ms</a>`
                                     });
                                 }
                             }
