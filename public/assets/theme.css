@@ -285,6 +285,9 @@ div.dz-image img {
 .dropzone .dz-message {
     margin: 3em 0;
 }
+.dropzone .dz-preview:hover, .dropzone .dz-preview .dz-image, .dropzone .dz-preview .dz-details {
+    z-index: unset;
+}
 
 /* Custom */
 @media (min-width: 992px) {

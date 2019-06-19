@@ -1230,7 +1230,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Sem Valor'
                                 , html: body
                             });
@@ -1298,7 +1298,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Balanço'
                                 , html: body
                             });
@@ -1366,7 +1366,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Balanço'
                                 , html: body
                             });
@@ -1443,7 +1443,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Requisições e Transferências'
                                 , html: body
                             });
@@ -3596,6 +3596,14 @@ let main = {
                                 }, { iduser: obj.req.user.id });
                             }
 
+                            let param = await main.platform.parameter.f_get('est_requisicao_notificacao');
+                            if (param) {
+                                main.platform.notification.create(param, {
+                                    title: 'Requisição Solicitada'
+                                    , description: `${ids.length} solicitações`
+                                });
+                            }
+
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
 
@@ -4559,10 +4567,13 @@ let main = {
 
                         application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
-                        main.platform.notification.create([2287, 2459], {
-                            title: 'Requisição Entregue'
-                            , description: `${requisicoes.length} requisições entregues.`
-                        });
+                        let param = await main.platform.parameter.f_get('est_requisicao_notificacao');
+                        if (param) {
+                            main.platform.notification.create(param, {
+                                title: 'Requisição Entregue'
+                                , description: `${requisicoes.length} requisições entregues.`
+                            });
+                        }
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

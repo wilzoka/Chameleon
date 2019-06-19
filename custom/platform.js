@@ -1036,6 +1036,12 @@ let platform = {
             console.log('received email', mail.subject, mail.text, mail.attachments);
         }
     }
+    , parameter: {
+        f_get: async (key) => {
+            let param = await db.getModel('parameter').findOne({ where: { key: key } });
+            return param ? JSON.parse(param.value) : null;
+        }
+    }
     , users: {
         onsave: async (obj, next) => {
             try {
