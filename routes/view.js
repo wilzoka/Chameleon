@@ -602,10 +602,17 @@ const validateAndSave = function (obj) {
                             , historyBack: obj.hasSubview ? false : true
                         };
                         if (obj._cookies) {
-                            lodash.extend(ret, { cookies: obj._cookies });
+                            for (let i = 0; i < obj._cookies.length; i++) {
+                                obj.res.cookie(obj._cookies[i].key, obj._cookies[i].value);
+                            }
                         }
                         if (obj._responseModifier && typeof obj._responseModifier == 'function') {
                             ret = obj._responseModifier(ret);
+                        }
+                        if (obj.req.cookies.subview_redirect) {
+                            ret = lodash.extend(ret, {
+                                subview_redirect: `/v/${obj.req.cookies.subview_redirect}/0?parent=${saved.register.id}`
+                            });
                         }
                         return application.success(obj.res, ret);
                     } else {

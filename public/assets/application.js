@@ -259,7 +259,6 @@ var application = {
                 clearTimeout(searchtimeout);
                 searchtimeout = setTimeout(function () {
                     var cookiename = $(this).attr('data-table') + 'fs';
-                    var cookie = Cookies.get(cookiename);
                     var fastsearch = $(this).val();
                     if (fastsearch) {
                         Cookies.set(cookiename, fastsearch);
@@ -679,7 +678,7 @@ var application = {
                         selected = selected.split(',');
                         window.location.href = '/v/' + view + '/' + selected[selected.length - 1] + (subview ? '?parent=' + application.functions.getId() : '');
                     } else {
-                        application.notify.info('Selecione um registro para Editar');
+                        application.notify.warning('Selecione um registro para Editar');
                     }
                 }
             }, {
@@ -715,7 +714,7 @@ var application = {
                             });
                         });
                     } else {
-                        application.notify.info('Selecione um registro para Excluir');
+                        application.notify.error('Selecione um registro para Excluir');
                     }
                 }
             }, {
@@ -782,7 +781,15 @@ var application = {
                             var $table = $('#' + dt.settings()[0].sTableId);
                             var view = $table.attr('data-view');
                             var subview = $table.attr('data-subview');
-                            window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
+                            if (subview && application.functions.getId() == 0) {
+                                Cookies.set('subview_redirect', view);
+                                $('#form.xhr').submit();
+                                setTimeout(function () {
+                                    Cookies.remove('subview_redirect');
+                                }, 500);
+                            } else {
+                                window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
+                            }
                         }
                     }
                 ]
@@ -1168,12 +1175,6 @@ var application = {
                     }
                 }
 
-                if ('cookies' in response) {
-                    for (var i = 0; i < response.cookies.length; i++) {
-                        Cookies.set(response.cookies[i].key, response.cookies[i].value);
-                    }
-                }
-
                 if ('msg' in response && ('redirect' in response || 'historyBack' in response)) {
                     localStorage.setItem('msg', response.msg);
                 }
@@ -1188,10 +1189,14 @@ var application = {
                 }
 
                 if ('redirect' in response) {
-                    var redirect = response.redirect;
-                    if (application.functions.getId() == 0)
-                        window.history.replaceState(null, null, redirect);
-                    return window.location.href = redirect;
+                    if (application.functions.getId() == 0) {
+                        window.history.replaceState(null, null, response.redirect);
+                    }
+                    if ('subview_redirect' in response) {
+                        return window.location.href = response.subview_redirect;
+                    } else {
+                        return window.location.href = response.redirect;
+                    }
                 }
 
                 if ('msg' in response) {
@@ -1373,6 +1378,11 @@ var application = {
             $.notify({
                 message: message
             }, $.extend(application.notify.getOptions(), { type: 'info', timer: message.length * 50 }));
+        }
+        , warning: function (message) {
+            $.notify({
+                message: message
+            }, $.extend(application.notify.getOptions(), { type: 'warning', timer: message.length * 50 }));
         }
     }
     , route: {
