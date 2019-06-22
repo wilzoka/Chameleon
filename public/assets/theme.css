@@ -121,6 +121,9 @@ ul.dropdown-menu > li > a > i {
 , .sidebar-menu > li > a > .fa, .sidebar-menu > li > a > .far, .sidebar-menu > li > a > .fas, .sidebar-menu > li > a > .fal {
     width: 20px;
 }
+.table tr td .progress {
+    margin-top: 0px;
+}
 /* .main-sidebar, .main-header .logo, .main-header .navbar, .content-wrapper, .main-footer {
     -webkit-transition: none;
     -moz-transition: none;
@@ -155,6 +158,9 @@ ul.dropdown-menu > li > a > i {
 }
 .pagination > li:first-child > a, .pagination > li:first-child > span, .pagination > li:last-child > a, .pagination > li:last-child > span {
     border-radius: 0px;
+}
+.progress {
+    height: 18px;
 }
 
 /* Datatables */

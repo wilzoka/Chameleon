@@ -1040,7 +1040,7 @@ var application = {
                 } else {
                     progresstype = 'success';
                 }
-                return '<div class="progress progress-xs progress-striped active"><div class="progress-bar progress-bar-' + progresstype + '" style="width: ' + value + '%"></div></div>';
+                return '<div class="progress progress-striped active"><div class="progress-bar progress-bar-' + progresstype + '" style="width: ' + value + '%"></div></div>';
             }
 
         }
