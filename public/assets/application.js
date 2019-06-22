@@ -1029,6 +1029,20 @@ var application = {
                     return '<span class="label label-success">Crédito</span>';
                 }
             }
+            , progressbar: function (value) {
+                var progresstype = '';
+                if (value <= 25) {
+                    progresstype = 'danger';
+                } else if (value < 50) {
+                    progresstype = 'yellow';
+                } else if (value < 75) {
+                    progresstype = 'primary';
+                } else {
+                    progresstype = 'success';
+                }
+                return '<div class="progress progress-xs progress-striped active"><div class="progress-bar progress-bar-' + progresstype + '" style="width: ' + value + '%"></div></div>';
+            }
+
         }
         , saveFilter: function (idtable) {
             var $modal = $('div#' + idtable + 'filter');
