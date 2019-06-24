@@ -1184,6 +1184,7 @@ let main = {
                         FROM estmovim mov 
                         LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
                         WHERE mov.empresa = ${empresas[i]} 
+                        AND ite.tipo_item = 5
                         AND ite.grupo in (504)
                         AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
                         AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
@@ -1252,12 +1253,12 @@ let main = {
                         FROM estmovim mov 
                         LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
                         WHERE mov.empresa = ${empresas[i]} 
+                        AND ite.tipo_item = 5
                         AND ite.grupo in (504)
                         AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
                         AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
-                        AND mov.origem LIKE '%BAL%
-                        ORDER BY mov.data_movto ASC
-                        `])
+                        AND mov.origem LIKE '%BAL%'
+                        ORDER BY mov.data_movto ASC`])
                         });
                         query = JSON.parse(query.body);
                         if (query.count > 0) {
@@ -1319,7 +1320,8 @@ let main = {
                         SELECT mov.empresa, mov.data_movto, ite.grupo, mov.item, mov.quantidade, mov.valor, mov.origem, mov.tipo_movto, mov.deposito 
                         FROM estmovim mov 
                         LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
-                        WHERE mov.empresa = ${empresas[i]} 
+                        WHERE mov.empresa = ${empresas[i]}
+                        AND ite.tipo_item = 5 
                         AND ite.grupo in (504)
                         AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
                         AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
@@ -1367,7 +1369,7 @@ let main = {
                         `;
                             return main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
-                                , subject: 'SIP-Análise Movimentações Estoque - Balanço'
+                                , subject: 'SIP-Análise Movimentações Estoque - Tipo de Movimentação'
                                 , html: body
                             });
                         }
@@ -1394,6 +1396,7 @@ let main = {
                         FROM estmovim mov 
                         LEFT JOIN estitem ite on mov.empresa = ite.empresa AND mov.item = ite.codigo 
                         WHERE mov.empresa = ${empresas[i]} 
+                        AND ite.tipo_item = 5
                         AND ite.grupo in (504)
                         AND TO_CHAR(mov.data_movto, 'mm') = TO_CHAR(SYSDATE, 'mm')
                         AND TO_CHAR(mov.data_movto, 'yyyy') = TO_CHAR(SYSDATE, 'yyyy')
@@ -1446,6 +1449,130 @@ let main = {
                                 to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Requisições e Transferências'
                                 , html: body
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            , s_configuracaoContabilItem: async () => {
+                try {
+                    let empresas = [1, 2];
+                    let needle = require('needle');
+                    let query = null;
+                    for (let i = 0; i < empresas.length; i++) {
+                        query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                            function: 'PLAIniflexSQL', param: JSON.stringify([`
+                            SELECT i.codigo as "ITEM", r.tipo
+                            FROM estitem i 
+                            LEFT JOIN estitemctareq r ON (i.empresa = r.empresa AND i.codigo = r.item) 
+                            WHERE i.empresa = ${empresas[i]}  
+                            AND i.tipo_item = 5
+                            AND i.situacao = 'A'
+                            AND i.grupo = 504 
+                            AND r.tipo != 'AP'
+                        `])
+                        });
+                        query = JSON.parse(query.body);
+                        if (query.count > 0) {
+                            let body = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>Tipo</strong></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                            for (let i = 0; i < query.count; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO'][i]} </td>
+                                </tr>
+                            `;
+                            }
+                            body += `
+                            </tbody>
+                        </table>
+                        `;
+                            return main.platform.mail.f_sendmail({
+                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                , subject: 'SIP-Configuração Contábil do Item'
+                                , html: `ADEQUAÇÃO: </br></br> 
+                                    1- Acessar o cadastro do item no Sistema Iniflex; </br>
+                                    2- Clicar com o botão direito na área cinza e escolher a opção "Conta Contábil";</br>
+                                    3- Configurar e no campo Tipo tem que ser "Apontamento"</br></br>` + body
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            , s_configuracaoDepositoItem: async () => {
+                try {
+                    let empresas = [1, 2];
+                    let needle = require('needle');
+                    let query = null;
+                    for (let i = 0; i < empresas.length; i++) {
+                        query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                            function: 'PLAIniflexSQL', param: JSON.stringify([`
+                            SELECT DISTINCT i.codigo as "ITEM", d.deposito, d.operacao, d.centro_custo, d.contabil
+                            FROM estitem i 
+                            LEFT JOIN estitemdeposito d ON (i.empresa = d.empresa AND i.codigo = d.item) 
+                            WHERE i.empresa = ${empresas[i]} 
+                            AND i.tipo_item = 5
+                            AND i.situacao = 'A'
+                            AND i.grupo = 504 
+                            AND d.deposito IS NULL
+                        `])
+                        });
+                        query = JSON.parse(query.body);
+                        if (query.count > 0) {
+                            let body = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>Depósito</strong></td>
+                                    <td style="text-align:center;"><strong>Operação</strong></td>
+                                    <td style="text-align:center;"><strong>Centro Custo</strong></td>
+                                    <td style="text-align:center;"><strong>Movimenta Contabilidade</strong></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                            for (let i = 0; i < query.count; i++) {
+                                body += `
+                                <tr>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['OPERACAO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['CENTRO_CUSTO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['CONTABIL'][i]} </td>
+                                </tr>
+                            `;
+                            }
+                            body += `
+                            </tbody>
+                        </table>
+                        `;
+                            return main.platform.mail.f_sendmail({
+                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                , subject: 'SIP-Configuração Depósitos do Item'
+                                , html: `ADEQUAÇÃO: </br></br> 
+                                    1- Acessar o cadastro do item no Sistema Iniflex; </br>
+                                    2- Clicar com o botão direito na área cinza e escolher a opção "Depósitos do Item";</br>
+                                    3- Configurar conforme abaixo:</br></br>
+                                        1   -   Saída   -   103003  -   Sim </br>
+                                        7   -   Saída   -   102006  -   Sim </br>
+                                        8   -   Saída   -   102009  -   Sim </br>
+                                        9   -   Saída   -   102007  -   Sim </br>
+                                        10  -   Saída   -   102008  -   Sim </br>
+                                    </br></br>` + body
                             });
                         }
                     }
