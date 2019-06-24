@@ -10,7 +10,11 @@ const addSchedule = async function (sch) {
         let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
         let custom = require('../custom/' + config.customfile);
         let realfunction = application.functions.getRealReference(custom, sch.function);
-        schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
+        if (realfunction) {
+            schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
+        } else {
+            console.error(`Agendamento ${sch.function} não encontrado`);
+        }
     } catch (err) {
         console.error(err);
     }

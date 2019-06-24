@@ -823,6 +823,9 @@ var application = {
                     $table.closest('.dataTables_wrapper').find('.dt-filter-div').append(filterhtml);
                     setTimeout(function () {
                         $(document).trigger('app-datatable', this.sTableId);
+                        if (!application.functions.isMobile()) {
+                            $('#' + this.sTableId).closest('.dataTables_wrapper').find('input.dt-search').select().focus();
+                        }
                     }.bind(settings), 250);
                 }
                 , ordering: false
@@ -1029,6 +1032,20 @@ var application = {
                     return '<span class="label label-success">Crédito</span>';
                 }
             }
+            , progressbar: function (value) {
+                var progresstype = '';
+                if (value <= 25) {
+                    progresstype = 'danger';
+                } else if (value < 50) {
+                    progresstype = 'yellow';
+                } else if (value < 75) {
+                    progresstype = 'primary';
+                } else {
+                    progresstype = 'success';
+                }
+                return '<div class="progress progress-striped active"><div class="progress-bar progress-bar-' + progresstype + '" style="width: ' + value + '%"></div></div>';
+            }
+
         }
         , saveFilter: function (idtable) {
             var $modal = $('div#' + idtable + 'filter');

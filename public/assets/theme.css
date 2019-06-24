@@ -57,8 +57,8 @@
     .main-header .sidebar-toggle {
         padding: 8px 15px;
     }
-    .content-wrapper {
-        margin-top: 60px;
+    .fixed .content-wrapper {
+        padding-top: 60px;
     }
 }
 div.wrapper {
@@ -121,6 +121,12 @@ ul.dropdown-menu > li > a > i {
 , .sidebar-menu > li > a > .fa, .sidebar-menu > li > a > .far, .sidebar-menu > li > a > .fas, .sidebar-menu > li > a > .fal {
     width: 20px;
 }
+.table tr td .progress {
+    margin-top: 0px;
+}
+.main-sidebar {
+    height: 100%;
+}
 /* .main-sidebar, .main-header .logo, .main-header .navbar, .content-wrapper, .main-footer {
     -webkit-transition: none;
     -moz-transition: none;
@@ -155,6 +161,9 @@ ul.dropdown-menu > li > a > i {
 }
 .pagination > li:first-child > a, .pagination > li:first-child > span, .pagination > li:last-child > a, .pagination > li:last-child > span {
     border-radius: 0px;
+}
+.progress {
+    height: 18px;
 }
 
 /* Datatables */
@@ -285,6 +294,9 @@ div.dz-image img {
 .dropzone .dz-message {
     margin: 3em 0;
 }
+.dropzone .dz-preview:hover, .dropzone .dz-preview .dz-image, .dropzone .dz-preview .dz-details {
+    z-index: unset;
+}
 
 /* Custom */
 @media (min-width: 992px) {
@@ -297,7 +309,7 @@ div.dz-image img {
     .no-padding-right {
         padding-right: 0;
     }
-    .checkbox{
+    .checkbox {
         min-height: 39px;
     }  
 }
