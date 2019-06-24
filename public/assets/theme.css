@@ -57,8 +57,8 @@
     .main-header .sidebar-toggle {
         padding: 8px 15px;
     }
-    .content-wrapper {
-        margin-top: 60px;
+    .fixed .content-wrapper {
+        padding-top: 60px;
     }
 }
 div.wrapper {
@@ -123,6 +123,9 @@ ul.dropdown-menu > li > a > i {
 }
 .table tr td .progress {
     margin-top: 0px;
+}
+.main-sidebar {
+    height: 100%;
 }
 /* .main-sidebar, .main-header .logo, .main-header .navbar, .content-wrapper, .main-footer {
     -webkit-transition: none;
@@ -306,7 +309,7 @@ div.dz-image img {
     .no-padding-right {
         padding-right: 0;
     }
-    .checkbox{
+    .checkbox {
         min-height: 39px;
     }  
 }

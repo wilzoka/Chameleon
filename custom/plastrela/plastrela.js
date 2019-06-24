@@ -1515,6 +1515,26 @@ let main = {
                     console.error(err);
                 }
             }
+            , s_integracaoTransferencia: async () => {
+                try {
+                    let integ = await db.getModel('est_integracaotrf').findAll({ where: { integrado: { $in: ['N', 'E'] } } });
+                    for (let i = 0; i < integ.length; i++) {
+                        let query = await require('needle')('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
+                            function: 'PLAIniflexSQL', param: JSON.stringify([integ[i].query])
+                        });
+                        if (query.body.includes('erro')) {
+                            integ[i].integrado = 'E';
+                            integ[i].erro = query.body;
+                        } else {
+                            integ[i].integrado = 'I';
+                            // integ[i].erro = null;
+                        }
+                        integ[i].save();
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
         }
         , adm: {
             viagem: {
@@ -3278,7 +3298,6 @@ let main = {
                 }
                 , e_movimentar: async function (obj) {
                     try {
-
                         if (obj.req.method == 'GET') {
                             if (obj.ids.length <= 0) {
                                 return application.error(obj.res, { msg: application.message.selectOneEvent });
@@ -3327,10 +3346,22 @@ let main = {
                             if (consumido) {
                                 changes = lodash.extend(changes, { qtdreal: '0.0000' });
                             }
+                            let depdestino = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
+                            let volumes = await db.getModel('est_volume').findAll({ include: [{ all: true }], where: { id: { $in: obj.req.body.ids.split(',') } } });
                             await db.getModel('est_volume').update(changes, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+                            let config = await db.getModel('config').findOne();
+                            let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+                            for (let i = 0; i < volumes.length; i++) {
+                                let item = await db.getModel('cad_item').findOne({ include: [{ all: true }], where: { id: volumes[i].pcp_versao.iditem } });
+                                if (item.est_grupo.codigo == 504 && item.est_tpitem.codigo == 5) {
+                                    await db.getModel('est_integracaotrf').create({
+                                        query: `call p_transfere_estoque(${empresa}, '${item.codigo}', '${volumes[i].pcp_versao.codigo}', ${volumes[i].qtdreal}, '${moment().format(application.formatters.fe.date_format)}', ${volumes[i].est_deposito.codigo}, ${depdestino.codigo}, '9999', 'TRF'||'${empresa}'||'#'||to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')||'#'||'${item.codigo}'||'#'||'${volumes[i].pcp_versao.codigo}', ${volumes[i].id}, null, 'S', 7, 'N', null, null, 8, ${empresa})`
+                                        , integrado: 'N'
+                                    }, { iduser: obj.req.user.id });
+                                }
+                            }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
-
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

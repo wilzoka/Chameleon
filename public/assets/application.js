@@ -823,6 +823,9 @@ var application = {
                     $table.closest('.dataTables_wrapper').find('.dt-filter-div').append(filterhtml);
                     setTimeout(function () {
                         $(document).trigger('app-datatable', this.sTableId);
+                        if (!application.functions.isMobile()) {
+                            $('#' + this.sTableId).closest('.dataTables_wrapper').find('input.dt-search').select().focus();
+                        }
                     }.bind(settings), 250);
                 }
                 , ordering: false
