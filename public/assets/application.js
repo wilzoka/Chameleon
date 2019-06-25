@@ -1173,7 +1173,7 @@ var application = {
             Cookies.set(window.location.href, JSON.stringify(pagecookie));
         }
         , getKeyFromArrayObject: function (o, k) {
-            let array = [];
+            var array = [];
             for (var i = 0; i < o.length; i++) {
                 array.push(o[i][k]);
             }
