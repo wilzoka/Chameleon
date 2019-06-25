@@ -48,10 +48,10 @@ let platform = {
             db.getModel('config').findOne().then(config => {
                 let nrc = require('node-run-cmd');
                 if (application.functions.isWindows()) {
-                    nrc.run('Pan.bat /file:' + __dirname + '/' + filepath
+                    nrc.run('Pan.bat /file:' + config.kettlepath + '/' + filepath
                         , { cwd: config.kettlepath });
                 } else {
-                    nrc.run('pan.sh -file=' + __dirname + '/' + filepath
+                    nrc.run('pan.sh -file=' + config.kettlepath + '/' + filepath
                         , { cwd: config.kettlepath });
                 }
             });
@@ -61,8 +61,8 @@ let platform = {
                 db.getModel('config').findOne().then(config => {
                     let nrc = require('node-run-cmd');
                     nrc.run(application.functions.isWindows() ?
-                        'Kitchen.bat /file:' + __dirname + '/' + filepath
-                        : config.kettlepath + '/kitchen.sh -file=' + __dirname + '/' + filepath
+                        `Kitchen.bat /file:${config.kettlepath}/${filepath}`
+                        : `${config.kettlepath}/kitchen.sh -file=${config.kettlepath}/${filepath} -log=${config.kettlepath}/${filepath}.log`
                         , {
                             cwd: config.kettlepath
                             , onData: function (data) {

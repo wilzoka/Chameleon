@@ -2208,7 +2208,9 @@ let main = {
 
             criarNotaChaveAcesso: async function (obj) {
                 if (obj.req.method == 'GET') {
-                    main.platform.kettle.f_runJob('plastrela/estoque/sync_sped/Job.kjb');
+                    let config = await db.getModel('config').findOne();
+                    let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+                    main.platform.kettle.f_runJob(`jobs/${empresa == 2 ? 'ms' : 'rs'}_sync_sped/Job.kjb`);
 
                     let body = '';
 
