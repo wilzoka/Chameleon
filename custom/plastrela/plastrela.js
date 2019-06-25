@@ -4,6 +4,7 @@ const application = require('../../routes/application')
     , fs = require('fs-extra')
     , lodash = require('lodash')
     , schedule = require('node-schedule')
+    , Cyjs = require('crypto-js')
     ;
 
 let atv_schedules = [];
@@ -1368,7 +1369,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Tipo de Movimentação'
                                 , html: body
                             });
@@ -1499,7 +1500,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Configuração Contábil do Item'
                                 , html: `ADEQUAÇÃO: </br></br> 
                                     1- Acessar o cadastro do item no Sistema Iniflex; </br>
@@ -1561,7 +1562,7 @@ let main = {
                         </table>
                         `;
                             return main.platform.mail.f_sendmail({
-                                to: ['julio@plastrela.com.br','informatica@plastrela.com.br']
+                                to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Configuração Depósitos do Item'
                                 , html: `ADEQUAÇÃO: </br></br> 
                                     1- Acessar o cadastro do item no Sistema Iniflex; </br>
@@ -9450,7 +9451,7 @@ let main = {
                 }
                 , js_adicionarAtributo: async (obj) => {
                     try {
-                        let user = await db.getModel('users').findOne({ where: { username: obj.data.confuser, password: obj.data.confpass } });
+                        let user = await db.getModel('users').findOne({ where: { username: obj.data.confuser, password: Cyjs.SHA3(`${application.sk}${obj.data.confpass}${application.sk}`).toString() } });
                         if (!user) {
                             return application.error(obj.res, { msg: 'Usuário inválido', invalidfields: ['confuser', 'confpass'] });
                         }
