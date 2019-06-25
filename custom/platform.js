@@ -66,14 +66,14 @@ let platform = {
                         , {
                             cwd: config.kettlepath
                             , onData: function (data) {
-                                console.log('data', data);
+                                // console.log('data', data);
                             }
                             , onDone: function (data) {
-                                console.log('done', data);
+                                // console.log('done', data);
                                 resolve();
                             }
                             , onError: function (data) {
-                                console.log('err', data);
+                                // console.log('err', data);
                             }
                         });
 

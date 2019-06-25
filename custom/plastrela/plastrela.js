@@ -1160,18 +1160,26 @@ let main = {
         }
     }
     , plastrela: {
-        sync: function () {
-            main.platform.kettle.f_runJob('plastrela/sync/Job.kjb');
+        sync: async function () {
+            let config = await db.getModel('config').findOne();
+            let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+            main.platform.kettle.f_runJob(`jobs/${empresa == 2 ? 'ms' : 'rs'}_sync/Job.kjb`);
         }
         , schedule: {
-            integracaoApontamentos: function () {
-                main.platform.kettle.f_runJob('plastrela/pcp/ap/integracaoIniflex/Job.kjb');
+            integracaoApontamentos: async function () {
+                let config = await db.getModel('config').findOne();
+                let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+                main.platform.kettle.f_runJob(`jobs/${empresa == 2 ? 'ms' : 'rs'}_integracaoap/Job.kjb`);
             }
-            , integracaoVolumes: function () {
-                main.platform.kettle.f_runJob('plastrela/estoque/integracaovolumes/Job.kjb');
+            , integracaoVolumes: async function () {
+                let config = await db.getModel('config').findOne();
+                let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+                main.platform.kettle.f_runJob(`jobs/${empresa == 2 ? 'ms' : 'rs'}_integracaovolumes/Job.kjb`);
             }
-            , notificacaoReserva: function () {
-                main.platform.kettle.f_runJob('plastrela/jobs/notificacaoReserva/Job.kjb');
+            , notificacaoReserva: async function () {
+                let config = await db.getModel('config').findOne();
+                let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+                main.platform.kettle.f_runJob(`jobs/${empresa == 2 ? 'ms' : 'rs'}_notificacaoReserva/Job.kjb`);
             }
             , s_analiseMovimentacoesSemValor: async () => {
                 try {
@@ -10335,7 +10343,9 @@ let main = {
             embarque: {
                 e_sincronizar: async (obj) => {
                     try {
-                        await main.platform.kettle.f_runJob('plastrela/sync/JobEmbarque.kjb');
+                        let config = await db.getModel('config').findOne();
+                        let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+                        await main.platform.kettle.f_runJob(`jobs/${empresa == 2 ? 'ms' : 'rs'}_sync/JobEmbarque.kjb`);
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
