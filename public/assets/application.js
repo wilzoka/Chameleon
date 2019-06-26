@@ -764,7 +764,7 @@ var application = {
             // Datatable
             $('#tableview' + data.name).attr('data-fastsearch', data.fastsearch || '');
             tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
-                dom: '<"col-xs-6 no-padding"B><"col-xs-6 dt-filter-div no-padding text-right">t'
+                dom: '<"col-xs-6 no-padding"B><"col-xs-6 dt-filter-div no-padding text-right">t<"col-xs-6 dt-info-div no-padding text-left">'
                 , buttons: [
                     {
                         extend: 'collection'
@@ -796,7 +796,8 @@ var application = {
                 , columns: data.columns
                 , deferRender: true
                 , drawCallback: function (settings) {
-                    var selected = $(settings.nTable).attr('data-selected');
+                    var $table = $(settings.nTable);
+                    var selected = $table.attr('data-selected');
                     if (selected) {
                         selected = selected.split(',');
                         for (var i = 0; i < selected.length; i++) {
@@ -804,6 +805,7 @@ var application = {
                         }
                     }
                     this.api().columns.adjust();
+                    $table.closest('.dataTables_wrapper').find('.dt-info-div').html($table.attr('data-total') + ' Registros');
                 }
                 , initComplete: function (settings) {
                     application.tables.getData(settings.sTableId);
@@ -923,6 +925,7 @@ var application = {
                         $table.attr('data-lazycomplete', 'true');
                     }
                     $table.attr('data-start', parseInt($table.attr('data-start') || 0) + 50);
+                    $table.attr('data-total', response.total);
                     tables[response.table].rows.add(response.data).draw(false);
                 }
                 , error: function (response) {

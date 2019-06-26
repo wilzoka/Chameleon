@@ -289,8 +289,7 @@ module.exports = function (app) {
             }));
             registers = fixResults(registers, modelattributes, viewtables);
             return application.success(res, {
-                recordsTotal: registers.count
-                , recordsFiltered: registers.count
+                total: registers.count
                 , data: registers.rows
                 , table: req.body.table
             });

@@ -63,7 +63,6 @@ $(function () {
 
             if (tabletocount.indexOf(table) >= 0) {
                 aux++;
-                $('#' + table + '_filter').remove();
             }
             if (aux == 4) {
                 for (var i = 0; i < tabletocount.length; i++) {
@@ -104,10 +103,8 @@ $(function () {
 
         $(document).on('app-modal', function (e, modal) {
             var $modal = $('#' + modal.id);
-
             switch (modal.id) {
                 case 'apinsumoAdicionarModal':
-
                     application.jsfunction('plastrela.pcp.ap.js_usuarioUltimoAp', {
                         idoprecurso: application.functions.getId()
                     }, function (response) {
@@ -123,11 +120,9 @@ $(function () {
                             $modal.find('select[name="recipiente"]').val(response.data.id).trigger('change');
                         }
                     });
-
                     $modal.on('shown.bs.modal', function () {
                         $modal.find('input[name="codigodebarra"]').focus();
                     });
-
                     $modal.find('input[name="codigodebarra"]').keydown(function (e) {
                         if (e.keyCode == 13) {
                             buscaCodigoBarra($(this).val())
@@ -138,7 +133,6 @@ $(function () {
                             $('button#apontar').trigger('click');
                         }
                     });
-
                     $('button#apontar').click(function () {
                         application.jsfunction('plastrela.pcp.apinsumo.__apontarVolume', {
                             idoprecurso: application.functions.getId()
@@ -179,7 +173,6 @@ $(function () {
                             }
                         });
                     });
-
                     break;
             }
 

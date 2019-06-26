@@ -203,11 +203,6 @@ table.dataTable thead tr th, table.dataTable tfoot tr td {
 table.dataTable thead .sorting:after, table.dataTable thead .sorting_asc:after, table.dataTable thead .sorting_desc:after, table.dataTable thead .sorting_asc_disabled:after, table.dataTable thead .sorting_desc_disabled:after {
     bottom: 3px;
 }
-div.dataTables_wrapper div.dataTables_info {
-    display: inline-block;
-    margin-left: 5px;
-    padding: 0;
-}
 div.dataTables_wrapper div.dataTables_filter input {
     width: 100%;
     margin-left: 0;
