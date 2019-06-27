@@ -5164,7 +5164,7 @@ let main = {
                             limit 1                          
                             `
                             , {
-                                replacements: { v1: oprecurso.id }
+                                replacements: { v1: oprecurso ? oprecurso.id : 0 }
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
 
@@ -5192,7 +5192,7 @@ let main = {
                             limit 1                           
                             `
                             , {
-                                replacements: { v1: oprecurso.id }
+                                replacements: { v1: oprecurso ? oprecurso.id : 0 }
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
                         let data = { id: null, text: null };
@@ -6103,7 +6103,7 @@ let main = {
                             let opr = await main.platform.model.findAll('pcp_oprecurso', { where: { id: opconjugada.idopprincipal } });
                             return application.error(obj.res, { msg: 'OP Conjugada. Só é possível realizar apontamentos na OP principal ' + opr.rows[0]['op'] });
                         }
-                        if (!user.code) {
+                        if (user && !user.code) {
                             return application.error(obj.res, { msg: 'Usuário/Operador Inválido', invalidfields: ['iduser'] });
                         }
                         if (obj.register.qtd <= 0) {
@@ -7087,6 +7087,9 @@ let main = {
                         let config = await db.getModel('pcp_config').findOne();
                         let gconfig = await db.getModel('config').findOne();
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.data.idoprecurso } });
+                        if (!oprecurso) {
+                            return application.error(obj.res, { msg: 'Volte a listagem e verifique a OP' });
+                        }
                         let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
                         let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
                         let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });

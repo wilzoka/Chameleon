@@ -805,7 +805,7 @@ var application = {
                         }
                     }
                     this.api().columns.adjust();
-                    $table.closest('.dataTables_wrapper').find('.dt-info-div').html($table.attr('data-total') + ' Registros');
+                    $table.closest('.dataTables_wrapper').find('.dt-info-div').html(($table.attr('data-total') || '0') + ' Registros');
                 }
                 , initComplete: function (settings) {
                     application.tables.getData(settings.sTableId);
