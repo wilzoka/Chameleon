@@ -319,7 +319,7 @@
       <value>
         <name>idgroupusers</name>
         <rename>idgroupusers</rename>
-        <update>Y</update>
+        <update>N</update>
       </value>
       <value>
         <name>active</name>
