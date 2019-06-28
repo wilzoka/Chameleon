@@ -286,7 +286,8 @@ div.dt-button-collection {
 .dropzone {
     border: 1px solid #d2d6de;
     padding: 5px;
-    min-height: 180px;
+    min-height: 160px;
+    border-radius: 5px;
 }
 div.dz-image img {
     width: 100%;
@@ -296,8 +297,12 @@ div.dz-image img {
 .dropzone .dz-preview .dz-success-mark, .dropzone .dz-preview .dz-error-mark {
     left: 59%;
 }
+.dropzone .dz-preview {    
+    margin: 5px;
+}
 .dropzone .dz-preview .dz-image {    
-    border-radius: 0px;
+    height: 105px;
+    border-radius: 3px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -318,15 +323,19 @@ div.dz-image img {
 .dropzone .dz-preview.dz-error .dz-error-mark {
     color: red
 }
-.dropzone .dz-preview .dz-image {
-    border-radius: 0px;
-    height: 105px;
-}
 .dropzone .dz-message {
     margin: 3em 0;
 }
 .dropzone .dz-preview:hover, .dropzone .dz-preview .dz-image, .dropzone .dz-preview .dz-details {
     z-index: unset;
+}
+.dz-dldiv .btn {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.dz-deldiv .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 
 /* Custom */

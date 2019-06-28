@@ -400,8 +400,8 @@ var application = {
                 + '<div class="dz-error-mark">'
                 + '<i class="fa fa-3x fa-times"></i>'
                 + '</div>'
-                + '<div class="dz-dldiv col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-xs btn-block" title="Download"><i class="fa fa-2x fa-download"></i></button></a></div>'
-                + '<div class="dz-deldiv col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash-alt"></i></button></a></div>'
+                + '<div class="dz-dldiv col-xs-6 no-padding"><a href="#" target="_blank"><button type="button" class="btn btn-default btn-xs btn-block" title="Download"><i class="fa fa-2x fa-download" style="color:#2b70dad4;"></i></button></a></div>'
+                + '<div class="dz-deldiv col-xs-6 no-padding"><a href="javascript:void(0)" style="color:#e22b2b;"><button type="button" class="btn btn-default btn-xs btn-block" title="Excluir" data-dz-remove><i class="fa fa-2x fa-trash-alt" style="color:#d42727d4;;"></i></button></a></div>'
                 + '</div>';
             $obj.each(function () {
                 dzs[$(this).attr('data-name')] = new Dropzone(this, {
@@ -804,8 +804,8 @@ var application = {
                             this.api().row('tr#' + selected[i]).select();
                         }
                     }
-                    this.api().columns.adjust();
                     $table.closest('.dataTables_wrapper').find('.dt-info-div').html(($table.attr('data-total') || '0') + ' Registros');
+                    this.api().columns.adjust();
                 }
                 , initComplete: function (settings) {
                     application.tables.getData(settings.sTableId);
@@ -940,7 +940,11 @@ var application = {
         }
         , deselectAll: function (idtable) {
             tables[idtable].rows().deselect();
-            $('#' + idtable).attr('data-selected', '');
+            var $table = $('#' + idtable);
+            $table.attr('data-selected', '');
+            var $dtSelectCount = $table.closest('.dataTables_wrapper').find('.dt-select-count');
+            $dtSelectCount.text('');
+            $dtSelectCount.closest('button').removeClass('btn-primary').addClass('btn-default');
         }
         , reload: function (idtable, keepSelection) {
             if (!keepSelection) {
