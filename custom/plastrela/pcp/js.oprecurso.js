@@ -71,9 +71,9 @@ $(function () {
                     }
                 }
                 if (aux == 0) {
-                    application.functions.confirmMessage('Favor verificar se o recurso informado na OP está correto.', function () {
-                    });
-                    frnc();
+                    // application.functions.confirmMessage('Favor verificar se o recurso informado na OP está correto.', function () {
+                    // });
+                    // frnc();
                 }
             }
 

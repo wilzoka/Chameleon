@@ -805,7 +805,9 @@ var application = {
                         }
                     }
                     $table.closest('.dataTables_wrapper').find('.dt-info-div').html(($table.attr('data-total') || '0') + ' Registros');
-                    this.api().columns.adjust();
+                    setTimeout(function () {
+                        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                    }.bind(this), 350);
                 }
                 , initComplete: function (settings) {
                     application.tables.getData(settings.sTableId);
