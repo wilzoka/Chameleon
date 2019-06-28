@@ -1,0 +1,384 @@
+<style>
+    #tableviewatividade_-_nota_insert {
+        display: none;
+    }
+</style>
+
+<div id="atvauth" class="hidden">
+    <div class="col-md-6">
+        <div class="box box-primary">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Usuário*</label>
+                            <input name="authuser" type="text" class="form-control" data-type="text">
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Senha*</label>
+                            <input name="authpass" type="password" class="form-control" data-type="text">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="atvcontent" class="">
+
+    <div class="hidden">
+        {{{hidden}}}
+    </div>
+
+    <!--     <div class="col-md-12" id="divcabecalho">
+        <div class="box">
+            <div class="box-body">
+                <div class="row">
+                    {{{cabecalho}}}
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    <div class="col-md-12">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li id="tabgeral" class="active">
+                    <a href="#tab_1" data-toggle="tab"> Geral</a>
+                </li>
+                <li id="tabdetalhes">
+                    <a href="#tab_2" data-toggle="tab"> Detalhes</a>
+                </li>
+                <!-- <li id="tabparticipante">
+                    <a href="#tab_3" data-toggle="tab"> Participantes</a>
+                </li> -->
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab_1">
+                    <div class="row">
+                        <div class="col-md-12 no-padding">
+                            {{{geral_cabecalho}}}
+                        </div>
+                        <div class="col-md-12 hidden" id="divcd">
+                            <div class="row" id="rowcd">
+                            </div>
+                        </div>
+                        <div class="col-md-12 no-padding">
+                            {{{geral}}}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        {{{participante}}}
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab_2">
+                    <div class="row">
+                        <div class="col-md-12 no-padding">
+                            {{{detalhes}}}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-12" id="divnota">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <input name="nota_tempo" type="text" class="form-control" data-type="time"
+                                        placeholder="hh:mm" style="text-align:right;">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="playtempo" type="button" class="btn btn-default btn-block">
+                                    <i class="fa fa-play"></i>
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <button id="pausetempo" type="button" class="btn btn-default btn-block">
+                                    <i class="fa fa-pause"></i>
+                                </button>
+                            </div>
+                            <div class="col-md-12 no-padding">
+                                {{{nota}}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalnota">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Adicionar Nota</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row" style="text-align: center;">
+                        <label title="Apenas você e colaboradores do mesmo setor podem ver esta nota">
+                            <input name="nota_privada" type="checkbox"> Privada?
+                        </label>
+                    </div>
+                    <div id="rowparticipantes" class="row">
+                        <hr>
+                        <div class="col-md-12">
+                            <table id="tableparticipantes" class="table table-bordered table-hover no-footer"
+                                style="margin-bottom: 0;">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center;">Notificar?</th>
+                                        <th style="text-align: center;">Participante</th>
+                                        <th style="text-align: center;">E-mail</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
+                    <button type="button" class="btn btn-success" id="addNota">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- <script type="text/javascript">
+    $(function () {
+        if ($('input[name="v_autenticarleitura"]').is(':checked') && !$('select[name="iduser_leitura"]').val()) {
+            $('#atvauth').removeClass('hidden');
+        } else {
+            $('#atvcontent').removeClass('hidden');
+            if (!$('select[name="iduser_leitura"]').val()) {
+                application.jsfunction('atividade.atividade.js_read', { id: application.functions.getId() }, function (response) { });
+            }
+        }
+
+        CKEDITOR_BASEPATH = '/public/assets/ckeditor/';
+        application.functions.getJs([
+            '/public/assets/ckeditor/ckeditor.js'
+        ]);
+
+        $(document).on('app-loadjs', function () {
+            var config = {
+                toolbarGroups: [
+                    { name: 'document', groups: ['mode', 'document', 'doctools'] },
+                    { name: 'clipboard', groups: ['clipboard', 'undo'] },
+                    { name: 'editing', groups: ['find', 'selection', 'spellchecker', 'editing'] },
+                    { name: 'forms', groups: ['forms'] },
+                    { name: 'basicstyles', groups: ['basicstyles', 'cleanup'] },
+                    { name: 'paragraph', groups: ['list', 'indent', 'blocks', 'align', 'bidi', 'paragraph'] },
+                    { name: 'links', groups: ['links'] },
+                    { name: 'insert', groups: ['insert'] },
+                    { name: 'styles', groups: ['styles'] },
+                    { name: 'colors', groups: ['colors'] },
+                    { name: 'tools', groups: ['tools'] },
+                    { name: 'about', groups: ['about'] },
+                    { name: 'others', groups: ['others'] }
+                ]
+                , removeButtons: 'Preview,Print,NewPage,Save,Source,Templates,Cut,Copy,Paste,PasteText,PasteFromWord,Find,Undo,Redo,Replace,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Strike,Subscript,Superscript,CopyFormatting,RemoveFormat,NumberedList,Outdent,Indent,Blockquote,CreateDiv,BidiLtr,BidiRtl,Language,Anchor,Flash,Smiley,SpecialChar,PageBreak,Iframe,Styles,Format,Font,ShowBlocks,About'
+            };
+            CKEDITOR.replace('descricao', config);
+            CKEDITOR.replace('nota_descricao', config);
+        });
+
+        function createModal() {
+            var html = '<div class="modal fade" id="creatingModal">';
+            html += '<div class="modal-dialog">';
+            html += '<div class="modal-content">';
+            html += '<div class="modal-header">';
+            html += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+            html += '<span aria-hidden="true">×</span></button>';
+            html += '<h4 class="modal-title">  </h4>';
+            html += '</div>';
+            html += '<div class="modal-body">';
+            html += '<div class="row">';
+            html += '<div class="col-sm-12"> <button class="btn btn-block btn-primary"> TI </button> </div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+
+        var playtempo;
+
+        var $idtipo = $('select[name="idtipo"]');
+        var $iduserresponsavel = $('select[name="iduser_responsavel"]');
+        var $nota_descricao = $('textarea[name="nota_descricao"]');
+        var $nota_privada = $('input[name="nota_privada"]');
+        var $nota_anexos = $('input[name="nota_anexos"]');
+        var $nota_tempo = $('input[name="nota_tempo"]');
+
+        if (application.functions.getId() == 0) {
+            // $('#divcabecalho').addClass('hidden');
+            $('#tabdetalhes').addClass('hidden');
+            $('#tabnotas').addClass('hidden');
+
+            $('select[name="iduser_responsavel"]').prop('disabled', true);
+
+            // $('body').append(createModal());
+            // $('#creatingModal').modal({ backdrop: 'static', keyboard: false }, 'show');
+        } else {
+            $('select[name="idtipo"]').prop('disabled', true);
+
+            application.jsfunction('atividade.atividade.js_getTempo', { id: application.functions.getId() }, function (response) {
+                if (response.success) {
+                    $nota_tempo.val(response.tempo);
+                    if (response.rodando) {
+                        runTime();
+                    }
+                }
+            });
+        }
+
+        function adjustAC() {
+            if ($idtipo.val()) {
+                $iduserresponsavel.prop('disabled', false);
+                $iduserresponsavel.attr('data-where', 'id in (select su.idusuario from atv_tipo t left join cad_setor s on (t.idsetor = s.id) left join cad_setorusuario su on (su.idsetor = s.id) where t.id = ' + $idtipo.val() + ')');
+            } else {
+                $iduserresponsavel.prop('disabled', true);
+            }
+        }
+        $('select[name="idtipo"]').change(function () {
+            $iduserresponsavel.val(null).trigger('change');
+            adjustAC();
+            trazCD();
+        });
+        adjustAC();
+        trazCD();
+
+        function trazCD() {
+            application.jsfunction('atividade.atividade.js_obterCamposDinamicos', {
+                idtipo: $('select[name="idtipo"]').val()
+                , idatividade: application.functions.getId()
+            }, function (response) {
+                $('#rowcd').children().remove();
+                $('#rowcd').append(response.data);
+                application.components.renderInside($('#rowcd'));
+                $('#divcd').removeClass('hidden');
+            });
+        }
+        function runTime() {
+            playtempo = setInterval(function () {
+                var val = $nota_tempo.val();
+                var hora = 0;
+                var min = 0;
+                if (val) {
+                    var splited = val.split(':');
+                    hora = parseInt(splited[0]);
+                    min = parseInt(splited[1]);
+                    min++;
+                }
+                if (min == 60) {
+                    min = 0;
+                    hora++;
+                }
+                $nota_tempo.val((hora < 10 ? '0' : '') + hora + ':' + (min < 10 ? '0' : '') + min);
+            }, 60000);
+            $nota_tempo.prop('readonly', true);
+        }
+        $('#playtempo').click(function () {
+            if (playtempo) {
+                application.notify.info('Tempo já está rodando');
+                return;
+            }
+            if (!$nota_tempo.val()) {
+                $nota_tempo.val('00:00');
+            }
+            application.jsfunction('atividade.atividade.js_play', { id: application.functions.getId() }, function (response) {
+                application.handlers.responseSuccess(response);
+                if (response.success) {
+                    var newOption = new Option(response.status.descricao, response.status.id, false, true);
+                    $('select[name="idstatus"]').append(newOption).trigger('change');
+                    runTime();
+                }
+            });
+        });
+        $('#pausetempo').click(function () {
+            if (!playtempo) {
+                application.notify.info('Tempo já está pausado');
+                return;
+            }
+            application.jsfunction('atividade.atividade.js_pause', { id: application.functions.getId() }, function (response) {
+                application.handlers.responseSuccess(response);
+                if (response.success) {
+                    if (response.status) {
+                        var newOption = new Option(response.status.descricao, response.status.id, false, true);
+                        $('select[name="idstatus"]').append(newOption).trigger('change');
+                    }
+                    clearInterval(playtempo);
+                    playtempo = undefined;
+                    $nota_tempo.prop('readonly', false);
+                }
+            });
+        });
+        $('#adicionarNota').click(function () {
+
+            $nota_privada.prop('checked', false);
+            application.jsfunction('atividade.atividade.js_getParticipantes', {
+                idatividade: application.functions.getId()
+            }, function (response) {
+                var tpl = '<tr><td style="text-align: center;"><input name="$name" type="checkbox" style="width: 100%;"></td>' +
+                    '<td>$user</td>' +
+                    '<td>$email</td></tr>';
+                var html = '';
+                for (var i = 0; i < response.data.length; i++) {
+                    html += tpl.replace('$name', response.data[i].id).replace('$user', response.data[i].user).replace('$email', response.data[i].email);
+                }
+                $('#tableparticipantes').find('tbody').children().remove();
+                $('#tableparticipantes').find('tbody').append(html);
+                if (html) {
+                    $('#rowparticipantes').removeClass('hidden');
+                } else {
+                    $('#rowparticipantes').addClass('hidden');
+                }
+            });
+            $('#modalnota').modal('show');
+        });
+        $('#addNota').click(function () {
+            if (playtempo) {
+                $('#pausetempo').trigger('click');
+            }
+            var $participantes = $('#tableparticipantes').find('input[type="checkbox"]');
+            var participantes = [];
+            for (var i = 0; i < $participantes.length; i++) {
+                if ($($participantes[i]).is(':checked')) {
+                    participantes.push($participantes[i].name.replace('participante_', ''));
+                }
+            }
+            application.jsfunction('atividade.atividade.js_adicionarNota', {
+                id: application.functions.getId()
+                , nota_descricao: CKEDITOR.instances.nota_descricao.getData()
+                , nota_tempo: $nota_tempo.val()
+                , nota_privada: $nota_privada.is(':checked')
+                , participantes: participantes
+                , nota_anexos: $nota_anexos.val()
+            }, function (response) {
+                application.handlers.responseSuccess(response);
+                if (response.success) {
+                    CKEDITOR.instances.nota_descricao.setData('');
+                    $nota_privada.prop('checked', false);
+                    $nota_tempo.val('00:00');
+                    $nota_descricao.closest('div.form-group').removeClass('has-error');
+                    dzs['nota_anexos'].removeAllFiles(true);
+                    $('#modalnota').modal('hide');
+                }
+            });
+        });
+        $nota_privada.change(function () {
+            if ($nota_privada.is(':checked')) {
+                $('#rowparticipantes').addClass('hidden');
+            } else {
+                $('#rowparticipantes').removeClass('hidden');
+            }
+        });
+    });
+</script> -->
