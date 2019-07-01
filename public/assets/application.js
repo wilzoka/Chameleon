@@ -784,9 +784,6 @@ var application = {
                             if (subview && application.functions.getId() == 0) {
                                 Cookies.set('subview_redirect', view);
                                 $('#form.xhr').submit();
-                                setTimeout(function () {
-                                    Cookies.remove('subview_redirect');
-                                }, 500);
                             } else {
                                 window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
                             }
@@ -807,7 +804,7 @@ var application = {
                     $table.closest('.dataTables_wrapper').find('.dt-info-div').html(($table.attr('data-total') || '0') + ' Registros');
                     setTimeout(function () {
                         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-                    }.bind(this), 350);
+                    }.bind(this), 500);
                 }
                 , initComplete: function (settings) {
                     application.tables.getData(settings.sTableId);
@@ -1016,12 +1013,10 @@ var application = {
             , file: function (value) {
                 if (value) {
                     var j = JSON.parse(value);
-                    if (j[0].mimetype.match(/image.*/)) {
+                    if (j.length == 1 && j[0].mimetype.match(/image.*/)) {
                         return '<img src="/file/' + j[0].id + '" style="max-height: 100px;">';
-                    } else if (j[0].type == 'pdf') {
-                        return '<i class="fa fa-file-pdf-o"></i>';
                     } else {
-                        return '<i class="fa fa-file-o"></i>';
+                        return '<span class="fa-stack"><i class="fa-2x far fa-file"></i><strong class="fa-stack-1x">' + j.length + '</strong></span>';
                     }
                 } else {
                     return '';
@@ -1219,6 +1214,7 @@ var application = {
                         window.history.replaceState(null, null, response.redirect);
                     }
                     if ('subview_redirect' in response) {
+                        Cookies.remove('subview_redirect');
                         return window.location.href = response.subview_redirect;
                     } else {
                         return window.location.href = response.redirect;

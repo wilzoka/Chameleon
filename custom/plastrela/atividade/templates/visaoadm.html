@@ -131,7 +131,6 @@
             $('#tempomedioresolucao').html(response.data.tempomedioresolucao);
         });
         setInterval(function () {
-            application.tables.reloadAll(true);
             getUnread();
         }, 10000);
         setTimeout(function () {

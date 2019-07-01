@@ -17,9 +17,7 @@ let main = {
                 try {
                     if (obj.register.id == 0) {
                         obj.register.datahora_criacao = moment();
-                        if (!obj.register.iduser_criacao) {
-                            obj.register.iduser_criacao = obj.req.user.id;
-                        }
+                        obj.register.iduser_criacao = obj.req.user.id;
                         let statusinicial = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: obj.register.idtipo, inicial: true } });
                         if (!statusinicial) {
                             return application.error(obj.res, { msg: 'Status Inicial não configurado para este tipo' });
@@ -63,11 +61,6 @@ let main = {
                     }
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                    }
-
-                    obj._responseModifier = function (ret) {
-                        ret['historyBack'] = true;
-                        return ret;
                     }
                     let saved = await next(obj);
                     if (saved.success) {
@@ -318,21 +311,21 @@ let main = {
                     if (atividade.encerrada) {
                         return application.error(obj.res, { msg: 'Atividade está encerrada' });
                     }
-                    let invalidfields = application.functions.getEmptyFields(obj.data, ['nota_descricao', 'nota_tempo']);
+                    let invalidfields = application.functions.getEmptyFields(obj.data, ['descricao', 'tempo']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
-                    let privada = obj.data.nota_privada == 'true';
+                    let privada = obj.data.privada == 'true';
                     let atvnota = await db.getModel('atv_atividadenota').create({
                         idatividade: atividade.id
                         , datahora: moment()
                         , iduser: obj.req.user.id
-                        , descricao: obj.data.nota_descricao
-                        , anexos: obj.data.nota_anexos
-                        , tempo: obj.data.nota_tempo == '' ? null : application.formatters.be.time(obj.data.nota_tempo)
+                        , descricao: obj.data.descricao
+                        , anexos: obj.data.anexos
+                        , tempo: obj.data.tempo == '' ? null : application.formatters.be.time(obj.data.tempo)
                         , privada: privada
                     });
-                    let anexos = JSON.parse(obj.data.nota_anexos || '[]');
+                    let anexos = JSON.parse(obj.data.anexos || '[]');
                     if (anexos.length > 0) {
                         let modelatv = await db.getModel('model').findOne({ where: { name: 'atv_atividadenota' } });
                         for (let i = 0; i < anexos.length; i++) {
@@ -355,8 +348,8 @@ let main = {
                         });
                         if (atividade.users.email) {
                             let attachments = [];
-                            if (obj.data.nota_anexos) {
-                                let j = JSON.parse(obj.data.nota_anexos);
+                            if (obj.data.anexos) {
+                                let j = JSON.parse(obj.data.anexos);
                                 for (let i = 0; i < j.length; i++) {
                                     attachments.push({
                                         filename: j[i].filename
@@ -385,7 +378,7 @@ let main = {
                                     , cc: parts.email
                                     , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
                                     , html: `<a href="http://intranet.plastrela.com.br:8084/r/visao_administrativa" target="_blank">http://intranet.plastrela.com.br:8084/r/visao_administrativa</a>
-                                    <br>${obj.data.nota_descricao || ''}`
+                                    <br>${obj.data.descricao || ''}`
                                     , attachments: attachments
                                 });
                             }
@@ -8310,6 +8303,7 @@ let main = {
                             let opnova = oprecurso.dataValues;
                             delete opnova['id'];
                             opnova.integrado = null;
+                            opnova.qtdlavagens = null;
                             opnova.idestado = 1;
                             opnova.idrecurso = obj.req.body.idrecurso;
                             let opr = await db.getModel('pcp_oprecurso').create(opnova);

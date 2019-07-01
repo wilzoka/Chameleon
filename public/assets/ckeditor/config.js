@@ -1,8 +1,3 @@
-/**
- * @license Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see https://ckeditor.com/legal/ckeditor-oss-license
- */
-
 CKEDITOR.editorConfig = function (config) {
 	config.toolbarGroups = [
 		{ name: 'document', groups: ['mode', 'document', 'doctools'] },
@@ -21,6 +16,5 @@ CKEDITOR.editorConfig = function (config) {
 		{ name: 'others', groups: ['others'] },
 		{ name: 'about', groups: ['about'] }
 	];
-
 	config.removeButtons = 'Save,NewPage,Preview,Print,Templates,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Language,Flash,Smiley,Iframe,ShowBlocks,About';
 };
