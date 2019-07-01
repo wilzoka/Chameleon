@@ -27,13 +27,13 @@
     </div>
 </div>
 
-<div id="atvcontent" class="">
+<div id="atvcontent" class="hidden">
 
     <div class="hidden">
         {{{hidden}}}
     </div>
 
-    <!--     <div class="col-md-12" id="divcabecalho">
+    <div class="col-md-12" id="divcabecalho">
         <div class="box">
             <div class="box-body">
                 <div class="row">
@@ -41,7 +41,7 @@
                 </div>
             </div>
         </div>
-    </div> -->
+    </div>
 
     <div class="col-md-12">
         <div class="nav-tabs-custom">
@@ -52,27 +52,16 @@
                 <li id="tabdetalhes">
                     <a href="#tab_2" data-toggle="tab"> Detalhes</a>
                 </li>
-                <!-- <li id="tabparticipante">
+                <li id="tabparticipante">
                     <a href="#tab_3" data-toggle="tab"> Participantes</a>
-                </li> -->
+                </li>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane active" id="tab_1">
                     <div class="row">
                         <div class="col-md-12 no-padding">
-                            {{{geral_cabecalho}}}
-                        </div>
-                        <div class="col-md-12 hidden" id="divcd">
-                            <div class="row" id="rowcd">
-                            </div>
-                        </div>
-                        <div class="col-md-12 no-padding">
                             {{{geral}}}
                         </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        {{{participante}}}
                     </div>
                 </div>
                 <div class="tab-pane" id="tab_2">
@@ -81,30 +70,76 @@
                             {{{detalhes}}}
                         </div>
                     </div>
-                    <hr>
+                </div>
+                <div class="tab-pane" id="tab_3">
                     <div class="row">
-                        <div class="col-md-12" id="divnota">
-                            <div class="col-md-8">
-                                <div class="form-group">
-                                    <input name="nota_tempo" type="text" class="form-control" data-type="time"
-                                        placeholder="hh:mm" style="text-align:right;">
+                        <div class="col-md-12 no-padding">
+                            {{{participante}}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12" id="divnota">
+        <div class="box">
+            <div class="box-body">
+                <div class="row">
+                    <h4 class="title_subview">Notas</h4>
+                    <hr style="margin: 10px 0;">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <input name="nota_tempo" type="text" class="form-control" data-type="time" placeholder="hh:mm" style="text-align:right;">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button id="playtempo" type="button" class="btn btn-default btn-block">
+                            <i class="fa fa-play"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <button id="pausetempo" type="button" class="btn btn-default btn-block">
+                            <i class="fa fa-pause"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <div class="col-xs-12 no-padding">
+                                <label>Descrição</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <textarea name="nota_descricao" rows="3" class="form-control" data-type="textarea"></textarea>
                                 </div>
-                            </div>
-                            <div class="col-md-2">
-                                <button id="playtempo" type="button" class="btn btn-default btn-block">
-                                    <i class="fa fa-play"></i>
-                                </button>
-                            </div>
-                            <div class="col-md-2">
-                                <button id="pausetempo" type="button" class="btn btn-default btn-block">
-                                    <i class="fa fa-pause"></i>
-                                </button>
-                            </div>
-                            <div class="col-md-12 no-padding">
-                                {{{nota}}}
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Anexos</label>
+                            <div class="dropzone" data-name="nota_anexos" data-type="file" data-maxfiles="" data-acceptedfiles="">
+                                <input name="nota_anexos" type="hidden">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="margin-bottom: 5px;">
+                        <button id="adicionarNota" type="button" class="btn btn-success btn-block">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-12 no-padding">
+                        {{{nota}}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 hidden" id="divcd">
+        <div class="box">
+            <div class="box-body">
+                <div class="row" id="rowcd">
                 </div>
             </div>
         </div>
@@ -125,8 +160,7 @@
                     <div id="rowparticipantes" class="row">
                         <hr>
                         <div class="col-md-12">
-                            <table id="tableparticipantes" class="table table-bordered table-hover no-footer"
-                                style="margin-bottom: 0;">
+                            <table id="tableparticipantes" class="table table-bordered table-hover no-footer" style="margin-bottom: 0;">
                                 <thead>
                                     <tr>
                                         <th style="text-align: center;">Notificar?</th>
@@ -150,7 +184,7 @@
 
 </div>
 
-<!-- <script type="text/javascript">
+<script type="text/javascript">
     $(function () {
         if ($('input[name="v_autenticarleitura"]').is(':checked') && !$('select[name="iduser_leitura"]').val()) {
             $('#atvauth').removeClass('hidden');
@@ -381,4 +415,4 @@
             }
         });
     });
-</script> -->
+</script>
