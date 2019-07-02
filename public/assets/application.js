@@ -21,7 +21,16 @@ if ($.fn.dataTable) {
     $.extend(true, $.fn.dataTable.ext.classes, {
         sFilterInput: 'form-control'
     });
-    $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-sm'
+    $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-sm';
+    $.fn.dataTable.ext.errMode = function (settings, techNote, message) {
+        var $table = $('#' + settings.sTableId);
+        if (techNote == 4) {//Warning: Requested unknown parameter
+            localStorage.removeItem('DTconfig_' + window.location.pathname + '_' + $table.attr('data-view'));
+            window.location.reload();
+        } else {
+            console.log(message);
+        }
+    };
 }
 // Dropzone
 if (window.Dropzone) {

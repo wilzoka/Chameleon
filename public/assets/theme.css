@@ -229,8 +229,7 @@ div.dt-button-collection {
 @media (max-width: 767px) {
     .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
         padding: 0px 7px;
-    }
-    
+    }    
 }
 .form-group.has-error .select2-selection {
     border-color: #dd4b39;
@@ -240,6 +239,8 @@ div.dt-button-collection {
     border-color: #3c8dbc;
 }
 .select2-selection__clear {
+    top: -1px;
+    right: -3px;
     padding: 0 5px;
     font-size: 20px;
     color: #888888;
