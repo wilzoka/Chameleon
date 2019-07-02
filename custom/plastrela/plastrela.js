@@ -332,6 +332,14 @@ let main = {
                             db.getModel('file').update({ idmodel: modelatv.id, modelid: atvnota.id, public: false, bounded: true }, { where: { id: anexos[i].id } });
                         }
                     }
+                    let atvemandamento = await db.getModel('atv_atividadetempo').findOne({ where: { idatividade: atividade.id, iduser: obj.req.user.id, datahorafim: null } });
+                    if (atvemandamento) {
+                        let statuspausada = await db.getModel('atv_tipo_status').findOne({ where: { idtipo: atividade.idtipo, pausada: true } });
+                        if (statuspausada) {
+                            atividade.idstatus = statuspausada.idstatus;
+                            await atividade.save({ iduser: obj.req.user.id });
+                        }
+                    }
                     await db.getModel('atv_atividadetempo').destroy({
                         iduser: obj.req.user.id
                         , where: {
