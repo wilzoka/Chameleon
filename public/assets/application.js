@@ -1046,19 +1046,14 @@ var application = {
                 }
             }
             , progressbar: function (value) {
-                var progresstype = '';
-                if (value <= 25) {
-                    progresstype = 'danger';
-                } else if (value < 50) {
-                    progresstype = 'yellow';
-                } else if (value < 75) {
-                    progresstype = 'primary';
-                } else {
-                    progresstype = 'success';
+                function hsl_col_perc(percent, start, end) {
+                    var a = percent / 100,
+                        b = (end - start) * a,
+                        c = b + start;
+                    return 'hsl(' + c + ', 85%, 45%, 0.85)';
                 }
-                return '<div class="progress progress-striped active"><div class="progress-bar progress-bar-' + progresstype + '" style="width: ' + value + '%"></div></div>';
+                return '<div class="progress"><div class="progress-bar" style="width: ' + value + '%;background-color:' + hsl_col_perc(value, 0, 100) + '">' + value + '%</div></div>';
             }
-
         }
         , saveFilter: function (idtable) {
             var $modal = $('div#' + idtable + 'filter');
