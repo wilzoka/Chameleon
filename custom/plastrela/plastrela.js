@@ -1159,6 +1159,18 @@ let main = {
                 console.error(err);
             }
         }
+        , projeto: {
+            onsave: async (obj, next) => {
+                try {
+                    if (obj.register.id == 0) {
+                        obj.register.datahora_criacao = moment();
+                    }
+                    await next(obj);
+                } catch (err) {
+                    return application.fatal(obj.res, err);
+                }
+            }
+        }
     }
     , plastrela: {
         sync: async function () {
