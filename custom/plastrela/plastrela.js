@@ -100,13 +100,6 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
-            , ondelete: async (obj, next) => {
-                try {
-                    return application.error(obj.res, { msg: 'Não é possível excluir atividades' });
-                } catch (err) {
-                    return application.fatal(obj.res, err);
-                }
-            }
             , e_finalizar: async (obj) => {
                 try {
                     if (obj.ids.length != 1) {
