@@ -6509,7 +6509,7 @@ let main = {
                             let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
                             let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
-                            let sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
+                            let sql = await db.sequelize.query([1, 8].indexOf(tprecurso.codigo) >= 0 ?
                                 `with et as (
                                 select distinct
                                     d.id as iddeposito
