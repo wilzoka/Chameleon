@@ -18,9 +18,6 @@ const express = require('express')
         , saveUninitialized: false
         , secret: 'makebettersecurity'
         , name: `connect.sid.${process.env.NODE_PORT}`
-        , cookie: {
-            maxAge: new Date(Date.now() + 3600000)
-        }
     });
 //Express Settings
 app.disable('x-powered-by');
