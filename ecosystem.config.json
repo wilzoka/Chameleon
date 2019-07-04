@@ -9,6 +9,7 @@
         "node_modules",
         "tmp"
       ],
+      "log_date_format": "DD/MM/YYYY HH:mm Z",
       "env": {
         "NODE_ENV": "production",
         "NODE_APPNAME": "app1",
