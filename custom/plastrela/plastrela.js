@@ -207,8 +207,8 @@ let main = {
                         }
                         atv.idstatus = statuspausada.idstatus;
                         atvemandamento.datahorafim = moment();
-                        await atvemandamento.save();
-                        await atv.save();
+                        await atvemandamento.save({ iduser: obj.req.user.id });
+                        await atv.save({ iduser: obj.req.user.id });
                     }
                     await db.getModel('atv_atividadetempo').create({
                         idatividade: atividade.id
@@ -1866,7 +1866,7 @@ let main = {
                                 let software = (await db.getModel('cad_software').findOrCreate({ where: { descricao: content[0] } }))[0];
                                 let vs = (await db.getModel('cad_vinculacaosoftware').findOrCreate({ where: { idequipamento: obj.req.body.id, idsoftware: software.id } }))[0];
                                 vs.detalhes = content[1];
-                                await vs.save();
+                                await vs.save({ iduser: obj.req.user.id });
                             }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
@@ -1958,7 +1958,7 @@ let main = {
                             });
 
                             solicitacaoitem.qtd = (parseFloat(solicitacaoitem.qtd) - qtd).toFixed(4);
-                            await solicitacaoitem.save();
+                            await solicitacaoitem.save({ iduser: obj.req.user.id });
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
@@ -2159,7 +2159,7 @@ let main = {
                         }
                         let saved = await next(obj);
                         if (saved.success) {
-                            peca.save();
+                            peca.save({ iduser: obj.req.user.id });
                             if (parseFloat(peca.estoque) < parseFloat(peca.minimo)) {
                                 main.platform.notification.create([obj.req.user.id], {
                                     title: 'Estoque Mínimo Atingido!'
@@ -2183,7 +2183,7 @@ let main = {
                                 } else {
                                     peca.estoque = parseFloat(peca.estoque) + parseFloat(movimentacoes[i].qtd);
                                 }
-                                await peca.save();
+                                await peca.save({ iduser: obj.req.user.id });
                             }
                         }
                     } catch (err) {
@@ -2394,7 +2394,7 @@ let main = {
                             if (solicitacaoitem.length <= 0) {
                                 for (let z = 0; z < solicitacoesfinalizadas.length; z++) {
                                     solicitacoesfinalizadas[z].qtdrecebida = null;
-                                    await solicitacoesfinalizadas[z].save();
+                                    await solicitacoesfinalizadas[z].save({ iduser: obj.req.user.id });
                                 }
                                 for (let z = 0; z < reservascriadas.length; z++) {
                                     reservascriadas[z].destroy();
@@ -2447,7 +2447,7 @@ let main = {
                                         }
                                     }
 
-                                    await solicitacaoitem[y].save();
+                                    await solicitacaoitem[y].save({ iduser: obj.req.user.id });
                                     solicitacoesfinalizadas.push(solicitacaoitem[y]);
                                 }
                             }
@@ -2462,7 +2462,7 @@ let main = {
                                 if (qtd < 50) {
                                     let ultimareserva = await db.getModel('est_volumereserva').findOne({ where: { idvolume: volume.id }, order: [['id', 'desc']] });
                                     ultimareserva.qtd = (parseFloat(ultimareserva.qtd) + parseFloat(qtd)).toFixed(4);
-                                    await ultimareserva.save();
+                                    await ultimareserva.save({ iduser: obj.req.user.id });
                                 }
                             }
                         }
@@ -2470,12 +2470,12 @@ let main = {
 
                     for (let z = 0; z < solicitacoesfinalizadas.length; z++) {
                         solicitacoesfinalizadas[z].idestado = config.idsolicitacaoestadofinal;
-                        await solicitacoesfinalizadas[z].save();
+                        await solicitacoesfinalizadas[z].save({ iduser: obj.req.user.id });
                     }
 
                     nfentrada.integrado = 'P';
                     nfentrada.finalizado = true;
-                    await nfentrada.save();
+                    await nfentrada.save({ iduser: obj.req.user.id });
 
                     application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
@@ -3303,12 +3303,12 @@ let main = {
 
                                 if (results.length > 0) {
                                     volume.metragem = results[0].metragem;
-                                    volume.save();
+                                    volume.save({ iduser: obj.req.user.id });
                                 }
                             }
 
                             nfitem.qtdvolumes = await db.getModel('est_volume').count({ where: { idnfentradaitem: nfitem.id } });
-                            await nfitem.save();
+                            await nfitem.save({ iduser: obj.req.user.id });
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
@@ -3355,7 +3355,7 @@ let main = {
                                 id: { $in: obj.ids }
                             }
                         });
-                        await nfitem.save();
+                        await nfitem.save({ iduser: obj.req.user.id });
 
                         //unbound files
                         let filestounbound = [];
@@ -3431,7 +3431,7 @@ let main = {
 
                                 if (results.length > 0) {
                                     saved.register.metragem = results[0].metragem;
-                                    saved.register.save();
+                                    saved.register.save({ iduser: obj.req.user.id });
                                 }
                             }
                         }
@@ -3441,6 +3441,7 @@ let main = {
                     }
                 }
                 , e_movimentar: async function (obj) {
+                    let t;
                     try {
                         if (obj.req.method == 'GET') {
                             if (obj.ids.length <= 0) {
@@ -3485,6 +3486,7 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
+                            t = await db.sequelize.transaction();
                             let consumido = 'consumido' in obj.req.body;
                             let changes = { iddeposito: obj.req.body.iddeposito, consumido: consumido, iddepositoendereco: null };
                             if (consumido) {
@@ -3492,7 +3494,7 @@ let main = {
                             }
                             let depdestino = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
                             let volumes = await db.getModel('est_volume').findAll({ include: [{ all: true }], where: { id: { $in: obj.req.body.ids.split(',') } } });
-                            await db.getModel('est_volume').update(changes, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+                            await db.getModel('est_volume').update(changes, { transaction: t, where: { id: { $in: obj.req.body.ids.split(',') } } });
                             let config = await db.getModel('config').findOne();
                             let empresa = config.cnpj == "90816133000123" ? 2 : 1;
                             for (let i = 0; i < volumes.length; i++) {
@@ -3501,12 +3503,14 @@ let main = {
                                     await db.getModel('est_integracaotrf').create({
                                         query: `call p_transfere_estoque(${empresa}, '${item.codigo}', '${volumes[i].pcp_versao.codigo}', ${volumes[i].qtdreal}, '${moment().format(application.formatters.fe.date_format)}', ${volumes[i].est_deposito.codigo}, ${depdestino.codigo}, '9999', 'TRF'||'${empresa}'||'#'||to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')||'#'||'${item.codigo}'||'#'||'${volumes[i].pcp_versao.codigo}', ${volumes[i].id}, null, 'S', 7, 'N', null, null, 8, ${empresa})`
                                         , integrado: 'N'
-                                    }, { iduser: obj.req.user.id });
+                                    }, { iduser: obj.req.user.id, transaction: t });
                                 }
                             }
+                            await t.commit();
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
                     } catch (err) {
+                        t.rollback();
                         return application.fatal(obj.res, err);
                     }
                 }
@@ -3559,7 +3563,7 @@ let main = {
                             if (parseFloat(volume.qtdreal) > parseFloat(volume.qtd)) {
                                 return application.error(obj.res, { msg: 'O peso do estorno é maior que o peso original do volume' });
                             }
-                            await volume.save();
+                            await volume.save({ iduser: obj.req.user.id });
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
@@ -3663,7 +3667,7 @@ let main = {
                                     case 1:
                                         if (reservas[0].idpedidoitem = ven_pedidoitem.id) {
                                             reservas[0].idopetapa = opetapa.id;
-                                            await reservas[0].save();
+                                            await reservas[0].save({ iduser: obj.req.user.id });
                                         } else {
                                             return application.error(obj.res, { msg: 'A reserva do volume ' + volumes[i].id + ' não pertence a OP informada' });
                                         }
@@ -4714,12 +4718,14 @@ let main = {
             }
             , requisicao: {
                 e_entregar: async function (obj) {
+                    let t;
                     try {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        let requisicoes = await db.getModel('est_requisicaovolume').findAll({ where: { id: { $in: obj.ids } } });
+                        t = await db.sequelize.transaction();
+                        let requisicoes = await db.getModel('est_requisicaovolume').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } } });
 
                         for (let i = 0; i < requisicoes.length; i++) {
                             if (requisicoes[i].datahoraatendido) {
@@ -4727,19 +4733,30 @@ let main = {
                             }
                         }
 
+                        let config = await db.getModel('config').findOne();
+                        let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+
                         for (let i = 0; i < requisicoes.length; i++) {
+                            let volume = await db.getModel('est_volume').findOne({ include: [{ all: true }], where: { id: requisicoes[i].idvolume } });
+                            let item = await db.getModel('cad_item').findOne({ include: [{ all: true }], where: { id: volume.pcp_versao.iditem } });
+                            if (item.est_grupo.codigo == 504 && item.est_tpitem.codigo == 5) {
+                                await db.getModel('est_integracaotrf').create({
+                                    query: `call p_transfere_estoque(${empresa}, '${item.codigo}', '${volume.pcp_versao.codigo}', ${volume.qtdreal}, '${moment().format(application.formatters.fe.date_format)}', ${volume.est_deposito.codigo}, ${requisicoes[i].est_deposito.codigo}, '9999', 'TRF'||'${empresa}'||'#'||to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')||'#'||'${item.codigo}'||'#'||'${volume.pcp_versao.codigo}', ${volume.id}, null, 'S', 7, 'N', null, null, 8, ${empresa})`
+                                    , integrado: 'N'
+                                }, { iduser: obj.req.user.id, transaction: t });
+                            }
                             requisicoes[i].datahoraatendido = moment();
                             requisicoes[i].iduseratendimento = obj.req.user.id;
-                            let volume = await db.getModel('est_volume').findOne({ where: { id: requisicoes[i].idvolume } });
                             requisicoes[i].iddepositoorigem = volume.iddeposito;
                             requisicoes[i].iddepositoenderecoorigem = volume.iddepositoendereco;
                             requisicoes[i].qtd = volume.qtdreal;
                             volume.iddeposito = requisicoes[i].iddeposito;
                             volume.iddepositoendereco = null;
-                            volume.save();
-                            requisicoes[i].save();
+                            await volume.save({ iduser: obj.req.user.id, transaction: t });
+                            await requisicoes[i].save({ iduser: obj.req.user.id, transaction: t });
                         }
 
+                        await t.commit();
                         application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
                         let param = await main.platform.parameter.f_get('est_requisicao_notificacao');
@@ -4750,16 +4767,19 @@ let main = {
                             });
                         }
                     } catch (err) {
+                        t.rollback();
                         return application.fatal(obj.res, err);
                     }
                 }
                 , e_undoentregar: async function (obj) {
+                    let t;
                     try {
                         if (obj.ids.length <= 0) {
                             return application.error(obj.res, { msg: application.message.selectOneEvent });
                         }
 
-                        let requisicoes = await db.getModel('est_requisicaovolume').findAll({ where: { id: { $in: obj.ids } } });
+                        t = await db.sequelize.transaction();
+                        let requisicoes = await db.getModel('est_requisicaovolume').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } } });
 
                         for (let i = 0; i < requisicoes.length; i++) {
                             if (!requisicoes[i].datahoraatendido) {
@@ -4767,21 +4787,38 @@ let main = {
                             }
                         }
 
+                        let config = await db.getModel('config').findOne();
+                        let empresa = config.cnpj == "90816133000123" ? 2 : 1;
+
                         for (let i = 0; i < requisicoes.length; i++) {
+                            let volume = await db.getModel('est_volume').findOne({ include: [{ all: true }], where: { id: requisicoes[i].idvolume } });
+                            if (parseFloat(volume.qtdreal) != parseFloat(requisicoes[i].qtd)) {
+                                t.rollback();
+                                return application.error(obj.res, { msg: `A quantidade atual do volume ${volume.id} (${application.formatters.fe.decimal(volume.qtdreal, 4)}) difere da quantidade original (${application.formatters.fe.decimal(requisicoes[i].qtd, 4)}) da requisição` });
+                            }
+
                             requisicoes[i].datahoraatendido = null;
                             requisicoes[i].iduseratendimento = null;
                             requisicoes[i].qtd = null;
-                            let volume = await db.getModel('est_volume').findOne({ where: { id: requisicoes[i].idvolume } });
+                            let item = await db.getModel('cad_item').findOne({ include: [{ all: true }], where: { id: volume.pcp_versao.iditem } });
+                            if (item.est_grupo.codigo == 504 && item.est_tpitem.codigo == 5) {
+                                await db.getModel('est_integracaotrf').create({
+                                    query: `call p_transfere_estoque(${empresa}, '${item.codigo}', '${volume.pcp_versao.codigo}', ${volume.qtdreal}, '${moment().format(application.formatters.fe.date_format)}', ${requisicoes[i].est_deposito.codigo}, ${requisicoes[i].depositoorigem.codigo}, '9999', 'TRF'||'${empresa}'||'#'||to_char(sysdate,'dd/mm/yyyy hh24:mi:ss')||'#'||'${item.codigo}'||'#'||'${volume.pcp_versao.codigo}', ${volume.id}, null, 'S', 7, 'N', null, null, 8, ${empresa})`
+                                    , integrado: 'N'
+                                }, { iduser: obj.req.user.id, transaction: t });
+                            }
+
                             volume.iddeposito = requisicoes[i].iddepositoorigem;
                             volume.iddepositoendereco = requisicoes[i].iddepositoenderecoorigem;
                             requisicoes[i].iddepositoorigem = null;
                             requisicoes[i].iddepositoenderecoorigem = null;
-                            volume.save();
-                            requisicoes[i].save();
+                            await volume.save({ iduser: obj.req.user.id, transaction: t });
+                            await requisicoes[i].save({ iduser: obj.req.user.id, transaction: t });
                         }
-
+                        await t.commit();
                         return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
+                        t.rollback();
                         return application.fatal(obj.res, err);
                     }
                 }
@@ -5913,7 +5950,7 @@ let main = {
                                     approducao.intervalo = intervalos.join('<br>');
                                     approducao.qtd = qtd.toFixed(4);
                                     approducao.pesoliquido = pesoliquido.toFixed(4);
-                                    approducao.save().then(() => {
+                                    approducao.save({ iduser: obj.req.user.id }).then(() => {
                                         resolve(true);
                                     });
                                 });
@@ -6050,7 +6087,7 @@ let main = {
                         let saved = await next(obj);
                         if (saved.success) {
                             approducao.integrado = false;
-                            approducao.save();
+                            approducao.save({ iduser: obj.req.user.id });
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -6238,7 +6275,7 @@ let main = {
 
                         if (saved.success) {
                             approducao.integrado = false;
-                            approducao.save();
+                            approducao.save({ iduser: obj.req.user.id });
                             main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
 
                             let qtd = saved.register.qtd;
@@ -6331,7 +6368,7 @@ let main = {
                                     db.getModel('pcp_apinsumo').update({ recipiente: null }, { where: { idoprecurso: opr.id, recipiente: '' + volumes[i].id } });
                                 }
                                 approducao.integrado = false;
-                                approducao.save();
+                                approducao.save({ iduser: obj.req.user.id });
                             }
                             let gconfig = await db.getModel('config').findOne();
                             db.getModel('pcp_apintegracao').create({
@@ -6624,7 +6661,7 @@ let main = {
                                     let apinsumos = await db.getModel('pcp_apinsumo').findAll({ where: { idoprecurso: oprecurso.id, recipiente: null } });
                                     for (let z = 0; z < apinsumos.length; z++) {
                                         apinsumos[z].recipiente = volume.id;
-                                        apinsumos[z].save();
+                                        apinsumos[z].save({ iduser: obj.req.user.id });
                                         db.getModel('est_volumemistura').create({
                                             idvolume: volume.id
                                             , idvmistura: apinsumos[z].idvolume
@@ -6634,7 +6671,7 @@ let main = {
                                 }
 
                                 approducao.integrado = false;
-                                approducao.save();
+                                approducao.save({ iduser: obj.req.user.id });
                             }
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
@@ -7213,12 +7250,12 @@ let main = {
                         }
                         main.plastrela.pcp.ap.f_corrigeEstadoOps(oprecurso.id);
 
-                        await volume.save();
+                        await volume.save({ iduser: obj.req.user.id });
 
                         for (let i = 0; i < volumereservas.length; i++) {
                             if (volumereservas[i].opetapa = opetapa.id) {
                                 volumereservas[i].apontado = true;
-                                volumereservas[i].save();
+                                volumereservas[i].save({ iduser: obj.req.user.id });
                             }
                         }
 
@@ -7287,12 +7324,12 @@ let main = {
                             }
 
                             for (let i = 0; i < volumes.length; i++) {
-                                await volumes[i].save();
+                                await volumes[i].save({ iduser: obj.req.user.id });
                             }
                             for (let i = 0; i < volumesreservas.length; i++) {
                                 if (volumesreservas[i].idopetapa = opetapa.id) {
                                     volumesreservas[i].apontado = false;
-                                    await volumesreservas[i].save();
+                                    await volumesreservas[i].save({ iduser: obj.req.user.id });
                                 }
                             }
                         }
@@ -7330,7 +7367,7 @@ let main = {
                                     let qtd = (parseFloat(obj.register.qtd) * perc).toFixed(4);
                                     apinsumos[i].qtd = (parseFloat(apinsumos[i].qtd) - parseFloat(qtd)).toFixed(4);
                                     info.push({ idinsumo: apinsumos[i].id, qtd: qtd })
-                                    await apinsumos[i].save();
+                                    await apinsumos[i].save({ iduser: obj.req.user.id });
                                 }
                                 obj.register.info = JSON.stringify(info);
                             }
@@ -7373,7 +7410,7 @@ let main = {
                         for (let i = 0; i < info.length; i++) {
                             let apinsumo = await db.getModel('pcp_apinsumo').findOne({ where: { id: info[i].idinsumo } });
                             apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(info[i].qtd)).toFixed(4);
-                            await apinsumo.save();
+                            await apinsumo.save({ iduser: obj.req.user.id });
                         }
 
                         let volume = await db.getModel('est_volume').findOne({ where: { idapretorno: obj.ids[0] } });
@@ -7456,8 +7493,8 @@ let main = {
                         let saved = await next(obj);
                         if (saved.success) {
                             apinsumo.integrado = false;
-                            apinsumo.save();
-                            volume.save();
+                            apinsumo.save({ iduser: obj.req.user.id });
+                            volume.save({ iduser: obj.req.user.id });
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -7479,7 +7516,7 @@ let main = {
                             let apinsumo = await db.getModel('pcp_apinsumo').findOne({ where: { id: apsobras[i].idapinsumo } });
                             apinsumo.qtd = (parseFloat(apinsumo.qtd) + parseFloat(apsobras[i].qtd)).toFixed(4);
                             apinsumo.integrado = false;
-                            apinsumo.save();
+                            apinsumo.save({ iduser: obj.req.user.id });
 
                             let volume = await db.getModel('est_volume').findOne({ where: { id: apinsumo.idvolume } });
 
@@ -7491,7 +7528,7 @@ let main = {
                             if (parseFloat(volume.qtdreal) == 0) {
                                 volume.consumido = true;
                             }
-                            volume.save();
+                            volume.save({ iduser: obj.req.user.id });
                         }
 
                         next(obj);
@@ -7575,7 +7612,7 @@ let main = {
                                     let vol = await db.getModel('est_volume').findOne({ where: { id: misturas[i].idvolume } });
                                     vol.qtdreal = (parseFloat(vol.qtdreal) + parseFloat(misturas[i].qtd)).toFixed(4);
                                     vol.consumido = false;
-                                    await vol.save();
+                                    await vol.save({ iduser: obj.req.user.id });
                                 }
                             }
                         }
@@ -7735,11 +7772,11 @@ let main = {
                             if (parseFloat(vol.qtdreal) == 0) {
                                 vol.consumido = true;
                             }
-                            await vol.save();
+                            await vol.save({ iduser: obj.req.user.id });
                         }
 
                         mistura.idvolume = volume.id;
-                        await mistura.save();
+                        await mistura.save({ iduser: obj.req.user.id });
 
                         let selects = {};
                         let alpha = ['', 'A/1', 'B/2', 'C/3', 'D/4', 'E/5', 'F/6', 'G/7', 'H/8', 'I/9', 'J/10'];
@@ -7968,7 +8005,7 @@ let main = {
 
                         oprecurso.idestado = config.idestadoencerrada;
                         oprecurso.integrado = 'P';
-                        await oprecurso.save();
+                        await oprecurso.save({ iduser: obj.req.user.id });
 
                         return application.success(obj.res, { msg: application.message.success, redirect: '/v/apontamento_de_producao' });
                     } catch (err) {
@@ -9233,9 +9270,9 @@ let main = {
                                 });
                                 apinsumo.qtd = (parseFloat(apinsumo.qtd) - pesolancamento).toFixed(4);
                                 if (apinsumo.qtd > 0) {
-                                    await apinsumo.save();
+                                    await apinsumo.save({ iduser: obj.req.user.id });
                                 } else {
-                                    await apinsumo.destroy();
+                                    await apinsumo.destroy({ iduser: obj.req.user.id });
                                 }
 
                                 await db.getModel('pcp_apinsumo').create({

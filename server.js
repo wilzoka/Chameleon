@@ -18,6 +18,9 @@ const express = require('express')
         , saveUninitialized: false
         , secret: 'makebettersecurity'
         , name: `connect.sid.${process.env.NODE_PORT}`
+        , cookie: {
+            maxAge: new Date(Date.now() + 3600000)
+        }
     });
 //Express Settings
 app.disable('x-powered-by');
@@ -27,9 +30,8 @@ app.use(appSession);
 //Middlewares
 app.use(compression());
 app.use(cookieParser());
-app.use(cookieParser());
-app.use(bodyParser.json({ limit: '5mb' }));
-app.use(bodyParser.urlencoded({ limit: '5mb', extended: true, parameterLimit: 10000 }));
+app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.urlencoded({ limit: '1mb', extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 //Socket
