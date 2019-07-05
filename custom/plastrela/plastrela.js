@@ -6137,6 +6137,7 @@ let main = {
                         let config = await db.getModel('pcp_config').findOne();
                         let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.register.idapproducao } });
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ id: oprecurso.idrecurso });
                         let user = await db.getModel('users').findOne({ where: { id: obj.register.iduser } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
@@ -6166,109 +6167,115 @@ let main = {
                         obj.register.pesoliquido = (obj.register.pesobruto - obj.register.tara).toFixed(4);
 
                         let opr = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.register.idopreferente || oprecurso.id } });
+
                         let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: opr.idopetapa } });
                         let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
                         let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
                         let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
-                        let sql = await db.sequelize.query([1, 8].indexOf(tprecurso.codigo) >= 0 ?
-                            `with et as (
-                            select distinct
-                                d.id as iddeposito
-                            from
-                                est_deposito d
-                            left join pcp_etapa e on (d.id = e.iddeposito)
-                            where
-                                d.codigo = (
-                                    select
-                                        case
-                                        when destino = 'EXP' then 1
-                                        when destino = 'EXT' then 6
-                                        when destino = 'IMP' then 7
-                                        when destino = 'LAM' then 8
-                                        when destino = 'COR' then 9
-                                        when destino = 'REB' then 10
-                                        else null end as dep
+                        let sql = [];
+                        if (tprecurso.codigo == 8) {
+                            sql.push({ idopetapa: opetapa.id, iddeposito: recurso.iddepositoprodutivo });
+                        } else {
+                            sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
+                                `with et as (
+                                select distinct
+                                    d.id as iddeposito
+                                from
+                                    est_deposito d
+                                left join pcp_etapa e on (d.id = e.iddeposito)
+                                where
+                                    d.codigo = (
+                                        select
+                                            case
+                                            when destino = 'EXP' then 1
+                                            when destino = 'EXT' then 6
+                                            when destino = 'IMP' then 7
+                                            when destino = 'LAM' then 8
+                                            when destino = 'COR' then 9
+                                            when destino = 'REB' then 10
+                                            else null end as dep
+                                        from
+                                            (select
+                                                substr(f.valor,1,3) as destino
+                                            from pcp_ficha f
+                                            left join pcp_atribficha af on (f.idatributo = af.id)
+                                            where
+                                                f.valor is not null
+                                                and f.idversao = ${op.idversao}
+                                                and af.codigo in (6005)) as x)
+                                )                                
+                                (select
+                                    ope.id as idopetapa
+                                    , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
+                                from
+                                    pcp_op op
+                                left join pcp_op opmae on (op.idopmae = opmae.id)
+                                left join pcp_opetapa ope on (opmae.id = ope.idop)
+                                left join pcp_etapa e on (ope.idetapa = e.id)
+                                inner join et et on (e.iddeposito = et.iddeposito)
+                                where
+                                    op.id = ${op.id})
+
+                                union all
+
+                                (select ope.id as idopetapa, e.iddeposito 
+                                from
+                                    pcp_op op
+                                left join pcp_op opmae on (op.idopmae = opmae.id)
+                                left join pcp_opetapa ope on (opmae.id = ope.idop)
+                                left join pcp_etapa e on (ope.idetapa = e.id)
+                                where
+                                    op.id = ${op.id} and e.iddeposito is not null
+                                order by ope.seq)
+
+                                union all
+
+                                (
+                                    select 
+                                        null as idopetapa
+                                        , d.id as iddeposito
                                     from
                                         (select
+                                            case
+                                            when destino = 'EXP' then 1
+                                            when destino = 'EXT' then 6
+                                            when destino = 'IMP' then 7
+                                            when destino = 'LAM' then 8
+                                            when destino = 'COR' then 9
+                                            when destino = 'REB' then 10
+                                            else null end as deposito
+                                        from
+                                            (select
                                             substr(f.valor,1,3) as destino
-                                        from pcp_ficha f
-                                        left join pcp_atribficha af on (f.idatributo = af.id)
-                                        where
+                                            from pcp_ficha f
+                                            left join pcp_atribficha af on (f.idatributo = af.id)
+                                            where
                                             f.valor is not null
                                             and f.idversao = ${op.idversao}
-                                            and af.codigo in (6005)) as x)
-                            )                                
-                            (select
-                                ope.id as idopetapa
-                                , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
-                            from
-                                pcp_op op
-                            left join pcp_op opmae on (op.idopmae = opmae.id)
-                            left join pcp_opetapa ope on (opmae.id = ope.idop)
-                            left join pcp_etapa e on (ope.idetapa = e.id)
-                            inner join et et on (e.iddeposito = et.iddeposito)
-                            where
-                                op.id = ${op.id})
-
-                            union all
-
-                            (select ope.id as idopetapa, e.iddeposito 
-                            from
-                                pcp_op op
-                            left join pcp_op opmae on (op.idopmae = opmae.id)
-                            left join pcp_opetapa ope on (opmae.id = ope.idop)
-                            left join pcp_etapa e on (ope.idetapa = e.id)
-                            where
-                                op.id = ${op.id} and e.iddeposito is not null
-                            order by ope.seq)
-
-                            union all
-
-                            (
-                                select 
-                                    null as idopetapa
-                                    , d.id as iddeposito
+                                            and af.codigo in (6005)) as x) as x
+                                    left join est_deposito d on (d.codigo = x.deposito)
+                                )
+                                `
+                                :
+                                `select
+                                    ope.seq
+                                    , ope.id as idopetapa
+                                    , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
                                 from
-                                    (select
-                                        case
-                                        when destino = 'EXP' then 1
-                                        when destino = 'EXT' then 6
-                                        when destino = 'IMP' then 7
-                                        when destino = 'LAM' then 8
-                                        when destino = 'COR' then 9
-                                        when destino = 'REB' then 10
-                                        else null end as deposito
-                                    from
-                                        (select
-                                        substr(f.valor,1,3) as destino
-                                        from pcp_ficha f
-                                        left join pcp_atribficha af on (f.idatributo = af.id)
-                                        where
-                                        f.valor is not null
-                                        and f.idversao = ${op.idversao}
-                                        and af.codigo in (6005)) as x) as x
-                                left join est_deposito d on (d.codigo = x.deposito)
-                            )
-                            `
-                            :
-                            `select
-                                ope.seq
-                                , ope.id as idopetapa
-                                , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
-                            from
-                                pcp_op op
-                            left join pcp_opetapa ope on (op.id = ope.idop)
-                            where
-                                op.id = ${op.id}
-                                and ope.seq > ${opetapa.seq}
-                            order by ope.seq
-                        `,
-                            { type: db.Sequelize.QueryTypes.SELECT });
+                                    pcp_op op
+                                left join pcp_opetapa ope on (op.id = ope.idop)
+                                where
+                                    op.id = ${op.id}
+                                    and ope.seq > ${opetapa.seq}
+                                order by ope.seq
+                                `,
+                                { type: db.Sequelize.QueryTypes.SELECT });
 
-                        if (sql.length > 0 && sql[0].iddeposito) {
-                        } else {
-                            return application.error(obj.res, { msg: 'Depósito não configurado' });
+                            if (sql.length > 0 && sql[0].iddeposito) {
+                            } else {
+                                return application.error(obj.res, { msg: 'Depósito não configurado' });
+                            }
                         }
 
                         let saved = await next(obj);
@@ -6492,6 +6499,7 @@ let main = {
                             let config = await db.getModel('pcp_config').findOne();
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.req.body.idapproducao } });
                             let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
+                            let recurso = await db.getModel('pcp_recurso').findOne({ id: oprecurso.idrecurso });
                             if (oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                             }
@@ -6509,103 +6517,108 @@ let main = {
                             let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
                             let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
-                            let sql = await db.sequelize.query([1, 8].indexOf(tprecurso.codigo) >= 0 ?
-                                `with et as (
-                                select distinct
-                                    d.id as iddeposito
-                                from
-                                    est_deposito d
-                                left join pcp_etapa e on (d.id = e.iddeposito)
-                                where
-                                    d.codigo = (
-                                        select
-                                            case
-                                            when destino = 'EXP' then 1
-                                            when destino = 'EXT' then 6
-                                            when destino = 'IMP' then 7
-                                            when destino = 'LAM' then 8
-                                            when destino = 'COR' then 9
-                                            when destino = 'REB' then 10
-                                            else null end as dep
+                            let sql = [];
+                            if (tprecurso.codigo == 8) {
+                                sql.push({ idopetapa: opetapa.id, iddeposito: recurso.iddepositoprodutivo });
+                            } else {
+                                sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
+                                    `with et as (
+                                    select distinct
+                                        d.id as iddeposito
+                                    from
+                                        est_deposito d
+                                    left join pcp_etapa e on (d.id = e.iddeposito)
+                                    where
+                                        d.codigo = (
+                                            select
+                                                case
+                                                when destino = 'EXP' then 1
+                                                when destino = 'EXT' then 6
+                                                when destino = 'IMP' then 7
+                                                when destino = 'LAM' then 8
+                                                when destino = 'COR' then 9
+                                                when destino = 'REB' then 10
+                                                else null end as dep
+                                            from
+                                                (select
+                                                    substr(f.valor,1,3) as destino
+                                                from pcp_ficha f
+                                                left join pcp_atribficha af on (f.idatributo = af.id)
+                                                where
+                                                    f.valor is not null
+                                                    and f.idversao = ${op.idversao}
+                                                    and af.codigo in (6005)) as x)
+                                    )                                
+                                    (select
+                                        ope.id as idopetapa
+                                        , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
+                                    from
+                                        pcp_op op
+                                    left join pcp_op opmae on (op.idopmae = opmae.id)
+                                    left join pcp_opetapa ope on (opmae.id = ope.idop)
+                                    left join pcp_etapa e on (ope.idetapa = e.id)
+                                    inner join et et on (e.iddeposito = et.iddeposito)
+                                    where
+                                        op.id = ${op.id})
+
+                                    union all
+
+                                    (select ope.id as idopetapa, e.iddeposito 
+                                    from
+                                        pcp_op op
+                                    left join pcp_op opmae on (op.idopmae = opmae.id)
+                                    left join pcp_opetapa ope on (opmae.id = ope.idop)
+                                    left join pcp_etapa e on (ope.idetapa = e.id)
+                                    where
+                                        op.id = ${op.id} and e.iddeposito is not null
+                                    order by ope.seq)
+
+                                    union all
+
+                                    (
+                                        select 
+                                            null as idopetapa
+                                            , d.id as iddeposito
                                         from
                                             (select
+                                                case
+                                                when destino = 'EXP' then 1
+                                                when destino = 'EXT' then 6
+                                                when destino = 'IMP' then 7
+                                                when destino = 'LAM' then 8
+                                                when destino = 'COR' then 9
+                                                when destino = 'REB' then 10
+                                                else null end as deposito
+                                            from
+                                                (select
                                                 substr(f.valor,1,3) as destino
-                                            from pcp_ficha f
-                                            left join pcp_atribficha af on (f.idatributo = af.id)
-                                            where
+                                                from pcp_ficha f
+                                                left join pcp_atribficha af on (f.idatributo = af.id)
+                                                where
                                                 f.valor is not null
                                                 and f.idversao = ${op.idversao}
-                                                and af.codigo in (6005)) as x)
-                                )                                
-                                (select
-                                    ope.id as idopetapa
-                                    , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
-                                from
-                                    pcp_op op
-                                left join pcp_op opmae on (op.idopmae = opmae.id)
-                                left join pcp_opetapa ope on (opmae.id = ope.idop)
-                                left join pcp_etapa e on (ope.idetapa = e.id)
-                                inner join et et on (e.iddeposito = et.iddeposito)
-                                where
-                                    op.id = ${op.id})
-
-                                union all
-
-				                (select ope.id as idopetapa, e.iddeposito 
-                                from
-                                    pcp_op op
-                                left join pcp_op opmae on (op.idopmae = opmae.id)
-                                left join pcp_opetapa ope on (opmae.id = ope.idop)
-                                left join pcp_etapa e on (ope.idetapa = e.id)
-                                where
-                                    op.id = ${op.id} and e.iddeposito is not null
-                                order by ope.seq)
-
-                                union all
-
-                                (
-                                    select 
-                                        null as idopetapa
-                                        , d.id as iddeposito
+                                                and af.codigo in (6005)) as x) as x
+                                        left join est_deposito d on (d.codigo = x.deposito)
+                                    )
+                                    `
+                                    :
+                                    `select
+                                        ope.seq
+                                        , ope.id as idopetapa
+                                        , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
                                     from
-                                        (select
-                                            case
-                                            when destino = 'EXP' then 1
-                                            when destino = 'EXT' then 6
-                                            when destino = 'IMP' then 7
-                                            when destino = 'LAM' then 8
-                                            when destino = 'COR' then 9
-                                            when destino = 'REB' then 10
-                                            else null end as deposito
-                                        from
-                                            (select
-                                            substr(f.valor,1,3) as destino
-                                            from pcp_ficha f
-                                            left join pcp_atribficha af on (f.idatributo = af.id)
-                                            where
-                                            f.valor is not null
-                                            and f.idversao = ${op.idversao}
-                                            and af.codigo in (6005)) as x) as x
-                                    left join est_deposito d on (d.codigo = x.deposito)
-                                )
-                                `
-                                :
-                                `select
-                                    ope.seq
-                                    , ope.id as idopetapa
-                                    , (select e.iddeposito from pcp_etapa e where ope.idetapa = e.id and e.iddeposito is not null limit 1) as iddeposito
-                                from
-                                    pcp_op op
-                                left join pcp_opetapa ope on (op.id = ope.idop)
-                                where
-                                    op.id = ${op.id}
-                                    and ope.seq > ${opetapa.seq}
-                                order by ope.seq
-                                `,
-                                { type: db.Sequelize.QueryTypes.SELECT });
-                            if (sql.length > 0 && sql[0].iddeposito) {
-                            } else {
-                                return application.error(obj.res, { msg: 'Depósito não configurado' });
+                                        pcp_op op
+                                    left join pcp_opetapa ope on (op.id = ope.idop)
+                                    where
+                                        op.id = ${op.id}
+                                        and ope.seq > ${opetapa.seq}
+                                    order by ope.seq
+                                    `,
+                                    { type: db.Sequelize.QueryTypes.SELECT });
+                                if (sql.length > 0 && sql[0].iddeposito) {
+                                } else {
+                                    return application.error(obj.res, { msg: 'Depósito não configurado' });
+                                }
                             }
                             let sqlped = await db.sequelize.query(`
                             select 
