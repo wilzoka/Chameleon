@@ -6174,7 +6174,7 @@ let main = {
 
                         let sql = [];
                         if (tprecurso.codigo == 8) {
-                            let deprevisora = await db.getModel('est_deposito').findOne({ codigo: 11 });
+                            let deprevisora = await db.getModel('est_deposito').findOne({ where: { codigo: 11 } });
                             sql.push({ idopetapa: opetapa.id, iddeposito: deprevisora.id });
                         } else {
                             sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
@@ -6518,7 +6518,7 @@ let main = {
 
                             let sql = [];
                             if (tprecurso.codigo == 8) {
-                                let deprevisora = await db.getModel('est_deposito').findOne({ codigo: 11 });
+                                let deprevisora = await db.getModel('est_deposito').findOne({ where: { codigo: 11 } });
                                 sql.push({ idopetapa: opetapa.id, iddeposito: deprevisora.id });
                             } else {
                                 sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
