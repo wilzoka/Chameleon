@@ -757,7 +757,7 @@ let main = {
             , contasaldo: {
                 onsave: async function (obj, next) {
                     try {
-                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, datahora: { $gt: obj.register.datahora } } });
+                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { [db.Op.ne]: obj.register.id }, datahora: { [db.Op.gt]: obj.register.datahora } } });
                         if (count > 0) {
                             return application.error(obj.res, { msg: 'Existe um fechamento de caixa maior que desta data' });
                         }
@@ -923,7 +923,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: requiredFields });
                             }
 
-                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idconta, datahora: { $gte: application.formatters.be.datetime(obj.req.body.datahora) } } });
+                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idconta, datahora: { [db.Op.gte]: application.formatters.be.datetime(obj.req.body.datahora) } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta data/hora' });
                             }
@@ -1061,16 +1061,16 @@ let main = {
             , movparc: {
                 ondelete: async function (obj, next) {
                     try {
-                        let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
+                        let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                         let ids = [];
                         for (let i = 0; i < movparcs.length; i++) {
-                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: movparcs[i].idconta, datahora: { $gte: movparcs[i].datahora } } });
+                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: movparcs[i].idconta, datahora: { [db.Op.gte]: movparcs[i].datahora } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: 'Conta fechada para estorno nesta data/hora' });
                             }
                             ids.push(movparcs[i].idmov);
                         }
-                        let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: ids } } });
+                        let movs = await db.getModel('fin_mov').findAll({ where: { id: { [db.Op.in]: ids } } });
                         await next(obj);
                         for (let i = 0; i < movs.length; i++) {
                             movs[i].quitado = false;
@@ -1177,11 +1177,11 @@ let main = {
                             if (parseFloat(valor) <= 0) {
                                 return application.error(obj.res, { msg: 'O valor deve ser maior que 0', invalidfields: ['valor'] });
                             }
-                            let fechamento = await db.getModel('fin_contasaldo').findOne({ include: [{ all: true }], where: { idconta: obj.req.body.idcontad, datahora: { $gte: application.formatters.be.datetime(obj.req.body.datahora) } } });
+                            let fechamento = await db.getModel('fin_contasaldo').findOne({ include: [{ all: true }], where: { idconta: obj.req.body.idcontad, datahora: { [db.Op.gte]: application.formatters.be.datetime(obj.req.body.datahora) } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: `Conta ${fechamento.fin_conta.descricao} fechada para lançamento nesta data/hora` });
                             }
-                            fechamento = await db.getModel('fin_contasaldo').findOne({ include: [{ all: true }], where: { idconta: obj.req.body.idcontac, datahora: { $gte: application.formatters.be.datetime(obj.req.body.datahora) } } });
+                            fechamento = await db.getModel('fin_contasaldo').findOne({ include: [{ all: true }], where: { idconta: obj.req.body.idcontac, datahora: { [db.Op.gte]: application.formatters.be.datetime(obj.req.body.datahora) } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: `Conta ${fechamento.fin_conta.descricao} fechada para lançamento nesta data/hora` });
                             }
