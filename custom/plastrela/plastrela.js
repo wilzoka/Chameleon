@@ -6137,7 +6137,6 @@ let main = {
                         let config = await db.getModel('pcp_config').findOne();
                         let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.register.idapproducao } });
                         let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
-                        let recurso = await db.getModel('pcp_recurso').findOne({ id: oprecurso.idrecurso });
                         let user = await db.getModel('users').findOne({ where: { id: obj.register.iduser } });
                         if (oprecurso.idestado == config.idestadoencerrada) {
                             return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
@@ -6175,7 +6174,8 @@ let main = {
 
                         let sql = [];
                         if (tprecurso.codigo == 8) {
-                            sql.push({ idopetapa: opetapa.id, iddeposito: recurso.iddepositoprodutivo });
+                            let deprevisora = await db.getModel('est_deposito').findOne({ codigo: 11 });
+                            sql.push({ idopetapa: opetapa.id, iddeposito: deprevisora.id });
                         } else {
                             sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
                                 `with et as (
@@ -6499,7 +6499,6 @@ let main = {
                             let config = await db.getModel('pcp_config').findOne();
                             let approducao = await db.getModel('pcp_approducao').findOne({ where: { id: obj.req.body.idapproducao } });
                             let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: approducao.idoprecurso } });
-                            let recurso = await db.getModel('pcp_recurso').findOne({ id: oprecurso.idrecurso });
                             if (oprecurso.idestado == config.idestadoencerrada) {
                                 return application.error(obj.res, { msg: 'Não é possível realizar apontamentos de OP encerrada' });
                             }
@@ -6519,7 +6518,8 @@ let main = {
 
                             let sql = [];
                             if (tprecurso.codigo == 8) {
-                                sql.push({ idopetapa: opetapa.id, iddeposito: recurso.iddepositoprodutivo });
+                                let deprevisora = await db.getModel('est_deposito').findOne({ codigo: 11 });
+                                sql.push({ idopetapa: opetapa.id, iddeposito: deprevisora.id });
                             } else {
                                 sql = await db.sequelize.query([1].indexOf(tprecurso.codigo) >= 0 ?
                                     `with et as (
