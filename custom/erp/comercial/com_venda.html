@@ -263,6 +263,7 @@
                     $wizardprogressline.css('width', wpb + '%');
                 }
             }
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
         }
         function setWizardFinished() {
             $wizardprogressline.css('width', '100%');
