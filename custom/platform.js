@@ -176,7 +176,7 @@ let platform = {
                     if (obj.ids.length <= 0) {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
-                    menus = await db.getModel('menu').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['tree', 'asc']] });
+                    menus = await db.getModel('menu').findAll({ include: [{ all: true }], where: { id: { [db.Op.in]: obj.ids } }, order: [['tree', 'asc']] });
                 }
                 let j = [];
                 for (let i = 0; i < menus.length; i++) {
@@ -285,7 +285,7 @@ let platform = {
         onsave: async function (obj, next) {
             try {
 
-                let register = await db.getModel('model').findOne({ where: { id: { $ne: obj.id }, name: obj.register.name } })
+                let register = await db.getModel('model').findOne({ where: { id: { [db.Op.ne]: obj.id }, name: obj.register.name } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe um modelo com este nome' });
                 }
@@ -304,7 +304,7 @@ let platform = {
             try {
 
                 const queryInterface = db.sequelize.getQueryInterface();
-                let models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } } })
+                let models = await db.getModel('model').findAll({ where: { id: { [db.Op.in]: obj.ids } } })
 
                 for (let i = 0; i < models.length; i++) {
                     if (db.sequelize.modelManager.getModel(models[i].name)) {
@@ -405,7 +405,7 @@ let platform = {
                     if (obj.ids.length <= 0) {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
-                    models = await db.getModel('model').findAll({ where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
+                    models = await db.getModel('model').findAll({ where: { id: { [db.Op.in]: obj.ids } }, order: [['name', 'asc']] });
                 }
                 let j = [];
                 for (let i = 0; i < models.length; i++) {
@@ -505,7 +505,7 @@ let platform = {
                                 });
                             }
                         }
-                        await db.getModel('modelattribute').destroy({ iduser: obj.req.user.id, where: { idmodel: model.id, name: { $notIn: attributes } } });
+                        await db.getModel('modelattribute').destroy({ iduser: obj.req.user.id, where: { idmodel: model.id, name: { [db.Op.notIn]: attributes } } });
                         if (i != models.length - 1) {
                             console.log('------------------------------');
                         }
@@ -720,7 +720,7 @@ let platform = {
             try {
                 let permission = await db.getModel('permission').findOne({
                     where: {
-                        id: { $ne: obj.register.id }
+                        id: { [db.Op.ne]: obj.register.id }
                         , iduser: obj.register.iduser
                         , idmenu: obj.register.idmenu
                     }
@@ -830,7 +830,7 @@ let platform = {
     }
     , route: {
         onsave: async function (obj, next) {
-            let register = await db.getModel('route').findOne({ where: { id: { $ne: obj.id }, description: obj.register.description } })
+            let register = await db.getModel('route').findOne({ where: { id: { [db.Op.ne]: obj.id }, description: obj.register.description } })
             if (register) {
                 return application.error(obj.res, { msg: 'Já existe uma rota com esta descrição' });
             }
@@ -842,7 +842,7 @@ let platform = {
                 if (obj.ids.length <= 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                let routes = await db.getModel('route').findAll({ where: { id: { $in: obj.ids } }, order: [['description', 'asc']] });
+                let routes = await db.getModel('route').findAll({ where: { id: { [db.Op.in]: obj.ids } }, order: [['description', 'asc']] });
                 let j = [];
                 for (let i = 0; i < routes.length; i++) {
                     j.push({
@@ -950,7 +950,7 @@ let platform = {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
 
-                let scheds = await db.getModel('schedule').findAll({ where: { id: { $in: obj.ids } } });
+                let scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                 scheds.map(sched => {
                     schedule.addSchedule(sched);
                     sched.active = true;
@@ -969,7 +969,7 @@ let platform = {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
 
-                let scheds = await db.getModel('schedule').findAll({ where: { id: { $in: obj.ids } } });
+                let scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                 scheds.map(sched => {
                     schedule.removeSchedule(sched);
                     sched.active = false;
@@ -988,7 +988,7 @@ let platform = {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
 
-                let scheds = await db.getModel('schedule').findAll({ where: { id: { $in: obj.ids } } })
+                let scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } })
                 scheds.map(sched => {
                     schedule.executeSchedule(sched);
                 });
@@ -1005,7 +1005,7 @@ let platform = {
                 if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                let messengers = await db.getModel('messenger').findAll({ where: { id: { $in: obj.ids } } });
+                let messengers = await db.getModel('messenger').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                 messengers.map(mes => {
                     messenger.activeMessenger(mes);
                     mes.active = true;
@@ -1021,7 +1021,7 @@ let platform = {
                 if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-                let messengers = await db.getModel('messenger').findAll({ where: { id: { $in: obj.ids } } });
+                let messengers = await db.getModel('messenger').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                 messengers.map(mes => {
                     messenger.desactiveMessenger(mes);
                     mes.active = false;
@@ -1045,7 +1045,7 @@ let platform = {
     , users: {
         onsave: async (obj, next) => {
             try {
-                let user = await db.getModel('users').findOne({ where: { id: { $ne: obj.register.id }, username: obj.register.username } });
+                let user = await db.getModel('users').findOne({ where: { id: { [db.Op.ne]: obj.register.id }, username: obj.register.username } });
                 if (user) {
                     return application.error(obj.res, { msg: 'Já existe um usuário com este Username', invalidfields: ['username'] });
                 }
@@ -1076,7 +1076,7 @@ let platform = {
     , view: {
         onsave: async function (obj, next) {
             try {
-                let register = await db.getModel('view').findOne({ where: { id: { $ne: obj.id }, name: { $iLike: obj.register.name } } })
+                let register = await db.getModel('view').findOne({ where: { id: { [db.Op.ne]: obj.id }, name: { [db.Op.iLike]: obj.register.name } } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
                 }
@@ -1098,7 +1098,7 @@ let platform = {
                     if (obj.ids.length <= 0) {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
-                    views = await db.getModel('view').findAll({ include: [{ all: true }], where: { id: { $in: obj.ids } }, order: [['name', 'asc']] });
+                    views = await db.getModel('view').findAll({ include: [{ all: true }], where: { id: { [db.Op.in]: obj.ids } }, order: [['name', 'asc']] });
                 }
                 let j = [];
                 for (let i = 0; i < views.length; i++) {
@@ -1268,7 +1268,7 @@ let platform = {
                                     console.error('ERROR: Model attribute "' + views[i]._field[z].modelattribute + '" not found');
                                 }
                             }
-                            await db.getModel('viewfield').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewfields } } });
+                            await db.getModel('viewfield').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewfields } } });
                             let viewtables = [];
                             for (let z = 0; z < views[i]._table.length; z++) {
                                 let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
@@ -1297,7 +1297,7 @@ let platform = {
                                     console.error('ERROR: Model attribute "' + views[i]._table[z].modelattribute + '" not found');
                                 }
                             }
-                            await db.getModel('viewtable').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewtables } } });
+                            await db.getModel('viewtable').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewtables } } });
                             let viewevents = [];
                             for (let z = 0; z < views[i]._event.length; z++) {
                                 let viewevent = await db.getModel('viewevent').findOne({ where: { idview: view.id, description: views[i]._event[z].description } });
@@ -1317,7 +1317,7 @@ let platform = {
                                 }
                                 viewevents.push(viewevent.id);
                             }
-                            await db.getModel('viewevent').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewevents } } });
+                            await db.getModel('viewevent').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewevents } } });
                         } else {
                             views[i]._skipped = true;
                             console.log('SKIPPED');
@@ -1352,7 +1352,7 @@ let platform = {
                                     console.error('ERROR: Subview "' + views[i]._subview[z].subview + '" not found');
                                 }
                             }
-                            await db.getModel('viewsubview').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { $notIn: viewsubviews } } });
+                            await db.getModel('viewsubview').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewsubviews } } });
                         }
                     }
                     console.log('-----------FINISHED-----------');
@@ -1407,21 +1407,20 @@ let platform = {
                             let o = {};
                             switch (field[2]) {
                                 case 's':
-                                    o['$iLike'] = cookie[i][k];
+                                    Object.assign(o, { [db.Op.iLike]: cookie[i][k] })
                                     break;
                                 case 'b':
-                                    o['$gte'] = cookie[i][k];
+                                    Object.assign(o, { [db.Op.gte]: cookie[i][k] })
                                     break;
                                 case 'e':
-                                    o['$lte'] = cookie[i][k];
+                                    Object.assign(o, { [db.Op.lte]: cookie[i][k] })
                                     break;
                                 case 'i':
-                                    o['$in'] = cookie[i][k].val;
+                                    Object.assign(o, { [db.Op.in]: cookie[i][k].val })
                                     break;
                                 case 'r':
-                                    o['$eq'] = cookie[i][k];
+                                    o = cookie[i][k];
                                     break;
-
                                 // Virtuals
                                 case 'rv':
                                     for (let z = 0; z < viewfields.length; z++) {
@@ -1484,17 +1483,17 @@ let platform = {
                                     }
                                     break;
                             }
-
                             if (o && obj[field[0]]) {
-                                obj[field[0]] = lodash.extend(obj[field[0]], o);
+                                if (obj[field[0]] && 'val' in obj[field[0]]) {//Virtual concatenation
+                                    obj[field[0]].val += ' and ' + o.val;
+                                } else {
+                                    Object.assign(obj[field[0]], o);
+                                }
                             } else if (o) {
                                 obj[field[0]] = o;
                             }
-
                         }
-
                     }
-
                     return obj;
                 }
                 let fixResults = function (registers, viewfields) {
@@ -1603,14 +1602,14 @@ let platform = {
                         if (view.wherefixed) {
                             view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
                             view.wherefixed = view.wherefixed.replace(/\$id/g, obj.req.body.id);
-                            where['$col'] = db.Sequelize.literal(view.wherefixed);
+                            Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed) })
                         }
                         let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
                         if ('onlySelected' in parameters && parameters.onlySelected) {
-                            where['$and'] = { id: { $in: obj.ids } };
+                            Object.assign(where, { id: { [db.Op.in]: obj.ids } })
                         } else {
                             if ('tableview' + view.url + 'filter' in obj.req.cookies) {
-                                where['$and'] = getFilter(obj.req.cookies['tableview' + view.url + 'filter'], viewfields);
+                                Object.assign(where, getFilter(obj.req.cookies['tableview' + view.url + 'filter'], viewfields));
                             }
                         }
                         let order = parameters.order;
@@ -1697,21 +1696,20 @@ let platform = {
                             let o = {};
                             switch (field[2]) {
                                 case 's':
-                                    o['$iLike'] = cookie[i][k];
+                                    Object.assign(o, { [db.Op.iLike]: cookie[i][k] })
                                     break;
                                 case 'b':
-                                    o['$gte'] = cookie[i][k];
+                                    Object.assign(o, { [db.Op.gte]: cookie[i][k] })
                                     break;
                                 case 'e':
-                                    o['$lte'] = cookie[i][k];
+                                    Object.assign(o, { [db.Op.lte]: cookie[i][k] })
                                     break;
                                 case 'i':
-                                    o['$in'] = cookie[i][k].val;
+                                    Object.assign(o, { [db.Op.in]: cookie[i][k].val })
                                     break;
                                 case 'r':
-                                    o['$eq'] = cookie[i][k];
+                                    o = cookie[i][k];
                                     break;
-
                                 // Virtuals
                                 case 'rv':
                                     for (let z = 0; z < modelattributes.length; z++) {
@@ -1824,11 +1822,10 @@ let platform = {
                     let where = {};
                     if (view.wherefixed) {
                         view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
-                        // view.wherefixed = view.wherefixed.replace(/\$id/g, obj.req.body.id);
-                        where['$col'] = db.Sequelize.literal(view.wherefixed);
+                        Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed) });
                     }
                     if ('tableview' + view.id + 'filter' in obj.req.cookies) {
-                        where['$and'] = getFilter(obj.req.cookies['tableview' + view.id + 'filter'], modelattributes);
+                        Object.assign(where, getFilter(obj.req.cookies['tableview' + view.id + 'filter'], modelattributes));
                     }
                     let attributes = ['id'];
                     let header = ['id'];
@@ -2060,7 +2057,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.selectOneEvent });
                     }
 
-                    let viewfield = await db.getModel('viewfield').findOne({ where: { id: { $in: obj.ids } }, include: [{ all: true }] });
+                    let viewfield = await db.getModel('viewfield').findOne({ where: { id: { [db.Op.in]: obj.ids } }, include: [{ all: true }] });
 
                     let body = '';
                     body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
@@ -2090,7 +2087,7 @@ let platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
 
-                    await db.getModel('viewfield').update({ idtemplatezone: obj.req.body.zona }, { where: { id: { $in: obj.req.body.ids.split(',') } } });
+                    await db.getModel('viewfield').update({ idtemplatezone: obj.req.body.zona }, { where: { id: { [db.Op.in]: obj.req.body.ids.split(',') } } });
 
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
 
@@ -2103,7 +2100,7 @@ let platform = {
             if (obj.ids.length == 0) {
                 return application.error(obj.res, { msg: application.message.selectOneEvent });
             }
-            db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
+            db.getModel('viewfield').findAll({ where: { id: { [db.Op.in]: obj.ids } } }).then(viewfields => {
                 viewfields.map(viewfield => {
                     viewfield.order++;
                     viewfield.save();
@@ -2117,7 +2114,7 @@ let platform = {
             if (obj.ids.length == 0) {
                 return application.error(obj.res, { msg: application.message.selectOneEvent });
             }
-            db.getModel('viewfield').findAll({ where: { id: { $in: obj.ids } } }).then(viewfields => {
+            db.getModel('viewfield').findAll({ where: { id: { [db.Op.in]: obj.ids } } }).then(viewfields => {
                 viewfields.map(viewfield => {
                     viewfield.order--;
                     viewfield.save();
@@ -2133,7 +2130,7 @@ let platform = {
             if (obj.ids.length == 0) {
                 return application.error(obj.res, { msg: application.message.selectOneEvent });
             }
-            db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
+            db.getModel('viewtable').findAll({ where: { id: { [db.Op.in]: obj.ids } } }).then(viewtables => {
                 viewtables.map(viewtable => {
                     viewtable.ordertable++;
                     viewtable.save();
@@ -2147,7 +2144,7 @@ let platform = {
             if (obj.ids.length == 0) {
                 return application.error(obj.res, { msg: application.message.selectOneEvent });
             }
-            db.getModel('viewtable').findAll({ where: { id: { $in: obj.ids } } }).then(viewtables => {
+            db.getModel('viewtable').findAll({ where: { id: { [db.Op.in]: obj.ids } } }).then(viewtables => {
                 viewtables.map(viewtable => {
                     viewtable.ordertable--;
                     viewtable.save();

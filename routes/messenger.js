@@ -6,20 +6,19 @@ const application = require('./application')
 
 // SMTP Config Example
 // {	
-//     "host": "smtp.plastrela.com.br"
+//     "host": "smtp.*.com.br"
 //     , "port": 587
 //     , "tls": { "rejectUnauthorized": false }
 //     , "auth": {
-//         "user": "sip@plastrela.com.br"
-//         , "pass": "sip#$2016Pls!@"
+//         "user": "mail@mail.com.br"
+//         , "pass": "pass"
 //     }
 // }
-
 // Messenger Config Example
 // {
-//     "username": "williamb@plastrela.com.br",
-//     "password": "wb1015$$",
-//     "host": "imap.plastrela.com.br",
+//     "username": "mail@mail.com.br",
+//     "password": "pass",
+//     "host": "imap.*.com.br",
 //     "port": 993,
 //     "tls": true,
 //     "tlsOptions": { "rejectUnauthorized": false }          

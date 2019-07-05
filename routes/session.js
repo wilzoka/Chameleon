@@ -20,7 +20,7 @@ passport.use(new LocalStrategy(function (username, password, done) {
     db.getModel('users').findOne({
         where: {
             active: true
-            , $or: [{ username: username }, { email: username }]
+            , [db.Op.or]: [{ username: username }, { email: username }]
             , password: Cyjs.SHA3(`${application.sk}${password}${application.sk}`).toString()
         }
     }).then(register => {
@@ -46,20 +46,20 @@ module.exports = function (app) {
         try {
             let menu = await db.getModel('menu').findAll({
                 include: { all: true }
-                , where: { idmenuparent: { $eq: null } }
+                , where: { idmenuparent: { [db.Op.eq]: null } }
                 , order: [['description', 'asc']]
                 , raw: true
             });
 
             let childs = await db.getModel('menu').findAll({
                 include: { all: true }
-                , where: { idmenuparent: { $ne: null } }
+                , where: { idmenuparent: { [db.Op.ne]: null } }
                 , order: [['description', 'asc']]
                 , raw: true
             });
 
             let permissions = await db.getModel('permission').findAll({
-                where: { iduser: req.user.id, visible: true, hidelisting: { $or: [null, false] } }
+                where: { iduser: req.user.id, visible: true, hidelisting: { [db.Op.or]: [null, false] } }
                 , raw: true
             });
 

@@ -576,7 +576,7 @@ const save = function (obj) {
                             z--;
                         }
                     }
-                    db.getModel('file').update({ bounded: false }, { where: { id: { $in: previousIds } } });
+                    db.getModel('file').update({ bounded: false }, { where: { id: { [db.Op.in]: previousIds } } });
                 }
             }
         }
@@ -610,7 +610,7 @@ const validateAndSave = function (obj) {
                             ret = obj._responseModifier(ret);
                         }
                         if (obj.req.cookies.subview_redirect) {
-                            ret = lodash.extend(ret, {
+                            Object.assign(ret, {
                                 subview_redirect: `/v/${obj.req.cookies.subview_redirect}/0?parent=${saved.register.id}`
                             });
                         }
@@ -630,8 +630,8 @@ const validateAndSave = function (obj) {
 
 const deleteModel = function (obj) {
     return new Promise((resolve) => {
-        db.getModel(obj.view.model.name).findAll({ where: { id: { $in: obj.ids } }, raw: true }).then(registers => {
-            db.getModel(obj.view.model.name).destroy({ iduser: obj.req.user.id, where: { id: { $in: obj.ids } } }).then(() => {
+        db.getModel(obj.view.model.name).findAll({ where: { id: { [db.Op.in]: obj.ids } }, raw: true }).then(registers => {
+            db.getModel(obj.view.model.name).destroy({ iduser: obj.req.user.id, where: { id: { [db.Op.in]: obj.ids } } }).then(() => {
                 resolve({ success: true, registers: registers });
                 application.success(obj.res, { msg: application.message.success });
             }).catch(err => {
@@ -1215,7 +1215,7 @@ module.exports = function (app) {
             const permission = await hasPermission(req.user.id, view.id);
             if ((req.params.id == 0 && permission.insertable) || (req.params.id > 0 && permission.editable)) {
                 const viewfields = await db.getModel('viewfield').findAll({
-                    where: { idview: view.id, disabled: { $eq: false } }
+                    where: { idview: view.id, disabled: { [db.Op.eq]: false } }
                     , include: [{ all: true }]
                 });
                 const subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id } });

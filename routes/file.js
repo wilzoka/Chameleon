@@ -88,7 +88,7 @@ module.exports = function (app) {
                     if (permission.visible) {
                         if (views[i].wherefixed) {
                             let wherefixed = views[i].wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, file.modelid);
-                            let exists = await db.getModel(views[i].model.name).count({ include: [{ all: true }], where: { id: file.modelid, $col: db.Sequelize.literal(wherefixed) } });
+                            let exists = await db.getModel(views[i].model.name).count({ include: [{ all: true }], where: { id: file.modelid, [db.Op.col]: db.Sequelize.literal(wherefixed) } });
                             if (exists > 0) {
                                 allow = true;
                                 break;

@@ -208,7 +208,7 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { $ne: obj.register.id }, idconta: obj.register.idconta, data: { $gt: obj.register.data } } });
+                        let count = await db.getModel('fin_contasaldo').count({ where: { id: { [db.Op.ne]: obj.register.id }, idconta: obj.register.idconta, data: { [db.Op.gt]: obj.register.data } } });
                         if (count > 0) {
                             return application.error(obj.res, { msg: 'Existe um fechamento de caixa maior que desta data' });
                         }
@@ -241,7 +241,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.selectOneEvent });
                             }
 
-                            let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: obj.ids } } });
+                            let movs = await db.getModel('fin_mov').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                             for (let i = 0; i < movs.length; i++) {
                                 if (movs[i].quitado) {
                                     return application.error(obj.res, { msg: 'Na seleção contém o título ID ' + movs[i].id + ' já recebido' });
@@ -484,7 +484,7 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: requiredFields });
                             }
 
-                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idconta, data: { $gte: application.formatters.be.date(obj.req.body.data) } } });
+                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idconta, data: { [db.Op.gte]: application.formatters.be.date(obj.req.body.data) } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência' });
                             }
@@ -1056,7 +1056,7 @@ let main = {
                             cheques.push(cheque.id);
                         }
                         await db.sequelize.query("update fin_cheque set descricaocompleta = id::text || ' - ' || coalesce((select cc.nome from cad_corr cc where cc.id = idcliente), ' SEM CLIENTE ') || ' - R$ ' || valor;", { type: db.sequelize.QueryTypes.UPDATE });
-                        cheques = await db.getModel('fin_cheque').findAll({ where: { id: { $in: cheques } } });
+                        cheques = await db.getModel('fin_cheque').findAll({ where: { id: { [db.Op.in]: cheques } } });
                         let data = [];
                         for (let i = 0; i < cheques.length; i++) {
                             data.push({
@@ -1071,7 +1071,7 @@ let main = {
                 }
                 , js_chequeSoma: async function (obj) {
                     try {
-                        let cheques = await db.getModel('fin_cheque').findAll({ where: { id: { $in: obj.data ? obj.data.idcheques : [] } } });
+                        let cheques = await db.getModel('fin_cheque').findAll({ where: { id: { [db.Op.in]: obj.data ? obj.data.idcheques : [] } } });
                         let total = 0.0;
                         for (let i = 0; i < cheques.length; i++) {
                             total += parseFloat(cheques[i].valor);
@@ -1085,11 +1085,11 @@ let main = {
             , movparc: {
                 ondelete: async function (obj, next) {
                     try {
-                        let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { $in: obj.ids } } });
+                        let movparcs = await db.getModel('fin_movparc').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                         let ids = [];
                         let mpc = [];
                         for (let i = 0; i < movparcs.length; i++) {
-                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: movparcs[i].idconta, data: { $gte: movparcs[i].data } } });
+                            let fechamento = await db.getModel('fin_contasaldo').findOne({ where: { idconta: movparcs[i].idconta, data: { [db.Op.gte]: movparcs[i].data } } });
                             if (fechamento) {
                                 return application.error(obj.res, { msg: 'Conta fechada para estorno nesta competência' });
                             }
@@ -1104,7 +1104,7 @@ let main = {
                                 mpc.push(movparccomissao);
                             }
                         }
-                        let movs = await db.getModel('fin_mov').findAll({ where: { id: { $in: ids } } });
+                        let movs = await db.getModel('fin_mov').findAll({ where: { id: { [db.Op.in]: ids } } });
                         let listcheques = [];
                         for (let i = 0; i < movparcs.length; i++) {
                             let cheques = await db.getModel('fin_movparccheque').findAll({ where: { idmovparc: movparcs[i].id } });
@@ -1131,7 +1131,7 @@ let main = {
                         for (let i = 0; i < listcheques.length; i++) {
                             ids.push(listcheques[i].idcheque);
                         }
-                        db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
+                        db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { [db.Op.in]: ids } } });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -1260,7 +1260,7 @@ let main = {
                             let datafim = moment('01/' + obj.req.body.mes + '/' + obj.req.body.ano, application.formatters.fe.date_format).endOf('month');
                             let contas = await db.getModel('fin_conta').findAll({ raw: true, order: [['descricao', 'asc']] });
                             for (let i = 0; i < contas.length; i++) {
-                                contas[i]._cs = await db.getModel('fin_contasaldo').findOne({ raw: true, where: { idconta: contas[i].id, data: { $lt: dataini } }, order: [['data', 'desc']] });
+                                contas[i]._cs = await db.getModel('fin_contasaldo').findOne({ raw: true, where: { idconta: contas[i].id, data: { [db.Op.lt]: dataini } }, order: [['data', 'desc']] });
                                 contas[i]._saldo = contas[i]._cs ? parseFloat(contas[i]._cs.valor) : parseFloat(contas[i].saldoinicial);
                             }
                             let categorias = await db.getModel('fin_categoria').findAll({ raw: true, order: [['descricaocompleta', 'asc']] });
@@ -1838,10 +1838,10 @@ let main = {
                             }
                             let valor = application.formatters.be.decimal(obj.req.body.valor, 2);
                             let data = application.formatters.be.date(obj.req.body.data);
-                            if (await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idcontad, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
+                            if (await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idcontad, data: { [db.Op.gte]: application.formatters.be.date(obj.req.body.data) } } })) {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência', invalidfields: ['idcontad', 'data'] });
                             }
-                            if (await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idcontac, data: { $gte: application.formatters.be.date(obj.req.body.data) } } })) {
+                            if (await db.getModel('fin_contasaldo').findOne({ where: { idconta: obj.req.body.idcontac, data: { [db.Op.gte]: application.formatters.be.date(obj.req.body.data) } } })) {
                                 return application.error(obj.res, { msg: 'Conta fechada para lançamento nesta competência', invalidfields: ['idcontac', 'data'] });
                             }
                             if (parseFloat(valor) <= 0) {
@@ -2085,14 +2085,14 @@ let main = {
                 ondelete: async function (obj, next) {
                     try {
 
-                        let movparccheques = await db.getModel('fin_movparccheque').findAll({ where: { id: { $in: obj.ids } } });
+                        let movparccheques = await db.getModel('fin_movparccheque').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
                         let ids = [];
                         for (let i = 0; i < movparccheques.length; i++) {
                             ids.push(movparccheques[i].idcheque);
                         }
 
                         if ((await next(obj)).success) {
-                            db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { $in: ids } } });
+                            db.getModel('fin_cheque').update({ utilizado: false }, { where: { id: { [db.Op.in]: ids } } });
                         }
 
                     } catch (err) {

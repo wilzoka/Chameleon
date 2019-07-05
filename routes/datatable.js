@@ -1,7 +1,6 @@
 const application = require('./application')
     , db = require('../models')
     , moment = require('moment')
-    , lodash = require('lodash')
     ;
 
 const fixResults = function (registers, modelattributes, viewtables) {
@@ -106,19 +105,19 @@ const getFilter = function (cookie, modelattributes, req) {
             let o = {};
             switch (field[2]) {
                 case 's':
-                    o['$iLike'] = cookie[i][k];
+                    Object.assign(o, { [db.Op.iLike]: cookie[i][k] })
                     break;
                 case 'b':
-                    o['$gte'] = cookie[i][k];
+                    Object.assign(o, { [db.Op.gte]: cookie[i][k] })
                     break;
                 case 'e':
-                    o['$lte'] = cookie[i][k];
+                    Object.assign(o, { [db.Op.lte]: cookie[i][k] })
                     break;
                 case 'i':
-                    o['$in'] = cookie[i][k].val;
+                    Object.assign(o, { [db.Op.in]: cookie[i][k].val })
                     break;
                 case 'r':
-                    o['$eq'] = cookie[i][k];
+                    o = cookie[i][k];
                     break;
                 // Virtuals
                 case 'rv':
@@ -186,7 +185,7 @@ const getFilter = function (cookie, modelattributes, req) {
                 if (obj[field[0]] && 'val' in obj[field[0]]) {//Virtual concatenation
                     obj[field[0]].val += ' and ' + o.val;
                 } else {
-                    obj[field[0]] = lodash.extend(obj[field[0]], o);
+                    Object.assign(obj[field[0]], o);
                 }
             } else if (o) {
                 obj[field[0]] = o;
@@ -203,13 +202,12 @@ module.exports = function (app) {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
             const viewtables = await db.getModel('viewtable').findAll({ where: { idview: view.id }, include: [{ all: true }] });
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-            let where = { '$and': {} };
+            let where = {};
             if (view.wherefixed) {
-                view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id);
-                where['$col'] = db.Sequelize.literal(view.wherefixed);
+                Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)) });
             }
             if ('tableview' + view.url + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes, req);
+                Object.assign(where, getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes, req));
             }
             if (view.idfastsearch && req.cookies['tableview' + view.url + 'fs']) {
                 let j = application.modelattribute.parseTypeadd(view.fastsearch.typeadd);
@@ -217,16 +215,16 @@ module.exports = function (app) {
                 switch (view.fastsearch.type) {
                     case 'autocomplete':
                         if (j.query) {
-                            where['$and'][view.fastsearch.name] = db.Sequelize.literal(j.query + "::text ilike '%" + fastsearch + "%'");
+                            where[view.fastsearch.name] = db.Sequelize.literal(j.query + "::text ilike '%" + fastsearch + "%'");
                         } else {
-                            where['$and'][view.fastsearch.name] = db.Sequelize.literal((j.as || j.model) + '.' + j.attribute + "::text ilike '%" + fastsearch + "%'");
+                            where[view.fastsearch.name] = db.Sequelize.literal((j.as || j.model) + '.' + j.attribute + "::text ilike '%" + fastsearch + "%'");
                         }
                         break;
                     case 'virtual':
-                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(j.subquery + "::text ilike '%" + fastsearch + "%'");
+                        where[view.fastsearch.name] = db.Sequelize.literal(j.subquery + "::text ilike '%" + fastsearch + "%'");
                         break;
                     default:
-                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(view.model.name + '.' + view.fastsearch.name + "::text ilike '%" + fastsearch + "%'");
+                        where[view.fastsearch.name] = db.Sequelize.literal(view.model.name + '.' + view.fastsearch.name + "::text ilike '%" + fastsearch + "%'");
                         break;
                 }
             }
@@ -280,7 +278,7 @@ module.exports = function (app) {
                     , offset: req.body.start
                 }
             }
-            let registers = await db.getModel(view.model.name).findAndCountAll(lodash.extend(pagination, {
+            let registers = await db.getModel(view.model.name).findAndCountAll(Object.assign({}, pagination, {
                 attributes: attributes
                 , raw: true
                 , include: [{ all: true }]
@@ -301,21 +299,15 @@ module.exports = function (app) {
     app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
-
             let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
-
-            let where = { '$and': {} };
-
+            let where = {};
             if (view.wherefixed) {
-                view.wherefixed = view.wherefixed.replace(/\$user/g, req.user.id);
-                view.wherefixed = view.wherefixed.replace(/\$id/g, req.body.id);
-                where['$col'] = db.Sequelize.literal(view.wherefixed);
+                Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)) });
             }
             if ('tableview' + view.url + 'filter' in req.cookies) {
-                where['$and'] = getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes, req);
+                Object.assign(where, getFilter(req.cookies['tableview' + view.url + 'filter'], modelattributes, req));
             }
-
             if (req.body.issubview == 'true') {
                 let modelattributeparent = await db.getModel('modelattribute').findOne({
                     where: { idmodel: view.model.id, type: 'parent' }
@@ -324,27 +316,25 @@ module.exports = function (app) {
                     where[modelattributeparent.name] = req.body.id;
                 }
             }
-
             if (view.idfastsearch && req.cookies['tableview' + view.url + 'fs']) {
                 let j = application.modelattribute.parseTypeadd(view.fastsearch.typeadd);
                 let fastsearch = req.cookies['tableview' + view.url + 'fs'];
                 switch (view.fastsearch.type) {
                     case 'autocomplete':
                         if (j.query) {
-                            where['$and'][view.fastsearch.name] = db.Sequelize.literal(j.query + "::text ilike '%" + fastsearch + "%'");
+                            where[view.fastsearch.name] = db.Sequelize.literal(j.query + "::text ilike '%" + fastsearch + "%'");
                         } else {
-                            where['$and'][view.fastsearch.name] = db.Sequelize.literal((j.as || j.model) + '.' + j.attribute + "::text ilike '%" + fastsearch + "%'");
+                            where[view.fastsearch.name] = db.Sequelize.literal((j.as || j.model) + '.' + j.attribute + "::text ilike '%" + fastsearch + "%'");
                         }
                         break;
                     case 'virtual':
-                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(j.subquery + "::text ilike '%" + fastsearch + "%'");
+                        where[view.fastsearch.name] = db.Sequelize.literal(j.subquery + "::text ilike '%" + fastsearch + "%'");
                         break;
                     default:
-                        where['$and'][view.fastsearch.name] = db.Sequelize.literal(view.model.name + '.' + view.fastsearch.name + "::text ilike '%" + fastsearch + "%'");
+                        where[view.fastsearch.name] = db.Sequelize.literal(view.model.name + '.' + view.fastsearch.name + "::text ilike '%" + fastsearch + "%'");
                         break;
                 }
             }
-
             let register = await db.getModel(view.model.name).findOne({
                 raw: true
                 , attributes: [
@@ -353,7 +343,6 @@ module.exports = function (app) {
                 , include: [{ all: true, attributes: [] }]
                 , where: where
             });
-
             if (register.sum) {
                 let j = application.modelattribute.parseTypeadd(modelattribute.typeadd);
                 switch (j.type || modelattribute.type) {
@@ -365,9 +354,7 @@ module.exports = function (app) {
                         break;
                 }
             }
-
             return application.success(res, { data: register.sum, view: req.body.view, attribute: req.body.idmodelattribute });
-
         } catch (err) {
             return application.fatal(res, err);
         }
