@@ -2,7 +2,7 @@ let main = {
     platform: require('../platform')
     , merito: {
         cadastro: require('./business/cadastro')
-        , comercial: require('./business/comercial')
+        , evento: require('./business/evento')
     }
     , api: require('./business/api')
 }

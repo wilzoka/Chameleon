@@ -104,6 +104,102 @@ let main = {
             }
         }
     }
+    , proposta: {
+        onsave: async function (obj, next) {
+            try {
+                if (obj.register.id == 0) {
+                    obj.register.inclusao = application.formatters.be.date(moment());
+                }
+                next(obj);
+            } catch (error) {
+                return application.fatal(obj.res, error);
+            }
+        }
+        , e_enviarproposta: async function (obj) {
+            try {
+                if (obj.ids.length != 1) {
+                    return application.error(obj.res, { msg: "Selecione apenas 1 proposta." });
+                } else {
+                    let empresa = await db.getModel('config').findOne({});
+                    let sql = await db.sequelize.query(`
+                    select 
+                        pit.quantidade, 
+                        ser.descricao, 
+                        pit.valor_unitario, 
+                        pit.valor_total,
+                        sum(valor_total)
+                    from ven_propostaitem pit
+                    left join cad_servico ser on (pit.idservico = ser.id)
+                    where 
+                        pit.idproposta = :v1
+                        group by 1,2,3,4
+                    `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: obj.ids } });
+                    let propostaItens;
+                    for (let i = 0; i < sql.length; i++) {
+                        propostaItens += `
+                        <tr>
+                            <td>`+ sql[i].quantidade + `</td>
+                            <td>`+ sql[i].servico + `</td>
+                            <td>`+ sql[i].valor_unitario + `</td>
+                            <td>`+ sql[i].valor_total + `</td>
+                        </tr>
+                        `;
+                    }
+                    /* propostaItens +=
+                        `<tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>`+ totalGeral + `</td>
+                        </tr>`; */
+                    let proposta = await db.getModel('ven_proposta').findOne({ where: { id: obj.ids } });
+                    platform.mail.f_sendmail({
+                        to: [proposta.email]
+                        , subject: empresa.razaosocial + " - Proposta Nº " + obj.ids
+                        , html: `
+                        <style type="text/css">
+                            .conteudo{
+                                font-family: arial, sans-serif;
+                                font-size: 14px;
+                            }                        
+                            table {
+                                border-collapse: collapse;
+                                font-size: 14px;
+                            }                        
+                            td, th {
+                                border: 1px solid black;
+                                text-align: left;
+                                padding: 5px;
+                            }                        
+                            .table2 td:nth-child(3) {
+                                text-align: right;
+                            } 
+                            .table2 td:nth-child(4) {
+                                text-align: right;
+                            } 
+                        </style>
+                        <div class="conteudo">
+                            <table class="table2" style="margin-top: 5px;">
+                                <thead>
+                                    <tr>
+                                        <td> <b>Quantidade</b> </td>
+                                        <td> <b>Serviço</b> </td>
+                                        <td> <b>Valor Un.</b> </td>
+                                        <td> <b>Valor Total</b> </td>
+                                    </tr>
+                                </thead>
+                                <tbody>`+ propostaItens + `</tbody>
+                            </table>
+                        </div>
+                        `
+                    });
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
+            } catch (error) {
+                return application.fatal(obj.res, error);
+            }
+        }
+    }
 }
 
 module.exports = main;
