@@ -127,7 +127,7 @@ const getFilter = function (cookie, modelattributes, req) {
                             if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
-                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " = " + cookie[i][k]);
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " = '" + cookie[i][k] + "'");
                             }
                         }
                     }
@@ -151,7 +151,7 @@ const getFilter = function (cookie, modelattributes, req) {
                             if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
-                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::decimal >= " + cookie[i][k]);
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " >= '" + cookie[i][k] + "'");
                             }
                         }
                     }
@@ -163,7 +163,7 @@ const getFilter = function (cookie, modelattributes, req) {
                             if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
                             } else {
-                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::decimal <= " + cookie[i][k]);
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " <= '" + cookie[i][k] + "'");
                             }
                         }
                     }
@@ -175,7 +175,7 @@ const getFilter = function (cookie, modelattributes, req) {
                             if (j.field && j.field.indexOf('$value') > 0) {
                                 o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k].val));
                             } else {
-                                o = db.Sequelize.literal(j.field + " in ('" + cookie[i][k].val.join("','") + "')");
+                                o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " in ('" + cookie[i][k].val.join("','") + "')");
                             }
                         }
                     }
