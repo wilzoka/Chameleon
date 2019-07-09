@@ -4451,19 +4451,14 @@ let main = {
             , volumereserva: {
                 onsave: async function (obj, next) {
                     try {
-
-                        /* let 
-                        if () {
-                        } else {
-                            let volume = await db.getModel('est_volume').findOne({ where: { id: obj.register.idvolume } });
-                            let qtdreservada = await db.getModel('est_volumereserva').sum('qtd', {
-                                where: {
-                                    id: { [db.Op.ne]: obj.register.id }
-                                    , idvolume: volume.id
-                                    , apontado: false
-                                }
+                        let volume = await db.getModel('est_volume').findOne({ where: { id: obj.register.idvolume } });
+                        let qtdreservada = await db.getModel('est_volumereserva').sum('qtd', {
+                            where: {
+                                id: { [db.Op.ne]: obj.register.id }
+                                , idvolume: volume.id
+                                , apontado: false
                             }
-                        }); */
+                        });
 
                         if ((qtdreservada + parseFloat(obj.register.qtd)).toFixed(4) > parseFloat(volume.qtdreal)) {
                             return application.error(obj.res, { msg: 'Este volume não possui essa quantidade para ser reservado' });
