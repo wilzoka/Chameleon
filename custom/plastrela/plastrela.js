@@ -1755,17 +1755,15 @@ let main = {
 
                     let saved = await next(obj);
 
-                    if (saved.success) {
-                        if (obj.register.tipo == 'Transfer') {
-                            let param = await db.getModel('parameter').findOne({ where: { key: 'adm_viagens_transferNotificationUsers' } });
-                            if (param) {
-                                let notificationUsers = JSON.parse(param.value);
-                                main.platform.notification.create(notificationUsers, {
-                                    title: 'Novo Transfer agendado!'
-                                    , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}`
-                                    , link: '/v/transfers/' + saved.register.id
-                                });
-                            }
+                    if (saved.success && saved.register._isInsert && obj.register.tipo == 'Transfer') {
+                        let param = await db.getModel('parameter').findOne({ where: { key: 'adm_viagens_transferNotificationUsers' } });
+                        if (param) {
+                            let notificationUsers = JSON.parse(param.value);
+                            main.platform.notification.create(notificationUsers, {
+                                title: 'Novo Transfer agendado!'
+                                , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}`
+                                , link: '/v/transfers/' + saved.register.id
+                            });
                         }
                     }
                 }
