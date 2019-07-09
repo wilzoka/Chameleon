@@ -1724,6 +1724,17 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_concluirTransfer: async function (obj) {
+                    if (obj.ids.length <= 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    let transfers = await db.getModel('adm_viagemreserva').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
+                    for (let i = 0; i < transfers.length; i++) {
+                        transfers[i].concluida = true;
+                        await transfers[i].save({ iduser: obj.req.user.id });
+                    }
+                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
             }
             , reserva: {
                 onsave: async function (obj, next) {
@@ -4443,14 +4454,18 @@ let main = {
                 onsave: async function (obj, next) {
                     try {
 
-                        let volume = await db.getModel('est_volume').findOne({ where: { id: obj.register.idvolume } });
-                        let qtdreservada = await db.getModel('est_volumereserva').sum('qtd', {
-                            where: {
-                                id: { [db.Op.ne]: obj.register.id }
-                                , idvolume: volume.id
-                                , apontado: false
+                        /* let 
+                        if () {
+                        } else {
+                            let volume = await db.getModel('est_volume').findOne({ where: { id: obj.register.idvolume } });
+                            let qtdreservada = await db.getModel('est_volumereserva').sum('qtd', {
+                                where: {
+                                    id: { [db.Op.ne]: obj.register.id }
+                                    , idvolume: volume.id
+                                    , apontado: false
+                                }
                             }
-                        });
+                        }); */
 
                         if ((qtdreservada + parseFloat(obj.register.qtd)).toFixed(4) > parseFloat(volume.qtdreal)) {
                             return application.error(obj.res, { msg: 'Este volume não possui essa quantidade para ser reservado' });
