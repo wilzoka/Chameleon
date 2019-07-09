@@ -11178,6 +11178,10 @@ let main = {
                                     , 'produto_peso_envasar_un'
                                 ];
 
+                                if (obj.register['produto_tipo_pedido'] == 'Teste' && !obj.register['produto_anexo_ficha_tecnica']) {
+                                    alreadyinvalid = alreadyinvalid.concat(['produto_anexo_ficha_tecnica']);
+                                }
+
                                 if (obj.register['produto_pigmentado'] == 'Sim' && !obj.register['produto_cor_pigmento']) {
                                     alreadyinvalid = alreadyinvalid.concat(['produto_cor_pigmento']);
                                 }
