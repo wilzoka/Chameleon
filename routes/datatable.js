@@ -172,8 +172,12 @@ const getFilter = function (cookie, modelattributes, req) {
                     for (let z = 0; z < modelattributes.length; z++) {
                         if (field[0] == modelattributes[z].name) {
                             let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
-                            if (j.field && j.field.indexOf('$value') > 0) {
-                                o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k].val));
+                            if (j.field) {
+                                if (j.field.indexOf('$value') > 0) {
+                                    o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k].val));
+                                } else {
+                                    o = db.Sequelize.literal(j.field + " in ('" + cookie[i][k].val.join("','") + "')");
+                                }
                             } else {
                                 o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " in ('" + cookie[i][k].val.join("','") + "')");
                             }
