@@ -186,7 +186,7 @@ const getFilter = function (cookie, modelattributes, req) {
                     break;
             }
             if (o && obj[field[0]]) {
-                if (obj[field[0]] && 'val' in obj[field[0]]) {//Virtual concatenation
+                if (obj[field[0]] && typeof obj[field[0]] == 'object' && 'val' in obj[field[0]]) {//Virtual concatenation
                     obj[field[0]].val += ' and ' + o.val;
                 } else {
                     Object.assign(obj[field[0]], o);
