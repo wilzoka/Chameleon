@@ -1226,18 +1226,18 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1245,7 +1245,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Sem Valor'
                                 , html: body
@@ -1294,18 +1294,18 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1313,7 +1313,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Balanço'
                                 , html: body
@@ -1363,18 +1363,18 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1382,7 +1382,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Tipo de Movimentação'
                                 , html: body
@@ -1440,19 +1440,19 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['MOVIMENTOS'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['MOVIMENTOS'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1460,7 +1460,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Requisições e Transferências'
                                 , html: body
@@ -1501,11 +1501,11 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1513,7 +1513,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Configuração Contábil do Item'
                                 , html: `ADEQUAÇÃO: </br></br> 
@@ -1560,14 +1560,14 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['OPERACAO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['CENTRO_CUSTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['CONTABIL'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['OPERACAO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['CENTRO_CUSTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['CONTABIL'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1575,7 +1575,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Configuração Depósitos do Item'
                                 , html: `ADEQUAÇÃO: </br></br> 
@@ -1587,6 +1587,7 @@ let main = {
                                         8   -   Saída   -   102009  -   Sim </br>
                                         9   -   Saída   -   102007  -   Sim </br>
                                         10  -   Saída   -   102008  -   Sim </br>
+                                        11  -   Saída   -   102011  -   Sim </br>
                                     </br></br>` + body
                             });
                         }
@@ -3793,8 +3794,7 @@ let main = {
                                 let unidade = await db.getModel('config').findOne();
                                 let needle = require('needle');
                                 if(unidade.cnpj == '90816133000557') {
-                                    needle.get('http://172.10.30.70/native/discar.php?dst=1179&src=95', {}, function () { });
-                                    needle.get('http://172.10.30.70/native/discar.php?dst=1179&src=96', {}, function () { });
+                                    needle.get('http://172.10.30.70/native/discar.php?dst=1179&src=38', {}, function () { });
                                 } else {
                                     needle.get('http://192.168.20.10/native/discar.php?dst=1179&src=7', {}, function () { });
                                 }                                
