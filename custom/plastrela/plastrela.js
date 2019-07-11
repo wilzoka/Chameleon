@@ -4455,6 +4455,85 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_verificarConsumos: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let volumes = await db.getModel('est_volume').findAll({
+                            include: [{ all: true }]
+                            , where: {
+                                id: { [db.Op.in]: obj.ids }
+                            }
+                            , order: [['id', 'asc']]
+                        });
+
+                        let body = '';
+
+                        for (let i = 0; i < volumes.length; i++) {
+                            let sql = await db.sequelize.query(`
+                            select
+                                i.datahora
+                                , op.codigo as op
+                                , e.codigo as etapa
+                                , i.qtd
+                                , opr.id as link
+                            from
+                                pcp_apinsumo i
+                            left join pcp_oprecurso opr on (i.idoprecurso = opr.id)
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_etapa e on (ope.idetapa = e.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            where
+                                i.idvolume = ${volumes[i].id}
+                            order by 1`, {
+                                    type: db.Sequelize.QueryTypes.SELECT
+                                });
+                            body += `
+                            <div class="col-md-12">
+                                <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                    <tr>
+                                        <td style="text-align:center;" colspan="2"><strong>ID ${volumes[i].id}</strong> </td>
+                                        <td style="text-align:right;">Volume Recebido com: ${application.formatters.fe.decimal(volumes[i].qtd, 4)} </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:center;" colspan="3"><strong>Apontamentos</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:center;"><strong>Data/Hora</strong></td>
+                                        <td style="text-align:center;"><strong>OP</strong></td>
+                                        <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                body += `
+                                    <tr>
+                                        <td style="text-align:center;">${application.formatters.fe.datetime(sql[i].datahora)}</td>
+                                        <td style="text-align:center;"><a target="_blank" href="/v/apontamento_de_producao/${sql[i].link}"> ${sql[i].op}/${sql[i].etapa}</a></td>
+                                        <td style="text-align:right;">${application.formatters.fe.decimal(sql[i].qtd, 4)}</td>
+                                    </tr>
+                            `;
+                            }
+                            body += `
+                                </table>
+                                ${i < volumes.length - 1 ? '<hr>' : ''}
+                            </div>
+                            `;
+                        }
+
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , title: obj.event.description
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
+                            }
+                        });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
             }
             , volumereserva: {
                 onsave: async function (obj, next) {
