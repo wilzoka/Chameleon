@@ -7060,30 +7060,33 @@ let main = {
                                 if (volume) {
                                     if (volume.consumido) {
                                         return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
-                                    } else {
+                                    }
+                                    if (volume.iddepositoendereco && volume.est_depositoendereco.retido) {
+                                        return application.error(obj.res, { msg: 'Volume se encontra retido' });
+                                    }
 
-                                        // let sql = await db.sequelize.query(`
-                                        // select 
-                                        //     c.*
-                                        // from
-                                        //     pcp_oprecurso opr
-                                        // left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                                        // left join pcp_op op on (ope.idop = op.id)
-                                        // left join pcp_versao v on (op.idversao = v.id)
-                                        // left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
-                                        // where
-                                        //     opr.id = ${obj.data.idoprecurso}
-                                        //     and c.idversao = ${volume.idversao}`, {
-                                        //         type: db.Sequelize.QueryTypes.SELECT
-                                        //     });
+                                    // let sql = await db.sequelize.query(`
+                                    // select 
+                                    //     c.*
+                                    // from
+                                    //     pcp_oprecurso opr
+                                    // left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                    // left join pcp_op op on (ope.idop = op.id)
+                                    // left join pcp_versao v on (op.idversao = v.id)
+                                    // left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                                    // where
+                                    //     opr.id = ${obj.data.idoprecurso}
+                                    //     and c.idversao = ${volume.idversao}`, {
+                                    //         type: db.Sequelize.QueryTypes.SELECT
+                                    //     });
 
-                                        return application.success(obj.res, {
-                                            data: {
-                                                id: volume.id
-                                                , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
-                                                , produto: (volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao) + (volume.lote ? ' - Lote: ' + volume.lote : '')
-                                                , substituido: 1//sql.length
-                                                , where: `id in (select 
+                                    return application.success(obj.res, {
+                                        data: {
+                                            id: volume.id
+                                            , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
+                                            , produto: (volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao) + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                            , substituido: 1//sql.length
+                                            , where: `id in (select 
                                                         c.idversao
                                                     from
                                                         pcp_oprecurso opr
@@ -7093,14 +7096,11 @@ let main = {
                                                     left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
                                                     where
                                                         opr.id = ${obj.data.idoprecurso})`
-                                            }
-                                        });
-                                    }
+                                        }
+                                    });
                                 } else {
                                     return application.error(obj.res, { msg: 'Volume não encontrado' });
                                 }
-                                break;
-
                             case '#':
                                 let bc = obj.data.codigodebarra.substring(1, obj.data.codigodebarra.length).split('-');
                                 let item = await db.getModel('cad_item').findOne({ where: { codigo: bc[0].split('/')[0] } })
@@ -7131,10 +7131,8 @@ let main = {
                                 } else {
                                     return application.error(obj.res, { msg: 'Volume com problema' });
                                 }
-                                break;
                             default:
                                 return application.error(obj.res, { msg: 'Código de barra incorreto' });
-                                break;
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -7243,6 +7241,7 @@ let main = {
                             volume.consumido = true;
                         }
                         volume.iddeposito = recurso.iddepositoprodutivo;
+                        volume.iddepositoendereco = null;
 
                         if (selects.length > 0) {
                             for (let i = 0; i < selects.length; i++) {
