@@ -7267,7 +7267,9 @@ let main = {
                         // if (sql.length <= 0 && !obj.data.idsubstituto) {
                         //     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['idsubstituto'] });
                         // }
-
+                        if (volume.consumido) {
+                            return application.error(obj.res, { msg: 'Este volume já está apontado' });
+                        }
                         if (deposito && deposito.descricao == 'Almoxarifado') {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
                         }
