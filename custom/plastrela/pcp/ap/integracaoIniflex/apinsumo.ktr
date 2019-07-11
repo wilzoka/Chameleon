@@ -277,8 +277,9 @@
   </connection>
   <order>
   <hop> <from>Table input</from><to>Modified Java Script Value</to><enabled>Y</enabled> </hop>
-  <hop> <from>Modified Java Script Value</from><to>Table output</to><enabled>Y</enabled> </hop>
-  <hop> <from>Modified Java Script Value</from><to>Update</to><enabled>Y</enabled> </hop>
+  <hop> <from>Modified Java Script Value</from><to>Execute row SQL script</to><enabled>Y</enabled> </hop>
+  <hop> <from>Execute row SQL script</from><to>Table output</to><enabled>Y</enabled> </hop>
+  <hop> <from>Execute row SQL script</from><to>Update</to><enabled>Y</enabled> </hop>
   </order>
   <step>
     <name>Modified Java Script Value</name>
@@ -295,7 +296,7 @@
     <optimizationLevel>9</optimizationLevel>
     <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
         <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var texto_integ &#x3d; &#x27;40&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; empresa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; op &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; seq_etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; recurso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operador &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; datahora &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; qtd &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; peso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; rnc &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; deposito &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; identificacao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; &#x27;Lote&#x3a;&#x27; &#x2b; lote&#x3b;&#xd;&#xa;&#xd;&#xa;var sistemas_envol &#x3d; &#x27;PESA X INIFLEX&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var leiaute_integ &#x3d; &#x27;PCPAPINSUMO&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var operacao_integ &#x3d; &#x27;INS&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var campos_chave &#x3d; &#x27;1&#x3b;1515&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var separador &#x3d; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var situacao_integ &#x3d; &#x27;N&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var integrado_novo &#x3d; true</jsScript_script>
+        <jsScript_script>var texto_integ &#x3d; &#x27;40&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; empresa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; op &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; seq_etapa &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; recurso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; operador &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; datahora &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; qtd &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; peso &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; insumo_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; versao_sub &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; rnc &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; deposito &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; identificacao &#x2b; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;texto_integ &#x2b;&#x3d; &#x27;Lote&#x3a;&#x27; &#x2b; lote&#x3b;&#xd;&#xa;&#xd;&#xa;var sistemas_envol &#x3d; &#x27;PESA X INIFLEX&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var leiaute_integ &#x3d; &#x27;PCPAPINSUMO&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var operacao_integ &#x3d; &#x27;INS&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var campos_chave &#x3d; &#x27;1&#x3b;1515&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var separador &#x3d; &#x27;&#x7c;&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var situacao_integ &#x3d; &#x27;N&#x27;&#x3b;&#xd;&#xa;&#xd;&#xa;var integrado_novo &#x3d; true&#x3b;&#xd;&#xa;&#xd;&#xa;var query &#x3d; &#x22;delete from integracaoiniflex2 where leiaute_integ &#x3d; &#x27;PCPAPINSUMO&#x27; and situacao_integ &#x3d; &#x27;E&#x27; and to_char&#x28;texto_integ&#x29; like &#x27;40&#x7c;&#x22; &#x2b; empresa &#x2b; &#x22;&#x25;&#x22; &#x2b; identificacao &#x2b; &#x22;&#x25;&#x27;&#x3b;&#x22;&#x3b;</jsScript_script>
       </jsScript>    </jsScripts>    <fields>      <field>        <name>texto_integ</name>
         <rename>texto_integ</rename>
         <type>String</type>
@@ -341,6 +342,12 @@
       </field>      <field>        <name>integrado_novo</name>
         <rename>integrado_novo</rename>
         <type>Boolean</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>query</name>
+        <rename>query</rename>
+        <type>String</type>
         <length>-1</length>
         <precision>-1</precision>
         <replace>N</replace>
@@ -442,8 +449,8 @@
     </fields>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>280</xloc>
-      <yloc>28</yloc>
+      <xloc>436</xloc>
+      <yloc>24</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
@@ -481,8 +488,36 @@
       </lookup>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>278</xloc>
-      <yloc>122</yloc>
+      <xloc>434</xloc>
+      <yloc>118</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Execute row SQL script</name>
+    <type>ExecSQLRow</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <commit>1</commit>
+    <connection>Iniflex Integracao</connection>
+    <sql_field>query</sql_field>
+    <insert_field/>
+    <update_field/>
+    <delete_field/>
+    <read_field/>
+    <sqlFromfile>N</sqlFromfile>
+    <sendOneStatement>N</sendOneStatement>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>297</xloc>
+      <yloc>62</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
