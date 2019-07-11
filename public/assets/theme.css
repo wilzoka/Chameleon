@@ -310,7 +310,7 @@ div.dz-image img {
     border-bottom-right-radius: 0;
 }
 .dropzone .dz-preview.dz-file-preview .dz-image {    
-    border-radius: 0px;
+    border-radius: 3px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -334,9 +334,11 @@ div.dz-image img {
 }
 .dz-dldiv .btn {
     border-top-right-radius: 0;
+    border-top-left-radius: 0;
     border-bottom-right-radius: 0;
 }
 .dz-deldiv .btn {
+    border-top-right-radius: 0;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
