@@ -2756,12 +2756,12 @@ let main = {
                                                     formato[0].larguralam + ' x ' + formato[0].espessuralam : ''
                                         : ''
                                         , width1val, padstr), { continued: true })
-                                    .font('Courier-Bold').text(f.lpad('Peso: ', width2 - 16, padstr), { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('Peso: ', width2 - (approducaovolume ? 16 : 0), padstr), { continued: true })
                                     .font('Courier').text(f.rpad(
                                         approducaovolume ?
                                             'Bruto:' + application.formatters.fe.decimal(parseFloat(volume.qtdreal) + parseFloat(approducaovolume.tara), 2) + ' Tara:' + application.formatters.fe.decimal(approducaovolume.tara, 2) + ' Líq:' + application.formatters.fe.decimal(volume.qtdreal, 2) :
                                             application.formatters.fe.decimal(volume.qtdreal, 2) + ' KG'
-                                        , width2val + 16, padstr), { continued: true })
+                                        , width2val + (approducaovolume ? 16 : 0), padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.metragem || 0, 4) + ' M', width3val, padstr))
                                     .moveDown(md);
