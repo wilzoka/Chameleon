@@ -79,13 +79,13 @@
             CKEDITOR.replace('descricao', config);
         });
 
-        application.jsfunction('atividade.atividade.js_getTempo', { id: application.functions.getUrlParameter('parent') }, function (response) {
-            if (response.success) {
-                $('input[name="tempo"]').val(response.tempo);
-            }
-        });
-
         if (application.functions.getId() == 0) {
+            application.jsfunction('atividade.atividade.js_getTempo', { id: application.functions.getUrlParameter('parent') }, function (response) {
+                if (response.success) {
+                    $('input[name="tempo"]').val(response.tempo);
+                }
+            });
+
             var $descricao = $('textarea[name="descricao"]');
             var $privada = $('input[name="privada"]');
             var $anexos = $('input[name="anexos"]');
