@@ -2757,7 +2757,7 @@ let main = {
                                         : ''
                                         , width1val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 2) + ' KG' + (approducaovolume && approducaovolume.tara ? ' / Tara: ' + application.formatters.fe.decimal(approducaovolume.tara, 2) : ''), width2val, padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.metragem || 0, 4) + ' M', width3val, padstr))
                                     .moveDown(md);
@@ -3793,11 +3793,11 @@ let main = {
                                 });
                                 let unidade = await db.getModel('config').findOne();
                                 let needle = require('needle');
-                                if(unidade.cnpj == '90816133000557') {
+                                if (unidade.cnpj == '90816133000557') {
                                     needle.get('http://172.10.30.70/native/discar.php?dst=1179&src=38', {}, function () { });
                                 } else {
                                     needle.get('http://192.168.20.10/native/discar.php?dst=1179&src=7', {}, function () { });
-                                }                                
+                                }
                             }
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
