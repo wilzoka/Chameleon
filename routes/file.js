@@ -82,6 +82,10 @@ module.exports = function (app) {
                     return application.forbidden(res);
                 }
                 let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { idmodel: file.idmodel } });
+                let viewfile = await db.getModel('view').findOne({ include: [{ all: true }], where: { url: 'arquivo' } });
+                if (viewfile) {
+                    views.unshift(viewfile);
+                }
                 let allow = false;
                 for (let i = 0; i < views.length; i++) {
                     const permission = await hasPermission(req.user.id, views[i].id);
