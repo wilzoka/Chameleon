@@ -1226,18 +1226,18 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1245,7 +1245,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Sem Valor'
                                 , html: body
@@ -1294,18 +1294,18 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1313,7 +1313,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Balanço'
                                 , html: body
@@ -1363,18 +1363,18 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1382,7 +1382,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Tipo de Movimentação'
                                 , html: body
@@ -1440,19 +1440,19 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['EMPRESA'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['GRUPO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][i]} </td>                                        
-                                    <td style="text-align:right;"> ${query.data['VALOR'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['ORIGEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['MOVIMENTOS'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['EMPRESA'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DATA_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['GRUPO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:right;"> ${query.data['QUANTIDADE'][j]} </td>                                        
+                                    <td style="text-align:right;"> ${query.data['VALOR'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['ORIGEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO_MOVTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['MOVIMENTOS'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1460,7 +1460,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Análise Movimentações Estoque - Requisições e Transferências'
                                 , html: body
@@ -1501,11 +1501,11 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['TIPO'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['TIPO'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1513,7 +1513,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Configuração Contábil do Item'
                                 , html: `ADEQUAÇÃO: </br></br> 
@@ -1560,14 +1560,14 @@ let main = {
                             </thead>
                             <tbody>
                         `;
-                            for (let i = 0; i < query.count; i++) {
+                            for (let j = 0; j < query.count; j++) {
                                 body += `
                                 <tr>
-                                    <td style="text-align:center;"> ${query.data['ITEM'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['OPERACAO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['CENTRO_CUSTO'][i]} </td>
-                                    <td style="text-align:center;"> ${query.data['CONTABIL'][i]} </td>
+                                    <td style="text-align:center;"> ${query.data['ITEM'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['DEPOSITO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['OPERACAO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['CENTRO_CUSTO'][j]} </td>
+                                    <td style="text-align:center;"> ${query.data['CONTABIL'][j]} </td>
                                 </tr>
                             `;
                             }
@@ -1575,7 +1575,7 @@ let main = {
                             </tbody>
                         </table>
                         `;
-                            return main.platform.mail.f_sendmail({
+                            main.platform.mail.f_sendmail({
                                 to: ['julio@plastrela.com.br', 'informatica@plastrela.com.br']
                                 , subject: 'SIP-Configuração Depósitos do Item'
                                 , html: `ADEQUAÇÃO: </br></br> 
@@ -1587,6 +1587,7 @@ let main = {
                                         8   -   Saída   -   102009  -   Sim </br>
                                         9   -   Saída   -   102007  -   Sim </br>
                                         10  -   Saída   -   102008  -   Sim </br>
+                                        11  -   Saída   -   102011  -   Sim </br>
                                     </br></br>` + body
                             });
                         }
@@ -2755,8 +2756,12 @@ let main = {
                                                     formato[0].larguralam + ' x ' + formato[0].espessuralam : ''
                                         : ''
                                         , width1val, padstr), { continued: true })
-                                    .font('Courier-Bold').text(f.lpad('Peso: ', width2, padstr), { continued: true })
-                                    .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.qtdreal, 4) + ' KG', width2val, padstr), { continued: true })
+                                    .font('Courier-Bold').text(f.lpad('Peso: ', width2 - (approducaovolume ? 16 : 0), padstr), { continued: true })
+                                    .font('Courier').text(f.rpad(
+                                        approducaovolume ?
+                                            'Bruto:' + application.formatters.fe.decimal(parseFloat(volume.qtdreal) + parseFloat(approducaovolume.tara), 2) + ' Tara:' + application.formatters.fe.decimal(approducaovolume.tara, 2) + ' Líq:' + application.formatters.fe.decimal(volume.qtdreal, 2) :
+                                            application.formatters.fe.decimal(volume.qtdreal, 2) + ' KG'
+                                        , width2val + (approducaovolume ? 16 : 0), padstr), { continued: true })
                                     .font('Courier-Bold').text(f.lpad('Mts: ', width3, padstr), { continued: true })
                                     .font('Courier').text(f.rpad(application.formatters.fe.decimal(volume.metragem || 0, 4) + ' M', width3val, padstr))
                                     .moveDown(md);
@@ -3790,6 +3795,13 @@ let main = {
                                     title: 'Requisição Solicitada'
                                     , description: `${ids.length} solicitações`
                                 });
+                                let unidade = await db.getModel('config').findOne();
+                                let needle = require('needle');
+                                if (unidade.cnpj == '90816133000557') {
+                                    needle.get('http://172.10.30.70/native/discar.php?dst=1179&src=38', {}, function () { });
+                                } else {
+                                    needle.get('http://192.168.20.10/native/discar.php?dst=1179&src=7', {}, function () { });
+                                }
                             }
 
                             return application.success(obj.res, { msg: application.message.success, reloadtables: true });
@@ -4443,6 +4455,85 @@ let main = {
                         wb.Sheets['Sheet1'] = ws;
                         XLSX.writeFile(wb, `${__dirname}/../../tmp/${process.env.NODE_APPNAME}/${filename}`);
                         return application.success(obj.res, { openurl: '/download/' + filename });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_verificarConsumos: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+
+                        let volumes = await db.getModel('est_volume').findAll({
+                            include: [{ all: true }]
+                            , where: {
+                                id: { [db.Op.in]: obj.ids }
+                            }
+                            , order: [['id', 'asc']]
+                        });
+
+                        let body = '';
+
+                        for (let i = 0; i < volumes.length; i++) {
+                            let sql = await db.sequelize.query(`
+                            select
+                                i.datahora
+                                , op.codigo as op
+                                , e.codigo as etapa
+                                , i.qtd
+                                , opr.id as link
+                            from
+                                pcp_apinsumo i
+                            left join pcp_oprecurso opr on (i.idoprecurso = opr.id)
+                            left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                            left join pcp_etapa e on (ope.idetapa = e.id)
+                            left join pcp_op op on (ope.idop = op.id)
+                            where
+                                i.idvolume = ${volumes[i].id}
+                            order by 1`, {
+                                    type: db.Sequelize.QueryTypes.SELECT
+                                });
+                            body += `
+                            <div class="col-md-12">
+                                <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                                    <tr>
+                                        <td style="text-align:center;" colspan="2"><strong>ID ${volumes[i].id}</strong> </td>
+                                        <td style="text-align:right;">Volume Recebido com: ${application.formatters.fe.decimal(volumes[i].qtd, 4)} </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:center;" colspan="3"><strong>Apontamentos</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:center;"><strong>Data/Hora</strong></td>
+                                        <td style="text-align:center;"><strong>OP</strong></td>
+                                        <td style="text-align:center;"><strong>Quantidade</strong></td>
+                                    </tr>
+                            `;
+                            for (let i = 0; i < sql.length; i++) {
+                                body += `
+                                    <tr>
+                                        <td style="text-align:center;">${application.formatters.fe.datetime(sql[i].datahora)}</td>
+                                        <td style="text-align:center;"><a target="_blank" href="/v/apontamento_de_producao/${sql[i].link}"> ${sql[i].op}/${sql[i].etapa}</a></td>
+                                        <td style="text-align:right;">${application.formatters.fe.decimal(sql[i].qtd, 4)}</td>
+                                    </tr>
+                            `;
+                            }
+                            body += `
+                                </table>
+                                ${i < volumes.length - 1 ? '<hr>' : ''}
+                            </div>
+                            `;
+                        }
+
+                        return application.success(obj.res, {
+                            modal: {
+                                id: 'modalevt'
+                                , title: obj.event.description
+                                , body: body
+                                , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>'
+                            }
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -7060,30 +7151,33 @@ let main = {
                                 if (volume) {
                                     if (volume.consumido) {
                                         return application.error(obj.res, { msg: 'Volume já se encontra consumido' });
-                                    } else {
+                                    }
+                                    if (volume.iddepositoendereco && volume.est_depositoendereco.retido) {
+                                        return application.error(obj.res, { msg: 'Volume se encontra retido' });
+                                    }
 
-                                        // let sql = await db.sequelize.query(`
-                                        // select 
-                                        //     c.*
-                                        // from
-                                        //     pcp_oprecurso opr
-                                        // left join pcp_opetapa ope on (opr.idopetapa = ope.id)
-                                        // left join pcp_op op on (ope.idop = op.id)
-                                        // left join pcp_versao v on (op.idversao = v.id)
-                                        // left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
-                                        // where
-                                        //     opr.id = ${obj.data.idoprecurso}
-                                        //     and c.idversao = ${volume.idversao}`, {
-                                        //         type: db.Sequelize.QueryTypes.SELECT
-                                        //     });
+                                    // let sql = await db.sequelize.query(`
+                                    // select 
+                                    //     c.*
+                                    // from
+                                    //     pcp_oprecurso opr
+                                    // left join pcp_opetapa ope on (opr.idopetapa = ope.id)
+                                    // left join pcp_op op on (ope.idop = op.id)
+                                    // left join pcp_versao v on (op.idversao = v.id)
+                                    // left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
+                                    // where
+                                    //     opr.id = ${obj.data.idoprecurso}
+                                    //     and c.idversao = ${volume.idversao}`, {
+                                    //         type: db.Sequelize.QueryTypes.SELECT
+                                    //     });
 
-                                        return application.success(obj.res, {
-                                            data: {
-                                                id: volume.id
-                                                , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
-                                                , produto: (volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao) + (volume.lote ? ' - Lote: ' + volume.lote : '')
-                                                , substituido: 1//sql.length
-                                                , where: `id in (select 
+                                    return application.success(obj.res, {
+                                        data: {
+                                            id: volume.id
+                                            , qtdreal: application.formatters.fe.decimal(volume.qtdreal, 4)
+                                            , produto: (volume.pcp_versao ? volume.pcp_versao.descricaocompleta : volume.observacao) + (volume.lote ? ' - Lote: ' + volume.lote : '')
+                                            , substituido: 1//sql.length
+                                            , where: `id in (select 
                                                         c.idversao
                                                     from
                                                         pcp_oprecurso opr
@@ -7093,14 +7187,11 @@ let main = {
                                                     left join pcp_componente c on (v.idcomposicao = c.idcomposicao)
                                                     where
                                                         opr.id = ${obj.data.idoprecurso})`
-                                            }
-                                        });
-                                    }
+                                        }
+                                    });
                                 } else {
                                     return application.error(obj.res, { msg: 'Volume não encontrado' });
                                 }
-                                break;
-
                             case '#':
                                 let bc = obj.data.codigodebarra.substring(1, obj.data.codigodebarra.length).split('-');
                                 let item = await db.getModel('cad_item').findOne({ where: { codigo: bc[0].split('/')[0] } })
@@ -7131,10 +7222,8 @@ let main = {
                                 } else {
                                     return application.error(obj.res, { msg: 'Volume com problema' });
                                 }
-                                break;
                             default:
                                 return application.error(obj.res, { msg: 'Código de barra incorreto' });
-                                break;
                         }
                     } catch (err) {
                         return application.fatal(obj.res, err);
@@ -7243,6 +7332,7 @@ let main = {
                             volume.consumido = true;
                         }
                         volume.iddeposito = recurso.iddepositoprodutivo;
+                        volume.iddepositoendereco = null;
 
                         if (selects.length > 0) {
                             for (let i = 0; i < selects.length; i++) {

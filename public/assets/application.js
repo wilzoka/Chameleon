@@ -187,7 +187,7 @@ var application = {
                     var lazyloadperc = 0;
                     var totalrows = tables[$table[0].id].rows().count();
                     if (totalrows < 500) {
-                        lazyloadperc = 0.9;
+                        lazyloadperc = 0.8;
                     } else if (totalrows < 1000) {
                         lazyloadperc = 0.95;
                     } else {

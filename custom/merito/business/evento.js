@@ -193,6 +193,16 @@ let main = {
             }
         }
     }
+    , propostaitem: {
+        js_getValorServico: async (obj) => {
+            try {
+                let servico = await db.getModel('cad_servico').findOne({ where: { id: obj.data.idservico } });
+                return application.success(obj.res, { data: application.formatters.fe.decimal(servico && servico.valor ? servico.valor : 0, 2) })
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+    }
 }
 
 module.exports = main;

@@ -39,3 +39,18 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+    $(function ($) {
+
+        var $iddeposito = $('select[name="iddeposito"]');
+        var $iddepositoendereco = $('select[name="iddepositoendereco"]');
+        console.log($iddeposito.val())
+        if ($iddeposito.val()) {
+            $iddepositoendereco.attr('data-where', 'iddeposito = ' + $iddeposito.val());
+        } else {
+            $iddepositoendereco.attr('data-where', '1 != 1');
+        }
+
+    });
+</script>
