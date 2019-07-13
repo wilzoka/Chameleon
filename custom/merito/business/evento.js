@@ -145,13 +145,6 @@ let main = {
                         </tr>
                         `;
                     }
-                    /* propostaItens +=
-                        `<tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>`+ totalGeral + `</td>
-                        </tr>`; */
                     let proposta = await db.getModel('ven_proposta').findOne({ where: { id: obj.ids } });
                     platform.mail.f_sendmail({
                         to: [proposta.email]

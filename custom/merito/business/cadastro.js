@@ -33,6 +33,34 @@ let main = {
                 return application.fatal(obj.res, err);
             }
         }
+        , e_cadastrarCliente: async function (obj) {
+            if (obj.req.method == 'GET') {
+                let body = '';
+                body += application.components.html.hidden({ name: 'id', value: obj.ids[0] });
+                body += application.components.html.text({
+                    width: 12
+                    , label: 'Cliente'
+                    , name: 'cliente'
+                    , value: obj.register.cliente
+                    , disabled: 'disabled="disabled"'
+                });
+                body += application.components.html.text({
+                    width: 12
+                    , label: 'Cidade'
+                    , name: 'cidade'
+                });
+                return application.success(obj.res, {
+                    modal: {
+                        form: true
+                        , action: '/event/' + obj.event.id
+                        , id: 'modalevt'
+                        , title: obj.event.description
+                        , body: body
+                        , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button> <button type="submit" class="btn btn-primary">Gerar</button>'
+                    }
+                });
+            }
+        }
         , e_gerarAcessoSistema: async function (obj) {
             try {
                 if (obj.req.method == 'GET') {
