@@ -8134,7 +8134,7 @@ let main = {
                         left join pcp_tipoperda tp on (p.idtipoperda = tp.id)
                         where
                             idoprecurso = :v1
-                            and tp.codigo not in (300, 322)
+                            and tp.codigo not in (225, 300, 322)
                       `, { type: db.sequelize.QueryTypes.SELECT, replacements: { v1: obj.data.idoprecurso } });
                         if (sql.length > 0 && sql[0].soma) {
                             return application.success(obj.res, { qtd: sql[0].qtd, peso: application.formatters.fe.decimal(sql[0].soma, 4) });
