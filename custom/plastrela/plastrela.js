@@ -5138,7 +5138,7 @@ let main = {
                                 } else if (volume.qtdreal == 0) {
                                     volume.consumido = true;
                                 }
-                                await volume.save({ _iduser: obj.req.user.id });
+                                await volume.save({ iduser: obj.req.user.id });
                                 await db.getModel('est_volumeajuste').create({
                                     datahora: moment()
                                     , idvolume: volume.id
@@ -8461,14 +8461,15 @@ let main = {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
                             let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.req.body.id } });
-                            let opnova = oprecurso.dataValues;
-                            delete opnova['id'];
-                            opnova.integrado = null;
-                            opnova.qtdlavagens = null;
-                            opnova.idestado = 1;
-                            opnova.idrecurso = obj.req.body.idrecurso;
-                            let opr = await db.getModel('pcp_oprecurso').create(opnova);
-                            let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.req.body.id } });
+                            let opr = await db.getModel('pcp_oprecurso').create({
+                                idestado: 1
+                                , idopetapa: oprecurso.idopetapa
+                                , quantidade: oprecurso.quantidade
+                                , peso: oprecurso.peso
+                                , idrecurso: obj.req.body.idrecurso
+                                , observacao: oprecurso.observacao
+                            });
+                            let apcliche = await db.getModel('pcp_apcliche').findOne({ where: { idoprecurso: obj.req.body.id || 0 } });
                             if (apcliche) {
                                 let apc = await db.getModel('pcp_apcliche').create({
                                     idoprecurso: opr.id
