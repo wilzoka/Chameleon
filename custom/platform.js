@@ -76,7 +76,6 @@ let platform = {
                                 // console.log('err', data);
                             }
                         });
-
                 });
             });
         }

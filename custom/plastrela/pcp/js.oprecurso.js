@@ -477,6 +477,12 @@ $(function () {
             $('.confresult').addClass('hidden');
         });
 
+        $('.btn-imp-show').click(function () {
+            setTimeout(function () {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }, 1000);
+        });
+
     }
 
 });
