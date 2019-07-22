@@ -92,7 +92,7 @@ let main = {
                                         atvcd.valor = obj.req.body['cd' + cds[i].idcampodinamico];
                                         break;
                                 }
-                                atvcd.save({ iduser: obj.req.user.id });
+                                await atvcd.save({ iduser: obj.req.user.id });
                             }
                         }
                     }
