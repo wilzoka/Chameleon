@@ -674,7 +674,7 @@ var application = {
             if (data.footer) {
                 $('#tableview' + data.name).append(data.footer);
             }
-
+            // Buttons
             var eventButtons = [{
                 text: '<i class="fa fa-edit"></i> Editar'
                 , className: 'btn-block btn-warning text-left'
@@ -690,43 +690,47 @@ var application = {
                         application.notify.warning('Selecione um registro para Editar');
                     }
                 }
-            }, {
-                text: '<i class="fa fa-trash-alt"></i> Excluir'
-                , className: 'btn-block btn-danger text-left'
-                , action: function (e, dt, node, config) {
-                    var $table = $('#' + dt.settings()[0].sTableId);
-                    var view = $table.attr('data-view');
-                    var selected = $table.attr('data-selected');
-                    if (selected) {
-                        selected = selected.split(',');
-                        var msg = '';
-                        if (selected.length > 1) {
-                            msg = 'Os registros selecionados serão Excluídos. Continuar?';
-                        } else {
-                            msg = 'O registro selecionado será Excluído. Continuar?';
-                        }
-                        application.functions.confirmMessage(msg, function () {
-                            $.ajax({
-                                url: '/v/' + view + '/delete'
-                                , type: 'POST'
-                                , dataType: 'json'
-                                , data: { ids: selected.join(',') }
-                                , success: function (response) {
-                                    application.handlers.responseSuccess(response);
-                                    if (response.success) {
-                                        application.tables.reloadAll();
+            }];
+            if (data.permissions.deletable) {
+                eventButtons.push({
+                    text: '<i class="fa fa-trash-alt"></i> Excluir'
+                    , className: 'btn-block btn-danger text-left'
+                    , action: function (e, dt, node, config) {
+                        var $table = $('#' + dt.settings()[0].sTableId);
+                        var view = $table.attr('data-view');
+                        var selected = $table.attr('data-selected');
+                        if (selected) {
+                            selected = selected.split(',');
+                            var msg = '';
+                            if (selected.length > 1) {
+                                msg = 'Os registros selecionados serão Excluídos. Continuar?';
+                            } else {
+                                msg = 'O registro selecionado será Excluído. Continuar?';
+                            }
+                            application.functions.confirmMessage(msg, function () {
+                                $.ajax({
+                                    url: '/v/' + view + '/delete'
+                                    , type: 'POST'
+                                    , dataType: 'json'
+                                    , data: { ids: selected.join(',') }
+                                    , success: function (response) {
+                                        application.handlers.responseSuccess(response);
+                                        if (response.success) {
+                                            application.tables.reloadAll();
+                                        }
                                     }
-                                }
-                                , error: function (response) {
-                                    application.handlers.responseError(response);
-                                }
+                                    , error: function (response) {
+                                        application.handlers.responseError(response);
+                                    }
+                                });
                             });
-                        });
-                    } else {
-                        application.notify.error('Selecione um registro para Excluir');
+                        } else {
+                            application.notify.error('Selecione um registro para Excluir');
+                        }
                     }
-                }
-            }, {
+                });
+            }
+            eventButtons.push({
                 text: '<i class="fa fa-times"></i> Desmarcar Selecionados'
                 , className: 'btn-block btn-info text-left'
                 , action: function (e, dt, node, config) {
@@ -737,7 +741,7 @@ var application = {
                     $dtSelectCount.text('');
                     $dtSelectCount.closest('button').removeClass('btn-primary').addClass('btn-default');
                 }
-            }];
+            });
             for (var i = 0; i < data.events.length; i++) {
                 if (i == 0) {
                     eventButtons.push({
@@ -769,36 +773,36 @@ var application = {
                     }
                 });
             }
-
+            var buttons = [{
+                extend: 'collection'
+                , text: '<i class="fa fa-chevron-down"></i><span class="dt-select-count"></span>'
+                , className: 'btn-default'
+                , autoClose: true
+                , buttons: eventButtons
+            }];
+            if (data.permissions.insertable) {
+                buttons.push({
+                    text: '<i class="fa fa-plus"></i>'
+                    , className: 'btn-success'
+                    , autoClose: true
+                    , action: function (e, dt, node, config) {
+                        var $table = $('#' + dt.settings()[0].sTableId);
+                        var view = $table.attr('data-view');
+                        var subview = $table.attr('data-subview');
+                        if (subview && application.functions.getId() == 0) {
+                            Cookies.set('subview_redirect', view);
+                            $('#form.xhr').submit();
+                        } else {
+                            window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
+                        }
+                    }
+                });
+            }
             // Datatable
             $('#tableview' + data.name).attr('data-fastsearch', data.fastsearch || '');
             tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
                 dom: '<"col-xs-6 no-padding"B><"col-xs-6 dt-filter-div no-padding text-right">t<"col-xs-6 dt-info-div no-padding text-left">'
-                , buttons: [
-                    {
-                        extend: 'collection'
-                        , text: '<i class="fa fa-chevron-down"></i><span class="dt-select-count"></span>'
-                        , className: 'btn-default'
-                        , autoClose: true
-                        , buttons: eventButtons
-                    }
-                    , {
-                        text: '<i class="fa fa-plus"></i>'
-                        , className: 'btn-success'
-                        , autoClose: true
-                        , action: function (e, dt, node, config) {
-                            var $table = $('#' + dt.settings()[0].sTableId);
-                            var view = $table.attr('data-view');
-                            var subview = $table.attr('data-subview');
-                            if (subview && application.functions.getId() == 0) {
-                                Cookies.set('subview_redirect', view);
-                                $('#form.xhr').submit();
-                            } else {
-                                window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
-                            }
-                        }
-                    }
-                ]
+                , buttons: buttons
                 , columns: data.columns
                 , deferRender: true
                 , drawCallback: function (settings) {
