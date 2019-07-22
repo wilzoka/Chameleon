@@ -378,7 +378,7 @@ let main = {
                                     to: [atividade.users.email]
                                     , cc: parts.email
                                     , subject: `Nota Adicionada - [ATV#${atividade.id}] - ${atividade.assunto}`
-                                    , html: `<a href="http://intranet.plastrela.com.br:8084/r/visao_administrativa" target="_blank">http://intranet.plastrela.com.br:8084/r/visao_administrativa</a>
+                                    , html: `<a href="http://siprs.plastrela.com.br/r/visao_administrativa" target="_blank">http://siprs.plastrela.com.br/r/visao_administrativa</a>
                                     <br>${obj.data.descricao || ''}`
                                     , attachments: attachments
                                 });
@@ -1143,7 +1143,7 @@ let main = {
                             main.platform.mail.f_sendmail({
                                 to: [user.email]
                                 , subject: `Nova Atividade -  [ATV#${atividade.id}] - ${atividade.assunto}`
-                                , html: `Sua atividade foi registrada, para visualizá-la <a href="http://intranet.plastrela.com.br:8084/v/atividade_solicitada/${atividade.id}" target="_blank">clique aqui!</a>`
+                                , html: `Sua atividade foi registrada, para visualizá-la <a href="http://siprs.plastrela.com.br/v/atividade_solicitada/${atividade.id}" target="_blank">clique aqui!</a>`
                             });
                         }
                     }
@@ -10287,7 +10287,7 @@ let main = {
                                     main.platform.mail.f_sendmail({
                                         to: JSON.parse(param2.value)
                                         , subject: `Novo currículo cadastrado - ${notificationDescription}`
-                                        , html: `<a href="http://intranet.plastrela.com.br:8084/v/curriculo_ms/${saved.register.id}" target="_blank">http://intranet.plastrela.com.br:8084/v/curriculo_ms</a>`
+                                        , html: `<a href="http://siprs.plastrela.com.br/v/curriculo_ms/${saved.register.id}" target="_blank">http://siprs.plastrela.com.br/v/curriculo_ms</a>`
                                     });
                                 }
                             }
