@@ -76,7 +76,11 @@ let main = {
                         }
 
                         for (let i = 0; i < cds.length; i++) {
-                            let atvcd = (await db.getModel('atv_atividade_cd').findOrCreate({ include: [{ all: true }], where: { idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } }))[0];
+                            let atvcd = await db.getModel('atv_atividade_cd').findOne({ include: [{ all: true }], where: { idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } });
+                            if (!atvcd) {
+                                await db.getModel('atv_atividade_cd').create({ idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id });
+                                atvcd = await db.getModel('atv_atividade_cd').findOne({ include: [{ all: true }], where: { idatividade: saved.register.id, idcampodinamico: cds[i].atv_campodinamico.id } });
+                            }
                             if (obj.req.body['cd' + cds[i].idcampodinamico]) {
                                 switch (atvcd.atv_campodinamico.tipo) {
                                     case 'Data':
@@ -93,6 +97,8 @@ let main = {
                                         break;
                                 }
                                 await atvcd.save({ iduser: obj.req.user.id });
+                            } else {
+                                await atvcd.destroy({ iduser: obj.req.user.id });
                             }
                         }
                     }
