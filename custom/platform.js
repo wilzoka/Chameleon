@@ -2047,6 +2047,165 @@ let platform = {
                 }
             }
         }
+        , f_getFilter: async function (req, view) {            
+            let obj = {};   
+            const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.idmodel } });
+            let cookie = JSON.parse(req.cookies['tableview' + view.url + 'filter'] || '{}');
+            let m;
+            for (let i = 0; i < cookie.length; i++) {
+                for (let k in cookie[i]) {
+                    let field = k.split('+');
+                    switch (field[1]) {
+                        case 'date':
+                            m = moment(cookie[i][k], application.formatters.fe.date_format);
+                            cookie[i][k] = m.isValid() ? m.format(application.formatters.be.date_format) : null;
+                            break;
+                        case 'datetime':
+                            m = moment(cookie[i][k], application.formatters.fe.datetime_format);
+                            cookie[i][k] = m.isValid() ? m.format(application.formatters.be.datetime_format + (field[2] == 'b' ? ':00' : ':59')) : null;
+                            break;
+                        case 'time':
+                            cookie[i][k] = application.formatters.be.time(cookie[i][k]);
+                            break;
+                        case 'text':
+                            cookie[i][k] = '%' + cookie[i][k] + '%';
+                            break;
+                        case 'textarea':
+                            cookie[i][k] = '%' + cookie[i][k] + '%';
+                            break;
+                        case 'decimal':
+                            cookie[i][k] = application.formatters.be.decimal(cookie[i][k]);
+                            break;
+                        case 'integer':
+                            cookie[i][k] = cookie[i][k].substring(0, 8);
+                            break;
+                        case 'radio':
+                            for (let z = 0; z < modelattributes.length; z++) {
+                                if (field[0] == modelattributes[z].name) {
+                                    let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                                    if (j.multiple) {
+                                        cookie[i][k] = '%' + cookie[i][k].val.sort().join('%') + '%';
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                    let o = {};
+                    switch (field[2]) {
+                        case 's':
+                            Object.assign(o, { [db.Op.iLike]: cookie[i][k] })
+                            break;
+                        case 'b':
+                            Object.assign(o, { [db.Op.gte]: cookie[i][k] })
+                            break;
+                        case 'e':
+                            Object.assign(o, { [db.Op.lte]: cookie[i][k] })
+                            break;
+                        case 'i':
+                            Object.assign(o, { [db.Op.in]: cookie[i][k].val })
+                            break;
+                        case 'r':
+                            o = cookie[i][k];
+                            break;
+                        // Virtuals
+                        case 'rv':
+                            for (let z = 0; z < modelattributes.length; z++) {
+                                if (field[0] == modelattributes[z].name) {
+                                    let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                                    if (j.field && j.field.indexOf('$value') > 0) {
+                                        o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
+                                    } else {
+                                        o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " = '" + cookie[i][k] + "'");
+                                    }
+                                }
+                            }
+                            break;
+                        case 'sv':
+                            for (let z = 0; z < modelattributes.length; z++) {
+                                if (field[0] == modelattributes[z].name) {
+                                    let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                                    if (j.field && j.field.indexOf('$value') > 0) {
+                                        o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
+                                    } else {
+                                        o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + "::text ilike '" + cookie[i][k] + "'");
+                                    }
+                                }
+                            }
+                            break;
+                        case 'bv':
+                            for (let z = 0; z < modelattributes.length; z++) {
+                                if (field[0] == modelattributes[z].name) {
+                                    let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                                    if (j.field && j.field.indexOf('$value') > 0) {
+                                        o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
+                                    } else {
+                                        o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " >= '" + cookie[i][k] + "'");
+                                    }
+                                }
+                            }
+                            break;
+                        case 'ev':
+                            for (let z = 0; z < modelattributes.length; z++) {
+                                if (field[0] == modelattributes[z].name) {
+                                    let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                                    if (j.field && j.field.indexOf('$value') > 0) {
+                                        o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k]));
+                                    } else {
+                                        o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " <= '" + cookie[i][k] + "'");
+                                    }
+                                }
+                            }
+                            break;
+                        case 'iv':
+                            for (let z = 0; z < modelattributes.length; z++) {
+                                if (field[0] == modelattributes[z].name) {
+                                    let j = application.modelattribute.parseTypeadd(modelattributes[z].typeadd);
+                                    if (j.field) {
+                                        if (j.field.indexOf('$value') > 0) {
+                                            o = db.Sequelize.literal(j.field.replace('$value', cookie[i][k].val));
+                                        } else {
+                                            o = db.Sequelize.literal(j.field + " in ('" + cookie[i][k].val.join("','") + "')");
+                                        }
+                                    } else {
+                                        o = db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id) + " in ('" + cookie[i][k].val.join("','") + "')");
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                    if (o && obj[field[0]]) {
+                        if (obj[field[0]] && typeof obj[field[0]] == 'object' && 'val' in obj[field[0]]) {//Virtual concatenation
+                            obj[field[0]].val += ' and ' + o.val;
+                        } else {
+                            Object.assign(obj[field[0]], o);
+                        }
+                    } else if (o) {
+                        obj[field[0]] = o;
+                    }
+                }
+            }
+            if (view.idfastsearch && req.cookies['tableview' + view.url + 'fs']) {
+                const mafastsearch = await db.getModel('modelattribute').findOne({ where: { id: view.idfastsearch } });
+                let j = application.modelattribute.parseTypeadd(mafastsearch.typeadd);
+                let fastsearch = req.cookies['tableview' + view.url + 'fs'];
+                switch (mafastsearch.type) {
+                    case 'autocomplete':
+                        if (j.query) {
+                            obj[mafastsearch.name] = db.Sequelize.literal(j.query + "::text ilike '%" + fastsearch + "%'");
+                        } else {
+                            obj[mafastsearch.name] = db.Sequelize.literal((j.as || j.model) + '.' + j.attribute + "::text ilike '%" + fastsearch + "%'");
+                        }
+                        break;
+                    case 'virtual':
+                        obj[mafastsearch.name] = db.Sequelize.literal(j.subquery + "::text ilike '%" + fastsearch + "%'");
+                        break;
+                    default:
+                        obj[mafastsearch.name] = db.Sequelize.literal(view.model.name + '.' + mafastsearch.name + "::text ilike '%" + fastsearch + "%'");
+                        break;
+                }
+            }
+            return obj;
+        }
     }
     , viewfield: {
         e_changezone: async function (obj) {

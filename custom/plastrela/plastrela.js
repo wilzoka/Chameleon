@@ -10853,178 +10853,67 @@ let main = {
                 }
                 , e_imprimir: async (obj) => {
                     try {
-                        if (obj.req.method == 'GET') {
+                        let embarques = await main.platform.model.findAll('ven_embarque', {
+                            where: (await main.platform.view.f_getFilter(obj.req, obj.event.view))
+                            , order: [
+                                ['previsaodata', 'asc']
+                                , ['uf', 'asc']
+                                , [db.Sequelize.literal('ven_pedido.idcliente'), 'asc']
+                            ]
+                        });
 
-                            let body = '';
-                            body += application.components.html.date({
-                                width: '6'
-                                , label: 'Previsão Entrega Inicial*'
-                                , name: 'dataini'
-                            });
-                            body += application.components.html.date({
-                                width: '6'
-                                , label: 'Previsão Entrega Final*'
-                                , name: 'datafim'
-                            });
-                            body += application.components.html.autocomplete({
-                                width: '12'
-                                , label: 'Situação'
-                                , name: 'situacao'
-                                , multiple: 'multiple="multiple"'
-                                , options: 'Ativo,Encerrado,Finalizado,Cancelado'
-                            });
-                            body += application.components.html.autocomplete({
-                                width: '12'
-                                , label: 'UF'
-                                , name: 'uf'
-                                , multiple: 'multiple="multiple"'
-                                , options: 'AC,AL,AP,AM,BA,CE,DF,ES,GO,MA,MT,MS,MG,PA,PB,PR,PE,PI,RJ,RN,RS,RO,RR,SC,SP,SE,TO'
-                            });
-                            body += `<div class="col-md-12"> <div class="form-group"> <label>Solic PCP?</label>
-                                <div class="row" style="text-align: center;">
-                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="" checked="checked"> Todos </label> </div>
-                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="true"> Sim </label> </div>
-                                    <div class="col-xs-4"> <label> <input type="radio" name="solicitadapcp" value="false"> Não </label> </div>
-                                </div> </div> </div>`;
-                            body += `<div class="col-md-12"> <div class="form-group"> <label>Conf PCP?</label>
-                                <div class="row" style="text-align: center;">
-                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="" checked="checked"> Todos </label> </div> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="true"> Sim </label> </div> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadapcp" value="false"> Não </label> </div> 
-                                </div> </div> </div>`;
-                            body += `<div class="col-md-12"> <div class="form-group"> <label>Conf Comercial?</label> 
-                                <div class="row" style="text-align: center;"> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="" checked="checked"> Todos </label> </div> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="true"> Sim </label> </div> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="confirmadacomercial" value="false"> Não </label> </div> 
-                                </div> </div> </div>`;
-                            body += `<div class="col-md-12"> <div class="form-group"> <label>Aprovado Retirada?</label> 
-                                <div class="row" style="text-align: center;"> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="" checked="checked"> Todos </label> </div> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="true"> Sim </label> </div> 
-                                    <div class="col-xs-4"> <label> <input type="radio" name="aprovadoretirada" value="false"> Não </label> </div> 
-                                </div> </div> </div>`;
-                            // body += application.components.html.checkbox({
-                            //     width: '12'
-                            //     , name: 'apenasestoque'
-                            //     , label: 'Apenas com Estoque'
-                            // });
-
-                            return application.success(obj.res, {
-                                modal: {
-                                    form: true
-                                    , action: '/event/' + obj.event.id
-                                    , id: 'modalevt'
-                                    , title: obj.event.description
-                                    , body: body
-                                    , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Confirmar</button>'
-                                }
-                            });
-                        } else {
-
-                            let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim']);
-                            if (invalidfields.length > 0) {
-                                return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                            }
-
-                            let where = {
-                                previsaodata: {
-                                    [db.Op.gte]: application.formatters.be.date(obj.req.body.dataini)
-                                    , [db.Op.lte]: application.formatters.be.date(obj.req.body.datafim)
-                                }
-                            };
-                            if (obj.req.body.situacao && typeof obj.req.body.situacao == 'string') {
-                                obj.req.body.situacao = [obj.req.body.situacao];
-                            }
-                            if (obj.req.body.uf && typeof obj.req.body.uf == 'string') {
-                                obj.req.body.uf = [obj.req.body.uf];
-                            }
-
-                            let arr = [];
-                            if (obj.req.body.situacao) {
-                                where.situacao = { [db.Op.in]: obj.req.body.situacao };
-                            }
-                            if (obj.req.body.uf) {
-                                where.uf = { [db.Op.in]: obj.req.body.uf };
-                            }
-                            if (obj.req.body.solicitadapcp) {
-                                where.solicitadapcp = { [db.Op.eq]: obj.req.body.solicitadapcp }
-                            }
-                            if (obj.req.body.confirmadapcp) {
-                                where.confirmadapcp = { [db.Op.eq]: obj.req.body.confirmadapcp }
-                            }
-                            if (obj.req.body.confirmadacomercial) {
-                                where.confirmadacomercial = { [db.Op.eq]: obj.req.body.confirmadacomercial }
-                            }
-                            if (obj.req.body.aprovadoretirada) {
-                                where.aprovadoretirada = { [db.Op.eq]: obj.req.body.aprovadoretirada }
-                            }
-                            if (obj.req.body.apenasestoque) {
-                                where.qtdestoque = { [db.Op.gt]: 0 }
-                            }
-
-                            if (arr.length > 0) {
-                                Object.assign(where, { [db.Op.col]: db.Sequelize.literal(arr.join(' and ')) })
-                            }
-                            let embarques = await main.platform.model.findAll('ven_embarque', {
-                                where: where
-                                , order: [
-                                    ['previsaodata', 'asc']
-                                    , ['uf', 'asc']
-                                    , [db.Sequelize.literal('ven_pedido.idcliente'), 'asc']
-                                ]
-                            });
-
-                            let report = {};
-                            report.__title = `Lista de Embarques (${embarques.count})`;
-                            report.__table = `
-                            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
-                                <thead>
-                                    <tr>
-                                        <td style="text-align:center;"><strong>Prev. Entrega</strong></td>
-                                        <td style="text-align:center;"><strong>Cliente</strong></td>
-                                        <td style="text-align:center;"><strong>Pedido</strong></td>
-                                        <td style="text-align:center;"><strong>OP</strong></td>
-                                        <td style="text-align:center;"><strong>Item</strong></td>
-                                        <td style="text-align:center;"><strong>UN</strong></td>
-                                        <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
-                                        <td style="text-align:center;"><strong>Qtd Atendido</strong></td>
-                                        <td style="text-align:center;"><strong>Qtd Est. OP</strong></td>
-                                        <td style="text-align:center;"><strong>Qtd Est. Item</strong></td>
-                                        <td style="text-align:center;"><strong>Qtd Prod. OP</strong></td>
-                                        <td style="text-align:center;"><strong>Cidade - UF</strong></td>
-                                        <td style="text-align:center;"><strong>Representante</strong></td>
-                                    </tr>
-                                </thead>
-                            `;
-                            for (let i = 0; i < embarques.count; i++) {
-                                report.__table += `
-                                <tr>
-                                    <td style="text-align:center;"> ${embarques.rows[i]['previsaodata']} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['cliente'].substring(0, 25)} </td>
-                                    <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
-                                    <td style="text-align:center;"> ${embarques.rows[i]['idop'] || ''} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 50)} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
-                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
-                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
-                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdestoque'] || ''} </td>
-                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdestoquetotal'] || ''} </td>
-                                    <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['cidade'] + ' - ' + embarques.rows[i]['uf']} </td>
-                                    <td style="text-align:left;"> ${embarques.rows[i]['representante'].substring(0, 20)} </td>
-                                </tr>
-                                `;
-                            }
-                            report.__table += `
-                            </table>
-                            `;
-
-                            let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
-                            return application.success(obj.res, {
-                                openurl: '/download/' + file
-                            });
+                        if (embarques.count > 1000) {
+                            return application.error(obj.res, { msg: 'Não é possível gerar mais que 1000 registros' });
                         }
+
+                        let report = {};
+                        report.__title = `Lista de Embarques (${embarques.count})`;
+                        report.__table = `
+                        <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                            <thead>
+                                <tr>
+                                    <td style="text-align:center;"><strong>Prev. Entrega</strong></td>
+                                    <td style="text-align:center;"><strong>Cliente</strong></td>
+                                    <td style="text-align:center;"><strong>Pedido</strong></td>
+                                    <td style="text-align:center;"><strong>OP</strong></td>
+                                    <td style="text-align:center;"><strong>Item</strong></td>
+                                    <td style="text-align:center;"><strong>UN</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Entrega</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Atendido</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Est. OP</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Est. Item</strong></td>
+                                    <td style="text-align:center;"><strong>Qtd Prod. OP</strong></td>
+                                    <td style="text-align:center;"><strong>Cidade - UF</strong></td>
+                                    <td style="text-align:center;"><strong>Representante</strong></td>
+                                </tr>
+                            </thead>
+                        `;
+                        for (let i = 0; i < embarques.count; i++) {
+                            report.__table += `
+                            <tr>
+                                <td style="text-align:center;"> ${embarques.rows[i]['previsaodata']} </td>
+                                <td style="text-align:left;"> ${embarques.rows[i]['cliente'].substring(0, 25)} </td>
+                                <td style="text-align:center;"> ${embarques.rows[i]['idpedido']} </td>
+                                <td style="text-align:center;"> ${embarques.rows[i]['idop'] || ''} </td>
+                                <td style="text-align:left;"> ${embarques.rows[i]['idversao'].substring(0, 50)} </td>
+                                <td style="text-align:left;"> ${embarques.rows[i]['unidade']} </td>
+                                <td style="text-align:right;"> ${embarques.rows[i]['qtdentrega']} </td>
+                                <td style="text-align:right;"> ${embarques.rows[i]['qtdatendido']} </td>
+                                <td style="text-align:right;"> ${embarques.rows[i]['qtdestoque'] || ''} </td>
+                                <td style="text-align:right;"> ${embarques.rows[i]['qtdestoquetotal'] || ''} </td>
+                                <td style="text-align:right;"> ${embarques.rows[i]['qtdproduzido'] || ''} </td>
+                                <td style="text-align:left;"> ${embarques.rows[i]['cidade'] + ' - ' + embarques.rows[i]['uf']} </td>
+                                <td style="text-align:left;"> ${embarques.rows[i]['representante'].substring(0, 20)} </td>
+                            </tr>
+                            `;
+                        }
+                        report.__table += `
+                        </table>
+                        `;
+                        let file = await main.platform.report.f_generate('Geral - Listagem Paisagem', report);
+                        return application.success(obj.res, {
+                            openurl: '/download/' + file
+                        });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
