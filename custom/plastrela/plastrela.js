@@ -2303,11 +2303,11 @@ let main = {
                         if (spednfitem.length <= 0) {
                             return application.error(obj.res, { msg: 'Esta nota não possui itens' });
                         }
-                        for (let i = 0; i < spednfitem.length; i++) {
+                        /* for (let i = 0; i < spednfitem.length; i++) {
                             if (!spednfitem[i].ordem_compra) {
                                 return application.error(obj.res, { msg: 'Existe algum item desta nota sem ordem de compra vinculado' });
                             }
-                        }
+                        } */
 
                         let nf = await db.getModel('est_nfentrada').create({
                             chave: spednf.chave_nfe
