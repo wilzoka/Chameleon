@@ -1137,6 +1137,7 @@ let platform = {
                             , render: viewtables[z].render
                             , totalize: viewtables[z].totalize
                             , class: viewtables[z].class
+                            , charlimit: viewtables[z].charlimit
                         });
                     }
                     let viewsubviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['description', 'asc']] });
@@ -1279,6 +1280,7 @@ let platform = {
                                         viewtable.render = views[i]._table[z].render;
                                         viewtable.totalize = views[i]._table[z].totalize;
                                         viewtable.class = views[i]._table[z].class;
+                                        viewtable.charlimit = views[i]._table[z].charlimit;
                                         await viewtable.save();
                                     } else {
                                         viewtable = await db.getModel('viewtable').create({
