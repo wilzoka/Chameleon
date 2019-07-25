@@ -11,33 +11,40 @@ let main = {
             try {
                 let saved = await next(obj);
                 if (saved.register._isInsert) {
-                    main.evento.f_calcularPrazosTarefas(saved.register);
+                    main.evento.f_calcularPrazosTarefas(saved.register.id);
                 }
             } catch (error) {
                 return application.fatal(obj.res, error);
             }
         }
-        , f_calcularPrazosTarefas: async function (obj) {
-            let evento = await db.getModel('eve_evento').findOne({ where: { id: obj.id } });
-            let eventoTarefas = await db.getModel('eve_eventotarefa').findAll({ where: { idevento: evento.id } });
+        , e_recalcularPrazosTarefas: async function (obj) {
+            try {
+                await main.evento.f_calcularPrazosTarefas(obj.id);
+                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , f_calcularPrazosTarefas: async function (idevento) {
+            let evento = await db.getModel('eve_evento').findOne({ where: { id: idevento } });
             let tarefatipoevento = await db.getModel('eve_tarefatipoevento').findAll({ where: { idevetipo: evento.idevetipo } });
+            let eventoTarefas = await db.getModel('eve_eventotarefa').findAll({ where: { idevento: evento.id } });
 
-            if (eventoTarefas == "") {
+            if (eventoTarefas.length == 0) {
                 for (let i = 0; i < tarefatipoevento.length; i++) {
                     let tarefa = await db.getModel("eve_tarefa").findOne({ where: { id: tarefatipoevento[i].idtarefa } });
-                    let tarefatipoevento2 = await db.getModel("eve_tarefatipoevento").findOne({ where: { idtarefa: tarefa.id, idevetipo: evento.idevetipo } });
                     db.getModel('eve_eventotarefa').create({
                         idtarefa: tarefatipoevento[i].idtarefa
                         , idevento: evento.id
-                        , prazo: tarefatipoevento2.previsaoinicio ? moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento2.previsaoinicio, 'day') : null
+                        , idcategoria: tarefa.idcategoria
+                        , prazo: tarefatipoevento[i].previsaoinicio ? moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento[i].previsaoinicio, 'day') : null
+                        , concluida: false
                     })
                 }
             } else {
                 for (let i = 0; i < eventoTarefas.length; i++) {
-                    let tarefa = await db.getModel("eve_tarefa").findOne({ where: { id: eventoTarefas[i].idtarefa } });
-                    let tarefatipoevento2 = await db.getModel("eve_tarefatipoevento").findOne({ where: { idtarefa: tarefa.id, idevetipo: evento.idevetipo } });
-                    if (tarefatipoevento2.previsaoinicio != null) {
-                        db.getModel('eve_eventotarefa').update({ prazo: moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento2.previsaoinicio, 'day') }
+                    if (tarefatipoevento[i].previsaoinicio != null) {
+                        db.getModel('eve_eventotarefa').update({ prazo: moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento[i].previsaoinicio, 'day') }
                             , { where: { id: eventoTarefas[i].id } });
                     } else {
                         db.getModel('eve_eventotarefa').update({ prazo: null }
@@ -45,7 +52,6 @@ let main = {
                     }
                 }
             }
-            return application.success(obj.res, { msg: application.message.success, reloadtables: true });
         }
         , e_buscarfornecedores: async function (obj) {
             try {
@@ -61,6 +67,20 @@ let main = {
                     }
                 } else {
                     return application.error(obj.res, { msg: `Nenhum fornecedor encontrado para a categoria da tarefa.` })
+                }
+                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , e_concluirTarefas: async function (obj) {
+            try {
+                let tarefasdoevento = await db.getModel('eve_eventotarefa').findAll({ where: { id: obj.ids } });
+                if (tarefasdoevento.length > 0) {
+                    for (let i = 0; i < tarefasdoevento.length; i++) {
+                        db.getModel('eve_eventotarefa').update({ concluida: true }
+                            , { where: { id: tarefasdoevento[i].id } });
+                    }
                 }
                 return application.success(obj.res, { msg: application.message.success, reloadtables: true });
             } catch (err) {
