@@ -769,6 +769,7 @@ module.exports = function (app) {
                         , data: 'id'
                         , name: 'id'
                         , width: 37
+                        , orderable: view.orderfixed ? false : true
                     });
                 }
                 for (let i = 0; i < viewtables.length; i++) {
@@ -776,6 +777,7 @@ module.exports = function (app) {
                         title: viewtables[i].modelattribute.label
                         , data: viewtables[i].modelattribute.name
                         , name: viewtables[i].modelattribute.name
+                        , orderable: view.orderfixed ? false : viewtables[i].orderable
                         , render: viewtables[i].render
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
@@ -808,6 +810,7 @@ module.exports = function (app) {
                     , events: events
                     , permissions: permissions
                     , fastsearch: view.idfastsearch ? view.fastsearch.label : false
+                    , subview: req.query.issubview == 'true' ? true : false
                 });
             } else {
                 return application.forbidden(res);

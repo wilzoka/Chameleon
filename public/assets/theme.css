@@ -124,12 +124,6 @@ ul.dropdown-menu > li > a > i {
 .main-sidebar {
     height: 100%;
 }
-/* .main-sidebar, .main-header .logo, .main-header .navbar, .content-wrapper, .main-footer {
-    -webkit-transition: none;
-    -moz-transition: none;
-    -o-transition: none;
-    transition: none;
-} */
 
 /* Bootstrap */
 @media (min-width: 768px) {
@@ -223,6 +217,9 @@ div.dt-button-collection {
     width: auto;
     max-height: 400px;
     overflow: auto;    
+}
+div.dataTables_wrapper div.dataTables_info {
+    padding-top: 0px;
 }
 
 /* Select2 */

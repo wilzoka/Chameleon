@@ -11,7 +11,7 @@ if ($.fn.dataTable) {
             , sInfoEmpty: ''
             , sInfoFiltered: '(filtrado de _MAX_ registros)'
             , sLengthMenu: '_MENU_'
-            , sLoadingRecords: 'Carregando...'
+            , sLoadingRecords: '<i class="fas fa-sync fa-spin"></i>'
             , sProcessing: 'Processando...'
             , sSearch: 'Pesquisar: '
             , sZeroRecords: 'Nenhum registro correspondente foi encontrado'
@@ -176,28 +176,28 @@ var application = {
                 application.jsfunction('platform.notification.js_read', { id: $(this).attr('data-notification-id') });
                 e.stopPropagation();
             });
-            document.addEventListener('scroll', function (e) {
-                if (e.target.className == 'dataTables_scrollBody') {
-                    var $table = $(e.target).find('table');
-                    var scrollPosition = $(e.target).scrollTop() + $(e.target).height();
-                    var scrollHeight = $table.height();
-                    if ($table.attr('data-lazycomplete') == 'true') {
-                        return;
-                    }
-                    var lazyloadperc = 0;
-                    var totalrows = tables[$table[0].id].rows().count();
-                    if (totalrows < 500) {
-                        lazyloadperc = 0.8;
-                    } else if (totalrows < 1000) {
-                        lazyloadperc = 0.95;
-                    } else {
-                        lazyloadperc = 0.98;
-                    }
-                    if (scrollPosition / scrollHeight > lazyloadperc) {
-                        application.tables.getData($table[0].id);
-                    }
-                }
-            }, true);
+            // document.addEventListener('scroll', function (e) {
+            //     if (e.target.className == 'dataTables_scrollBody') {
+            //         var $table = $(e.target).find('table');
+            //         var scrollPosition = $(e.target).scrollTop() + $(e.target).height();
+            //         var scrollHeight = $table.height();
+            //         if ($table.attr('data-lazycomplete') == 'true') {
+            //             return;
+            //         }
+            //         var lazyloadperc = 0;
+            //         var totalrows = tables[$table[0].id].rows().count();
+            //         if (totalrows < 500) {
+            //             lazyloadperc = 0.8;
+            //         } else if (totalrows < 1000) {
+            //             lazyloadperc = 0.95;
+            //         } else {
+            //             lazyloadperc = 0.98;
+            //         }
+            //         if (scrollPosition / scrollHeight > lazyloadperc) {
+            //             // application.tables.getData($table[0].id);
+            //         }
+            //     }
+            // }, true);
             $(document).ready(function () {
                 if (localStorage.getItem('msg')) {
                     application.notify.success(localStorage.getItem('msg'));
@@ -799,9 +799,37 @@ var application = {
                 });
             }
             // Datatable
+            $('#tableview' + data.name).addClass('nowrap');
             $('#tableview' + data.name).attr('data-fastsearch', data.fastsearch || '');
             tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
-                dom: '<"col-xs-6 no-padding"B><"col-xs-6 dt-filter-div no-padding text-right">t<"col-xs-6 dt-info-div no-padding text-left">'
+                ajax: function (data, callback, settings) {
+                    $.ajax({
+                        url: '/datatables'
+                        , type: 'POST'
+                        , data: $.extend({}, data, {
+                            id: application.functions.getId()
+                            , view: $(settings.nTable).attr('data-view')
+                            , issubview: $(settings.nTable).attr('data-subview') || false
+                        })
+                        , beforeSend: function (jqXHR) {
+                            if (tables[settings.sTableId]) {
+                                if (tables[settings.sTableId]._xhr) {
+                                    tables[settings.sTableId]._xhr.abort();
+                                }
+                                tables[settings.sTableId]._xhr = jqXHR;
+                            }
+                        }
+                        , success: function (response) {
+                            callback(response);
+                        }
+                        , error: function (response) {
+                            if (response.statusText != 'abort') {
+                                application.handlers.responseError(response);
+                            }
+                        }
+                    });
+                }
+                , dom: '<"col-xs-6 no-padding"B><"col-xs-6 dt-filter-div no-padding text-right"><"col-xs-12 no-padding"ti>'
                 , buttons: buttons
                 , columns: data.columns
                 , deferRender: true
@@ -814,13 +842,11 @@ var application = {
                             this.api().row('tr#' + selected[i]).select();
                         }
                     }
-                    $table.closest('.dataTables_wrapper').find('.dt-info-div').html(($table.attr('data-total') || '0') + ' Registros');
                     setTimeout(function () {
                         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
                     }.bind(this), 500);
                 }
                 , initComplete: function (settings) {
-                    application.tables.getData(settings.sTableId);
                     application.tables.reloadFooter(settings.sTableId);
                     var $table = $(settings.nTable);
                     var filter = Cookies.get(settings.sTableId + 'filter');
@@ -842,18 +868,26 @@ var application = {
                         }
                     }.bind(settings), 250);
                 }
-                , ordering: false
-                , order: []
-                , paging: false
+                , ordering: data.permissions.orderable
+                , pageLength: 50
+                , paging: true
+                , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
+                , processing: true
                 , rowId: 'id'
                 , scrollCollapse: true
                 , scrollX: true
-                , scrollY: application.functions.isMobile() ? '350px' : '500px'
+                , scrollY: data.subview ? '300px' : application.functions.getAvailableHeight() + 'px'
+                , scroller: {
+                    loadingIndicator: true
+                    // , boundaryScale: 1
+                    // , displayBuffer: 5
+                    // , serverWait: 100
+                }
                 , select: {
                     style: 'multi'
                     , info: false
                 }
-                , serverSide: false
+                , serverSide: true
                 , stateSave: true
             }).on('select', function (e, dt, type, indexes) {
                 var $table = $('#' + dt.settings()[0].sTableId);
@@ -911,45 +945,6 @@ var application = {
                 }
             });
         }
-        , getData: function (idtable) {
-            var $table = $('#' + idtable);
-            if ($table.attr('data-lazyloading') == 'true') {
-                return;
-            }
-            $.ajax({
-                url: '/datatables'
-                , type: 'POST'
-                , data: $.extend({}, {
-                    id: application.functions.getId()
-                    , table: $table[0].id
-                    , view: $table.attr('data-view')
-                    , issubview: $table.attr('data-subview') || false
-                    , issubview: $table.attr('data-subview') || false
-                    , start: $table.attr('data-start') || 0
-                    , length: 50
-                })
-                , beforeSend: function () {
-                    $table.attr('data-lazyloading', 'true');
-                }
-                , success: function (response) {
-                    var $table = $('#' + response.table);
-                    if (response.data.length <= 0) {
-                        $table.attr('data-lazycomplete', 'true');
-                    }
-                    $table.attr('data-start', parseInt($table.attr('data-start') || 0) + 50);
-                    $table.attr('data-total', response.total);
-                    tables[response.table].rows.add(response.data).draw(false);
-                }
-                , error: function (response) {
-                    if (response.statusText != 'abort') {
-                        application.handlers.responseError(response);
-                    }
-                }
-                , complete: function () {
-                    $table.attr('data-lazyloading', 'false');
-                }
-            });
-        }
         , deselectAll: function (idtable) {
             tables[idtable].rows().deselect();
             var $table = $('#' + idtable);
@@ -965,7 +960,7 @@ var application = {
             $('#' + idtable).attr('data-start', '0').attr('data-lazycomplete', 'false');
             tables[idtable].clear();
             $('.dataTables_scrollBody').scrollTop(0);
-            application.tables.getData(idtable);
+            tables[idtable].ajax.reload(null, false);
             application.tables.reloadFooter(idtable);
             $(document).trigger('app-datatable-reload', idtable);
         }
@@ -1027,9 +1022,9 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j.length == 1 && j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '" style="max-height: 100px;">';
+                        return '<img src="/file/' + j[0].id + '" style="max-height: 17px;">';
                     } else {
-                        return '<span class="fa-stack"><i class="fa-2x far fa-file"></i><strong class="fa-stack-1x">' + j.length + '</strong></span>';
+                        return '<span class="fa-stack" style="font-size:8px;"><i class="fa-2x far fa-file"></i><strong class="fa-stack-1x">' + j.length + '</strong></span>';
                     }
                 } else {
                     return '';
@@ -1190,6 +1185,9 @@ var application = {
                 array.push(o[i][k]);
             }
             return array;
+        }
+        , getAvailableHeight: function () {
+            return $(window).height() - 145 - $('header.main-header').innerHeight() - $('section.content-header').innerHeight();
         }
     }
     , handlers: {

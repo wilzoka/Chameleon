@@ -1,6 +1,7 @@
 const lodash = require('lodash')
 	, moment = require('moment')
 	, fs = require('fs-extra')
+	, escape = require('escape-html')
 	;
 
 let application = {
@@ -328,7 +329,17 @@ let application = {
 			}
 		}
 		, fe: {
-			time: function (value) {
+			text: function (value, maxlenght) {
+				if (maxlenght && maxlenght > 0) {
+					let continous = '';
+					if (value.length > maxlenght) {
+						continous = '...';
+					}
+					return escape(value).toString().substring(0, maxlenght).trim() + continous;
+				}
+				return escape(value);
+			}
+			, time: function (value) {
 				if (value == 0) {
 					return '0:00';
 				}
