@@ -1112,7 +1112,6 @@ let platform = {
                         , model: views[i].model.name
                         , module: views[i].module.description
                         , url: views[i].url
-                        , pagelength: views[i].pagelength
                         , fastsearch: views[i].idfastsearch ? views[i].fastsearch.name : null
                     });
                     let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['order', 'asc']] });
@@ -1220,7 +1219,6 @@ let platform = {
                                 view.namecomplete = views[i].namecomplete;
                                 view.orderfixed = views[i].orderfixed;
                                 view.url = views[i].url;
-                                view.pagelength = views[i].pagelength;
                                 view.idfastsearch = fastsearch ? fastsearch.id : null;
                                 await view.save();
                             } else {
@@ -1235,7 +1233,6 @@ let platform = {
                                     , namecomplete: views[i].namecomplete
                                     , orderfixed: views[i].orderfixed
                                     , url: views[i].url
-                                    , pagelength: views[i].pagelength
                                     , idfastsearch: fastsearch ? fastsearch.id : null
                                 });
                             }

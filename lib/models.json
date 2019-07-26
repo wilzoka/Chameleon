@@ -1050,8 +1050,15 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "charlimit",
+                "label": "Limite de Caracteres",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": "{\r\n}"
+            },
+            {
                 "name": "class",
-                "label": "Classes Adicionais",
+                "label": "Classes",
                 "type": "text",
                 "notnull": false,
                 "typeadd": null
