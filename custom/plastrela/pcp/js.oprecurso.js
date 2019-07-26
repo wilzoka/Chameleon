@@ -134,6 +134,7 @@ $(function () {
                         }
                     });
                     $('button#apontar').click(function () {
+                        $('button#apontar').attr("disabled", true);
                         application.jsfunction('plastrela.pcp.apinsumo.__apontarVolume', {
                             idoprecurso: application.functions.getId()
                             , iduser: $modal.find('select[name="iduser"]').val()
@@ -171,6 +172,7 @@ $(function () {
                                 }
                                 totalinsumo();
                             }
+                            $('button#apontar').attr("disabled", false);
                         });
                     });
                     break;
