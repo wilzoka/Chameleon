@@ -791,7 +791,7 @@ var application = {
                         var subview = $table.attr('data-subview');
                         if (subview && application.functions.getId() == 0) {
                             Cookies.set('subview_redirect', view);
-                            $('#form.xhr').submit();
+                            $('#view-submit').trigger('click');
                         } else {
                             window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
                         }
