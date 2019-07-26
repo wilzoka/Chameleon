@@ -1,7 +1,7 @@
 const lodash = require('lodash')
 	, moment = require('moment')
 	, fs = require('fs-extra')
-	, escape = require('escape-html')
+	, htmlToText = require('html-to-text')
 	;
 
 let application = {
@@ -330,14 +330,13 @@ let application = {
 		}
 		, fe: {
 			text: function (value, maxlenght) {
-				if (maxlenght && maxlenght > 0) {
-					let continous = '';
-					if (value.length > maxlenght) {
-						continous = '...';
-					}
-					return escape(value).toString().substring(0, maxlenght).trim() + continous;
+				maxlenght = maxlenght || 150;
+				value = htmlToText.fromString(value || '', { wordwrap: false });
+				let continous = '';
+				if (value.length > maxlenght) {
+					continous = '...';
 				}
-				return escape(value);
+				return value.toString().substring(0, maxlenght).trim() + continous;
 			}
 			, time: function (value) {
 				if (value == 0) {

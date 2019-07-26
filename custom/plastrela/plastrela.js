@@ -7277,9 +7277,9 @@ let main = {
                         // if (sql.length <= 0 && !obj.data.idsubstituto) {
                         //     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['idsubstituto'] });
                         // }
-                        
+
                         if (volume.consumido) {
-                            return application.success(obj.res, {});
+                            return application.success(obj.res, { reloadtables: true });
                         }
 
                         if (deposito && deposito.descricao == 'Almoxarifado') {
