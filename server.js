@@ -28,7 +28,7 @@ app.use(appSession);
 app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '1mb' }));
-app.use(bodyParser.urlencoded({ limit: '1mb', extended: true }));
+app.use(bodyParser.urlencoded({ limit: '1mb', extended: true, parameterLimit: 10000 }));
 app.use(passport.initialize());
 app.use(passport.session());
 //Socket
