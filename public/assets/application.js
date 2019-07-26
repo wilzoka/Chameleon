@@ -1013,7 +1013,9 @@ var application = {
                     value = value.split(',');
                     var icons = [];
                     for (var i = 0; i < value.length; i++) {
-                        icons.push('<i class="' + value[i] + '"></i>');
+                        if (value) {
+                            icons.push('<i class="' + value[i] + '"></i>');
+                        }
                     }
                     return icons.join('');
                 } else {
