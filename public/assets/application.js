@@ -1250,7 +1250,7 @@ var application = {
                     $(document).trigger('app-modal', response.modal);
                     $('#' + response.modal.id).modal('show');
                     $('#' + response.modal.id).on('hidden.bs.modal', function () {
-                        if ($(this).parent()[0].tagName == 'BODY') {
+                        if ($(this).parent()[0] && $(this).parent()[0].tagName == 'BODY') {
                             $(this).remove();
                         } else {
                             $(this).parent().remove();
