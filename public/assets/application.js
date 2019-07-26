@@ -876,12 +876,9 @@ var application = {
                 , rowId: 'id'
                 , scrollCollapse: true
                 , scrollX: true
-                , scrollY: data.subview ? '300px' : application.functions.getAvailableHeight() + 'px'
+                , scrollY: data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
                 , scroller: {
                     loadingIndicator: true
-                    // , boundaryScale: 1
-                    // , displayBuffer: 5
-                    // , serverWait: 100
                 }
                 , select: {
                     style: 'multi'
@@ -1013,7 +1010,12 @@ var application = {
             }
             , icon: function (value) {
                 if (value) {
-                    return '<i class="' + value + '"></i>';
+                    value = value.split(',');
+                    var icons = [];
+                    for (var i = 0; i < value.length; i++) {
+                        icons.push('<i class="' + value[i] + '"></i>');
+                    }
+                    return icons.join('');
                 } else {
                     return '';
                 }
