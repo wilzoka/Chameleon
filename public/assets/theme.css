@@ -187,12 +187,8 @@ ul.dropdown-menu > li > a > i {
 .dataTables_wrapper {
     overflow: visible;
 }
-table.dataTable.compact thead th, table.dataTable.compact tbody td {
-    padding: 4px;
-}
 table.dataTable thead tr th, table.dataTable tfoot tr td {
     background-color: #f4f4f4;
-    font-weight: bold;
 }
 table.dataTable thead .sorting:after, table.dataTable thead .sorting_asc:after, table.dataTable thead .sorting_desc:after, table.dataTable thead .sorting_asc_disabled:after, table.dataTable thead .sorting_desc_disabled:after {
     bottom: 3px;
@@ -201,16 +197,13 @@ div.dataTables_wrapper div.dataTables_filter input {
     width: 100%;
     margin-left: 0;
 }
-.dataTables_filter > label {
-    display: none;
-}
 table.dataTable tbody td.select-checkbox:before, table.dataTable tbody th.select-checkbox:before {
     margin-top: -10px;
 }
 table.dataTable tr.selected td.select-checkbox:after, table.dataTable tr.selected th.select-checkbox:after {
     margin-top: -14px;
 }
-table.dataTable tbody td.select-checkbox, table.dataTable tbody th.select-checkbox{
+table.dataTable tbody td.select-checkbox, table.dataTable tbody th.select-checkbox {
     width: 20px;
 }
 div.dt-button-collection {

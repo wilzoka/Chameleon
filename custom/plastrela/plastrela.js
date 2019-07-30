@@ -3484,12 +3484,6 @@ let main = {
                                 , model: 'est_deposito'
                                 , attribute: 'descricao'
                             });
-                            body += application.components.html.checkbox({
-                                width: 12
-                                , name: 'consumido'
-                                , checked: ''
-                                , label: 'Consumido?'
-                            });
 
                             return application.success(obj.res, {
                                 modal: {
@@ -3506,12 +3500,8 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                            t = await db.sequelize.transaction();
-                            let consumido = 'consumido' in obj.req.body;
-                            let changes = { iddeposito: obj.req.body.iddeposito, consumido: consumido, iddepositoendereco: null };
-                            if (consumido) {
-                                changes = lodash.extend(changes, { qtdreal: '0.0000' });
-                            }
+                            t = await db.sequelize.transaction();                            
+                            let changes = { iddeposito: obj.req.body.iddeposito, iddepositoendereco: null };
                             let depdestino = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
                             let volumes = await db.getModel('est_volume').findAll({ include: [{ all: true }], where: { id: { [db.Op.in]: obj.req.body.ids.split(',') } } });
                             await db.getModel('est_volume').update(changes, { transaction: t, where: { id: { [db.Op.in]: obj.req.body.ids.split(',') } } });
