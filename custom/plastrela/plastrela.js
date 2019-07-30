@@ -1709,7 +1709,7 @@ let main = {
                         if (registro) {
                             let datahoraini = moment(registro.datahoraini, application.formatters.be.datetime_format);
                             let datahorafim = moment(obj.data.datahora, application.formatters.fe.datetime_format);
-                            if (datahorafim.diff(datahoraini, 'h') <= 10) {
+                            if (datahorafim.diff(datahoraini, 'h') <= 15) {
                                 registro.datahorafim = application.formatters.be.datetime(obj.data.datahora);
                                 registro.observacao = registro.observacao ? registro.observacao + ' | ' + obj.data.observacao : obj.data.observacao || null;
                                 await registro.save({ iduser: obj.req.user.id });
@@ -2303,11 +2303,6 @@ let main = {
                         if (spednfitem.length <= 0) {
                             return application.error(obj.res, { msg: 'Esta nota não possui itens' });
                         }
-                        /* for (let i = 0; i < spednfitem.length; i++) {
-                            if (!spednfitem[i].ordem_compra) {
-                                return application.error(obj.res, { msg: 'Existe algum item desta nota sem ordem de compra vinculado' });
-                            }
-                        } */
 
                         let nf = await db.getModel('est_nfentrada').create({
                             chave: spednf.chave_nfe
