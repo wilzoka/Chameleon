@@ -134,6 +134,9 @@ $(function () {
                         }
                     });
                     $('button#apontar').click(function () {
+                        if ($('button#apontar').attr("disabled") == true) {
+                            return;
+                        }
                         $('button#apontar').attr("disabled", true);
                         application.jsfunction('plastrela.pcp.apinsumo.__apontarVolume', {
                             idoprecurso: application.functions.getId()

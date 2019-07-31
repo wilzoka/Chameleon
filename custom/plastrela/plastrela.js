@@ -8,6 +8,7 @@ const application = require('../../routes/application')
     ;
 
 let atv_schedules = [];
+let apontamento_running = true;
 
 let main = {
     platform: require('../platform.js')
@@ -3495,7 +3496,7 @@ let main = {
                             if (invalidfields.length > 0) {
                                 return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                             }
-                            t = await db.sequelize.transaction();                            
+                            t = await db.sequelize.transaction();
                             let changes = { iddeposito: obj.req.body.iddeposito, iddepositoendereco: null };
                             let depdestino = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
                             let volumes = await db.getModel('est_volume').findAll({ include: [{ all: true }], where: { id: { [db.Op.in]: obj.req.body.ids.split(',') } } });
@@ -7227,6 +7228,11 @@ let main = {
                             return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                         }
 
+                        if (apontamento_running) {
+                            return setTimeout(main.plastrela.pcp.apinsumo.__apontarVolume.bind(null, obj), 250);
+                        }
+                        apontamento_running = true;
+
                         let user = await db.getModel('users').findOne({ where: { id: obj.data.iduser } });
                         let config = await db.getModel('pcp_config').findOne();
                         let gconfig = await db.getModel('config').findOne();
@@ -7262,10 +7268,6 @@ let main = {
                         // if (sql.length <= 0 && !obj.data.idsubstituto) {
                         //     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['idsubstituto'] });
                         // }
-
-                        if (volume.consumido) {
-                            return application.success(obj.res, { reloadtables: true });
-                        }
 
                         if (deposito && deposito.descricao == 'Almoxarifado') {
                             return application.error(obj.res, { msg: 'Não é possível consumir volumes que estão no almoxarifado' });
@@ -7365,9 +7367,12 @@ let main = {
                             }
                         }
 
-                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+
                     } catch (err) {
-                        return application.fatal(obj.res, err);
+                        application.fatal(obj.res, err);
+                    } finally {
+                        apontamento_running = false;
                     }
                 }
                 , ondelete: async function (obj, next) {
