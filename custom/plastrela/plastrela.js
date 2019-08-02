@@ -3843,7 +3843,7 @@ let main = {
                                 where
                                     consumido = false
                                     and d.codigo in ${deps}
-                                    and v.id not in (select vb.idvolume from est_volumebalanco vb where v.iddeposito = :v1 and vb.iduser = :v2)
+                                    and v.id not in (select vb.idvolume from est_volumebalanco vb where vb.iddeposito = :v1 and vb.iduser = :v2)
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
