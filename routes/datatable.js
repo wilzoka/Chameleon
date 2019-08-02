@@ -91,8 +91,15 @@ module.exports = function (app) {
                 Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)})`) });
             }
             Object.assign(where, await platform.view.f_getFilter(req, view));
-            let ordercolumn = view.orderfixed ? view.orderfixed.split(',')[0] : req.body.columns[req.body.order[0].column].data || 'id';
-            let orderdir = view.orderfixed ? view.orderfixed.split(',')[1] : req.body.order[0].dir || 'desc';
+            let ordercolumn = 'id';
+            let orderdir = 'desc';
+            if (view.orderfixed) {
+                ordercolumn = view.orderfixed.split(',')[0];
+                orderdir = view.orderfixed.split(',')[1];
+            } else if (req.body.order) {
+                ordercolumn = req.body.columns[req.body.order[0].column].data;
+                orderdir = req.body.order[0].dir;
+            }
             let attributes = ['id'];
             for (let i = 0; i < modelattributes.length; i++) {
                 let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);

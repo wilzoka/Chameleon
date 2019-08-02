@@ -1147,7 +1147,12 @@ var application = {
             });
         }
         , focusFirstElement: function ($selector) {
-            $selector.find('input,textarea,select,radio').filter(':enabled:visible:first').focus();
+            var $element = $selector.find('input,textarea,select,radio').filter(':enabled:visible:first');
+            if ($element.attr('data-type') == 'autocomplete') {
+                $element.select2('open');
+            } else {
+                $element.focus();
+            }
         }
         , getCss: function (array) {
             for (var i = 0; i < array.length; i++) {
