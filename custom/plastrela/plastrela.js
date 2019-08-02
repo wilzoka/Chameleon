@@ -3520,6 +3520,17 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
+                , e_consumir: async function (obj) {
+                    try {
+                        if (obj.ids.length <= 0) {
+                            return application.error(obj.res, { msg: application.message.selectOneEvent });
+                        }
+                        await db.getModel('est_volume').update({ consumido: true }, { where: { id: { [db.Op.in]: obj.ids } } });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
                 , e_estornar: async function (obj) {
                     try {
 
