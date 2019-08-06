@@ -378,7 +378,6 @@ a.btnevent i.fa {
 .dt-cell {
     overflow: auto;
     white-space: normal;
-    word-break: break-all;
 }
 #view-submit, #view-return {
     box-shadow: 0px 2px 22px -6px black;
