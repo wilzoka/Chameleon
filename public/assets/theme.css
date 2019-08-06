@@ -214,6 +214,12 @@ div.dt-button-collection {
 div.dataTables_wrapper div.dataTables_info {
     padding-top: 0px;
 }
+table.dataTable {
+    background: #ffffff;
+}
+.dataTables_scrollBody {
+    background: repeating-linear-gradient(45deg, #f4f4f4bd, #f4f4f4bd 10px, white 10px, white 20px);
+}
 
 /* Select2 */
 @media (max-width: 767px) {

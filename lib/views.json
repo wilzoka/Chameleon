@@ -11,6 +11,7 @@
         "module": "Plataforma",
         "url": "agendamento",
         "fastsearch": "description",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -44,8 +45,7 @@
                 "orderable": true,
                 "render": "booleancircle",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "description",
@@ -53,8 +53,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "function",
@@ -62,8 +61,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "settings",
@@ -71,8 +69,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -109,6 +106,7 @@
         "module": "Plataforma",
         "url": "arquivo",
         "fastsearch": "filename",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -198,8 +196,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "filename",
@@ -207,8 +204,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "size",
@@ -216,8 +212,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "bounded",
@@ -225,8 +220,7 @@
                 "orderable": false,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "public",
@@ -234,8 +228,7 @@
                 "orderable": false,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -260,6 +253,7 @@
         "module": "Plataforma",
         "url": "auditoria",
         "fastsearch": "changes",
+        "lineheight": 3,
         "_field": [
             {
                 "templatezone": "z1",
@@ -317,8 +311,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "iduser",
@@ -326,8 +319,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "type",
@@ -335,8 +327,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "idmodel",
@@ -344,8 +335,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "modelid",
@@ -353,8 +343,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "changes",
@@ -362,8 +351,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -381,6 +369,7 @@
         "module": "Plataforma",
         "url": "configuracao_da_plataforma",
         "fastsearch": null,
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "system",
@@ -503,6 +492,7 @@
         "module": "Plataforma",
         "url": "grupo_de_usuario",
         "fastsearch": "description",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -520,8 +510,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -539,6 +528,7 @@
         "module": "Plataforma",
         "url": "mensageiro",
         "fastsearch": "description",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -580,8 +570,7 @@
                 "orderable": true,
                 "render": "booleancircle",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "description",
@@ -589,8 +578,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "type",
@@ -598,8 +586,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "ongathering",
@@ -607,8 +594,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -639,6 +625,7 @@
         "module": "Plataforma",
         "url": "menu",
         "fastsearch": "tree",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -688,8 +675,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "icon",
@@ -697,8 +683,7 @@
                 "orderable": false,
                 "render": "icon",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "url",
@@ -706,8 +691,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -744,6 +728,7 @@
         "module": "Plataforma",
         "url": "modelo",
         "fastsearch": "name",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -785,8 +770,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "description",
@@ -794,8 +778,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "onsave",
@@ -803,8 +786,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "ondelete",
@@ -812,8 +794,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [
@@ -868,6 +849,7 @@
         "module": "Plataforma",
         "url": "modelo_-_atributo",
         "fastsearch": "label",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -917,8 +899,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "label",
@@ -926,8 +907,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "notnull",
@@ -935,8 +915,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "type",
@@ -944,8 +923,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "typeadd",
@@ -953,8 +931,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -972,6 +949,7 @@
         "module": "Plataforma",
         "url": "modulo",
         "fastsearch": "description",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -989,8 +967,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1008,6 +985,7 @@
         "module": "Plataforma",
         "url": "modulos",
         "fastsearch": "description",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1025,8 +1003,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1044,6 +1021,7 @@
         "module": "Plataforma",
         "url": "parametros",
         "fastsearch": "key",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1077,8 +1055,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "key",
@@ -1086,8 +1063,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "value",
@@ -1095,8 +1071,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1114,6 +1089,7 @@
         "module": "Plataforma",
         "url": "permissao",
         "fastsearch": "idmenu",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1179,8 +1155,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "idmenu",
@@ -1188,8 +1163,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "visible",
@@ -1197,8 +1171,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "insertable",
@@ -1206,8 +1179,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "editable",
@@ -1215,8 +1187,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "deletable",
@@ -1224,8 +1195,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "hidelisting",
@@ -1233,8 +1203,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1252,6 +1221,7 @@
         "module": "Plataforma",
         "url": "relatorio",
         "fastsearch": "name",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1293,8 +1263,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1319,6 +1288,7 @@
         "module": "Plataforma",
         "url": "rota",
         "fastsearch": "description",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1368,8 +1338,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "file",
@@ -1377,8 +1346,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "function",
@@ -1386,8 +1354,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "needauth",
@@ -1395,8 +1362,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "needperm",
@@ -1404,8 +1370,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1436,6 +1401,7 @@
         "module": "Plataforma",
         "url": "template",
         "fastsearch": "name",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1461,8 +1427,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "comment",
@@ -1470,8 +1435,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [
@@ -1495,6 +1459,7 @@
         "module": "Plataforma",
         "url": "template_-_zona",
         "fastsearch": "name",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1512,8 +1477,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1531,6 +1495,7 @@
         "module": "Plataforma",
         "url": "usuario",
         "fastsearch": "fullname",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1604,8 +1569,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "username",
@@ -1613,8 +1577,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "email",
@@ -1622,8 +1585,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "idgroupusers",
@@ -1631,8 +1593,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "active",
@@ -1640,8 +1601,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1659,6 +1619,7 @@
         "module": "Plataforma",
         "url": "view",
         "fastsearch": "namecomplete",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "view",
@@ -1726,6 +1687,14 @@
             },
             {
                 "templatezone": "view",
+                "modelattribute": "lineheight",
+                "width": 6,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
                 "modelattribute": "supressid",
                 "width": 6,
                 "order": 10,
@@ -1740,8 +1709,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "js",
@@ -1749,8 +1717,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "url",
@@ -1758,8 +1725,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [
@@ -1817,6 +1783,7 @@
         "module": "Plataforma",
         "url": "view_-_atributo",
         "fastsearch": "idmodelattribute",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1874,8 +1841,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "idtemplatezone",
@@ -1883,8 +1849,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "order",
@@ -1892,8 +1857,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "width",
@@ -1901,8 +1865,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "disabled",
@@ -1910,8 +1873,7 @@
                 "orderable": false,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "disablefilter",
@@ -1919,8 +1881,7 @@
                 "orderable": false,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -1957,6 +1918,7 @@
         "module": "Plataforma",
         "url": "view_-_evento",
         "fastsearch": "description",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1998,8 +1960,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "icon",
@@ -2007,8 +1968,7 @@
                 "orderable": false,
                 "render": "icon",
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "function",
@@ -2016,8 +1976,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "parameters",
@@ -2025,8 +1984,7 @@
                 "orderable": false,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -2044,6 +2002,7 @@
         "module": "Plataforma",
         "url": "view_-_subview",
         "fastsearch": "idsubview",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -2077,8 +2036,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "idsubview",
@@ -2086,8 +2044,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "idtemplatezone",
@@ -2095,8 +2052,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],
@@ -2114,6 +2070,7 @@
         "module": "Plataforma",
         "url": "view_-_tabela",
         "fastsearch": "idmodelattribute",
+        "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -2162,14 +2119,6 @@
                 "order": 6,
                 "disabled": false,
                 "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "charlimit",
-                "width": 6,
-                "order": 7,
-                "disabled": false,
-                "disablefilter": false
             }
         ],
         "_table": [
@@ -2179,8 +2128,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "ordertable",
@@ -2188,8 +2136,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": null,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "orderable",
@@ -2197,8 +2144,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "render",
@@ -2206,8 +2152,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "totalize",
@@ -2215,8 +2160,7 @@
                 "orderable": true,
                 "render": "boolean",
                 "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             },
             {
                 "modelattribute": "class",
@@ -2224,17 +2168,7 @@
                 "orderable": true,
                 "render": null,
                 "totalize": false,
-                "class": null,
-                "charlimit": null
-            },
-            {
-                "modelattribute": "charlimit",
-                "ordertable": 7,
-                "orderable": false,
-                "render": null,
-                "totalize": false,
-                "class": null,
-                "charlimit": null
+                "class": null
             }
         ],
         "_subview": [],

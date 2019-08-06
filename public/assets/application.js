@@ -881,7 +881,6 @@ var application = {
                 , scrollY: data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
                 , scroller: {
                     loadingIndicator: true
-                    , rowHeight: 'auto'
                 }
                 , select: {
                     style: 'multi'

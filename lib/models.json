@@ -839,7 +839,7 @@
                 "name": "idmodule",
                 "label": "Módulo",
                 "type": "autocomplete",
-                "notnull": false,
+                "notnull": true,
                 "typeadd": "{\"model\": \"module\", \"attribute\": \"description\"}"
             },
             {
@@ -855,6 +855,13 @@
                 "type": "text",
                 "notnull": false,
                 "typeadd": null
+            },
+            {
+                "name": "lineheight",
+                "label": "Altura da Linha",
+                "type": "integer",
+                "notnull": false,
+                "typeadd": "{\r\n}"
             },
             {
                 "name": "name",
@@ -874,13 +881,6 @@
                 "name": "orderfixed",
                 "label": "Ordem",
                 "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
-                "name": "pagelength",
-                "label": "Linhas por Página",
-                "type": "integer",
                 "notnull": false,
                 "typeadd": null
             },
@@ -1049,13 +1049,6 @@
         "onsave": null,
         "ondelete": null,
         "_attribute": [
-            {
-                "name": "charlimit",
-                "label": "Limite de Caracteres",
-                "type": "integer",
-                "notnull": false,
-                "typeadd": "{\r\n}"
-            },
             {
                 "name": "class",
                 "label": "Classes",
