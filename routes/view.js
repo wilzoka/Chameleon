@@ -811,6 +811,7 @@ module.exports = function (app) {
                     , permissions: permissions
                     , fastsearch: view.idfastsearch ? view.fastsearch.label : false
                     , subview: req.query.issubview == 'true' ? true : false
+                    , lineheight: view.lineheight
                 });
             } else {
                 return application.forbidden(res);

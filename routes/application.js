@@ -329,16 +329,7 @@ let application = {
 			}
 		}
 		, fe: {
-			text: function (value, maxlenght) {
-				maxlenght = maxlenght || 150;
-				value = htmlToText.fromString(value || '', { wordwrap: false });
-				let continous = '';
-				if (value.length > maxlenght) {
-					continous = '...';
-				}
-				return value.toString().substring(0, maxlenght).trim() + continous;
-			}
-			, time: function (value) {
+			time: function (value) {
 				if (value == 0) {
 					return '0:00';
 				}

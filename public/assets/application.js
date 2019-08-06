@@ -668,6 +668,8 @@ var application = {
             for (var i = 0; i < data.columns.length; i++) {
                 if (data.columns[i].render) {
                     data.columns[i].render = application.tables.renders[data.columns[i].render];
+                } else if (data.lineheight) {
+                    data.columns[i].render = application.tables.renders['div'].bind({ lineheight: data.lineheight });
                 }
             }
             // Footer
@@ -879,6 +881,7 @@ var application = {
                 , scrollY: data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
                 , scroller: {
                     loadingIndicator: true
+                    , rowHeight: 'auto'
                 }
                 , select: {
                     style: 'multi'
@@ -1041,11 +1044,26 @@ var application = {
                     return '';
                 }
             }
-            , fin_categoria_dc: function (value) {
-                if (value == 1) {
-                    return '<span class="label label-danger">Débito</span>';
+            , div: function (value) {
+                if (value == null) {
+                    value = '';
+                }
+                var styles = [];
+                if (this.lineheight) {
+                    styles.push('height:' + (18.5 * this.lineheight) + 'px');
+                }
+                return '<div class="dt-cell" style="' + styles.join(';') + '">' + value + '</div>';
+            }
+            , label: function (value) {
+                if (value) {
+                    var splited = value.toString().split('@');
+                    if (splited.length == 2) {
+                        return '<span class="label label-' + splited[1] + '">' + splited[0] + '</span>';
+                    } else {
+                        return value;
+                    }
                 } else {
-                    return '<span class="label label-success">Crédito</span>';
+                    return '';
                 }
             }
             , progressbar: function (value) {
@@ -1196,7 +1214,7 @@ var application = {
             return array;
         }
         , getAvailableHeight: function () {
-            return $(window).height() - 145 - $('header.main-header').innerHeight() - $('section.content-header').innerHeight();
+            return $(window).height() - 175 - $('header.main-header').innerHeight() - $('section.content-header').innerHeight();
         }
     }
     , handlers: {

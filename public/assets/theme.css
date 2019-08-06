@@ -369,6 +369,10 @@ a.btnevent i.fa {
 .dt-button-divisor {
     padding: 1px;
 }
+.dt-cell {
+    overflow: auto;
+    white-space: normal;
+}
 #view-submit, #view-return {
     box-shadow: 0px 2px 22px -6px black;
     border-radius: 10px;

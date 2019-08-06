@@ -1113,6 +1113,7 @@ let platform = {
                         , module: views[i].module.description
                         , url: views[i].url
                         , fastsearch: views[i].idfastsearch ? views[i].fastsearch.name : null
+                        , lineheight: views[i].lineheight
                     });
                     let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['order', 'asc']] });
                     j[j.length - 1]._field = [];
@@ -1136,7 +1137,6 @@ let platform = {
                             , render: viewtables[z].render
                             , totalize: viewtables[z].totalize
                             , class: viewtables[z].class
-                            , charlimit: viewtables[z].charlimit
                         });
                     }
                     let viewsubviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['description', 'asc']] });
@@ -1220,6 +1220,7 @@ let platform = {
                                 view.orderfixed = views[i].orderfixed;
                                 view.url = views[i].url;
                                 view.idfastsearch = fastsearch ? fastsearch.id : null;
+                                view.lineheight = views[i].lineheight;
                                 await view.save();
                             } else {
                                 view = await db.getModel('view').create({
@@ -1234,6 +1235,7 @@ let platform = {
                                     , orderfixed: views[i].orderfixed
                                     , url: views[i].url
                                     , idfastsearch: fastsearch ? fastsearch.id : null
+                                    , lineheight: views[i].lineheight
                                 });
                             }
                             let viewfields = []
@@ -1277,7 +1279,6 @@ let platform = {
                                         viewtable.render = views[i]._table[z].render;
                                         viewtable.totalize = views[i]._table[z].totalize;
                                         viewtable.class = views[i]._table[z].class;
-                                        viewtable.charlimit = views[i]._table[z].charlimit;
                                         await viewtable.save();
                                     } else {
                                         viewtable = await db.getModel('viewtable').create({
@@ -2046,8 +2047,8 @@ let platform = {
                 }
             }
         }
-        , f_getFilter: async function (req, view) {            
-            let obj = {};   
+        , f_getFilter: async function (req, view) {
+            let obj = {};
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.idmodel } });
             let cookie = JSON.parse(req.cookies['tableview' + view.url + 'filter'] || '{}');
             let m;

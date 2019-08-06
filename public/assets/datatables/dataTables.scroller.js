@@ -432,7 +432,7 @@
 			}
 
 			var heights = this.s.heights;
-		
+
 			if (heights.row) {
 				// heights.viewport = $.contains(document, this.dom.scroller) ?
 				// 	$(this.dom.scroller).height() :
@@ -442,7 +442,7 @@
 				// if (!heights.viewport) {
 				// 	heights.viewport = this._parseHeight($(this.dom.scroller).css('max-height'));
 				// }				
-				heights.viewport = parseInt(this.s.dt.oScroll.sY.toString().replace('px',''));
+				heights.viewport = parseInt(this.s.dt.oScroll.sY.toString().replace('px', ''));
 				this.s.viewportRows = parseInt(heights.viewport / heights.row, 10) + 1;
 				this.s.dt._iDisplayLength = this.s.viewportRows * this.s.displayBuffer;
 			}
@@ -506,6 +506,7 @@
 			this.dom.scroller = $('div.' + this.s.dt.oClasses.sScrollBody, this.s.dt.nTableWrapper)[0];
 			this.dom.scroller.appendChild(this.dom.force);
 			this.dom.scroller.style.position = "relative";
+			$(this.dom.scroller).css('min-height', $(this.dom.scroller).css('max-height'));
 
 			this.dom.table = $('>table', this.dom.scroller)[0];
 			this.dom.table.style.position = "absolute";

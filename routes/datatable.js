@@ -9,28 +9,12 @@ const fixResults = function (registers, viewtables) {
         let ma = viewtables[i].modelattribute;
         let j = application.modelattribute.parseTypeadd(ma.typeadd);
         switch (j.type || ma.type) {
-            case 'text':
-                for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][ma.name]) {
-                        registers.rows[x][ma.name] = application.formatters.fe.text(registers.rows[x][ma.name], viewtables[i].charlimit);
-                    }
-                }
-                break;
-            case 'textarea':
-                for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][ma.name]) {
-                        registers.rows[x][ma.name] = application.formatters.fe.text(registers.rows[x][ma.name], viewtables[i].charlimit);
-                    }
-                }
-                break;
             case 'autocomplete':
                 let vas = j.as || j.model;
                 for (let x = 0; x < registers.rows.length; x++) {
                     if (registers.rows[x][ma.name]) {
                         if (j.attribute && registers.rows[x][vas + '.' + j.attribute]) {
-                            registers.rows[x][ma.name] = application.formatters.fe.text(registers.rows[x][vas + '.' + j.attribute], viewtables[i].charlimit);
-                        } else {
-                            registers.rows[x][ma.name] = application.formatters.fe.text(registers.rows[x][ma.name], viewtables[i].charlimit);
+                            registers.rows[x][ma.name] = registers.rows[x][vas + '.' + j.attribute];
                         }
                     }
                 }
