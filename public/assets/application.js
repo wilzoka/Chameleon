@@ -936,7 +936,7 @@ var application = {
             }
             tables[idtable].ajax.reload(function () {
                 $('#' + this.table).parent().scrollTop(this.scrollTop);
-            }.bind({ table: idtable, scrollTop: $('#' + idtable).parent('div.dataTables_scrollBody').scrollTop() }), false);
+            }.bind({ table: idtable, scrollTop: keepSelection ? 0 : $('#' + idtable).parent('div.dataTables_scrollBody').scrollTop() }), false);
             application.tables.reloadFooter(idtable);
             $(document).trigger('app-datatable-reload', idtable);
         }
