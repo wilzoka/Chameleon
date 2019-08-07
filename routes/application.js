@@ -1,7 +1,6 @@
 const lodash = require('lodash')
 	, moment = require('moment')
 	, fs = require('fs-extra')
-	, htmlToText = require('html-to-text')
 	;
 
 let application = {

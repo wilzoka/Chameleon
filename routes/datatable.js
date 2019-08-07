@@ -1,6 +1,5 @@
 const application = require('./application')
     , db = require('../models')
-    , moment = require('moment')
     , platform = require('../custom/platform')
     ;
 

@@ -176,28 +176,6 @@ var application = {
                 application.jsfunction('platform.notification.js_read', { id: $(this).attr('data-notification-id') });
                 e.stopPropagation();
             });
-            // document.addEventListener('scroll', function (e) {
-            //     if (e.target.className == 'dataTables_scrollBody') {
-            //         var $table = $(e.target).find('table');
-            //         var scrollPosition = $(e.target).scrollTop() + $(e.target).height();
-            //         var scrollHeight = $table.height();
-            //         if ($table.attr('data-lazycomplete') == 'true') {
-            //             return;
-            //         }
-            //         var lazyloadperc = 0;
-            //         var totalrows = tables[$table[0].id].rows().count();
-            //         if (totalrows < 500) {
-            //             lazyloadperc = 0.8;
-            //         } else if (totalrows < 1000) {
-            //             lazyloadperc = 0.95;
-            //         } else {
-            //             lazyloadperc = 0.98;
-            //         }
-            //         if (scrollPosition / scrollHeight > lazyloadperc) {
-            //             // application.tables.getData($table[0].id);
-            //         }
-            //     }
-            // }, true);
             $(document).ready(function () {
                 if (localStorage.getItem('msg')) {
                     application.notify.success(localStorage.getItem('msg'));
@@ -956,10 +934,9 @@ var application = {
             if (!keepSelection) {
                 application.tables.deselectAll(idtable);
             }
-            $('#' + idtable).attr('data-start', '0').attr('data-lazycomplete', 'false');
-            tables[idtable].clear();
-            $('.dataTables_scrollBody').scrollTop(0);
-            tables[idtable].ajax.reload(null, false);
+            tables[idtable].ajax.reload(function () {
+                $('#' + this.table).parent().scrollTop(this.scrollTop);
+            }.bind({ table: idtable, scrollTop: $('#' + idtable).parent('div.dataTables_scrollBody').scrollTop() }), false);
             application.tables.reloadFooter(idtable);
             $(document).trigger('app-datatable-reload', idtable);
         }
