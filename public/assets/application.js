@@ -856,7 +856,7 @@ var application = {
                 , rowId: 'id'
                 , scrollCollapse: true
                 , scrollX: true
-                , scrollY: data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
+                , scrollY: $('#tableview' + data.name).attr('data-height') || data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
                 , scroller: {
                     loadingIndicator: true
                 }
