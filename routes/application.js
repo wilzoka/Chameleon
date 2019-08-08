@@ -381,7 +381,7 @@ let application = {
 				}
 				return realreference;
 			} catch (err) {
-				return undefined;
+				return null;
 			}
 		}
 		, lpad: function (value, length, string) {

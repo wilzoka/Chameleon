@@ -1173,7 +1173,36 @@ let main = {
         }
     }
     , plastrela: {
-        sync: async function () {
+        auth: async function (req) {
+            try {
+                let externo = await db.getModel('adm_usuarioexterno').findOne({ where: { iduser: req.user.id } });
+                if (externo) {
+                    return true;
+                }
+                if (req.ip == '::1') { //localhost
+                    return true;
+                } else if (req.ip.substring(0, 7) == '::ffff:') { //ipv4 Internos
+                    let ip = req.ip.substring(7, req.ip.lenght);
+                    if (ip.match(/172.10.30.*/)     // Interna RS
+                        || ip.match(/192.168.0.*/)  // WIFI MS
+                        || ip.match(/192.168.20.*/) // Interno MS
+                        || ip.match(/192.168.30.*/) // WIFI MS
+                        || ip.match(/192.168.32.*/) // WIFI RS
+                        || ip.match(/192.168.33.*/) // WIFI RS
+                    ) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return true;
+                }
+            } catch (err) {
+                console.error(err);
+                return false;
+            }
+        }
+        , sync: async function () {
             let config = await db.getModel('config').findOne();
             let empresa = config.cnpj == "90816133000123" ? 2 : 1;
             main.platform.kettle.f_runJob(`jobs/${empresa == 2 ? 'ms' : 'rs'}_sync/Job.kjb`);
@@ -3505,7 +3534,7 @@ let main = {
                             let empresa = config.cnpj == "90816133000123" ? 2 : 1;
                             for (let i = 0; i < volumes.length; i++) {
                                 let item = await db.getModel('cad_item').findOne({ include: [{ all: true }], where: { id: volumes[i].pcp_versao.iditem } });
-                                if (item.est_grupo.codigo == 504 && item.est_tpitem.codigo == 5) {
+                                if (item.est_grupo.codigo == 504 && [5, 16].indexOf(item.est_tpitem.codigo) >= 0) {
                                     await db.getModel('est_integracaotrf').create({
                                         query: `call p_transfere_estoque(${empresa}, '${item.codigo}', '${volumes[i].pcp_versao.codigo}', ${volumes[i].qtdreal}, '${moment().format(application.formatters.fe.date_format)}', ${volumes[i].est_deposito.codigo}, ${depdestino.codigo}, '9999', 'TRF'||'${empresa}'||'#'||'${moment().format(application.formatters.fe.datetime_format)}:00'||'#'||'${item.codigo}'||'#'||'${volumes[i].pcp_versao.codigo}', ${volumes[i].id}, null, 'S', 7, 'N', null, null, 2, ${empresa})`
                                         , integrado: 'N'
@@ -4841,7 +4870,7 @@ let main = {
                         for (let i = 0; i < requisicoes.length; i++) {
                             let volume = await db.getModel('est_volume').findOne({ include: [{ all: true }], where: { id: requisicoes[i].idvolume } });
                             let item = await db.getModel('cad_item').findOne({ include: [{ all: true }], where: { id: volume.pcp_versao.iditem } });
-                            if (item.est_grupo.codigo == 504 && item.est_tpitem.codigo == 5) {
+                            if (item.est_grupo.codigo == 504 && [5, 16].indexOf(item.est_tpitem.codigo) >= 0) {
                                 await db.getModel('est_integracaotrf').create({
                                     query: `call p_transfere_estoque(${empresa}, '${item.codigo}', '${volume.pcp_versao.codigo}', ${volume.qtdreal}, '${moment().format(application.formatters.fe.date_format)}', ${volume.est_deposito.codigo}, ${requisicoes[i].est_deposito.codigo}, '9999', 'TRF'||'${empresa}'||'#'||'${moment().format(application.formatters.fe.datetime_format)}:00'||'#'||'${item.codigo}'||'#'||'${volume.pcp_versao.codigo}', ${volume.id}, null, 'S', 7, 'N', null, null, 2, ${empresa})`
                                     , integrado: 'N'
@@ -4903,7 +4932,7 @@ let main = {
                             requisicoes[i].iduseratendimento = null;
                             requisicoes[i].qtd = null;
                             let item = await db.getModel('cad_item').findOne({ include: [{ all: true }], where: { id: volume.pcp_versao.iditem } });
-                            if (item.est_grupo.codigo == 504 && item.est_tpitem.codigo == 5) {
+                            if (item.est_grupo.codigo == 504 && [5, 16].indexOf(item.est_tpitem.codigo) >= 0) {
                                 await db.getModel('est_integracaotrf').create({
                                     query: `call p_transfere_estoque(${empresa}, '${item.codigo}', '${volume.pcp_versao.codigo}', ${volume.qtdreal}, '${moment().format(application.formatters.fe.date_format)}', ${requisicoes[i].est_deposito.codigo}, ${requisicoes[i].depositoorigem.codigo}, '9999', 'TRF'||'${empresa}'||'#'||'${moment().format(application.formatters.fe.datetime_format)}:00'||'#'||'${item.codigo}'||'#'||'${volume.pcp_versao.codigo}', ${volume.id}, null, 'S', 7, 'N', null, null, 2, ${empresa})`
                                     , integrado: 'N'

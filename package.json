@@ -11,13 +11,11 @@
     "connect-session-sequelize": "6.0.0",
     "cookie-parser": "1.4.4",
     "crypto-js": "3.1.9-1",
-    "escape-html": "1.0.3",
     "express": "4.17.1",
     "express-session": "1.16.2",
     "fs-extra": "8.1.0",
     "handlebars": "4.1.2",
     "html-pdf": "2.2.0",
-    "html-to-text": "5.1.1",
     "jquery": "3.4.1",
     "jsdom": "15.1.1",
     "lodash": "4.17.15",
@@ -32,13 +30,13 @@
     "passport": "0.4.0",
     "passport-local": "1.0.0",
     "pdfkit": "0.10.0",
-    "pdfmake": "0.1.57",
-    "pg": "7.11.0",
+    "pdfmake": "0.1.58",
+    "pg": "7.12.0",
     "pg-hstore": "2.3.3",
-    "sequelize": "5.10.2",
-    "sharp": "0.22.1",
+    "sequelize": "5.12.3",
+    "sharp": "0.23.0",
     "socket.io": "2.2.0",
     "svg-to-pdfkit": "0.1.7",
-    "xlsx": "0.14.4"
+    "xlsx": "0.15.0"
   }
 }

@@ -5,6 +5,8 @@ const passport = require('passport')
     , Cyjs = require("crypto-js")
     ;
 
+let config, authfunction = null;
+
 // Serialize Sessions
 passport.serializeUser(function (user, done) {
     done(null, user);
@@ -44,6 +46,20 @@ module.exports = function (app) {
 
     app.post('/login', passport.authenticate('local'), async (req, res) => {
         try {
+            if (!config) {
+                config = await db.getModel('config').findOne();
+                let custom = require('../custom/' + config.customfile);
+                if (config.authfunction) {
+                    authfunction = application.functions.getRealReference(custom, config.authfunction);
+                }
+            }
+            if (authfunction) {
+                if (!(await authfunction(req))) {
+                    req.logout();
+                    return res.status(401).send();
+                }
+            }
+
             let menu = await db.getModel('menu').findAll({
                 include: { all: true }
                 , where: { idmenuparent: { [db.Op.eq]: null } }
@@ -62,8 +78,6 @@ module.exports = function (app) {
                 where: { iduser: req.user.id, visible: true, hidelisting: { [db.Op.or]: [null, false] } }
                 , raw: true
             });
-
-            let config = await db.getModel('config').findOne();
 
             permissionarr = [];
             for (let i = 0; i < permissions.length; i++) {
@@ -113,8 +127,7 @@ module.exports = function (app) {
     });
 
     app.get('/logout', function (req, res, next) {
-        req.logOut();
-        req.session.destroy();
+        req.logout();
         return res.redirect("/login");
     });
 
