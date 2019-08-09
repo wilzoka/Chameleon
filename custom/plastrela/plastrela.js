@@ -1179,6 +1179,7 @@ let main = {
                 if (externo) {
                     return true;
                 }
+                console.log(req.ip);
                 if (req.ip == '::1') { //localhost
                     return true;
                 } else if (req.ip.substring(0, 7) == '::ffff:') { //ipv4 Internos
