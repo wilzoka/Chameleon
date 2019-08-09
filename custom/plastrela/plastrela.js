@@ -1179,13 +1179,17 @@ let main = {
                 if (externo) {
                     return true;
                 }
-                let ip = req.headers['x-real-ip'] || req.ip;
-                if (ip.match(/172.10.30.*/)     // Interna RS
-                    || ip.match(/192.168.0.*/)  // WIFI MS
-                    || ip.match(/192.168.20.*/) // Interno MS
-                    || ip.match(/192.168.30.*/) // WIFI MS
-                    || ip.match(/192.168.32.*/) // WIFI RS
-                    || ip.match(/192.168.33.*/) // WIFI RS
+                let ip = req.headers['x-real-ip'] // NGINX
+                if (!ip) {
+                    ip = req.ip; //express IPV6
+                }
+                if (ip == '::1'                   // Localhost
+                    || ip.match(/.*172.10.30.*/)  // Interna RS
+                    || ip.match(/.*192.168.0.*/)  // WIFI MS
+                    || ip.match(/.*192.168.20.*/) // Interno MS
+                    || ip.match(/.*192.168.30.*/) // WIFI MS
+                    || ip.match(/.*192.168.32.*/) // WIFI RS
+                    || ip.match(/.*192.168.33.*/) // WIFI RS
                 ) {
                     return true;
                 } else {
