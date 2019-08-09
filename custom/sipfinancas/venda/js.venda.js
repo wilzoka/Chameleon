@@ -9,7 +9,7 @@ $(function () {
             switch (table) {
                 case 'tableviewvenda_-_parcela':// Pagamentos
 
-                    $('button#' + table + '_insert').unbind().click(function (e) {
+                    tables[table].button($('.btn-success')).action(function (e) {
                         application.jsfunction('sipfinancas.financeiro.movparc.__venda_adicionarModal', { id: application.functions.getId() }, function (response) {
                             application.handlers.responseSuccess(response);
                         });
