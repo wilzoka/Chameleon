@@ -1179,24 +1179,17 @@ let main = {
                 if (externo) {
                     return true;
                 }
-                console.log(req.headers);
-                if (req.ip == '::1') { //localhost
+                let ip = req.headers['x-real-ip'] || req.ip;
+                if (ip.match(/172.10.30.*/)     // Interna RS
+                    || ip.match(/192.168.0.*/)  // WIFI MS
+                    || ip.match(/192.168.20.*/) // Interno MS
+                    || ip.match(/192.168.30.*/) // WIFI MS
+                    || ip.match(/192.168.32.*/) // WIFI RS
+                    || ip.match(/192.168.33.*/) // WIFI RS
+                ) {
                     return true;
-                } else if (req.ip.substring(0, 7) == '::ffff:') { //ipv4 Internos
-                    let ip = req.ip.substring(7, req.ip.lenght);
-                    if (ip.match(/172.10.30.*/)     // Interna RS
-                        || ip.match(/192.168.0.*/)  // WIFI MS
-                        || ip.match(/192.168.20.*/) // Interno MS
-                        || ip.match(/192.168.30.*/) // WIFI MS
-                        || ip.match(/192.168.32.*/) // WIFI RS
-                        || ip.match(/192.168.33.*/) // WIFI RS
-                    ) {
-                        return true;
-                    } else {
-                        return false;
-                    }
                 } else {
-                    return true;
+                    return false;
                 }
             } catch (err) {
                 console.error(err);
