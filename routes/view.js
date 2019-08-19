@@ -1161,10 +1161,21 @@ module.exports = function (app) {
                         zoneobj[viewsubviews[i].templatezone.name] += renderSubView(viewsubviews[i]);
                     }
                 }
+                // Events
+                const viewevents = await db.getModel('viewevent').findAll({
+                    where: { idview: view.id }
+                    , order: [['description', 'ASC']]
+                    , include: [{ all: true }]
+                });
+                let events = [];
+                for (let i = 0; i < viewevents.length; i++) {
+                    events.push(`<li class="btn-event" data-event="${viewevents[i].id}"><a href="javascript:void(0)"><i class="${viewevents[i].icon}"></i>${viewevents[i].description}</a></li>`);
+                }
                 res.setHeader('Cache-Control', 'no-cache, no-store');
                 return application.render(res, __dirname + '/../views/templates/viewregister.html', {
                     id: register ? register.id : 0
                     , title: view.name
+                    , events: events.join('')
                     , template: getTemplate(view.template.name)(zoneobj)
                     , js: view.js ? `<script type="text/javascript">${fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8')}</script>` : ''
                 });

@@ -45,7 +45,6 @@
 
         var $iddeposito = $('select[name="iddeposito"]');
         var $iddepositoendereco = $('select[name="iddepositoendereco"]');
-        console.log($iddeposito.val())
         if ($iddeposito.val()) {
             $iddepositoendereco.attr('data-where', 'iddeposito = ' + $iddeposito.val());
         } else {

@@ -1,5 +1,5 @@
 $(function () {
-    $('<div id="divcomplemento" class="col-md-12 hidden"><div class="form-group"><label>Complemento*</label><select name="complemento" class="form-control" style="width:100%;"></div></div>').insertAfter($('select[name="idmotivoparada"]').closest('div.form-group').parent());
+    $('<div id="divcomplemento" class="col-md-12 hidden"><div class="form-group"><label>Complemento*</label><select name="complemento" style="width:100%;"></div></div>').insertAfter($('select[name="idmotivoparada"]').closest('div.form-group').parent());
     var $idmotivoparada = $('select[name="idmotivoparada"]');
 
     function trazComplemento(id) {

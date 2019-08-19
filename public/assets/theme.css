@@ -105,6 +105,7 @@ h4.title_subview {
 ul.dropdown-menu > li > a > i {
     min-width: 14px;
     text-align: center;
+    margin-right: 10px;
 }
 .navbar-nav > .notifications-menu > .dropdown-menu > li .menu
 , .navbar-nav > .messages-menu > .dropdown-menu > li .menu

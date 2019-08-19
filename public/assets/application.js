@@ -53,6 +53,7 @@ var tables = [];
 var dzs = {};
 var app = false;
 var socket;
+var eventFromRegister = false;
 // Application
 var application = {
     index: function (isAuth) {
@@ -152,6 +153,24 @@ var application = {
                 } else {
                     window.close();
                 }
+            });
+            $('li.btn-event').click(function () {
+                $.ajax({
+                    url: '/event/' + $(this).attr('data-event')
+                    , type: 'GET'
+                    , dataType: 'json'
+                    , data: {
+                        id: application.functions.getUrlParameter('parent')
+                        , ids: application.functions.getId()
+                    }
+                    , success: function (response) {
+                        eventFromRegister = true;
+                        application.handlers.responseSuccess(response);
+                    }
+                    , error: function (response) {
+                        application.handlers.responseError(response);
+                    }
+                });
             });
             $(document).ajaxStart(function () {
                 $('.pace').removeClass('pace-inactive').addClass('pace-active');
@@ -741,7 +760,6 @@ var application = {
                             , data: {
                                 id: application.functions.getId()
                                 , ids: $('#' + dt.settings()[0].sTableId).attr('data-selected')
-                                , parent: application.functions.getUrlParameter('parent')
                             }
                             , success: function (response) {
                                 application.handlers.responseSuccess(response);
@@ -1214,7 +1232,7 @@ var application = {
                         return window.history.back();
                     } else {
                         localStorage.removeItem('msg');
-                        window.close();
+                        return window.close();
                     }
                 }
 
@@ -1255,10 +1273,18 @@ var application = {
                             $(this).parent().remove();
                         }
                     });
+                } else {
+                    setTimeout(function () {
+                        eventFromRegister = false;
+                    }, 500);
                 }
 
                 if ('reloadtables' in response && response.reloadtables) {
-                    application.tables.reloadAll();
+                    if (eventFromRegister) {
+                        return window.location.reload();
+                    } else {
+                        application.tables.reloadAll();
+                    }
                 }
 
             } else {

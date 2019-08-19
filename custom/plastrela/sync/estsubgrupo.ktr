@@ -339,6 +339,7 @@
            <schema_name/>
            </partitioning>
     <keys>
+      <key>idgrupo</key>
       <key>codigo</key>
     </keys>
     <values>
@@ -532,6 +533,12 @@
       <unique_rows>N</unique_rows>
     <fields>
       <field>
+        <name>idgrupo</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <presorted>N</presorted>
+      </field>
+      <field>
         <name>codigo</name>
         <ascending>Y</ascending>
         <case_sensitive>N</case_sensitive>
@@ -565,6 +572,12 @@
       <compress_variable/>
       <unique_rows>N</unique_rows>
     <fields>
+      <field>
+        <name>idgrupo</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <presorted>N</presorted>
+      </field>
       <field>
         <name>codigo</name>
         <ascending>Y</ascending>
@@ -605,6 +618,12 @@
       <schema/>
       <table>est_subgrupo</table>
       <key>
+        <name>idgrupo</name>
+        <field>idgrupo</field>
+        <condition>&#x3d;</condition>
+        <name2/>
+      </key>
+      <key>
         <name>codigo</name>
         <field>codigo</field>
         <condition>&#x3d;</condition>
@@ -613,7 +632,7 @@
       <value>
         <name>idgrupo</name>
         <rename>idgrupo</rename>
-        <update>Y</update>
+        <update>N</update>
       </value>
       <value>
         <name>codigo</name>
