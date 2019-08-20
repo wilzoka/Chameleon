@@ -7279,10 +7279,11 @@ let main = {
                             return application.error(obj.res, { msg: 'Volte a listagem e verifique a OP' });
                         }
                         let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
-                        let etapa = await db.getModel('pcp_etapa').findOne({ where: { id: opetapa.idetapa } });
-                        let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
+                        let etapa = await db.getModel('pcp_etapa').findOne({ include: [{ all: true }], where: { id: opetapa.idetapa } });
+                        let op = await db.getModel('pcp_op').findOne({ include: [{ all: true }], where: { id: opetapa.idop } });
                         let recurso = await db.getModel('pcp_recurso').findOne({ where: { id: oprecurso.idrecurso } });
                         let volume = await db.getModel('est_volume').findOne({ where: { id: obj.data.idvolume } });
+                        let vrop = await db.getModel('est_volumereserva').findOne({ where: { idvolume: volume.id, idopetapa: opetapa.id } });
                         let versao = await db.getModel('pcp_versao').findOne({ where: { id: volume.idversao } });
                         let volumereservas = await db.getModel('est_volumereserva').findAll({ where: { idvolume: volume.id } });
                         let deposito = await db.getModel('est_deposito').findOne({ where: { id: volume.iddeposito } });
@@ -7405,8 +7406,21 @@ let main = {
                             }
                         }
 
-                        application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        let param = await main.platform.parameter.f_get('pcp_validacaoInsumoReserva_' + etapa.pcp_tprecurso.codigo);
 
+                        if (vrop) {
+                            application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        } else if (!vrop && param) {
+                            application.success(obj.res, { msg: 'ATENÇÃO <br/><br/> O insumo foi apontado, porém não está reservado para esta OP. <br/><br/> VERIFIQUE!', reloadtables: true });
+                            main.platform.mail.f_sendmail({
+                                to: param
+                                , subject: `SIP - Utilização de Insumo sem reserva`
+                                , html: `OP: ${op.codigo}/${etapa.codigo} - ${op.pcp_versao.descricaocompleta}  <br/> ID: ${volume.id} ${versao.descricaocompleta}`
+                            });
+                        } else {
+                            application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                        }
+                        
                     } catch (err) {
                         application.fatal(obj.res, err);
                     } finally {
