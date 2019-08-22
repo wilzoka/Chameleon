@@ -6,9 +6,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "box-6",
         "model": "schedule",
         "module": "Plataforma",
+        "menu": "Plataforma - Agendamentos",
+        "type": null,
         "url": "agendamento",
         "fastsearch": "description",
         "lineheight": null,
@@ -101,9 +104,12 @@
         "wherefixed": null,
         "orderfixed": "datetime,desc",
         "supressid": false,
+        "neednoperm": false,
         "template": "box-12",
         "model": "file",
         "module": "Plataforma",
+        "menu": "Plataforma - Arquivos",
+        "type": null,
         "url": "arquivo",
         "fastsearch": "filename",
         "lineheight": null,
@@ -248,9 +254,12 @@
         "wherefixed": null,
         "orderfixed": "datetime,desc",
         "supressid": true,
+        "neednoperm": false,
         "template": "box-12",
         "model": "audit",
         "module": "Plataforma",
+        "menu": "Plataforma - Auditoria",
+        "type": null,
         "url": "auditoria",
         "fastsearch": "changes",
         "lineheight": 3,
@@ -364,9 +373,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "tpl_config",
         "model": "config",
         "module": "Plataforma",
+        "menu": "Plataforma - Configurações",
+        "type": "Configuration",
         "url": "configuracao_da_plataforma",
         "fastsearch": null,
         "lineheight": null,
@@ -384,6 +396,14 @@
                 "modelattribute": "googlemapskey",
                 "width": 4,
                 "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "system",
+                "modelattribute": "authfunction",
+                "width": 4,
+                "order": 3,
                 "disabled": false,
                 "disablefilter": false
             },
@@ -487,9 +507,12 @@
         "wherefixed": null,
         "orderfixed": "description,asc",
         "supressid": true,
+        "neednoperm": false,
         "template": "box-6",
         "model": "groupusers",
         "module": "Plataforma",
+        "menu": "Plataforma - Grupos de Usuário",
+        "type": null,
         "url": "grupo_de_usuario",
         "fastsearch": "description",
         "lineheight": null,
@@ -523,9 +546,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": true,
+        "neednoperm": false,
         "template": "box-6",
         "model": "messenger",
         "module": "Plataforma",
+        "menu": "Plataforma - Mensageiros",
+        "type": null,
         "url": "mensageiro",
         "fastsearch": "description",
         "lineheight": null,
@@ -620,9 +646,12 @@
         "wherefixed": null,
         "orderfixed": "tree,asc",
         "supressid": true,
+        "neednoperm": false,
         "template": "box-6",
         "model": "menu",
         "module": "Plataforma",
+        "menu": "Plataforma - Menus",
+        "type": null,
         "url": "menu",
         "fastsearch": "tree",
         "lineheight": null,
@@ -650,22 +679,6 @@
                 "order": 3,
                 "disabled": false,
                 "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "idview",
-                "width": 12,
-                "order": 4,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "url",
-                "width": 12,
-                "order": 5,
-                "disabled": false,
-                "disablefilter": false
             }
         ],
         "_table": [
@@ -682,14 +695,6 @@
                 "ordertable": 2,
                 "orderable": false,
                 "render": "icon",
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "url",
-                "ordertable": 3,
-                "orderable": false,
-                "render": null,
                 "totalize": false,
                 "class": null
             }
@@ -723,9 +728,12 @@
         "wherefixed": null,
         "orderfixed": "name,asc",
         "supressid": false,
+        "neednoperm": false,
         "template": "box-12-12",
         "model": "model",
         "module": "Plataforma",
+        "menu": "Plataforma - Modelos",
+        "type": null,
         "url": "modelo",
         "fastsearch": "name",
         "lineheight": null,
@@ -844,9 +852,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": true,
+        "neednoperm": false,
         "template": "box-6",
         "model": "modelattribute",
         "module": "Plataforma",
+        "menu": null,
+        "type": null,
         "url": "modelo_-_atributo",
         "fastsearch": "label",
         "lineheight": null,
@@ -944,9 +955,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "box-6",
         "model": "module",
         "module": "Plataforma",
+        "menu": "Plataforma - Módulos",
+        "type": null,
         "url": "modulo",
         "fastsearch": "description",
         "lineheight": null,
@@ -974,35 +988,94 @@
         "_event": []
     },
     {
-        "name": "Módulos",
-        "namecomplete": "Plataforma - Módulos",
+        "name": "Notificação",
+        "namecomplete": "Plataforma - Notificação",
         "js": null,
-        "wherefixed": null,
-        "orderfixed": null,
-        "supressid": false,
-        "template": "box-6",
-        "model": "module",
+        "wherefixed": "notification.iduser = $user",
+        "orderfixed": "datetime,desc",
+        "supressid": true,
+        "neednoperm": true,
+        "template": "box-12",
+        "model": "notification",
         "module": "Plataforma",
-        "url": "modulos",
+        "menu": null,
+        "type": null,
+        "url": "notificacao",
         "fastsearch": "description",
         "lineheight": null,
         "_field": [
             {
                 "templatezone": "z1",
-                "modelattribute": "description",
+                "modelattribute": "read",
                 "width": 12,
                 "order": 1,
-                "disabled": false,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "datetime",
+                "width": 12,
+                "order": 2,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "title",
+                "width": 12,
+                "order": 3,
+                "disabled": true,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 4,
+                "disabled": true,
                 "disablefilter": false
             }
         ],
         "_table": [
             {
-                "modelattribute": "description",
+                "modelattribute": "read",
                 "ordertable": 1,
-                "orderable": true,
+                "orderable": false,
+                "render": "boolean",
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "datetime",
+                "ordertable": 2,
+                "orderable": false,
                 "render": null,
-                "totalize": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "title",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 4,
+                "orderable": false,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "link",
+                "ordertable": 5,
+                "orderable": false,
+                "render": "url",
+                "totalize": false,
                 "class": null
             }
         ],
@@ -1010,16 +1083,19 @@
         "_event": []
     },
     {
-        "name": "Parâmetros",
-        "namecomplete": "Plataforma - Parâmetros",
+        "name": "Parâmetro",
+        "namecomplete": "Plataforma - Parâmetro",
         "js": null,
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "box-12",
         "model": "parameter",
         "module": "Plataforma",
-        "url": "parametros",
+        "menu": "Plataforma - Parâmetros",
+        "type": null,
+        "url": "parametro",
         "fastsearch": "key",
         "lineheight": null,
         "_field": [
@@ -1084,11 +1160,14 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
-        "template": "box-6",
+        "neednoperm": false,
+        "template": "box-6-6",
         "model": "permission",
         "module": "Plataforma",
+        "menu": "Plataforma - Permissões",
+        "type": null,
         "url": "permissao",
-        "fastsearch": "idmenu",
+        "fastsearch": "idview",
         "lineheight": null,
         "_field": [
             {
@@ -1101,7 +1180,7 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "idmenu",
+                "modelattribute": "idview",
                 "width": 12,
                 "order": 2,
                 "disabled": false,
@@ -1138,14 +1217,6 @@
                 "order": 6,
                 "disabled": false,
                 "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "hidelisting",
-                "width": 12,
-                "order": 7,
-                "disabled": false,
-                "disablefilter": false
             }
         ],
         "_table": [
@@ -1158,7 +1229,7 @@
                 "class": null
             },
             {
-                "modelattribute": "idmenu",
+                "modelattribute": "idview",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
@@ -1196,13 +1267,66 @@
                 "render": "boolean",
                 "totalize": null,
                 "class": null
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Permissão - Evento",
+                "templatezone": "z2",
+                "description": "Eventos"
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Permissão - Evento",
+        "namecomplete": "Plataforma - Permissão - Evento",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "neednoperm": false,
+        "template": "box-6",
+        "model": "permissionevent",
+        "module": "Plataforma",
+        "menu": null,
+        "type": null,
+        "url": "permissao_-_evento",
+        "fastsearch": "idevent",
+        "lineheight": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idevent",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
             },
             {
-                "modelattribute": "hidelisting",
-                "ordertable": 7,
+                "templatezone": "z1",
+                "modelattribute": "available",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idevent",
+                "ordertable": 1,
+                "orderable": true,
+                "render": null,
+                "totalize": false,
+                "class": null
+            },
+            {
+                "modelattribute": "available",
+                "ordertable": 2,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": null,
+                "totalize": false,
                 "class": null
             }
         ],
@@ -1216,9 +1340,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "box-6-6-12",
         "model": "report",
         "module": "Plataforma",
+        "menu": "Plataforma - Relatórios",
+        "type": null,
         "url": "relatorio",
         "fastsearch": "name",
         "lineheight": null,
@@ -1277,128 +1404,18 @@
         ]
     },
     {
-        "name": "Rota",
-        "namecomplete": "Plataforma - Rota",
-        "js": null,
-        "wherefixed": null,
-        "orderfixed": null,
-        "supressid": false,
-        "template": "box-6",
-        "model": "route",
-        "module": "Plataforma",
-        "url": "rota",
-        "fastsearch": "description",
-        "lineheight": null,
-        "_field": [
-            {
-                "templatezone": "z1",
-                "modelattribute": "description",
-                "width": 12,
-                "order": 1,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "file",
-                "width": 12,
-                "order": 2,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "function",
-                "width": 12,
-                "order": 3,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "needauth",
-                "width": 12,
-                "order": 4,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "needperm",
-                "width": 12,
-                "order": 5,
-                "disabled": false,
-                "disablefilter": false
-            }
-        ],
-        "_table": [
-            {
-                "modelattribute": "description",
-                "ordertable": 1,
-                "orderable": true,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "file",
-                "ordertable": 2,
-                "orderable": true,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "function",
-                "ordertable": 3,
-                "orderable": true,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "needauth",
-                "ordertable": 4,
-                "orderable": true,
-                "render": "boolean",
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "needperm",
-                "ordertable": 5,
-                "orderable": true,
-                "render": "boolean",
-                "totalize": false,
-                "class": null
-            }
-        ],
-        "_subview": [],
-        "_event": [
-            {
-                "description": "Exportar",
-                "icon": "fa fa-cloud-upload",
-                "function": "platform.route.e_export",
-                "parameters": null
-            },
-            {
-                "description": "Importar",
-                "icon": "fa fa-cloud-download",
-                "function": "platform.route.e_import",
-                "parameters": null
-            }
-        ]
-    },
-    {
         "name": "Template",
         "namecomplete": "Plataforma - Template",
         "js": null,
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "box-6-6",
         "model": "template",
         "module": "Plataforma",
+        "menu": "Plataforma - Templates",
+        "type": null,
         "url": "template",
         "fastsearch": "name",
         "lineheight": null,
@@ -1454,9 +1471,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "box-6",
         "model": "templatezone",
         "module": "Plataforma",
+        "menu": null,
+        "type": null,
         "url": "template_-_zona",
         "fastsearch": "name",
         "lineheight": null,
@@ -1490,9 +1510,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
+        "neednoperm": false,
         "template": "box-6",
         "model": "users",
         "module": "Plataforma",
+        "menu": "Plataforma - Usuários",
+        "type": null,
         "url": "usuario",
         "fastsearch": "fullname",
         "lineheight": null,
@@ -1555,7 +1578,7 @@
             },
             {
                 "templatezone": "z1",
-                "modelattribute": "idmenu",
+                "modelattribute": "idview",
                 "width": 12,
                 "order": 8,
                 "disabled": false,
@@ -1614,9 +1637,12 @@
         "wherefixed": null,
         "orderfixed": "namecomplete,asc",
         "supressid": false,
+        "neednoperm": false,
         "template": "tpl_view",
         "model": "view",
         "module": "Plataforma",
+        "menu": "Plataforma - Views",
+        "type": null,
         "url": "view",
         "fastsearch": "namecomplete",
         "lineheight": null,
@@ -1655,23 +1681,23 @@
             },
             {
                 "templatezone": "view",
-                "modelattribute": "idfastsearch",
-                "width": 12,
+                "modelattribute": "idmenu",
+                "width": 6,
                 "order": 5,
                 "disabled": false,
                 "disablefilter": false
             },
             {
                 "templatezone": "view",
-                "modelattribute": "js",
-                "width": 12,
+                "modelattribute": "type",
+                "width": 6,
                 "order": 6,
                 "disabled": false,
                 "disablefilter": false
             },
             {
                 "templatezone": "view",
-                "modelattribute": "wherefixed",
+                "modelattribute": "idfastsearch",
                 "width": 12,
                 "order": 7,
                 "disabled": false,
@@ -1679,9 +1705,25 @@
             },
             {
                 "templatezone": "view",
+                "modelattribute": "js",
+                "width": 12,
+                "order": 8,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "wherefixed",
+                "width": 12,
+                "order": 9,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
                 "modelattribute": "orderfixed",
                 "width": 6,
-                "order": 8,
+                "order": 10,
                 "disabled": false,
                 "disablefilter": false
             },
@@ -1689,7 +1731,7 @@
                 "templatezone": "view",
                 "modelattribute": "lineheight",
                 "width": 6,
-                "order": 9,
+                "order": 11,
                 "disabled": false,
                 "disablefilter": false
             },
@@ -1697,7 +1739,15 @@
                 "templatezone": "view",
                 "modelattribute": "supressid",
                 "width": 6,
-                "order": 10,
+                "order": 12,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "neednoperm",
+                "width": 6,
+                "order": 13,
                 "disabled": false,
                 "disablefilter": false
             }
@@ -1712,7 +1762,7 @@
                 "class": null
             },
             {
-                "modelattribute": "js",
+                "modelattribute": "idmenu",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
@@ -1778,9 +1828,12 @@
         "wherefixed": null,
         "orderfixed": "order,asc",
         "supressid": true,
+        "neednoperm": false,
         "template": "box-6",
         "model": "viewfield",
         "module": "Plataforma",
+        "menu": null,
+        "type": null,
         "url": "view_-_atributo",
         "fastsearch": "idmodelattribute",
         "lineheight": null,
@@ -1913,9 +1966,12 @@
         "wherefixed": null,
         "orderfixed": "description,asc",
         "supressid": false,
+        "neednoperm": false,
         "template": "box-6",
         "model": "viewevent",
         "module": "Plataforma",
+        "menu": null,
+        "type": null,
         "url": "view_-_evento",
         "fastsearch": "description",
         "lineheight": null,
@@ -1997,9 +2053,12 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": true,
+        "neednoperm": false,
         "template": "box-6",
         "model": "viewsubview",
         "module": "Plataforma",
+        "menu": null,
+        "type": null,
         "url": "view_-_subview",
         "fastsearch": "idsubview",
         "lineheight": null,
@@ -2065,9 +2124,12 @@
         "wherefixed": null,
         "orderfixed": "ordertable,asc",
         "supressid": true,
+        "neednoperm": false,
         "template": "box-6",
         "model": "viewtable",
         "module": "Plataforma",
+        "menu": null,
+        "type": null,
         "url": "view_-_tabela",
         "fastsearch": "idmodelattribute",
         "lineheight": null,

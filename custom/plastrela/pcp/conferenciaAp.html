@@ -305,7 +305,7 @@
 
         $('#pesquisar').click(function () {
             $('div.has-error').removeClass('has-error');
-            application.route.handler({
+            application.jsfunction('plastrela.pcp.js_conferenciaAp', {
                 dataini: $('input[name="dataini"]').val()
                 , datafim: $('input[name="datafim"]').val()
                 , producao: $('input[name="producao"]').is(':checked')

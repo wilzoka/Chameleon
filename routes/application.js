@@ -448,7 +448,7 @@ let application = {
 		}
 		, createItem: function (menu) {
 			let description = menu.description;
-			let url = menu.url || '/v/' + menu['view.url'];
+			let url = '/v/' + menu.url;
 			return `
 			<li>
 				<a href="${url}">
@@ -476,9 +476,9 @@ let application = {
 		, getChilds: function (idmenu, childs, permissionarr) {
 			let returnchilds = [];
 			for (let i = 0; i < childs.length; i++) {
-				if (childs[i].idmenuparent == idmenu) {
-					if (childs[i].url || childs[i].idview) {
-						if (permissionarr.indexOf(childs[i].id) >= 0) {
+				if (idmenu == childs[i].idmenuparent) {
+					if (childs[i].idview) {
+						if (permissionarr.indexOf(childs[i].idview) >= 0) {
 							returnchilds.push(childs[i]);
 						}
 					} else {

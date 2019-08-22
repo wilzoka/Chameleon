@@ -10,8 +10,8 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <label>Depósito*</label>
-                        <select name="iddeposito" class="form-control select2" style="width: 100%;" data-type="autocomplete" data-model="est_deposito"
-                            data-attribute="descricao" data-where="">
+                        <select name="iddeposito" class="form-control select2" style="width: 100%;"
+                            data-type="autocomplete" data-model="est_deposito" data-attribute="descricao" data-where="">
                         </select>
                     </div>
                 </div>
@@ -19,7 +19,8 @@
                     <button id="salvar" type="button" class="btn btn-default btn-block"> Salvar</button>
                     <button id="reiniciar" type="button" class="btn btn-default btn-block"> Reiniciar</button>
                     <button id="imprimir" type="button" class="btn btn-default btn-block"> Imprimir</button>
-                    <button id="verificarAjustes" type="button" class="btn btn-default btn-block"> Aplicar Ajustes</button>
+                    <button id="verificarAjustes" type="button" class="btn btn-default btn-block"> Aplicar
+                        Ajustes</button>
                 </div>
             </div>
         </div>
@@ -39,8 +40,8 @@
         <div class="tab-content">
 
             <div class="tab-pane active" id="tab_1" style="overflow: auto;">
-                <div class="row">
-                    <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="row">
                         <table id="tablenotfound" class="table table-bordered table-hover dataTable" width="100%">
                         </table>
                     </div>
@@ -48,8 +49,8 @@
             </div>
 
             <div class="tab-pane" id="tab_2" style="overflow: auto;">
-                <div class="row">
-                    <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="row">
                         <table id="tablefound" class="table table-bordered table-hover dataTable" width="100%">
                         </table>
                     </div>
@@ -97,8 +98,10 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Quantidade Encontrada (Informe apenas se a quantidade encontrada for diferente do sistema)</label>
-                            <input name="qtdencontrada" type="text" class="form-control" data-type="decimal" data-precision="4">
+                            <label>Quantidade Encontrada (Informe apenas se a quantidade encontrada for diferente do
+                                sistema)</label>
+                            <input name="qtdencontrada" type="text" class="form-control" data-type="decimal"
+                                data-precision="4">
                         </div>
                     </div>
                 </div>
@@ -177,7 +180,7 @@
             window.onbeforeunload = function () {
                 return 'Deseja Sair?';
             };
-            application.route.handler({ function: 'getAtual', iddeposito: e.params.data.id }, function (response) {
+            application.jsfunction('plastrela.estoque.est_volume.js_balanco', { function: 'getAtual', iddeposito: e.params.data.id }, function (response) {
                 if (response.success) {
                     tablenotfound.clear().draw();
                     tablenotfound.rows.add(response.data.notfound).draw();
@@ -198,14 +201,14 @@
         });
 
         $('#salvar').click(function () {
-            application.route.handler({ function: 'salvar', iddeposito: $('select[name="iddeposito"]').val(), idsfound: idsfound }, function (response) {
+            application.jsfunction('plastrela.estoque.est_volume.js_balanco', { function: 'salvar', iddeposito: $('select[name="iddeposito"]').val(), idsfound: idsfound }, function (response) {
                 application.handlers.responseSuccess(response);
             });
         });
 
         $('#reiniciar').click(function () {
             application.functions.confirmMessage('Confirma reiniciar o balanço do depósito selecionado?', function () {
-                application.route.handler({ function: 'reiniciar', iddeposito: $('select[name="iddeposito"]').val() }, function (response) {
+                application.jsfunction('plastrela.estoque.est_volume.js_balanco', { function: 'reiniciar', iddeposito: $('select[name="iddeposito"]').val() }, function (response) {
                     if (response.success) {
                         tablenotfound.clear();
                         tablenotfound.rows.add(response.data.notfound).draw();
@@ -225,7 +228,7 @@
         });
 
         $('#imprimir').click(function () {
-            application.route.handler({ function: 'imprimir', iddeposito: $('select[name="iddeposito"]').val(), idsfound: idsfound }, function (response) {
+            application.jsfunction('plastrela.estoque.est_volume.js_balanco', { function: 'imprimir', iddeposito: $('select[name="iddeposito"]').val(), idsfound: idsfound }, function (response) {
                 application.handlers.responseSuccess(response);
             });
         });
@@ -244,7 +247,7 @@
 
         $('#aplicarAjustes').click(function () {
             application.functions.confirmMessage('Confirma a aplicação dos ajustes?', function () {
-                application.route.handler({ function: 'ajustes', ajustes: ajustes }, function (response) {
+                application.jsfunction('plastrela.estoque.est_volume.js_balanco', { function: 'ajustes', ajustes: ajustes }, function (response) {
                     application.handlers.responseSuccess(response);
                     if (response.success) {
                         ajustes = {};

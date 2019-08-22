@@ -63,9 +63,6 @@ var application = {
                 $('ul.sidebar-menu').append(localStorage.getItem('menu'));
                 $('span.logo-lg').html(localStorage.getItem('descriptionmenu'));
                 $('span.logo-mini').html(localStorage.getItem('descriptionmenumini'));
-                if ($('.sidebar-menu').find('a[href="' + window.location.pathname + '"]')[0]) {
-                    $('section.content-header h1').text($('a[href="' + window.location.pathname + '"]').text());
-                }
                 var pathname = window.location.pathname;
                 pathname = pathname.split('/');
                 path = pathname[0] + '/' + pathname[1] + '/' + pathname[2];
@@ -84,7 +81,7 @@ var application = {
                 }
                 $('#appusername').text(localStorage.getItem('username'));
             }
-            document.title = $('section.content-header').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
+            document.title = $('#title-app').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
             var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
             if ('currentTab' in pagecookie) {
                 $('ul.nav a[href="' + pagecookie.currentTab + '"]').tab('show');
@@ -267,7 +264,7 @@ var application = {
                     var cookiename = $(this).attr('data-table') + 'fs';
                     var fastsearch = $(this).val();
                     if (fastsearch) {
-                        Cookies.set(cookiename, fastsearch);
+                        Cookies.set(cookiename, fastsearch, { expires: 0.5 });
                     } else {
                         Cookies.remove(cookiename);
                     }
@@ -861,7 +858,7 @@ var application = {
                     $table.closest('.dataTables_wrapper').find('.dt-filter-div').append(filterhtml);
                     setTimeout(function () {
                         $(document).trigger('app-datatable', this.sTableId);
-                        if (!application.functions.isMobile()) {
+                        if (!application.functions.isMobile() && application.functions.getId() != 0) {
                             $('#' + this.sTableId).closest('.dataTables_wrapper').find('input.dt-search').select().focus();
                         }
                     }.bind(settings), 250);
@@ -1112,7 +1109,7 @@ var application = {
             var $button = $('button.btnfilter[data-table="' + idtable + '"]');
             if (cookie.length > 0) {
                 $button.removeClass('btn-default').addClass('btn-primary');
-                Cookies.set($modal[0].id, JSON.stringify(cookie));
+                Cookies.set($modal[0].id, JSON.stringify(cookie), { expires: 0.5 });
             } else {
                 $button.removeClass('btn-primary').addClass('btn-default');
                 Cookies.remove($modal[0].id);
@@ -1198,7 +1195,7 @@ var application = {
         , setPageCookie: function (conf) {
             var pagecookie = application.functions.getPageCookie();
             pagecookie = $.extend(pagecookie, conf);
-            Cookies.set(window.location.href, JSON.stringify(pagecookie));
+            Cookies.set(window.location.href, JSON.stringify(pagecookie), { expires: 0.5 });
         }
         , getKeyFromArrayObject: function (o, k) {
             var array = [];

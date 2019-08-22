@@ -183,8 +183,6 @@ let platform = {
                         description: menus[i].description
                         , icon: menus[i].icon
                         , menuparent: menus[i].idmenuparent ? menus[i].parentmenu.tree : null
-                        , view: menus[i].idview ? menus[i].view.name : null
-                        , url: menus[i].url
                         , tree: menus[i].tree
                     });
                 }
@@ -233,40 +231,24 @@ let platform = {
                         console.log('MENU ' + menus[i].tree);
                         let menu = await db.getModel('menu').findOne({ where: { tree: menus[i].tree } });
                         let mp = null;
-                        let v = null;
                         if (menus[i].menuparent) {
                             mp = await db.getModel('menu').findOne({ where: { tree: menus[i].menuparent } });
-                        }
-                        if (menus[i].view) {
-                            v = await db.getModel('view').findOne({ where: { name: menus[i].view } });
                         }
                         if (menu) {
                             menu.description = menus[i].description;
                             menu.icon = menus[i].icon;
-                            menu.url = menus[i].url;
                             menu.tree = menus[i].tree;
                             if (menus[i].menuparent) {
                                 menu.idmenuparent = mp.id;
                             }
-                            if (menus[i].view) {
-                                menu.idview = v.id;
-                            }
-                            if (menu.changed()) {
-                                await menu.save();
-                                console.log('UPDATED');
-                            } else {
-                                console.log('OK');
-                            }
+                            await menu.save();
                         } else {
-                            menu = await db.getModel('menu').create({
+                            await db.getModel('menu').create({
                                 description: menus[i].description
                                 , icon: menus[i].icon
                                 , idmenuparent: menus[i].menuparent && mp ? mp.id : null
-                                , idview: menus[i].view && v ? v.id : null
-                                , url: menus[i].url
                                 , tree: menus[i].tree
                             });
-                            console.log('CREATED');
                         }
                         if (i != menus.length - 1) {
                             console.log('------------------------------');
@@ -388,6 +370,7 @@ let platform = {
                 db.sequelize.sync({ alter: true }).then(() => {
                     return application.success(obj.res, { msg: application.message.success });
                 }).catch(err => {
+                    console.error(err);
                     return application.error(obj.res, { msg: err });
                 });
 
@@ -693,26 +676,6 @@ let platform = {
                 return application.fatal(obj.res, err);
             }
         }
-        , r_handler: async function (obj) {
-            try {
-                const f = {
-                    getAll: async function (obj) {
-                        let notifications = await db.getModel('notification').findAll({ raw: true, where: { iduser: obj.req.user.id }, order: [['datetime', 'desc'], ['id', 'desc']] });
-                        for (let i = 0; i < notifications.length; i++) {
-                            notifications[i].datetime = application.formatters.fe.datetime(notifications[i].datetime);
-                        }
-                        return application.success(obj.res, { data: notifications });
-                    }
-                }
-                if (obj.req.body.function in f) {
-                    f[obj.req.body.function](obj);
-                } else {
-                    return application.error(obj.res, { msg: 'Função não encontrada' });
-                }
-            } catch (err) {
-                return application.fatal(obj.res, err);
-            }
-        }
     }
     , permission: {
         onsave: async function (obj, next) {
@@ -721,11 +684,11 @@ let platform = {
                     where: {
                         id: { [db.Op.ne]: obj.register.id }
                         , iduser: obj.register.iduser
-                        , idmenu: obj.register.idmenu
+                        , idview: obj.register.idview
                     }
                 });
                 if (permission) {
-                    return application.error(obj.res, { msg: 'Este usuário já possui acesso a este menu' });
+                    return application.error(obj.res, { msg: 'Este usuário já possui acesso a esta view' });
                 }
                 next(obj);
             } catch (err) {
@@ -825,111 +788,6 @@ let platform = {
                     return reject(err);
                 }
             });
-        }
-    }
-    , route: {
-        onsave: async function (obj, next) {
-            let register = await db.getModel('route').findOne({ where: { id: { [db.Op.ne]: obj.id }, description: obj.register.description } })
-            if (register) {
-                return application.error(obj.res, { msg: 'Já existe uma rota com esta descrição' });
-            }
-            await next(obj);
-            db.sequelize.query("update route set url = translate(lower(description), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
-        }
-        , e_export: async function (obj) {
-            try {
-                if (obj.ids.length <= 0) {
-                    return application.error(obj.res, { msg: application.message.selectOneEvent });
-                }
-                let routes = await db.getModel('route').findAll({ where: { id: { [db.Op.in]: obj.ids } }, order: [['description', 'asc']] });
-                let j = [];
-                for (let i = 0; i < routes.length; i++) {
-                    j.push({
-                        description: routes[i].description
-                        , file: routes[i].file
-                        , function: routes[i].function
-                        , needauth: routes[i].needauth
-                        , needperm: routes[i].needperm
-                        , url: routes[i].url
-                    });
-                }
-                let filename = process.hrtime()[1] + '.json';
-                fs.writeFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, JSON.stringify(j), function (err) {
-                    if (err) {
-                        return application.error(obj.res, { msg: err });
-                    }
-                    return application.success(obj.res, { openurl: '/download/' + filename });
-                });
-            } catch (err) {
-                return application.fatal(obj.res, err);
-            }
-        }
-        , e_import: async function (obj) {
-            try {
-                if (obj.req.method == 'GET') {
-                    let body = '';
-                    body += '<div class="row no-margin">';
-                    body += application.components.html.file({
-                        width: '12'
-                        , name: 'file'
-                        , label: 'Arquivo'
-                        , maxfiles: '1'
-                    });
-                    body += '</div>';
-                    return application.success(obj.res, {
-                        modal: {
-                            form: true
-                            , id: 'modalevt'
-                            , action: '/event/' + obj.event.id
-                            , title: obj.event.description
-                            , body: body
-                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Importar</button>'
-                        }
-                    });
-                } else {
-                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['file']);
-                    if (invalidfields.length > 0) {
-                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
-                    }
-                    let file = JSON.parse(obj.req.body.file)[0];
-                    let routes = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
-                    console.log('----------SYNC ROUTES---------');
-                    for (let i = 0; i < routes.length; i++) {
-                        console.log('ROUTE ' + routes[i].description);
-                        let route = await db.getModel('route').findOne({ where: { description: routes[i].description } });
-                        if (route) {
-                            route.file = routes[i].file;
-                            route.function = routes[i].function;
-                            route.needauth = routes[i].needauth;
-                            route.needperm = routes[i].needperm;
-                            route.url = routes[i].url;
-                            if (route.changed()) {
-                                await route.save();
-                                console.log('UPDATED');
-                            } else {
-                                console.log('OK');
-                            }
-                        } else {
-                            route = await db.getModel('route').create({
-                                description: routes[i].description
-                                , file: routes[i].file
-                                , function: routes[i].function
-                                , needauth: routes[i].needauth
-                                , needperm: routes[i].needperm
-                                , url: routes[i].url
-                            });
-                            console.log('CREATED');
-                        }
-                        if (i != routes.length - 1) {
-                            console.log('------------------------------');
-                        }
-                    }
-                    console.log('-----------FINISHED-----------');
-                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-                }
-            } catch (err) {
-                return application.fatal(obj.res, err);
-            }
         }
     }
     , schedule: {
@@ -1107,10 +965,13 @@ let platform = {
                         , js: views[i].js
                         , wherefixed: views[i].wherefixed
                         , orderfixed: views[i].orderfixed
-                        , supressid: views[i].supressid
+                        , supressid: views[i].supressid ? true : false
+                        , neednoperm: views[i].neednoperm ? true : false
                         , template: views[i].template.name
-                        , model: views[i].model.name
+                        , model: views[i].model ? views[i].model.name : null
                         , module: views[i].module.description
+                        , menu: views[i].idmenu ? views[i].menu.tree : null
+                        , type: views[i].type
                         , url: views[i].url
                         , fastsearch: views[i].idfastsearch ? views[i].fastsearch.name : null
                         , lineheight: views[i].lineheight
@@ -1204,161 +1065,161 @@ let platform = {
                         console.log('VIEW ' + views[i].name);
                         let view = await db.getModel('view').findOne({ where: { name: views[i].name } });
                         let model = await db.getModel('model').findOne({ where: { name: views[i].model } });
+                        let menu = await db.getModel('menu').findOne({ where: { tree: views[i].menu } });
                         let modulee = await db.getModel('module').findOrCreate({ where: { description: views[i].module } });
                         let template = await db.getModel('template').findOrCreate({ where: { name: views[i].template } });
-                        let fastsearch = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i].fastsearch } });
-                        if (model) {
-                            if (view) {
-                                view.name = views[i].name;
-                                view.idtemplate = template[0].id;
-                                view.idmodel = model.id;
-                                view.idmodule = modulee[0].id;
-                                view.wherefixed = views[i].wherefixed;
-                                view.supressid = views[i].supressid;
-                                view.js = views[i].js;
-                                view.namecomplete = views[i].namecomplete;
-                                view.orderfixed = views[i].orderfixed;
-                                view.url = views[i].url;
-                                view.idfastsearch = fastsearch ? fastsearch.id : null;
-                                view.lineheight = views[i].lineheight;
-                                await view.save();
-                            } else {
-                                view = await db.getModel('view').create({
-                                    name: views[i].name
-                                    , idtemplate: template[0].id
-                                    , idmodel: model.id
-                                    , idmodule: modulee[0].id
-                                    , wherefixed: views[i].wherefixed
-                                    , supressid: views[i].supressid
-                                    , js: views[i].js
-                                    , namecomplete: views[i].namecomplete
-                                    , orderfixed: views[i].orderfixed
-                                    , url: views[i].url
-                                    , idfastsearch: fastsearch ? fastsearch.id : null
-                                    , lineheight: views[i].lineheight
-                                });
-                            }
-                            let viewfields = []
-                            for (let z = 0; z < views[i]._field.length; z++) {
-                                let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: template[0].id, name: views[i]._field[z].templatezone } });
-                                let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
-                                if (modelattribute) {
-                                    let viewfield = await db.getModel('viewfield').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
-                                    if (viewfield) {
-                                        viewfield.idtemplatezone = templatezone[0].id;
-                                        viewfield.width = views[i]._field[z].width;
-                                        viewfield.order = views[i]._field[z].order;
-                                        viewfield.disabled = views[i]._field[z].disabled;
-                                        viewfield.disablefilter = views[i]._field[z].disablefilter;
-                                        await viewfield.save();
-                                    } else {
-                                        viewfield = await db.getModel('viewfield').create({
-                                            idview: view.id
-                                            , idtemplatezone: templatezone[0].id
-                                            , idmodelattribute: modelattribute.id
-                                            , width: views[i]._field[z].width
-                                            , order: views[i]._field[z].order
-                                            , disabled: views[i]._field[z].disabled
-                                            , disablefilter: views[i]._field[z].disablefilter
-                                        });
-                                    }
-                                    viewfields.push(viewfield.id);
+                        let fastsearch = await db.getModel('modelattribute').findOne({ where: { idmodel: model ? model.id : 0, name: views[i].fastsearch } });
+                        if (view) {
+                            view.name = views[i].name;
+                            view.idtemplate = template[0].id;
+                            view.idmodel = model ? model.id : null;
+                            view.idmodule = modulee[0].id;
+                            view.idmenu = menu ? menu.id : null;
+                            view.type = views[i].type;
+                            view.wherefixed = views[i].wherefixed;
+                            view.supressid = views[i].supressid;
+                            view.neednoperm = views[i].neednoperm;
+                            view.js = views[i].js;
+                            view.namecomplete = views[i].namecomplete;
+                            view.orderfixed = views[i].orderfixed;
+                            view.url = views[i].url;
+                            view.idfastsearch = fastsearch ? fastsearch.id : null;
+                            view.lineheight = views[i].lineheight;
+                            await view.save();
+                        } else {
+                            view = await db.getModel('view').create({
+                                name: views[i].name
+                                , idtemplate: template[0].id
+                                , idmodel: model ? model.id : null
+                                , idmodule: modulee[0].id
+                                , idmenu: menu ? menu.id : null
+                                , type: views[i].type
+                                , wherefixed: views[i].wherefixed
+                                , supressid: views[i].supressid
+                                , neednoperm: views[i].neednoperm
+                                , js: views[i].js
+                                , namecomplete: views[i].namecomplete
+                                , orderfixed: views[i].orderfixed
+                                , url: views[i].url
+                                , idfastsearch: fastsearch ? fastsearch.id : null
+                                , lineheight: views[i].lineheight
+                            });
+                        }
+                        let viewfields = []
+                        for (let z = 0; z < views[i]._field.length; z++) {
+                            let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: template[0].id, name: views[i]._field[z].templatezone } });
+                            let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
+                            if (modelattribute) {
+                                let viewfield = await db.getModel('viewfield').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                if (viewfield) {
+                                    viewfield.idtemplatezone = templatezone[0].id;
+                                    viewfield.width = views[i]._field[z].width;
+                                    viewfield.order = views[i]._field[z].order;
+                                    viewfield.disabled = views[i]._field[z].disabled;
+                                    viewfield.disablefilter = views[i]._field[z].disablefilter;
+                                    await viewfield.save();
                                 } else {
-                                    console.error('ERROR: Model attribute "' + views[i]._field[z].modelattribute + '" not found');
-                                }
-                            }
-                            await db.getModel('viewfield').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewfields } } });
-                            let viewtables = [];
-                            for (let z = 0; z < views[i]._table.length; z++) {
-                                let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
-                                if (modelattribute) {
-                                    let viewtable = await db.getModel('viewtable').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
-                                    if (viewtable) {
-                                        viewtable.ordertable = views[i]._table[z].ordertable;
-                                        viewtable.orderable = views[i]._table[z].orderable;
-                                        viewtable.render = views[i]._table[z].render;
-                                        viewtable.totalize = views[i]._table[z].totalize;
-                                        viewtable.class = views[i]._table[z].class;
-                                        await viewtable.save();
-                                    } else {
-                                        viewtable = await db.getModel('viewtable').create({
-                                            idview: view.id
-                                            , idmodelattribute: modelattribute.id
-                                            , ordertable: views[i]._table[z].ordertable
-                                            , orderable: views[i]._table[z].orderable
-                                            , render: views[i]._table[z].render
-                                            , totalize: views[i]._table[z].totalize
-                                            , class: views[i]._table[z].class
-                                        });
-                                    }
-                                    viewtables.push(viewtable.id);
-                                } else {
-                                    console.error('ERROR: Model attribute "' + views[i]._table[z].modelattribute + '" not found');
-                                }
-                            }
-                            await db.getModel('viewtable').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewtables } } });
-                            let viewevents = [];
-                            for (let z = 0; z < views[i]._event.length; z++) {
-                                let viewevent = await db.getModel('viewevent').findOne({ where: { idview: view.id, description: views[i]._event[z].description } });
-                                if (viewevent) {
-                                    viewevent.icon = views[i]._event[z].icon;
-                                    viewevent.function = views[i]._event[z].function;
-                                    viewevent.parameters = views[i]._event[z].parameters;
-                                    await viewevent.save();
-                                } else {
-                                    viewevent = await db.getModel('viewevent').create({
+                                    viewfield = await db.getModel('viewfield').create({
                                         idview: view.id
-                                        , description: views[i]._event[z].description
-                                        , icon: views[i]._event[z].icon
-                                        , function: views[i]._event[z].function
-                                        , parameters: views[i]._event[z].parameters
+                                        , idtemplatezone: templatezone[0].id
+                                        , idmodelattribute: modelattribute.id
+                                        , width: views[i]._field[z].width
+                                        , order: views[i]._field[z].order
+                                        , disabled: views[i]._field[z].disabled
+                                        , disablefilter: views[i]._field[z].disablefilter
                                     });
                                 }
-                                viewevents.push(viewevent.id);
+                                viewfields.push(viewfield.id);
+                            } else {
+                                console.error('ERROR: Model attribute "' + views[i]._field[z].modelattribute + '" not found');
                             }
-                            await db.getModel('viewevent').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewevents } } });
-                        } else {
-                            views[i]._skipped = true;
-                            console.log('SKIPPED');
                         }
+                        await db.getModel('viewfield').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewfields } } });
+                        let viewtables = [];
+                        for (let z = 0; z < views[i]._table.length; z++) {
+                            let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
+                            if (modelattribute) {
+                                let viewtable = await db.getModel('viewtable').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                if (viewtable) {
+                                    viewtable.ordertable = views[i]._table[z].ordertable;
+                                    viewtable.orderable = views[i]._table[z].orderable;
+                                    viewtable.render = views[i]._table[z].render;
+                                    viewtable.totalize = views[i]._table[z].totalize;
+                                    viewtable.class = views[i]._table[z].class;
+                                    await viewtable.save();
+                                } else {
+                                    viewtable = await db.getModel('viewtable').create({
+                                        idview: view.id
+                                        , idmodelattribute: modelattribute.id
+                                        , ordertable: views[i]._table[z].ordertable
+                                        , orderable: views[i]._table[z].orderable
+                                        , render: views[i]._table[z].render
+                                        , totalize: views[i]._table[z].totalize
+                                        , class: views[i]._table[z].class
+                                    });
+                                }
+                                viewtables.push(viewtable.id);
+                            } else {
+                                console.error('ERROR: Model attribute "' + views[i]._table[z].modelattribute + '" not found');
+                            }
+                        }
+                        await db.getModel('viewtable').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewtables } } });
+                        let viewevents = [];
+                        for (let z = 0; z < views[i]._event.length; z++) {
+                            let viewevent = await db.getModel('viewevent').findOne({ where: { idview: view.id, description: views[i]._event[z].description } });
+                            if (viewevent) {
+                                viewevent.icon = views[i]._event[z].icon;
+                                viewevent.function = views[i]._event[z].function;
+                                viewevent.parameters = views[i]._event[z].parameters;
+                                await viewevent.save();
+                            } else {
+                                viewevent = await db.getModel('viewevent').create({
+                                    idview: view.id
+                                    , description: views[i]._event[z].description
+                                    , icon: views[i]._event[z].icon
+                                    , function: views[i]._event[z].function
+                                    , parameters: views[i]._event[z].parameters
+                                });
+                            }
+                            viewevents.push(viewevent.id);
+                        }
+                        await db.getModel('viewevent').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewevents } } });
                         if (i != views.length - 1) {
                             console.log('------------------------------');
                         }
                     }
                     for (let i = 0; i < views.length; i++) {
-                        if (!views[i]._skipped) {
-                            let view = await db.getModel('view').findOne({ include: [{ all: true }], where: { name: views[i].name } });
-                            let viewsubviews = [];
-                            for (let z = 0; z < views[i]._subview.length; z++) {
-                                let viewsubview = await db.getModel('view').findOne({ where: { name: views[i]._subview[z].subview } });
-                                if (viewsubview) {
-                                    let subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id, idsubview: viewsubview.id } });
-                                    let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone } });
-                                    if (subview) {
-                                        subview.description = views[i]._subview[z].description;
-                                        subview.idtemplatezone = templatezone[0].id;
-                                        await subview.save();
-                                    } else {
-                                        subview = await db.getModel('viewsubview').create({
-                                            idview: view.id
-                                            , idsubview: viewsubview.id
-                                            , idtemplatezone: templatezone[0].id
-                                            , description: views[i]._subview[z].description
-                                        });
-                                    }
-                                    viewsubviews.push(subview.id);
+                        let view = await db.getModel('view').findOne({ include: [{ all: true }], where: { name: views[i].name } });
+                        let viewsubviews = [];
+                        for (let z = 0; z < views[i]._subview.length; z++) {
+                            let viewsubview = await db.getModel('view').findOne({ where: { name: views[i]._subview[z].subview } });
+                            if (viewsubview) {
+                                let subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id, idsubview: viewsubview.id } });
+                                let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone } });
+                                if (subview) {
+                                    subview.description = views[i]._subview[z].description;
+                                    subview.idtemplatezone = templatezone[0].id;
+                                    await subview.save();
                                 } else {
-                                    console.error('ERROR: Subview "' + views[i]._subview[z].subview + '" not found');
+                                    subview = await db.getModel('viewsubview').create({
+                                        idview: view.id
+                                        , idsubview: viewsubview.id
+                                        , idtemplatezone: templatezone[0].id
+                                        , description: views[i]._subview[z].description
+                                    });
                                 }
+                                viewsubviews.push(subview.id);
+                            } else {
+                                console.error('ERROR: Subview "' + views[i]._subview[z].subview + '" not found');
                             }
-                            await db.getModel('viewsubview').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewsubviews } } });
                         }
+                        await db.getModel('viewsubview').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewsubviews } } });
                     }
                     console.log('-----------FINISHED-----------');
                     return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }
             } catch (err) {
-                return application.error(obj.res, { msg: err });
+                return application.fatal(obj.res, err);
             }
         }
         , f_getFilteredRegisters: function (obj) {

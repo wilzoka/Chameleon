@@ -3,136 +3,96 @@
         "description": "Plataforma",
         "icon": "fa fa-cogs",
         "menuparent": null,
-        "view": null,
-        "url": null,
         "tree": "Plataforma"
     },
     {
         "description": "Agendamentos",
         "icon": "fa fa-clock",
         "menuparent": "Plataforma",
-        "view": "Agendamento",
-        "url": null,
         "tree": "Plataforma - Agendamentos"
     },
     {
         "description": "Arquivos",
         "icon": "fa fa-file-archive",
         "menuparent": "Plataforma",
-        "view": "Arquivo",
-        "url": null,
         "tree": "Plataforma - Arquivos"
     },
     {
         "description": "Auditoria",
         "icon": "fa fa-eye",
         "menuparent": "Plataforma",
-        "view": "Auditoria",
-        "url": null,
         "tree": "Plataforma - Auditoria"
     },
     {
         "description": "Configurações",
         "icon": "fa fa-cog",
         "menuparent": "Plataforma",
-        "view": "Configuração da Plataforma",
-        "url": "/v/configuracao_da_plataforma/1",
         "tree": "Plataforma - Configurações"
     },
     {
         "description": "Grupos de Usuário",
         "icon": "fa fa-users",
         "menuparent": "Plataforma",
-        "view": "Grupo de Usuário",
-        "url": null,
         "tree": "Plataforma - Grupos de Usuário"
     },
     {
         "description": "Mensageiros",
         "icon": "fa fa-comments",
         "menuparent": "Plataforma",
-        "view": "Mensageiro",
-        "url": null,
         "tree": "Plataforma - Mensageiros"
     },
     {
         "description": "Menus",
         "icon": "fa fa-list-ul",
         "menuparent": "Plataforma",
-        "view": "Menu",
-        "url": null,
         "tree": "Plataforma - Menus"
     },
     {
         "description": "Modelos",
         "icon": "fa fa-asterisk",
         "menuparent": "Plataforma",
-        "view": "Modelo",
-        "url": null,
         "tree": "Plataforma - Modelos"
     },
     {
         "description": "Módulos",
         "icon": "fa fa-cubes",
         "menuparent": "Plataforma",
-        "view": "Módulo",
-        "url": null,
         "tree": "Plataforma - Módulos"
     },
     {
         "description": "Parâmetros",
         "icon": "fa fa-code",
         "menuparent": "Plataforma",
-        "view": "Parâmetros",
-        "url": null,
         "tree": "Plataforma - Parâmetros"
     },
     {
         "description": "Permissões",
         "icon": "fa fa-lock",
         "menuparent": "Plataforma",
-        "view": "Permissão",
-        "url": null,
         "tree": "Plataforma - Permissões"
     },
     {
         "description": "Relatórios",
         "icon": "fa fa-file-pdf",
         "menuparent": "Plataforma",
-        "view": "Relatório",
-        "url": null,
         "tree": "Plataforma - Relatórios"
-    },
-    {
-        "description": "Rotas",
-        "icon": "fa fa-sync",
-        "menuparent": "Plataforma",
-        "view": "Rota",
-        "url": null,
-        "tree": "Plataforma - Rotas"
     },
     {
         "description": "Templates",
         "icon": "fa fa-newspaper",
         "menuparent": "Plataforma",
-        "view": "Template",
-        "url": null,
         "tree": "Plataforma - Templates"
     },
     {
         "description": "Usuários",
         "icon": "fa fa-user",
         "menuparent": "Plataforma",
-        "view": "Usuário",
-        "url": null,
         "tree": "Plataforma - Usuários"
     },
     {
         "description": "Views",
         "icon": "fa fa-tv",
         "menuparent": "Plataforma",
-        "view": "View",
-        "url": null,
         "tree": "Plataforma - Views"
     }
 ]

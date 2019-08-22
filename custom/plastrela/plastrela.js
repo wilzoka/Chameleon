@@ -3841,13 +3841,13 @@ let main = {
                         return application.fatal(obj.res, err);
                     }
                 }
-                , r_balanco: async function (obj) {
+                , js_balanco: async function (obj) {
                     try {
 
                         let f = {
                             getAtual: async (obj) => {
 
-                                let dep = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
+                                let dep = await db.getModel('est_deposito').findOne({ where: { id: obj.data.iddeposito } });
                                 let deps = `(${dep.codigo})`
                                 if ([7, 8, 9, 10].indexOf(dep.codigo) >= 0) {
                                     deps = '(7,8,9,10)';
@@ -3874,7 +3874,7 @@ let main = {
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
-                                            v1: obj.req.body.iddeposito
+                                            v1: obj.data.iddeposito
                                             , v2: obj.req.user.id
                                         }
                                     });
@@ -3900,7 +3900,7 @@ let main = {
                                 `, {
                                         type: db.sequelize.QueryTypes.SELECT
                                         , replacements: {
-                                            v1: obj.req.body.iddeposito
+                                            v1: obj.data.iddeposito
                                             , v2: obj.req.user.id
                                         }
                                     });
@@ -3914,35 +3914,35 @@ let main = {
                                     });
                             }
                             , salvar: async (obj) => {
-                                if (!obj.req.body.iddeposito) {
+                                if (!obj.data.iddeposito) {
                                     return application.error(obj.res, { msg: 'Selecione um depósito' });
                                 }
-                                if (!obj.req.body.idsfound) {
+                                if (!obj.data.idsfound) {
                                     return application.error(obj.res, { msg: 'Encontre pelo menos um volume' });
                                 }
-                                await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.req.body.iddeposito } });
+                                await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.data.iddeposito } });
                                 let bulk = [];
-                                for (let i = 0; i < obj.req.body.idsfound.length; i++) {
+                                for (let i = 0; i < obj.data.idsfound.length; i++) {
                                     bulk.push({
-                                        idvolume: obj.req.body.idsfound[i]
+                                        idvolume: obj.data.idsfound[i]
                                         , iduser: obj.req.user.id
-                                        , iddeposito: obj.req.body.iddeposito
+                                        , iddeposito: obj.data.iddeposito
                                     })
                                 }
                                 await db.getModel('est_volumebalanco').bulkCreate(bulk);
                                 return application.success(obj.res, { msg: application.message.success });
                             }
                             , reiniciar: async (obj) => {
-                                if (!obj.req.body.iddeposito) {
+                                if (!obj.data.iddeposito) {
                                     return application.error(obj.res, { msg: 'Selecione um depósito' });
                                 }
-                                await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.req.body.iddeposito } });
+                                await db.getModel('est_volumebalanco').destroy({ where: { iduser: obj.req.user.id, iddeposito: obj.data.iddeposito } });
                                 f.getAtual(obj);
                             }
                             , imprimir: async (obj) => {
                                 try {
 
-                                    if (!obj.req.body.iddeposito) {
+                                    if (!obj.data.iddeposito) {
                                         return application.error(obj.res, { msg: 'Selecione um depósito' });
                                     }
 
@@ -3975,7 +3975,7 @@ let main = {
                                     `, {
                                             type: db.sequelize.QueryTypes.SELECT
                                             , replacements: {
-                                                v1: obj.req.body.idsfound || 0
+                                                v1: obj.data.idsfound || 0
                                             }
                                         });
 
@@ -4019,7 +4019,7 @@ let main = {
 
                                     let body2 = [];
 
-                                    let dep = await db.getModel('est_deposito').findOne({ where: { id: obj.req.body.iddeposito } });
+                                    let dep = await db.getModel('est_deposito').findOne({ where: { id: obj.data.iddeposito } });
                                     let deps = `(${dep.codigo})`
                                     if ([7, 8, 9, 10].indexOf(dep.codigo) >= 0) {
                                         deps = '(7,8,9,10)';
@@ -4044,7 +4044,7 @@ let main = {
                                     `, {
                                             type: db.sequelize.QueryTypes.SELECT
                                             , replacements: {
-                                                v1: obj.req.body.idsfound || 0
+                                                v1: obj.data.idsfound || 0
                                             }
                                         });
 
@@ -4156,17 +4156,17 @@ let main = {
                             }
                             , ajustes: async (obj) => {
                                 try {
-                                    if (!obj.req.body.ajustes || Object.keys(obj.req.body.ajustes).length <= 0) {
+                                    if (!obj.data.ajustes || Object.keys(obj.data.ajustes).length <= 0) {
                                         return application.error(obj.res, { msg: 'Não possui ajustes a serem aplicados' });
                                     }
-                                    for (let k in obj.req.body.ajustes) {
-                                        let qtd = application.formatters.be.decimal(obj.req.body.ajustes[k]);
+                                    for (let k in obj.data.ajustes) {
+                                        let qtd = application.formatters.be.decimal(obj.data.ajustes[k]);
                                         if (qtd < 0) {
                                             return application.error(obj.res, { msg: `Não é possível aplicar um ajuste negativo, ID ${k}` });
                                         }
                                     }
-                                    for (let k in obj.req.body.ajustes) {
-                                        let qtd = application.formatters.be.decimal(obj.req.body.ajustes[k]);
+                                    for (let k in obj.data.ajustes) {
+                                        let qtd = application.formatters.be.decimal(obj.data.ajustes[k]);
                                         let volume = await db.getModel('est_volume').findOne({ where: { id: k } });
                                         let dif = qtd - parseFloat(volume.qtdreal);
                                         volume.qtdreal = qtd;
@@ -4191,8 +4191,8 @@ let main = {
                             }
                         }
 
-                        if (obj.req.body.function in f) {
-                            f[obj.req.body.function](obj);
+                        if (obj.data.function in f) {
+                            f[obj.data.function](obj);
                         } else {
                             return application.error(obj.res, { msg: 'Função não encontrada' });
                         }
@@ -5340,10 +5340,24 @@ let main = {
                                 , type: db.sequelize.QueryTypes.SELECT
                             });
 
+                        function calculaTurno(hora) {
+                            hora = hora.split(':');
+                            let horaint = (parseInt(hora[0]) * 60) + parseInt(hora[1]);
+                            if (horaint >= 421 && horaint <= 920) {
+                                return 'A'
+                            } else if (horaint >= 921 && horaint <= 1400) {
+                                return 'B';
+                            } else {
+                                return 'C';
+                            }
+                        }
+
                         let data = { id: null, text: null };
                         if (sql.length > 0) {
-                            data.id = sql[0].iduser;
-                            data.text = sql[0].fullname;
+                            if (calculaTurno(moment(sql[0].datahora, application.formatters.be.datetime_format).format('HH:mm')) == calculaTurno(moment().format('HH:mm'))) {
+                                data.id = sql[0].iduser;
+                                data.text = sql[0].fullname;
+                            }
                         }
                         return application.success(obj.res, { data: data });
 
@@ -7420,7 +7434,7 @@ let main = {
                         } else {
                             application.success(obj.res, { msg: application.message.success, reloadtables: true });
                         }
-                        
+
                     } catch (err) {
                         application.fatal(obj.res, err);
                     } finally {
@@ -8321,6 +8335,34 @@ let main = {
                             });
                         }
 
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , e_gerarOPRevisora: async function (obj) {
+                    try {
+                        if (obj.ids.length != 1) {
+                            return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                        }
+                        let oprecurso = await db.getModel('pcp_oprecurso').findOne({ where: { id: obj.ids[0] } });
+                        let opetapa = await db.getModel('pcp_opetapa').findOne({ where: { id: oprecurso.idopetapa } });
+                        let etapa = await db.getModel('pcp_etapa').findOne({ where: { codigo: 80 } });
+
+                        let opetapanova = await db.getModel('pcp_opetapa').create({
+                            seq: 99
+                            , idop: opetapa.idop
+                            , idetapa: etapa.id
+                        });
+                        let recurso = await db.getModel('pcp_recurso').findOne({ where: { codigo: 801 } });
+                        let opestado = await db.getModel('pcp_opestado').findOne({ where: { descricao: 'Em Fila de Produção' } });
+                        await db.getModel('pcp_oprecurso').create({
+                            idrecurso: recurso ? recurso.id : null
+                            , peso: 0
+                            , idopetapa: opetapanova.id
+                            , quantidade: 0
+                            , idestado: opestado.id
+                        });
+                        return application.success(obj.res, { msg: application.message.success, reloadtables: true });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
@@ -9704,22 +9746,22 @@ let main = {
                     }
                 }
             }
-            , r_conferenciaAp: async function (obj) {
+            , js_conferenciaAp: async function (obj) {
                 try {
 
-                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['dataini', 'datafim', 'idrecurso']);
+                    let invalidfields = application.functions.getEmptyFields(obj.data, ['dataini', 'datafim', 'idrecurso']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
 
                     let filterop = '';
-                    if (obj.req.body.idop) {
-                        filterop = ' and op.id = ' + obj.req.body.idop;
+                    if (obj.data.idop) {
+                        filterop = ' and op.id = ' + obj.data.idop;
                     }
 
                     let unions = [];
 
-                    if (obj.req.body.producao == 'true') {
+                    if (obj.data.producao == 'true') {
                         unions.push(`
                             with maximo as (
                             select
@@ -9755,7 +9797,7 @@ let main = {
                                     and opr.idrecurso = :v4 ` + filterop + `) as x
                             `);
                     }
-                    if (obj.req.body.perda == 'true') {
+                    if (obj.data.perda == 'true') {
                         unions.push(`
                             select
                                 'perda'::text as tipo
@@ -9778,7 +9820,7 @@ let main = {
                                 app.datahora >= :v1 and app.datahora <= :v2
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
-                    if (obj.req.body.parada == 'true') {
+                    if (obj.data.parada == 'true') {
                         unions.push(`
                             select
                                 'parada'::text as tipo
@@ -9801,7 +9843,7 @@ let main = {
                                 app.dataini >= :v1 and app.datafim <= :v2
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
-                    if (obj.req.body.insumo == 'true') {
+                    if (obj.data.insumo == 'true') {
                         unions.push(`
                             select
                                 'insumo'::text as tipo
@@ -9823,7 +9865,7 @@ let main = {
                                 api.datahora >= :v1 and api.datahora <= :v2
                                 and opr.idrecurso = :v4 ` + filterop);
                     }
-                    if (obj.req.body.sobra == 'true') {
+                    if (obj.data.sobra == 'true') {
                         unions.push(`
                             select
                                 'sobra'::text as tipo
@@ -9855,9 +9897,9 @@ let main = {
                             {
                                 type: db.sequelize.QueryTypes.SELECT
                                 , replacements: {
-                                    v1: application.formatters.be.datetime(obj.req.body.dataini)
-                                    , v2: application.formatters.be.datetime(obj.req.body.datafim)
-                                    , v4: obj.req.body.idrecurso
+                                    v1: application.formatters.be.datetime(obj.data.dataini)
+                                    , v2: application.formatters.be.datetime(obj.data.datafim)
+                                    , v4: obj.data.idrecurso
                                 }
                             });
 
@@ -10018,17 +10060,17 @@ let main = {
                     return application.fatal(obj.res, err);
                 }
             }
-            , r_pcp112: async (obj) => {
+            , js_pcp112: async (obj) => {
                 try {
-                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['datahoraini', 'datahorafim', 'idrecurso']);
+                    let invalidfields = application.functions.getEmptyFields(obj.data, ['datahoraini', 'datahorafim', 'idrecurso']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let rec = [];
-                    if (typeof obj.req.body.idrecurso == 'string') {
-                        obj.req.body.idrecurso = [obj.req.body.idrecurso];
+                    if (typeof obj.data.idrecurso == 'string') {
+                        obj.data.idrecurso = [obj.data.idrecurso];
                     }
-                    let recursos = await db.getModel('pcp_recurso').findAll({ where: { id: { [db.Op.in]: obj.req.body.idrecurso } } });
+                    let recursos = await db.getModel('pcp_recurso').findAll({ where: { id: { [db.Op.in]: obj.data.idrecurso } } });
                     for (let i = 0; i < recursos.length; i++) {
                         rec.push(recursos[i].codigo);
                     }
@@ -10038,11 +10080,11 @@ let main = {
                     let query = await needle('post', 'http://172.10.30.18/SistemaH/scripts/socket/scripts2socket.php', {
                         function: 'PLAIniflexSQL', param: JSON.stringify([`
                         with ops as (
-                                select empresa, etapa, recurso, op from pcpapproducao where empresa = ${empresa} and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                select empresa, etapa, recurso, op from pcpapproducao where empresa = ${empresa} and data_hora_ini >= cast('${obj.data.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.data.datahorafim}:00' as timestamp)
                                 union
-                                select empresa, etapa, recurso, op from pcpapparada where empresa = ${empresa} and data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                select empresa, etapa, recurso, op from pcpapparada where empresa = ${empresa} and data_hora_ini >= cast('${obj.data.datahoraini}:00' as timestamp) and data_hora_fim <= cast('${obj.data.datahorafim}:00' as timestamp)
                                 union
-                                select empresa, etapa, recurso, op from pcpapperda where empresa = ${empresa} and data_hora between cast('${obj.req.body.datahoraini}:00' as timestamp) and cast('${obj.req.body.datahorafim}:00' as timestamp)
+                                select empresa, etapa, recurso, op from pcpapperda where empresa = ${empresa} and data_hora between cast('${obj.data.datahoraini}:00' as timestamp) and cast('${obj.data.datahorafim}:00' as timestamp)
                         )
                         select
                                 x.*
@@ -10063,15 +10105,15 @@ let main = {
                                         , ops.recurso
                                         , ops.op
                                         , i.descricao as produto
-                                        , coalesce(round((select sum(ap.quantidade) from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as qtd
-                                        , coalesce(round((select sum(ap.peso - ap.peso_tara) from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as peso
-                                        , coalesce(round((select sum(ap.data_hora_fim - ap.data_hora_ini) * 24 * 60 from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),1),0) as tempoprod
-                                        , coalesce(round((select sum(ap.peso) from pcpapperda ap where ap.data_hora >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as perda
+                                        , coalesce(round((select sum(ap.quantidade) from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.data.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.data.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as qtd
+                                        , coalesce(round((select sum(ap.peso - ap.peso_tara) from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.data.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.data.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as peso
+                                        , coalesce(round((select sum(ap.data_hora_fim - ap.data_hora_ini) * 24 * 60 from pcpapproducao ap where ap.data_hora_ini >= cast('${obj.data.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.data.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),1),0) as tempoprod
+                                        , coalesce(round((select sum(ap.peso) from pcpapperda ap where ap.data_hora >= cast('${obj.data.datahoraini}:00' as timestamp) and ap.data_hora <= cast('${obj.data.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso),3),0) as perda
                                         , coalesce(round((select sum(ap.data_hora_fim - ap.data_hora_ini) * 24 * 60 from pcpapparada ap
-                                                where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso 
+                                                where ap.data_hora_ini >= cast('${obj.data.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.data.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso 
                                                 and ap.motivo_parada not in (select mp.codigo from pcpmotivoparada mp where mp.acerto_maquina = 'S')),1),0) as parada
                                         , coalesce(round((select sum(ap.data_hora_fim - ap.data_hora_ini) * 24 * 60 from pcpapparada ap
-                                                where ap.data_hora_ini >= cast('${obj.req.body.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.req.body.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso 
+                                                where ap.data_hora_ini >= cast('${obj.data.datahoraini}:00' as timestamp) and ap.data_hora_ini <= cast('${obj.data.datahorafim}:00' as timestamp) and ap.empresa = ops.empresa and ap.op = ops.op and ap.etapa = ops.etapa and ap.recurso = ops.recurso 
                                                 and ap.motivo_parada in (select mp.codigo from pcpmotivoparada mp where mp.acerto_maquina = 'S')),1),0) as acerto
                                 from
                                         ops
@@ -10091,7 +10133,7 @@ let main = {
                     }
 
                     let report = {};
-                    report.__title = `Resumo de Produção por Recurso<br>${obj.req.body.datahoraini} - ${obj.req.body.datahorafim}`;
+                    report.__title = `Resumo de Produção por Recurso<br>${obj.data.datahoraini} - ${obj.data.datahorafim}`;
                     report.__table = `
                     `;
 

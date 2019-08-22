@@ -28,7 +28,7 @@ let fileupload = multer({ storage: storage }).single('file');
 
 const hasPermission = function (iduser, idview) {
     return new Promise((resolve) => {
-        let permissionquery = 'select p.*, v.id as idview from permission p left join menu m on (p.idmenu = m.id) left join view v on (m.idview = v.id) where p.iduser = :iduser';
+        let permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
         let getChilds = function (idview, subviews) {
             let returnsubviews = [];
             for (let i = 0; i < subviews.length; i++) {

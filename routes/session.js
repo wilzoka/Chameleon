@@ -59,54 +59,34 @@ module.exports = function (app) {
                     return res.status(401).send();
                 }
             }
-
-            let menu = await db.getModel('menu').findAll({
-                include: { all: true }
-                , where: { idmenuparent: { [db.Op.eq]: null } }
-                , order: [['description', 'asc']]
-                , raw: true
-            });
-
-            let childs = await db.getModel('menu').findAll({
-                include: { all: true }
-                , where: { idmenuparent: { [db.Op.ne]: null } }
-                , order: [['description', 'asc']]
-                , raw: true
-            });
-
+            let menu = await db.sequelize.query(`select m.*, v.id as idview, v.url from menu m left join view v on (m.id = v.idmenu) where m.idmenuparent is null order by tree`, { type: db.Sequelize.QueryTypes.SELECT });
+            let childs = await db.sequelize.query(`select m.*, v.id as idview, v.url from menu m left join view v on (m.id = v.idmenu) where m.idmenuparent is not null order by tree`, { type: db.Sequelize.QueryTypes.SELECT });
             let permissions = await db.getModel('permission').findAll({
-                where: { iduser: req.user.id, visible: true, hidelisting: { [db.Op.or]: [null, false] } }
+                where: { iduser: req.user.id, idview: { [db.Op.not]: null }, visible: true }
                 , raw: true
             });
-
             permissionarr = [];
             for (let i = 0; i < permissions.length; i++) {
-                permissionarr.push(permissions[i].idmenu);
+                permissionarr.push(permissions[i].idview);
             }
-
             for (let i = 0; i < menu.length; i++) {
                 menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
-                if (menu[i].children.length == 0 && (menu[i].idview == null && menu[i].url == null)) {
+                if (menu[i].children.length == 0) {
                     menu.splice(i, 1);
                     i--;
                 }
             }
-
             let menuhtml = '';
             for (let i = 0; i < menu.length; i++) {
                 menuhtml += application.menu.renderMenu(menu[i]);
             }
-
             let redirect = '/home';
-            if (req.user.idmenu) {
-                let defaultmenu = await db.getModel('menu').findOne({ include: [{ all: true }], where: { id: req.user.idmenu } });
-                if (defaultmenu.url) {
-                    redirect = defaultmenu.url;
-                } else if (defaultmenu.idview) {
-                    redirect = defaultmenu.url || '/v/' + defaultmenu.view.url;
+            if (req.user.idview) {
+                let defaultpage = await db.getModel('view').findOne({ raw: true, where: { id: req.user.idview } });
+                if (defaultpage) {
+                    redirect = '/v/' + defaultpage.url;
                 }
             }
-
             return application.success(res, {
                 redirect: redirect
                 , localstorage: [
@@ -116,17 +96,16 @@ module.exports = function (app) {
                     , { key: 'descriptionmenumini', value: config.descriptionmenumini }
                 ]
             });
-
         } catch (err) {
             return application.fatal(res, err);
         }
-    }, function (err, req, res, next) {
+    }, function (err, req, res) {
         if (req.xhr) {
             return res.json(err);
         }
     });
 
-    app.get('/logout', function (req, res, next) {
+    app.get('/logout', function (req, res) {
         req.logout();
         return res.redirect("/login");
     });
