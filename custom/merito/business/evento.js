@@ -38,7 +38,7 @@ let main = {
                         , idevento: evento.id
                         , idcategoria: tarefa.idcategoria
                         , prazo: tarefatipoevento[i].previsaoinicio ? moment(evento.data_evento, application.formatters.be.date_format).subtract(tarefatipoevento[i].previsaoinicio, 'day') : null
-                        , concluida: false
+                        , situacao: "Pendente"
                     })
                 }
             } else {
@@ -73,13 +73,35 @@ let main = {
                 return application.fatal(obj.res, err);
             }
         }
-        , e_concluirTarefas: async function (obj) {
+        , e_alterarSituacao: async function (obj) {
             try {
-                let tarefasdoevento = await db.getModel('eve_eventotarefa').findAll({ where: { id: obj.ids } });
-                if (tarefasdoevento.length > 0) {
-                    for (let i = 0; i < tarefasdoevento.length; i++) {
-                        db.getModel('eve_eventotarefa').update({ concluida: true }
-                            , { where: { id: tarefasdoevento[i].id } });
+                if (obj.req.method == 'GET') {
+                    let body = '';
+                    body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                    body += application.components.html.autocomplete({
+                        width: 12
+                        , label: "Nova Situação*"
+                        , name: "situacao"
+                        , options: ["Pendente", "Não há Interesse", "Em Andamento", "Concluída"]
+                    });
+
+                    return application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , id: 'modalevt'
+                            , action: '/event/' + obj.event.id
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Cadastrar</button>'
+                        }
+                    });
+                } else {
+                    let tarefasdoevento = await db.getModel('eve_eventotarefa').findAll({ where: { id: obj.req.body.ids } });
+                    if (tarefasdoevento.length > 0) {
+                        for (let i = 0; i < tarefasdoevento.length; i++) {
+                            db.getModel('eve_eventotarefa').update({ situacao: obj.req.body.situacao }
+                                , { where: { id: tarefasdoevento[i].id } });
+                        }
                     }
                 }
                 return application.success(obj.res, { msg: application.message.success, reloadtables: true });
