@@ -1,10 +1,10 @@
 /* AdminLTE */
-@media (max-width: 991px) {
+@media (max-width: 991px){
     .main-header .navbar-custom-menu a, .main-header .navbar-right a {
         color: #3c8dbc;
     }    
 }
-@media (min-width: 768px) {
+@media (min-width: 768px){
     .sidebar-mini.sidebar-collapse .main-sidebar {
         -webkit-transform: translate(-230px, 0);
         -ms-transform: translate(-230px, 0);
@@ -64,7 +64,12 @@
 div.wrapper {
     overflow: hidden;
 }
-.nav-tabs-custom {
+.main-header .navbar .nav > li > a > .label {
+    font-size: 12px;
+    right: 5px;
+    border-radius: 7px;
+}
+.nav-tabs-custom{
     border: 1px solid #d4d4d4;
 }
 .nav-tabs-custom > .nav-tabs {

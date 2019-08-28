@@ -34,7 +34,7 @@
     "pdfmake": "0.1.58",
     "pg": "7.12.1",
     "pg-hstore": "2.3.3",
-    "sequelize": "5.16.0",
+    "sequelize": "5.15.1",
     "sharp": "0.23.0",
     "socket.io": "2.2.0",
     "svg-to-pdfkit": "0.1.7",
