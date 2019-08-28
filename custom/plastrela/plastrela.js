@@ -7504,7 +7504,7 @@ let main = {
                                 await volumes[i].save({ iduser: obj.req.user.id });
                             }
                             for (let i = 0; i < volumesreservas.length; i++) {
-                                if (volumesreservas[i].idopetapa = opetapa.id) {
+                                if (volumesreservas[i].idopetapa == opetapa.id) {
                                     volumesreservas[i].apontado = false;
                                     await volumesreservas[i].save({ iduser: obj.req.user.id });
                                 }
