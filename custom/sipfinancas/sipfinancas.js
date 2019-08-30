@@ -738,7 +738,6 @@ let main = {
 
                             let total = 0;
                             let report = {};
-                            let categoria = await db.getModel('fin_categoria').findOne({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Contas a Receber em Aberto</br>Vencimento de ${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table = `
@@ -863,7 +862,6 @@ let main = {
 
                             let total = 0;
                             let report = {};
-                            let categoria = await db.getModel('fin_categoria').findOne({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Contas a Pagar em Aberto</br>Vencimento de ${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table = `
@@ -2005,7 +2003,6 @@ let main = {
                                 });
 
                             let total = 0;
-                            let categoria = await db.getModel('fin_categoria').findOne({ where: { id: obj.req.body.idcategoria } });
                             report.__title = `Movimentações</br>${obj.req.body.dataini} até ${obj.req.body.datafim}</br>`;
 
                             report.__table += `
