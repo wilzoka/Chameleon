@@ -4581,7 +4581,7 @@ let main = {
                                 await prerequisicao.save({ iduser: obj.req.user.id, transaction: obj.transaction });
                             }
                         }
-                        next(obj);
+                        await next(obj);
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }
