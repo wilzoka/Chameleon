@@ -275,7 +275,7 @@ let platform = {
                     return application.error(obj.res, { msg: 'Não é possível alterar o nome de um modelo' });
                 }
 
-                next(obj);
+                await next(obj);
 
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -297,7 +297,7 @@ let platform = {
                     }
                 }
 
-                next(obj);
+                await next(obj);
             } catch (err) {
                 return application.error(obj.res, { msg: err });
             }
@@ -305,7 +305,6 @@ let platform = {
         , e_syncAll: function (obj) {
             let models = {};
             db.sequelize.query("SELECT m.name as model, ma.* FROM model m INNER JOIN modelattribute ma ON (m.id = ma.idmodel) WHERE ma.type NOT IN ('virtual') ORDER by m.name", { type: db.sequelize.QueryTypes.SELECT }).then(results => {
-
                 let modelname;
                 let modelattributeobj = {};
                 let defineModel = function (name, attr) {
@@ -314,32 +313,44 @@ let platform = {
                         , timestamps: false
                     });
                 }
-
                 //Create Attributes
                 for (let i = 0; i < results.length; i++) {
-                    // Startf
                     if (i == 0) {
                         modelname = results[i].model;
                         modelattributeobj = {};
                     }
                     if (modelname == results[i].model) {
-
-                        modelattributeobj[results[i].name] = application.sequelize.decodeType(db.Sequelize, results[i].type);
-
+                        if (results[i].type == 'decimal') {
+                            modelattributeobj[results[i].name] = {
+                                type: application.sequelize.decodeType(db.Sequelize, results[i].type)
+                                , get(name) {
+                                    const value = this.getDataValue(name);
+                                    return value === null ? null : parseFloat(value);
+                                }
+                            };
+                        } else {
+                            modelattributeobj[results[i].name] = application.sequelize.decodeType(db.Sequelize, results[i].type);
+                        }
                     } else {
-
                         defineModel(modelname, modelattributeobj);
-
                         modelname = results[i].model;
                         modelattributeobj = {};
-                        modelattributeobj[results[i].name] = application.sequelize.decodeType(db.Sequelize, results[i].type);
+                        if (results[i].type == 'decimal') {
+                            modelattributeobj[results[i].name] = {
+                                type: application.sequelize.decodeType(db.Sequelize, results[i].type)
+                                , get(name) {
+                                    const value = this.getDataValue(name);
+                                    return value === null ? null : parseFloat(value);
+                                }
+                            };
+                        } else {
+                            modelattributeobj[results[i].name] = application.sequelize.decodeType(db.Sequelize, results[i].type);
+                        }
                     }
-
                     if (i == results.length - 1) {
                         defineModel(modelname, modelattributeobj);
                     }
                 }
-
                 //Create References
                 for (let i = 0; i < results.length; i++) {
                     let j = {};
@@ -364,18 +375,14 @@ let platform = {
                             break;
                     }
                 }
-
                 db.setModels(models);
-
                 db.sequelize.sync({ alter: true }).then(() => {
                     return application.success(obj.res, { msg: application.message.success });
                 }).catch(err => {
                     console.error(err);
                     return application.error(obj.res, { msg: err });
                 });
-
             });
-
         }
         , e_export: async function (obj) {
             try {
@@ -690,7 +697,7 @@ let platform = {
                 if (permission) {
                     return application.error(obj.res, { msg: 'Este usuário já possui acesso a esta view' });
                 }
-                next(obj);
+                await next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
@@ -910,7 +917,7 @@ let platform = {
                     obj.register.password = Cyjs.SHA3(`${application.sk}${obj.register.newpassword}${application.sk}`).toString();
                     obj.register.newpassword = null;
                 }
-                next(obj);
+                await next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);
             }

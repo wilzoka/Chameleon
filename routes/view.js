@@ -1,6 +1,5 @@
 const application = require('./application')
     , db = require('../models')
-    , lodash = require('lodash')
     , moment = require('moment')
     , fs = require('fs-extra')
     , escape = require('escape-html')
@@ -491,68 +490,64 @@ const modelate = function (obj) {
 }
 
 const validate = function (obj) {
-    return new Promise((resolve) => {
-
-        let invalidfields = [];
-
-        for (let i = 0; i < obj.modelattributes.length; i++) {
-
-            let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
-
-            // NotNull
-            if (obj.modelattributes[i].type == 'boolean' && obj.register[obj.modelattributes[i].name] == null) {
-                obj.register[obj.modelattributes[i].name] = false;
-            } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
-                if (!Number.isInteger(obj.register[obj.modelattributes[i].name])) {
-                    invalidfields.push(obj.modelattributes[i].name);
-                }
-            } else {
-                if (obj.modelattributes[i].notnull && obj.register[obj.modelattributes[i].name] == null) {
-                    invalidfields.push(obj.modelattributes[i].name);
-                }
+    let invalidfields = [];
+    for (let i = 0; i < obj.modelattributes.length; i++) {
+        let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+        // NotNull
+        if (obj.modelattributes[i].type == 'boolean' && obj.register[obj.modelattributes[i].name] == null) {
+            obj.register[obj.modelattributes[i].name] = false;
+        } else if (obj.modelattributes[i].notnull && obj.modelattributes[i].type == 'integer') {
+            if (!Number.isInteger(obj.register[obj.modelattributes[i].name])) {
+                invalidfields.push(obj.modelattributes[i].name);
             }
-
-            // File
-            if (obj.modelattributes[i].type == 'file') {
-                if (j.sizeTotal) {
-                    if (obj.register[obj.modelattributes[i].name]) {
-                        let filesize = 0;
-                        let files = JSON.parse(obj.register[obj.modelattributes[i].name]);
-                        for (let z = 0; z < files.length; z++) {
-                            filesize += files[z].size;
-                        }
-                        if (filesize > (j.sizeTotal * 1024 * 1024)) {
-                            return resolve({ success: false, msg: 'Tamanho máximo de arquivos excedido (' + j.sizeTotal + ' MB)', invalidfields: [obj.modelattributes[i].name] });
-                        }
+        } else {
+            if (obj.modelattributes[i].notnull && obj.register[obj.modelattributes[i].name] == null) {
+                invalidfields.push(obj.modelattributes[i].name);
+            }
+        }
+        // File
+        if (obj.modelattributes[i].type == 'file') {
+            if (j.sizeTotal) {
+                if (obj.register[obj.modelattributes[i].name]) {
+                    let filesize = 0;
+                    let files = JSON.parse(obj.register[obj.modelattributes[i].name]);
+                    for (let z = 0; z < files.length; z++) {
+                        filesize += files[z].size;
+                    }
+                    if (filesize > (j.sizeTotal * 1024 * 1024)) {
+                        return { success: false, msg: 'Tamanho máximo de arquivos excedido (' + j.sizeTotal + ' MB)', invalidfields: [obj.modelattributes[i].name] };
                     }
                 }
             }
-
         }
-
-        if (invalidfields.length > 0) {
-            return resolve({ success: false, msg: application.message.invalidFields, invalidfields: invalidfields });
-        } else {
-            return resolve({ success: true });
-        }
-
-    });
-}
-
-const boundFiles = function (obj) {
-    for (let i = 0; i < obj.modelattributes.length; i++) {
-        if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined && obj.register[obj.modelattributes[i].name] != '') {
-            let j = JSON.parse(obj.register[obj.modelattributes[i].name]);
-            let typeadd = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
-            for (let z = 0; z < j.length; z++) {
-                db.getModel('file').update({ bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id, public: typeadd.public == true ? true : false }, { where: { id: j[z].id } });
-            }
-        }
+    }
+    if (invalidfields.length > 0) {
+        return { success: false, msg: application.message.invalidFields, invalidfields: invalidfields };
+    } else {
+        return { success: true };
     }
 }
 
-const save = function (obj) {
-    return new Promise((resolve) => {
+const boundFiles = async function (obj) {
+    try {
+        for (let i = 0; i < obj.modelattributes.length; i++) {
+            if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined && obj.register[obj.modelattributes[i].name] != '') {
+                let j = JSON.parse(obj.register[obj.modelattributes[i].name]);
+                let typeadd = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+                for (let z = 0; z < j.length; z++) {
+                    await db.getModel('file').update({
+                        bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id, public: typeadd.public == true ? true : false
+                    }, { transaction: obj.transaction, where: { id: j[z].id } });
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Cannot boundFiles', err);
+    }
+}
+
+const save = async function (obj) {
+    try {
         if (obj.register.changed()) {
             // File
             for (let i = 0; i < obj.modelattributes.length; i++) {
@@ -576,92 +571,93 @@ const save = function (obj) {
                             z--;
                         }
                     }
-                    db.getModel('file').update({ bounded: false }, { where: { id: { [db.Op.in]: previousIds } } });
+                    await db.getModel('file').update({ bounded: false }, { transaction: obj.transaction, where: { id: { [db.Op.in]: previousIds } } });
                 }
             }
         }
-        obj.register._iduser = obj.req.user.id;
-        obj.register.save().then(register => {
-            boundFiles(lodash.extend(obj, { register: register }));
-            resolve({ success: true, register: register });
-        });
-    });
+        let register = await obj.register.save({ iduser: obj.req.user.id, transaction: obj.transaction });
+        await boundFiles(Object.assign(obj, { register: register }));
+        await obj.transaction.commit();
+        return { success: true, register: register };
+    } catch (err) {
+        console.error(err);
+        return { success: false };
+    }
 }
 
-const validateAndSave = function (obj) {
-    return new Promise((resolve) => {
-        validate(obj).then(validation => {
-            if (validation.success) {
-                save(obj).then(saved => {
-                    if (saved.success) {
-                        resolve({ success: true, register: saved.register });
-                        let ret = {
-                            data: saved.register
-                            , redirect: '/v/' + obj.view.url + '/' + saved.register.id
-                            , msg: application.message.success
-                            , historyBack: obj.hasSubview ? false : true
-                        };
-                        if (obj._cookies) {
-                            for (let i = 0; i < obj._cookies.length; i++) {
-                                obj.res.cookie(obj._cookies[i].key, obj._cookies[i].value);
-                            }
-                        }
-                        if (obj._responseModifier && typeof obj._responseModifier == 'function') {
-                            ret = obj._responseModifier(ret);
-                        }
-                        if (obj.req.cookies.subview_redirect) {
-                            Object.assign(ret, {
-                                subview_redirect: `/v/${obj.req.cookies.subview_redirect}/0?parent=${saved.register.id}`
-                            });
-                        }
-                        return application.success(obj.res, ret);
-                    } else {
-                        resolve({ success: false });
-                        return application.error(obj.res, { msg: 'Nâo foi possível salvar este registro' });
+const validateAndSave = async function (obj) {
+    try {
+        let validation = validate(obj);
+        if (validation.success) {
+            let saved = await save(obj);
+            if (saved.success) {
+                let ret = {
+                    data: saved.register
+                    , redirect: '/v/' + obj.view.url + '/' + saved.register.id
+                    , msg: application.message.success
+                    , historyBack: obj.hasSubview ? false : true
+                };
+                if (obj._cookies) {
+                    for (let i = 0; i < obj._cookies.length; i++) {
+                        obj.res.cookie(obj._cookies[i].key, obj._cookies[i].value);
                     }
-                });
-            } else {
-                resolve({ success: false });
-                return application.error(obj.res, { msg: validation.msg, invalidfields: validation.invalidfields });
-            }
-        });
-    });
-}
-
-const deleteModel = function (obj) {
-    return new Promise((resolve) => {
-        db.getModel(obj.view.model.name).findAll({ where: { id: { [db.Op.in]: obj.ids } }, raw: true }).then(registers => {
-            db.getModel(obj.view.model.name).destroy({ iduser: obj.req.user.id, where: { id: { [db.Op.in]: obj.ids } } }).then(() => {
-                resolve({ success: true, registers: registers });
-                application.success(obj.res, { msg: application.message.success });
-            }).catch(err => {
-                if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {
-                    let errsplited = err.original.detail.split('"');
-                    if (errsplited.length == 3) {
-                        db.getModel('model').findOne({ where: { name: errsplited[1] } }).then(model => {
-                            if (model) {
-                                resolve({ success: false, err: err });
-                                return application.error(obj.res, { msg: 'Este registro está em uso em ' + (model.description || model.name) });
-                            } else {
-                                resolve({ success: false, err: err });
-                                return application.fatal(obj.res, err);
-                            }
-                        });
-                    } else {
-                        resolve({ success: false, err: err });
-                        return application.fatal(obj.res, err);
-                    }
-                } else {
-                    resolve({ success: false, err: err });
-                    return application.fatal(obj.res, err);
                 }
-            });
-        });
-    });
+                if (obj._responseModifier && typeof obj._responseModifier == 'function') {
+                    ret = obj._responseModifier(ret);
+                }
+                if (obj.req.cookies.subview_redirect) {
+                    Object.assign(ret, {
+                        subview_redirect: `/v/${obj.req.cookies.subview_redirect}/0?parent=${saved.register.id}`
+                    });
+                }
+                application.success(obj.res, ret);
+                return { success: true, register: saved.register };
+            } else {
+                application.error(obj.res, { msg: 'Nâo foi possível salvar este registro' });
+                return { success: false };
+            }
+        } else {
+            application.error(obj.res, { msg: validation.msg, invalidfields: validation.invalidfields });
+            return { success: false };
+        }
+    } catch (err) {
+        application.fatal(obj.res, err);
+        return { success: false };
+    }
 }
 
-const hasPermission = function (iduser, idview) {
-    return new Promise((resolve) => {
+const deleteModel = async function (obj) {
+    try {
+        let registers = await db.getModel(obj.view.model.name).findAll({ where: { id: { [db.Op.in]: obj.ids } }, raw: true });
+        await db.getModel(obj.view.model.name).destroy({ transaction: obj.transaction, iduser: obj.req.user.id, where: { id: { [db.Op.in]: obj.ids } } });
+        await obj.transaction.commit();
+        application.success(obj.res, { msg: application.message.success });
+        return { success: true, registers: registers };
+    } catch (err) {
+        if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {
+            let errsplited = err.original.detail.split('"');
+            if (errsplited.length == 3) {
+                let model = await db.getModel('model').findOne({ where: { name: errsplited[1] } });
+                if (model) {
+                    application.error(obj.res, { msg: 'Este registro está em uso em ' + (model.description || model.name) });
+                    return { success: false, err: err };
+                } else {
+                    application.fatal(obj.res, err);
+                    return { success: false, err: err };
+                }
+            } else {
+                application.fatal(obj.res, err);
+                return { success: false, err: err };
+            }
+        } else {
+            application.fatal(obj.res, err);
+            return { success: false, err: err };
+        }
+    }
+}
+
+const hasPermission = async function (iduser, idview) {
+    try {
         let permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
         let getChilds = function (idview, subviews) {
             let returnsubviews = [];
@@ -676,28 +672,29 @@ const hasPermission = function (iduser, idview) {
             }
             return returnsubviews;
         }
-        db.sequelize.query(permissionquery, {
+        let permissions = await db.sequelize.query(permissionquery, {
             replacements: { iduser: iduser }
             , type: db.sequelize.QueryTypes.SELECT
-        }).then(permissions => {
-            for (let i = 0; i < permissions.length; i++) {
-                if (permissions[i].idview == idview) {
-                    return resolve(permissions[i]);
+        })
+        for (let i = 0; i < permissions.length; i++) {
+            if (permissions[i].idview == idview) {
+                return permissions[i];
+            }
+        }
+        let subviews = await db.getModel('viewsubview').findAll({ raw: true })
+        for (let i = 0; i < permissions.length; i++) {
+            permissions[i].childs = getChilds(permissions[i].idview, subviews);
+            for (let x = 0; x < permissions[i].childs.length; x++) {
+                if (permissions[i].childs[x] == idview) {
+                    return permissions[i];
                 }
             }
-            db.getModel('viewsubview').findAll({ raw: true }).then(subviews => {
-                for (let i = 0; i < permissions.length; i++) {
-                    permissions[i].childs = getChilds(permissions[i].idview, subviews);
-                    for (let x = 0; x < permissions[i].childs.length; x++) {
-                        if (permissions[i].childs[x] == idview) {
-                            return resolve(permissions[i]);
-                        }
-                    }
-                }
-                return resolve(false);
-            });
-        });
-    });
+        }
+        return false;
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
 }
 
 const getTemplate = function (template) {
@@ -729,22 +726,20 @@ module.exports = function (app) {
                 }
             }
             const view = await findView(req.params.view);
-            if (!view) {
+            if (!view)
                 return application.error(res, {});
-            }
             const permission = await hasPermission(req.user.id, view.id);
-            if (!view.neednoperm && !permission.visible) {
+            if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
-            }
             const viewtables = await db.getModel('viewtable').findAll({
                 where: { idview: view.id }
                 , order: [['ordertable', 'ASC']]
                 , include: [{ all: true }]
             });
-            const permissionevents = await db.sequelize.query(`select e.*, pe.available from permissionevent pe
-            left join viewevent e on (pe.idevent = e.id)
-            left join permission p on (pe.idpermission = p.id)
-            where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
+            const permissionevents = await db.getModel('permissionevent').findAll({
+                include: [{ all: true }]
+                , where: { idpermission: permission ? permission.id : 0 }
+            });
             const viewevents = await db.getModel('viewevent').findAll({
                 where: { idview: view.id }
                 , order: [['description', 'ASC']]
@@ -766,9 +761,9 @@ module.exports = function (app) {
                 for (let i = 0; i < permissionevents.length; i++) {
                     if (permissionevents[i].available) {
                         events.push({
-                            id: permissionevents[i].id
-                            , description: permissionevents[i].description
-                            , icon: permissionevents[i].icon
+                            id: permissionevents[i].viewevent.id
+                            , description: permissionevents[i].viewevent.description
+                            , icon: permissionevents[i].viewevent.icon
                         });
                     }
                 }
@@ -840,13 +835,11 @@ module.exports = function (app) {
     app.get('/v/:view/filter', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);
-            if (!view) {
+            if (!view)
                 return application.error(res, {});
-            }
             const permission = await hasPermission(req.user.id, view.id);
-            if (!view.neednoperm && !permission.visible) {
+            if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
-            }
             const viewfields = await db.getModel('viewfield').findAll({
                 where: { idview: view.id, disablefilter: false }
                 , order: [['order', 'ASC']]
@@ -1087,18 +1080,21 @@ module.exports = function (app) {
     app.get('/v/:view', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);
-            if (!view) {
+            if (!view)
                 return application.notFound(res);
-            }
             const permission = await hasPermission(req.user.id, view.id);
-            if (!view.neednoperm && !permission.visible) {
+            if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
-            }
             switch (view.type) {
                 case 'Template':
                     return application.render(res, __dirname + '/../views/templates/viewtype_template.html', {
                         title: view.idmenu ? view.menu.description : view.name
                         , template: getTemplate(view.template.name)({})
+                    });
+                case 'Calendar':
+                    return application.render(res, __dirname + '/../views/templates/viewtype_calendar.html', {
+                        title: view.idmenu ? view.menu.description : view.name
+                        , view: view.url
                     });
                 case 'Registration':
                     return res.redirect(req.path + '/0');
@@ -1120,16 +1116,13 @@ module.exports = function (app) {
         try {
             const view = await findView(req.params.view);
             const id = parseInt(req.params.id)
-            if (!view) {
+            if (!view)
                 return application.notFound(res);
-            }
-            if (isNaN(id)) {
+            if (isNaN(id))
                 return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
-            }
             const permission = await hasPermission(req.user.id, view.id);
-            if (!view.neednoperm && !permission.visible) {
+            if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
-            }
             if (id > 0 && view.wherefixed) {
                 let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
                 let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
@@ -1215,31 +1208,27 @@ module.exports = function (app) {
     app.post('/v/:view/delete', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);
-            if (!view) {
+            if (!view)
                 return application.error(res, {});
-            }
             const permission = await hasPermission(req.user.id, view.id);
-            if (!permission.deletable) {
+            if (!permission.deletable)
                 return application.error(res, { msg: application.message.permissionDenied });
-            }
-            let ids = req.body.ids.split(',');
-            if (ids) {
-                let obj = {
-                    ids: ids
-                    , view: view
-                    , req: req
-                    , res: res
-                };
-                if (view.model.ondelete) {
-                    let config = await db.getModel('config').findOne();
-                    let custom = require('../custom/' + config.customfile);
-                    return application.functions.getRealReference(custom, view.model.ondelete)(obj, deleteModel);
-                } else {
-                    deleteModel(obj);
-                }
+            let obj = {
+                ids: req.body.ids ? req.body.ids.split(',') : []
+                , view: view
+                , req: req
+                , res: res
+                , transaction: await db.sequelize.transaction()
+            };
+            if (view.model && view.model.ondelete) {
+                let config = await db.getModel('config').findOne();
+                let custom = require('../custom/' + config.customfile);
+                await application.functions.getRealReference(custom, view.model.ondelete)(obj, deleteModel);
             } else {
-                return application.fatal(res, 'ids not given');
+                await deleteModel(obj);
             }
+            if (!obj.transaction.finished)
+                obj.transaction.rollback();
         } catch (err) {
             return application.fatal(res, err);
         }
@@ -1248,9 +1237,8 @@ module.exports = function (app) {
     app.post('/v/:view/:id', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);
-            if (!view) {
+            if (!view)
                 return application.error(res, {});
-            }
             const permission = await hasPermission(req.user.id, view.id);
             if ((req.params.id == 0 && !permission.insertable) || (req.params.id > 0 && !permission.editable)) {
                 return application.error(res, { msg: application.message.permissionDenied });
@@ -1262,9 +1250,8 @@ module.exports = function (app) {
             const subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id } });
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
             let register = await db.getModel(view.model.name).findOne({ where: { id: req.params.id }, include: [{ all: true }] });
-            if (!register) {
+            if (!register)
                 register = db.getModel(view.model.name).build({ id: 0 });
-            }
             let obj = {
                 id: req.params.id
                 , view: view
@@ -1274,22 +1261,21 @@ module.exports = function (app) {
                 , register: register
                 , req: req
                 , res: res
+                , transaction: await db.sequelize.transaction()
             };
             obj = modelate(obj);
-            if (view.model.onsave) {
+            if (view.model && view.model.onsave) {
                 let config = await db.getModel('config').findOne();
                 let custom = require('../custom/' + config.customfile);
                 let realfunction = application.functions.getRealReference(custom, view.model.onsave);
-                if (realfunction) {
-                    return realfunction(obj, validateAndSave);
-                } else {
-                    console.error("Custom function '" + view.model.onsave + "' not found");
-                    await validateAndSave(obj);
-                }
+                if (!realfunction)
+                    return application.error(res, { msg: `Função ${view.model.onsave} não encontrada` });
+                await realfunction(obj, validateAndSave);
             } else {
                 await validateAndSave(obj);
             }
-
+            if (!obj.transaction.finished)
+                obj.transaction.rollback();
         } catch (err) {
             return application.fatal(res, err);
         }

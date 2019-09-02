@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  {{> parts/head }}
+  <link rel="stylesheet" type="text/css" href="/public/assets/fullcalendar/core/main.min.css" />
+  <link rel="stylesheet" type="text/css" href="/public/assets/fullcalendar/daygrid/main.min.css" />
+  <link rel="stylesheet" type="text/css" href="/public/assets/fullcalendar/timegrid/main.min.css" />
+</head>
+
+<body class="hold-transition fixed skin-blue sidebar-mini">
+  <div class="pace pace-inactive">
+    <div class="pace-activity"></div>
+  </div>
+
+  <script type="text/javascript">
+    if (Cookies.get('sidebar-collapse')) {
+      document.getElementsByTagName('body')[0].className += ' sidebar-collapse';
+    }
+  </script>
+  <div class="wrapper">
+
+    {{> parts/nav }} {{> parts/sidebar }}
+
+    <div class="content-wrapper">
+      <section class="content-header">
+        <h1>
+          {{title}}
+        </h1>
+      </section>
+
+      <section class="content">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="box box-primary">
+              <div class="box-body">
+                <div id="calendar" data-view="{{view}}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  {{> parts/js }}
+  <script src="/public/assets/fullcalendar/core/main.min.js" type="text/javascript"></script>
+  <script src="/public/assets/fullcalendar/core/locales/pt-br.js" type="text/javascript"></script>
+  <script src="/public/assets/fullcalendar/interaction/main.min.js" type="text/javascript"></script>
+  <script src="/public/assets/fullcalendar/daygrid/main.min.js" type="text/javascript"></script>
+  <script src="/public/assets/fullcalendar/timegrid/main.min.js" type="text/javascript"></script>
+
+  <script type="text/javascript">
+    application.index(true);
+    $(document).ready(function () {
+      var view = $('#calendar').attr('data-view');
+      var calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+        themeSystem: 'bootstrap',
+        plugins: ['interaction', 'dayGrid', 'timeGrid'],
+        header: {
+          left: 'insert prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay filter'
+        },
+        customButtons: {
+          insert: {
+            text: 'a'
+            , icon: 'add'
+            , bootstrapFontAwesome: {
+              add: 'fa-check'
+            }
+            , click: function () {
+              alert('clicked filter!');
+            }
+          }
+          , filter: {
+            text: 'Filtrar',
+            click: function () {
+              alert('clicked filter!');
+            }
+          }
+        },
+        locale: 'pt-br',
+        height: application.functions.isMobile() ? 'auto' : application.functions.getAvailableHeight() + 100,
+        editable: true,
+        navLinks: true,
+        eventLimit: false,
+        events: function (info, successCallback, failureCallback) {
+          $.ajax({
+            url: '/datatables',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+              start: info.startStr,
+              end: info.endStr,
+              view: view
+            },
+            success: function (response) {
+              successCallback(response.events);
+            }
+          });
+        }
+        , eventClick: function (info) {
+          window.location.href = window.location.pathname + '/' + info.event.id;
+          // alert('Event: ' + info.event.title);
+          // alert('Coordinates: ' + info.jsEvent.pageX + ',' + info.jsEvent.pageY);
+          // alert('View: ' + info.view.type);
+
+          // // change the border color just for fun
+          // info.el.style.borderColor = 'red';
+        }
+        , eventDrop: function (info) {
+          // console.log(info.event)
+          // alert(info.event.title + " was dropped on " + info.event.start.toISOString());
+
+          // application.functions.confirmMessage('are u sure?', function () {
+
+          // });
+          // info.revert();
+        }
+        , eventResize: function (info) {
+          // alert(info.event.title + " end is now " + info.event.end.toISOString());
+
+          // if (!confirm("is this okay?")) {
+          //   info.revert();
+          // }
+        }
+      });
+      calendar.render();
+
+      // setTimeout(function () {
+      //   calendar.refetchEvents();
+      // }, 5000);
+    });
+  </script>
+</body>
+
+</html>

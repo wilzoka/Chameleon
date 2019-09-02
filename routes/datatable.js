@@ -1,6 +1,7 @@
 const application = require('./application')
     , db = require('../models')
     , platform = require('../custom/platform')
+    , moment = require('moment')
     ;
 
 const fixResults = function (registers, viewtables) {
@@ -67,84 +68,107 @@ module.exports = function (app) {
     app.post('/datatables', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
-            const viewtables = await db.getModel('viewtable').findAll({ where: { idview: view.id }, include: [{ all: true }] });
-            const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-            let where = {};
-            if (view.wherefixed) {
-                Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)})`) });
-            }
-            Object.assign(where, await platform.view.f_getFilter(req, view));
-            let ordercolumn = 'id';
-            let orderdir = 'desc';
-            if (view.orderfixed) {
-                ordercolumn = view.orderfixed.split(',')[0];
-                orderdir = view.orderfixed.split(',')[1];
-            } else if (req.body.order) {
-                ordercolumn = req.body.columns[req.body.order[0].column].data;
-                orderdir = req.body.order[0].dir;
-            }
-            let attributes = ['id'];
-            for (let i = 0; i < modelattributes.length; i++) {
-                let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
-                switch (modelattributes[i].type) {
-                    case 'parent':
-                        if (req.body.issubview == 'true') {
-                            where[modelattributes[i].name] = req.body.id;
-                        }
-                        attributes.push(modelattributes[i].name);
-                        break;
-                    case 'autocomplete':
-                        if (j.query) {
-                            attributes.push([db.Sequelize.literal(j.query), modelattributes[i].name]);
-                        } else {
-                            attributes.push(modelattributes[i].name);
-                        }
-                        break;
-                    case 'virtual':
-                        attributes.push([db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id)), modelattributes[i].name]);
-                        break;
-                    default:
-                        attributes.push(modelattributes[i].name);
-                        break;
+            if (view.type == 'Calendar') {
+                let j = application.modelattribute.parseTypeadd(view.add);
+                let start = await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_start } });
+                let end = j.attribute_end ? await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_end } }) : null;
+                let date_format = start.type == 'date' ? application.formatters.be.date_format : application.formatters.be.datetime_format;
+                let registers = await platform.model.findAll(view.model.name, {
+                    where: {
+                        [j.attribute_start]: { [db.Op.gte]: req.body.start, [db.Op.lte]: req.body.end }
+                    }
+                });
+                let events = [];
+                for (let i = 0; i < registers.rows.length; i++) {
+                    events.push({
+                        id: registers.rows[i].id
+                        , title: registers.rows[i][j.attribute_title]
+                        , start: moment(registers.rows[i][start.name], application.formatters.fe.datetime_format).format(date_format)
+                        , end: end ? moment(registers.rows[i][end.name], application.formatters.fe.datetime_format).format(date_format) : null
+                        , backgroundColor: j.attribute_bgcolor ? registers.rows[i][attribute_bgcolor] : null
+                    });
                 }
-                // Order
-                if (modelattributes[i].name == ordercolumn) {
+                return application.success(res, { events: events });
+            } else {
+                const viewtables = await db.getModel('viewtable').findAll({ where: { idview: view.id }, include: [{ all: true }] });
+                const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
+                let where = {};
+                if (view.wherefixed) {
+                    Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)})`) });
+                }
+                Object.assign(where, await platform.view.f_getFilter(req, view));
+                let ordercolumn = 'id';
+                let orderdir = 'desc';
+                if (view.orderfixed) {
+                    ordercolumn = view.orderfixed.split(',')[0];
+                    orderdir = view.orderfixed.split(',')[1];
+                } else if (req.body.order) {
+                    ordercolumn = req.body.columns[req.body.order[0].column].data;
+                    orderdir = req.body.order[0].dir;
+                }
+                let attributes = ['id'];
+                for (let i = 0; i < modelattributes.length; i++) {
+                    let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
                     switch (modelattributes[i].type) {
+                        case 'parent':
+                            if (req.body.issubview == 'true') {
+                                where[modelattributes[i].name] = req.body.id;
+                            }
+                            attributes.push(modelattributes[i].name);
+                            break;
                         case 'autocomplete':
                             if (j.query) {
-                                ordercolumn = db.Sequelize.literal(j.query);
+                                attributes.push([db.Sequelize.literal(j.query), modelattributes[i].name]);
                             } else {
-                                let vas = j.as || j.model;
-                                ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
+                                attributes.push(modelattributes[i].name);
                             }
                             break;
                         case 'virtual':
-                            ordercolumn = db.Sequelize.literal(modelattributes[i].name);
+                            attributes.push([db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id)), modelattributes[i].name]);
+                            break;
+                        default:
+                            attributes.push(modelattributes[i].name);
                             break;
                     }
+                    // Order
+                    if (modelattributes[i].name == ordercolumn) {
+                        switch (modelattributes[i].type) {
+                            case 'autocomplete':
+                                if (j.query) {
+                                    ordercolumn = db.Sequelize.literal(j.query);
+                                } else {
+                                    let vas = j.as || j.model;
+                                    ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
+                                }
+                                break;
+                            case 'virtual':
+                                ordercolumn = db.Sequelize.literal(modelattributes[i].name);
+                                break;
+                        }
+                    }
                 }
-            }
-            let pagination = {};
-            if (req.body.length > 0) {
-                pagination = {
-                    limit: req.body.length
-                    , offset: req.body.start
+                let pagination = {};
+                if (req.body.length > 0) {
+                    pagination = {
+                        limit: req.body.length
+                        , offset: req.body.start
+                    }
                 }
+                let registers = await db.getModel(view.model.name).findAndCountAll(Object.assign({}, pagination, {
+                    attributes: attributes
+                    , raw: true
+                    , include: [{ all: true }]
+                    , where: where
+                    , order: [[ordercolumn, orderdir], ['id', orderdir]]
+                }));
+                registers = fixResults(registers, viewtables);
+                return application.success(res, {
+                    recordsTotal: registers.count
+                    , recordsFiltered: registers.count
+                    , data: registers.rows
+                    , table: req.body.table
+                });
             }
-            let registers = await db.getModel(view.model.name).findAndCountAll(Object.assign({}, pagination, {
-                attributes: attributes
-                , raw: true
-                , include: [{ all: true }]
-                , where: where
-                , order: [[ordercolumn, orderdir], ['id', orderdir]]
-            }));
-            registers = fixResults(registers, viewtables);
-            return application.success(res, {
-                recordsTotal: registers.count
-                , recordsFiltered: registers.count
-                , data: registers.rows
-                , table: req.body.table
-            });
         } catch (err) {
             return application.fatal(res, err);
         }

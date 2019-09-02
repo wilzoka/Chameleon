@@ -46,7 +46,7 @@ const application = require('../routes/application')
                     if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0) {
                         getModel('model').findOne({ where: { name: register.constructor.name } }).then(model => {
                             let audit = getModel('audit').build();
-                            let iduser = options.iduser || register._iduser;
+                            let iduser = options.iduser;
                             audit.datetime = moment();
                             audit.idmodel = model.id;
                             audit.iduser = iduser || null;
@@ -108,12 +108,32 @@ sequelize.query(`
             modelattributeobj = {};
         }
         if (modelname == results[i].model) {
-            modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
+            if (results[i].type == 'decimal') {
+                modelattributeobj[results[i].name] = {
+                    type: application.sequelize.decodeType(Sequelize, results[i].type)
+                    , get(name) {
+                        const value = this.getDataValue(name);
+                        return value === null ? null : parseFloat(value);
+                    }
+                };
+            } else {
+                modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
+            }
         } else {
             defineModel(modelname, modelattributeobj);
             modelname = results[i].model;
             modelattributeobj = {};
-            modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
+            if (results[i].type == 'decimal') {
+                modelattributeobj[results[i].name] = {
+                    type: application.sequelize.decodeType(Sequelize, results[i].type)
+                    , get(name) {
+                        const value = this.getDataValue(name);
+                        return value === null ? null : parseFloat(value);
+                    }
+                };
+            } else {
+                modelattributeobj[results[i].name] = application.sequelize.decodeType(Sequelize, results[i].type);
+            }
         }
         if (i == results.length - 1) {
             defineModel(modelname, modelattributeobj);
