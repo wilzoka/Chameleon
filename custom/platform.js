@@ -982,6 +982,7 @@ let platform = {
                         , url: views[i].url
                         , fastsearch: views[i].idfastsearch ? views[i].fastsearch.name : null
                         , lineheight: views[i].lineheight
+                        , add: views[i].add
                     });
                     let viewfields = await db.getModel('viewfield').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['order', 'asc']] });
                     j[j.length - 1]._field = [];
@@ -1092,6 +1093,7 @@ let platform = {
                             view.url = views[i].url;
                             view.idfastsearch = fastsearch ? fastsearch.id : null;
                             view.lineheight = views[i].lineheight;
+                            view.add = views[i].add;
                             await view.save();
                         } else {
                             view = await db.getModel('view').create({
@@ -1110,6 +1112,7 @@ let platform = {
                                 , url: views[i].url
                                 , idfastsearch: fastsearch ? fastsearch.id : null
                                 , lineheight: views[i].lineheight
+                                , add: views[i].add
                             });
                         }
                         let viewfields = []
