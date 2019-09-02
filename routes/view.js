@@ -736,10 +736,10 @@ module.exports = function (app) {
                 , order: [['ordertable', 'ASC']]
                 , include: [{ all: true }]
             });
-            const permissionevents = await db.getModel('permissionevent').findAll({
-                include: [{ all: true }]
-                , where: { idpermission: permission ? permission.id : 0 }
-            });
+            const permissionevents = await db.sequelize.query(`select e.*, pe.available from permissionevent pe
+            left join viewevent e on (pe.idevent = e.id)
+            left join permission p on (pe.idpermission = p.id)
+            where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
             const viewevents = await db.getModel('viewevent').findAll({
                 where: { idview: view.id }
                 , order: [['description', 'ASC']]
@@ -761,9 +761,9 @@ module.exports = function (app) {
                 for (let i = 0; i < permissionevents.length; i++) {
                     if (permissionevents[i].available) {
                         events.push({
-                            id: permissionevents[i].viewevent.id
-                            , description: permissionevents[i].viewevent.description
-                            , icon: permissionevents[i].viewevent.icon
+                            id: permissionevents[i].id
+                            , description: permissionevents[i].description
+                            , icon: permissionevents[i].icon
                         });
                     }
                 }
