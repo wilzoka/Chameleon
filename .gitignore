@@ -1,4 +1,7 @@
 custom/*
+!custom/core
+!custom/core-bi
+!custom/platform.js
 files/*
 node_modules/*
 tmp/*
