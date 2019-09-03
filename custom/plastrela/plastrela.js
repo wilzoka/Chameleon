@@ -1790,14 +1790,25 @@ let main = {
 
                     let saved = await next(obj);
 
-                    if (saved.success && saved.register._isInsert && obj.register.tipo == 'Transfer') {
-                        let param = await db.getModel('parameter').findOne({ where: { key: 'adm_viagens_transferNotificationUsers' } });
-                        if (param) {
-                            let notificationUsers = JSON.parse(param.value);
-                            main.platform.notification.create(notificationUsers, {
-                                title: 'Novo Transfer agendado!'
-                                , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}`
-                                , link: '/v/transfers/' + saved.register.id
+                    if (saved.success) {
+                        if (saved.register._isInsert) {
+                            if (obj.register.tipo == 'Transfer') {
+                                let param = await db.getModel('parameter').findOne({ where: { key: 'adm_viagens_transferNotificationUsers' } });
+                                if (param) {
+                                    let notificationUsers = JSON.parse(param.value);
+                                    main.platform.notification.create(notificationUsers, {
+                                        title: 'Novo Transfer agendado!'
+                                        , description: `De: ${saved.register.local1} - Para: ${saved.register.local2}`
+                                        , link: '/v/transfers/' + saved.register.id
+                                    });
+                                }
+                            }
+                        }
+                        if (saved.register.reservado) {
+                            let viagem = await db.getModel('adm_viagem').findOne({ where: { id: saved.register.idviagem } });
+                            main.platform.notification.create([viagem.iduser], {
+                                title: `Viagem ${viagem.destino} agendada`
+                                , description: `${saved.register.tipo} - ${saved.register.local1} - ${application.formatters.fe.date(saved.register.data1)}`
                             });
                         }
                     }
@@ -3683,7 +3694,7 @@ let main = {
                                         });
                                         break;
                                     case 1:
-                                        if (reservas[0].idpedidoitem = ven_pedidoitem.id) {
+                                        if (reservas[0].idpedidoitem == ven_pedidoitem.id) {
                                             reservas[0].idopetapa = opetapa.id;
                                             await reservas[0].save({ iduser: obj.req.user.id });
                                         } else {
@@ -6410,6 +6421,13 @@ let main = {
                         let tprecurso = await db.getModel('pcp_tprecurso').findOne({ where: { id: etapa.idtprecurso } });
                         let op = await db.getModel('pcp_op').findOne({ where: { id: opetapa.idop } });
 
+                        if (tprecurso.codigo == 3) {
+                            let curaacelerada = await main.plastrela.pcp.oprecurso.f_testeCuraAcelerada(oprecurso.id);
+                            if (curaacelerada && !curaacelerada.data)
+                                return application.error(obj.res, { msg: 'Não é possível apontar uma volume com o teste de cura acelerada não realizado' });
+                        }
+
+                        // Reserva
                         let sql = [];
                         if (tprecurso.codigo == 8) {
                             if (!obj.register.idopetapa)
@@ -9996,6 +10014,46 @@ let main = {
                         });
 
                         return application.success(obj.res, { reloadtables: true });
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , f_testeCuraAcelerada: async (idoprecurso) => {
+                    try {
+                        let sql = await db.sequelize.query(`
+                        select
+                            app.curaacelerada
+                            , (select max(apt.datafim) from pcp_approducaotempo apt where apt.idapproducao = app.id) as datahora
+                        from
+                            pcp_approducao app	
+                        where
+                            app.idoprecurso = ${idoprecurso || 0}
+                            and (app.curaacelerada is null or app.curaacelerada = false)
+                        order by 2`, { type: db.Sequelize.QueryTypes.SELECT });
+                        let ret = { data: true };
+                        if (sql.length > 0) {
+                            let difference = moment().diff(moment(sql[0].datahora), 'minutes');
+                            if (difference > 20) {
+                                ret.data = false;
+                                ret.datahora = application.formatters.fe.datetime(sql[0].datahora);
+                            }
+                        }
+                        return ret;
+                    } catch (err) {
+                        return {};
+                    }
+                }
+                , js_testeCuraAcelerada: async (obj) => {
+                    try {
+                        return application.success(obj.res, await main.plastrela.pcp.oprecurso.f_testeCuraAcelerada(obj.data.idoprecurso));
+                    } catch (err) {
+                        return application.fatal(obj.res, err);
+                    }
+                }
+                , js_setTesteCuraAcelerada: async (obj) => {
+                    try {
+                        await db.getModel('pcp_approducao').update({ curaacelerada: true }, { where: { idoprecurso: obj.data.idoprecurso || 0 } });
+                        return application.success(obj.res, { msg: application.message.success });
                     } catch (err) {
                         return application.fatal(obj.res, err);
                     }

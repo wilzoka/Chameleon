@@ -787,6 +787,13 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "add",
+                "label": "Adicional",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": "{\r\n\"rows\": 5\r\n , \"placeholder\": \"\"\r\n }"
+            },
+            {
                 "name": "idfastsearch",
                 "label": "Pesquisa Rápida",
                 "type": "autocomplete",
@@ -875,7 +882,7 @@
                 "label": "Tipo",
                 "type": "radio",
                 "notnull": false,
-                "typeadd": "{\r\n\"options\": [\"Template\", \"Registration\", \"Configuration\"]\r\n , \"renderAsSelect\": true\r\n }"
+                "typeadd": "{\r\n\"options\": [\"Template\", \"Registration\", \"Configuration\", \"Calendar\"]\r\n , \"renderAsSelect\": true\r\n }"
             },
             {
                 "name": "url",

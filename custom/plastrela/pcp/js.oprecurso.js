@@ -411,6 +411,19 @@ $(function () {
             });
         }
 
+        // Apenas Laminação
+        if (['30', '31', '35', '300', '350'].indexOf($('input[name="etapa"]').val()) >= 0) {
+            application.jsfunction('plastrela.pcp.oprecurso.js_testeCuraAcelerada', { idoprecurso: application.functions.getId() }, function (response) {
+                if (!response.data) {
+                    application.functions.confirmMessage('Foi realizado o teste de Cura Acelerada da produção concluída em <b>' + response.datahora + '</b>?', function () {
+                        application.jsfunction('plastrela.pcp.oprecurso.js_setTesteCuraAcelerada', { idoprecurso: application.functions.getId() }, function (response) {
+                            application.handlers.responseSuccess(response);
+                        });
+                    });
+                }
+            });
+        }
+
         if (localStorage.getItem('descriptionmenumini') == 'RS') {
             $('#ratearInsumos').parent().addClass('hidden');
         }

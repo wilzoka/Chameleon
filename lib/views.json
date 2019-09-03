@@ -15,6 +15,7 @@
         "url": "agendamento",
         "fastsearch": "description",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -113,6 +114,7 @@
         "url": "arquivo",
         "fastsearch": "filename",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -263,6 +265,7 @@
         "url": "auditoria",
         "fastsearch": "changes",
         "lineheight": 3,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -382,6 +385,7 @@
         "url": "configuracao_da_plataforma",
         "fastsearch": null,
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "system",
@@ -516,6 +520,7 @@
         "url": "grupo_de_usuario",
         "fastsearch": "description",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -555,6 +560,7 @@
         "url": "mensageiro",
         "fastsearch": "description",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -655,6 +661,7 @@
         "url": "menu",
         "fastsearch": "tree",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -737,6 +744,7 @@
         "url": "modelo",
         "fastsearch": "name",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -861,6 +869,7 @@
         "url": "modelo_-_atributo",
         "fastsearch": "label",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -964,6 +973,7 @@
         "url": "modulo",
         "fastsearch": "description",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1003,6 +1013,7 @@
         "url": "notificacao",
         "fastsearch": "description",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1098,6 +1109,7 @@
         "url": "parametro",
         "fastsearch": "key",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1169,6 +1181,7 @@
         "url": "permissao",
         "fastsearch": "idview",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1294,6 +1307,7 @@
         "url": "permissao_-_evento",
         "fastsearch": "idevent",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1349,6 +1363,7 @@
         "url": "relatorio",
         "fastsearch": "name",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1419,6 +1434,7 @@
         "url": "template",
         "fastsearch": "name",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1480,6 +1496,7 @@
         "url": "template_-_zona",
         "fastsearch": "name",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1519,6 +1536,7 @@
         "url": "usuario",
         "fastsearch": "fullname",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1646,6 +1664,7 @@
         "url": "view",
         "fastsearch": "namecomplete",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "view",
@@ -1750,6 +1769,14 @@
                 "order": 13,
                 "disabled": false,
                 "disablefilter": false
+            },
+            {
+                "templatezone": "view",
+                "modelattribute": "add",
+                "width": 12,
+                "order": 14,
+                "disabled": false,
+                "disablefilter": false
             }
         ],
         "_table": [
@@ -1837,6 +1864,7 @@
         "url": "view_-_atributo",
         "fastsearch": "idmodelattribute",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -1975,6 +2003,7 @@
         "url": "view_-_evento",
         "fastsearch": "description",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -2062,6 +2091,7 @@
         "url": "view_-_subview",
         "fastsearch": "idsubview",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -2133,6 +2163,7 @@
         "url": "view_-_tabela",
         "fastsearch": "idmodelattribute",
         "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
