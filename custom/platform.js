@@ -780,6 +780,7 @@ let platform = {
                                     left: "0.5cm"
                                 }
                                 , orientation: report.landscape ? 'landscape' : 'portait'
+                                , timeout: '100000'
                             }
                             let filename = process.hrtime()[1] + '.pdf';
 
@@ -1232,295 +1233,62 @@ let platform = {
                 return application.fatal(obj.res, err);
             }
         }
-        , f_getFilteredRegisters: function (obj) {
-            return new Promise((resolve) => {
-                let getFilter = function (cookie, viewfields) {
-                    let obj = {};
-
-                    cookie = JSON.parse(cookie);
-
-                    let m;
-                    let v;
-                    let f;
-
-                    for (let i = 0; i < cookie.length; i++) {
-
-                        for (let k in cookie[i]) {
-
-                            let field = k.split('+');
-
-                            switch (field[1]) {
-                                case 'date':
-                                    m = moment(cookie[i][k], 'DD/MM/YYYY');
-                                    cookie[i][k] = m.format('YYYY-MM-DD');
-                                    break;
-                                case 'datetime':
-                                    m = moment(cookie[i][k], 'DD/MM/YYYY HH:mm');
-                                    cookie[i][k] = m.format('YYYY-MM-DD HH:mm');
-                                    break;
-                                case 'time':
-                                    cookie[i][k] = application.formatters.be.time(cookie[i][k]);
-                                    break;
-                                case 'text':
-                                    cookie[i][k] = '%' + cookie[i][k] + '%';
-                                    break;
-                                case 'decimal':
-                                    v = cookie[i][k];
-                                    v = v.replace(/\./g, "");
-                                    v = v.replace(/\,/g, ".");
-                                    let precision = v.split('.')[1].length;
-                                    v = parseFloat(v).toFixed(precision);
-                                    cookie[i][k] = v;
-                                    break;
-                            }
-
-                            let o = {};
-                            switch (field[2]) {
-                                case 's':
-                                    Object.assign(o, { [db.Op.iLike]: cookie[i][k] })
-                                    break;
-                                case 'b':
-                                    Object.assign(o, { [db.Op.gte]: cookie[i][k] })
-                                    break;
-                                case 'e':
-                                    Object.assign(o, { [db.Op.lte]: cookie[i][k] })
-                                    break;
-                                case 'i':
-                                    Object.assign(o, { [db.Op.in]: cookie[i][k].val })
-                                    break;
-                                case 'r':
-                                    o = cookie[i][k];
-                                    break;
-                                // Virtuals
-                                case 'rv':
-                                    for (let z = 0; z < viewfields.length; z++) {
-                                        if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
-                                            if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
-                                            } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + " = " + cookie[i][k]);
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case 'sv':
-                                    for (let z = 0; z < viewfields.length; z++) {
-                                        if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
-                                            if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
-                                            } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case 'bv':
-                                    for (let z = 0; z < viewfields.length; z++) {
-                                        if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
-                                            if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
-                                            } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal >= " + cookie[i][k]);
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case 'ev':
-                                    for (let z = 0; z < viewfields.length; z++) {
-                                        if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
-                                            if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k]));
-                                            } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).subquery + "::decimal <= " + cookie[i][k]);
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case 'iv':
-                                    for (let z = 0; z < viewfields.length; z++) {
-                                        if (field[0] == viewfields[z].modelattribute.name) {
-                                            f = application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field;
-                                            if (f && f.indexOf('$value') > 0) {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field.replace('$value', cookie[i][k].val));
-                                            } else {
-                                                o = db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[z].modelattribute.typeadd).field + ' in (' + cookie[i][k].val + ')');
-                                            }
-                                        }
-                                    }
-                                    break;
-                            }
-                            if (o && obj[field[0]]) {
-                                if (obj[field[0]] && 'val' in obj[field[0]]) {//Virtual concatenation
-                                    obj[field[0]].val += ' and ' + o.val;
-                                } else {
-                                    Object.assign(obj[field[0]], o);
-                                }
-                            } else if (o) {
-                                obj[field[0]] = o;
-                            }
-                        }
-                    }
-                    return obj;
+        , f_getFilteredRegisters: async function (obj) {
+            try {
+                let view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] })
+                let viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }] });
+                let where = {};
+                if (view.wherefixed) {
+                    view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id).replace(/\$id/g, obj.req.body.id);
+                    Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed) })
                 }
-                let fixResults = function (registers, viewfields) {
-                    let j = {};
-                    let modelattributenames = [];
-                    for (let i = 0; i < viewfields.length; i++) {
-                        modelattributenames.push(viewfields[i].modelattribute.name);
-
-                        if (viewfields[i].modelattribute.typeadd) {
-                            j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                        }
-
+                let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
+                if ('onlySelected' in parameters && parameters.onlySelected) {
+                    Object.assign(where, { id: { [db.Op.in]: obj.ids } })
+                } else {
+                    if ('tableview' + view.url + 'filter' in obj.req.cookies) {
+                        Object.assign(where, await platform.view.f_getFilter(obj.req, view));
+                    }
+                }
+                let order = parameters.order;
+                let ordercolumn = order[0];
+                let orderdir = order[1];
+                let attributes = ['id'];
+                for (let i = 0; i < viewfields.length; i++) {
+                    switch (viewfields[i].modelattribute.type) {
+                        case 'virtual':
+                            attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
+                            break;
+                        default:
+                            attributes.push(viewfields[i].modelattribute.name);
+                            break;
+                    }
+                    // Order
+                    if (viewfields[i].modelattribute.name == ordercolumn) {
                         switch (viewfields[i].modelattribute.type) {
-                            case 'text':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (!registers[x][viewfields[i].modelattribute.name]) {
-                                        registers[x][viewfields[i].modelattribute.name] = '';
-                                    }
-                                }
-                                break;
-                            case 'textarea':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (!registers[x][viewfields[i].modelattribute.name]) {
-                                        registers[x][viewfields[i].modelattribute.name] = '';
-                                    }
-                                }
-                                break;
                             case 'autocomplete':
+                                let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                                 let vas = j.as || j.model;
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][viewfields[i].modelattribute.name]) {
-                                        registers[x][viewfields[i].modelattribute.name] = registers[x][vas + '.' + j.attribute];
-                                    } else {
-                                        registers[x][viewfields[i].modelattribute.name] = '';
-                                    }
-                                }
-                                break;
-                            case 'date':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][viewfields[i].modelattribute.name]) {
-                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.date(registers[x][viewfields[i].modelattribute.name]);
-                                    } else {
-                                        registers[x][viewfields[i].modelattribute.name] = '';
-                                    }
-                                }
-                                break;
-                            case 'datetime':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][viewfields[i].modelattribute.name]) {
-                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.datetime(registers[x][viewfields[i].modelattribute.name]);
-                                    } else {
-                                        registers[x][viewfields[i].modelattribute.name] = '';
-                                    }
-                                }
-                                break;
-                            case 'decimal':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][viewfields[i].modelattribute.name]) {
-                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.decimal(registers[x][viewfields[i].modelattribute.name], j.precision);
-                                    } else {
-                                        registers[x][viewfields[i].modelattribute.name] = '';
-                                    }
-                                }
-                                break;
-                            case 'time':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][viewfields[i].modelattribute.name]) {
-                                        registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.time(registers[x][viewfields[i].modelattribute.name]);
-                                    } else {
-                                        registers[x][viewfields[i].modelattribute.name] = '';
-                                    }
-                                }
+                                ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
                                 break;
                             case 'virtual':
-
-                                switch (j.type) {
-                                    case 'decimal':
-                                        for (let x = 0; x < registers.length; x++) {
-                                            if (registers[x][viewfields[i].modelattribute.name]) {
-                                                registers[x][viewfields[i].modelattribute.name] = application.formatters.fe.decimal(registers[x][viewfields[i].modelattribute.name], j.precision);
-                                            } else {
-                                                registers[x][viewfields[i].modelattribute.name] = '';
-                                            }
-                                        }
-                                        break;
-                                }
-
+                                ordercolumn = db.Sequelize.literal(viewfields[i].modelattribute.name);
                                 break;
                         }
-
                     }
-
-                    for (let i = 0; i < registers.length; i++) {
-                        for (let k in registers[i]) {
-                            if (k != 'id' && modelattributenames.indexOf(k) < 0) {
-                                delete registers[i][k];
-                            }
-                        }
-                    }
-
-                    return registers;
                 }
-                db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] }).then(view => {
-                    db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }] }).then(viewfields => {
-                        let where = {};
-                        if (view.wherefixed) {
-                            view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
-                            view.wherefixed = view.wherefixed.replace(/\$id/g, obj.req.body.id);
-                            Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed) })
-                        }
-                        let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
-                        if ('onlySelected' in parameters && parameters.onlySelected) {
-                            Object.assign(where, { id: { [db.Op.in]: obj.ids } })
-                        } else {
-                            if ('tableview' + view.url + 'filter' in obj.req.cookies) {
-                                Object.assign(where, getFilter(obj.req.cookies['tableview' + view.url + 'filter'], viewfields));
-                            }
-                        }
-                        let order = parameters.order;
-                        let ordercolumn = order[0];
-                        let orderdir = order[1];
-                        let attributes = ['id'];
-                        for (let i = 0; i < viewfields.length; i++) {
-                            switch (viewfields[i].modelattribute.type) {
-                                case 'virtual':
-                                    attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
-                                    break;
-                                default:
-                                    attributes.push(viewfields[i].modelattribute.name);
-                                    break;
-                            }
-                            // Order
-                            if (viewfields[i].modelattribute.name == ordercolumn) {
-                                switch (viewfields[i].modelattribute.type) {
-                                    case 'autocomplete':
-                                        let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                                        let vas = j.as || j.model;
-                                        ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
-                                        break;
-                                    case 'virtual':
-                                        ordercolumn = db.Sequelize.literal(viewfields[i].modelattribute.name);
-                                        break;
-                                }
-                            }
-                        }
-                        db.getModel(view.model.name).findAll({
-                            attributes: attributes
-                            , raw: true
-                            , include: [{ all: true }]
-                            , where: where
-                            , order: [[ordercolumn, orderdir]]
-                        }).then(registers => {
-                            resolve(fixResults(registers, viewfields));
-                        });
-                    });
-                });
-            });
+                let registers = await db.getModel(view.model.name).findAndCountAll({
+                    attributes: attributes
+                    , raw: true
+                    , include: [{ all: true }]
+                    , where: where
+                    , order: [[ordercolumn, orderdir]]
+                })
+                return platform.view.f_fixResults(registers, viewfields);
+            } catch (err) {
+                console.error(err);
+                return [];
+            }
         }
         , export: {
             xls: async function (obj) {
@@ -1791,48 +1559,24 @@ let platform = {
             }
             , pdf: async function (obj) {
                 try {
-                    let pdfMakePrinter = require('pdfmake');
-                    let fontDescriptors = {
-                        Roboto: {
-                            normal: __dirname + '/../fonts/cour.ttf',
-                            bold: __dirname + '/../fonts/courbd.ttf',
-                            italics: __dirname + '/../fonts/couri.ttf',
-                            bolditalics: __dirname + '/../fonts/courbi.ttf'
-                        }
-                    };
-                    let printer = new pdfMakePrinter(fontDescriptors);
-
-                    let config = await db.getModel('config').findOne();
-                    let image = config.reportimage ? JSON.parse(config.reportimage)[0] : [{ id: 0, type: '' }];
-
-                    let body = [];
-                    let total = [];
-
                     let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
-                    let registers = await platform.view.f_getFilteredRegisters(obj);
-                    if (registers.length <= 0) {
-                        return application.error(obj.res, { msg: 'Sem dados para exportar' });
+                    let registers = (await platform.view.f_getFilteredRegisters(obj)).rows;
+                    if (registers.length > 5000) {
+                        return application.error(obj.res, { msg: 'Não é possível exportar mais que 5 mil registros' });
                     }
+                    let total = [];
+                    let report = {};
+                    report.__title = obj.event.description;
+                    report.__table = '<table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">';
+                    report.__table += '<tr>';
+                    for (let i = 0; i < parameters.columns.length; i++) {
+                        report.__table += `<td style="text-align:center;"><strong> ${parameters.columnsLabel[i]} </strong></td>`;
+                    }
+                    report.__table += '</tr>';
                     for (let i = 0; i < registers.length; i++) {
-                        body.push([]);
-                        if (i == 0) {
-                            for (let z = 0; z < parameters.columns.length; z++) {
-                                body[body.length - 1].push({
-                                    text: parameters.columnsLabel[z]
-                                    , fontSize: parameters.headerFontSize || 8
-                                    , bold: true
-                                    , alignment: 'center'
-                                });
-                            }
-                            body.push([]);
-                        }
+                        report.__table += '<tr>';
                         for (let z = 0; z < parameters.columns.length; z++) {
-                            body[body.length - 1].push({
-                                text: registers[i][parameters.columns[z]] || ''
-                                , fontSize: parameters.bodyFontSize || 8
-                                , alignment: parameters.columnsAlign[z] || 'left'
-                            });
-
+                            report.__table += `<td style="text-align:${parameters.columnsAlign[z] || 'left'};"> ${registers[i][parameters.columns[z]] || ''} </td>`;
                             if ('total' in parameters && parameters.total[z]) {
                                 if (!total[z]) {
                                     total[z] = 0;
@@ -1849,69 +1593,20 @@ let platform = {
                                 }
                             }
                         }
+                        report.__table += '</tr>';
                     }
-
                     if ('total' in parameters) {
-                        body.push([]);
-                        body[body.length - 1].push({
-                            text: 'Totais'
-                            , fontSize: parameters.headerFontSize || 8
-                            , colSpan: parameters.columns.length
-                            , border: [false, false, false, false]
-                            , bold: true
-                            , alignment: 'center'
-                        });
-                        body.push([]);
+                        report.__table += `<tr><td style="text-align:center;" colspan="${parameters.columns.length}"><strong> Totais </strong></td></tr>`;
+                        report.__table += '<tr>';
                         for (let i = 0; i < parameters.columns.length; i++) {
-                            body[body.length - 1].push({
-                                text: parameters.total[i] == 'sum' ? application.formatters.fe.decimal(total[i], parameters.totalPrecision[i] || 2) : total[i] || ''
-                                , fontSize: parameters.bodyFontSize || 8
-                                , alignment: parameters.columnsAlign[i] || 'left'
-                            });
+                            report.__table += `<td style="text-align:${parameters.columnsAlign[i] || 'left'};"> ${parameters.total[i] == 'sum' ? application.formatters.fe.decimal(total[i], parameters.totalPrecision[i] || 2) : total[i] || ''} </td>`;
                         }
+                        report.__table += '</tr>';
                     }
-
-                    let dd = {
-                        footer: function (currentPage, pageCount) {
-                            return { text: 'Página ' + currentPage + '/' + pageCount, alignment: 'center', fontSize: 8, italic: true };
-                        }
-                        , pageOrientation: parameters.pageOrientation || 'portait'
-                        , content: [
-                            {
-                                style: 'table'
-                                , table: {
-                                    heights: 60
-                                    , widths: [150, '*', 80]
-                                    , body: [[
-                                        fs.existsSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`) ? { image: `${__dirname}/../files/${process.env.NODE_APPNAME}/${image.id}.${image.type}`, fit: [150, 100], alignment: 'center', border: [true, true, false, true] } : { text: '', border: [true, true, false, true] }
-                                        , { text: parameters.title, alignment: 'center', border: [false, true, false, true], bold: true }
-                                        , { text: '\n\n' + moment().format(application.formatters.fe.date_format) + '\n' + moment().format('HH:mm'), alignment: 'center', border: [false, true, true, true], fontSize: 9 }
-                                    ]]
-                                }
-                            }
-                            , {
-                                table: {
-                                    headerRows: 1
-                                    , widths: parameters.widths
-                                    , body: body
-                                }
-                            }
-                        ]
-                        , styles: {
-                            table: {
-                                margin: [0, 5, 0, 15]
-                            }
-                        }
-                    };
-
-                    let doc = printer.createPdfKitDocument(dd);
-                    let filename = process.hrtime()[1] + '.pdf';
-                    let stream = doc.pipe(fs.createWriteStream(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`));
-                    doc.end();
-                    stream.on('finish', function () {
-                        return application.success(obj.res, {
-                            openurl: '/download/' + filename
-                        });
+                    report.__table += '</table>';
+                    let filename = await platform.report.f_generate(parameters.pageOrientation == 'landscape' ? 'Geral - Listagem Paisagem' : 'Geral - Listagem', report);
+                    return application.success(obj.res, {
+                        openurl: '/download/' + filename
                     });
                 } catch (err) {
                     return application.fatal(obj.res, err);
@@ -2076,6 +1771,64 @@ let platform = {
                 }
             }
             return obj;
+        }
+        , f_fixResults: function (registers, viewtables) {
+            for (let i = 0; i < viewtables.length; i++) {
+                let ma = viewtables[i].modelattribute;
+                let j = application.modelattribute.parseTypeadd(ma.typeadd);
+                switch (j.type || ma.type) {
+                    case 'autocomplete':
+                        let vas = j.as || j.model;
+                        for (let x = 0; x < registers.rows.length; x++) {
+                            if (registers.rows[x][ma.name]) {
+                                if (j.attribute && registers.rows[x][vas + '.' + j.attribute]) {
+                                    registers.rows[x][ma.name] = registers.rows[x][vas + '.' + j.attribute];
+                                }
+                            }
+                        }
+                        break;
+                    case 'date':
+                        for (let x = 0; x < registers.rows.length; x++) {
+                            if (registers.rows[x][ma.name]) {
+                                registers.rows[x][ma.name] = application.formatters.fe.date(registers.rows[x][ma.name]);
+                            }
+                        }
+                        break;
+                    case 'datetime':
+                        for (let x = 0; x < registers.rows.length; x++) {
+                            if (registers.rows[x][ma.name]) {
+                                registers.rows[x][ma.name] = application.formatters.fe.datetime(registers.rows[x][ma.name]);
+                            }
+                        }
+                        break;
+                    case 'decimal':
+                        for (let x = 0; x < registers.rows.length; x++) {
+                            if (registers.rows[x][ma.name]) {
+                                registers.rows[x][ma.name] = application.formatters.fe.decimal(registers.rows[x][ma.name], j.precision);
+                            }
+                        }
+                        break;
+                    case 'time':
+                        for (let x = 0; x < registers.rows.length; x++) {
+                            if (registers.rows[x][ma.name] != null) {
+                                registers.rows[x][ma.name] = application.formatters.fe.time(registers.rows[x][ma.name]);
+                            }
+                        }
+                        break;
+                }
+            }
+            let keys = ['id'];
+            for (let i = 0; i < viewtables.length; i++) {
+                keys.push(viewtables[i].modelattribute.name);
+            }
+            for (let i = 0; i < registers.rows.length; i++) {
+                for (let k in registers.rows[i]) {
+                    if (keys.indexOf(k) < 0) {
+                        delete registers.rows[i][k];
+                    }
+                }
+            }
+            return registers;
         }
     }
     , viewfield: {

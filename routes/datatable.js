@@ -4,65 +4,6 @@ const application = require('./application')
     , moment = require('moment')
     ;
 
-const fixResults = function (registers, viewtables) {
-    for (let i = 0; i < viewtables.length; i++) {
-        let ma = viewtables[i].modelattribute;
-        let j = application.modelattribute.parseTypeadd(ma.typeadd);
-        switch (j.type || ma.type) {
-            case 'autocomplete':
-                let vas = j.as || j.model;
-                for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][ma.name]) {
-                        if (j.attribute && registers.rows[x][vas + '.' + j.attribute]) {
-                            registers.rows[x][ma.name] = registers.rows[x][vas + '.' + j.attribute];
-                        }
-                    }
-                }
-                break;
-            case 'date':
-                for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][ma.name]) {
-                        registers.rows[x][ma.name] = application.formatters.fe.date(registers.rows[x][ma.name]);
-                    }
-                }
-                break;
-            case 'datetime':
-                for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][ma.name]) {
-                        registers.rows[x][ma.name] = application.formatters.fe.datetime(registers.rows[x][ma.name]);
-                    }
-                }
-                break;
-            case 'decimal':
-                for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][ma.name]) {
-                        registers.rows[x][ma.name] = application.formatters.fe.decimal(registers.rows[x][ma.name], j.precision);
-                    }
-                }
-                break;
-            case 'time':
-                for (let x = 0; x < registers.rows.length; x++) {
-                    if (registers.rows[x][ma.name] != null) {
-                        registers.rows[x][ma.name] = application.formatters.fe.time(registers.rows[x][ma.name]);
-                    }
-                }
-                break;
-        }
-    }
-    let keys = ['id'];
-    for (let i = 0; i < viewtables.length; i++) {
-        keys.push(viewtables[i].modelattribute.name);
-    }
-    for (let i = 0; i < registers.rows.length; i++) {
-        for (let k in registers.rows[i]) {
-            if (keys.indexOf(k) < 0) {
-                delete registers.rows[i][k];
-            }
-        }
-    }
-    return registers;
-}
-
 module.exports = function (app) {
 
     app.post('/datatables', application.IsAuthenticated, async (req, res) => {
@@ -161,7 +102,7 @@ module.exports = function (app) {
                     , where: where
                     , order: [[ordercolumn, orderdir], ['id', orderdir]]
                 }));
-                registers = fixResults(registers, viewtables);
+                registers = platform.view.f_fixResults(registers, viewtables);
                 return application.success(res, {
                     recordsTotal: registers.count
                     , recordsFiltered: registers.count
