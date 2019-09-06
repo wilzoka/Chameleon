@@ -6,27 +6,39 @@ const application = require('./application')
 
 module.exports = function (app) {
 
-    app.post('/datatables', application.IsAuthenticated, async (req, res) => {
+    app.post('/datasource', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
             if (view.type == 'Calendar') {
-                let j = application.modelattribute.parseTypeadd(view.add);
-                let start = await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_start } });
-                let end = j.attribute_end ? await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_end } }) : null;
-                let date_format = start.type == 'date' ? application.formatters.be.date_format : application.formatters.be.datetime_format;
-                let registers = await platform.model.findAll(view.model.name, {
-                    where: {
-                        [j.attribute_start]: { [db.Op.gte]: req.body.start, [db.Op.lte]: req.body.end }
+                const j = application.modelattribute.parseTypeadd(view.add);
+                const start = await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_start } });
+                const end = j.attribute_end ? await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_end } }) : null;
+                const date_format = start.type == 'date' ? application.formatters.be.date_format : application.formatters.be.datetime_format;
+                let where = {};
+                if (view.wherefixed) {
+                    Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)})`) });
+                }
+                Object.assign(where, await platform.view.f_getFilter(req, view), {
+                    [j.attribute_start]: {
+                        [db.Op.or]: {
+                            [db.Op.and]: {
+                                [db.Op.gte]: req.body.start
+                                , [db.Op.lte]: req.body.end
+                            }
+                            , [db.Op.is]: null
+                        }
+
                     }
                 });
+                const registers = await platform.model.findAll(view.model.name, { where: where });
                 let events = [];
                 for (let i = 0; i < registers.rows.length; i++) {
                     events.push({
                         id: registers.rows[i].id
                         , title: registers.rows[i][j.attribute_title]
-                        , start: moment(registers.rows[i][start.name], application.formatters.fe.datetime_format).format(date_format)
+                        , start: registers.rows[i][start.name] ? moment(registers.rows[i][start.name], application.formatters.fe.datetime_format).format(date_format) : moment().format(date_format)
                         , end: end ? moment(registers.rows[i][end.name], application.formatters.fe.datetime_format).format(date_format) : null
-                        , backgroundColor: j.attribute_bgcolor ? registers.rows[i][attribute_bgcolor] : null
+                        , backgroundColor: registers.rows[i][start.name] ? (j.attribute_bgcolor ? registers.rows[i][attribute_bgcolor] : null) : 'red'
                     });
                 }
                 return application.success(res, { events: events });
@@ -115,7 +127,7 @@ module.exports = function (app) {
         }
     });
 
-    app.post('/datatables/sum', application.IsAuthenticated, async (req, res) => {
+    app.post('/datasource/sum', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
             let modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });

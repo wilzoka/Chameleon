@@ -25,7 +25,7 @@ if ($.fn.dataTable) {
     $.fn.dataTable.ext.errMode = function (settings, techNote, message) {
         var $table = $('#' + settings.sTableId);
         if (techNote == 4) {//Warning: Requested unknown parameter
-            localStorage.removeItem('DTconfig_' + window.location.pathname + '_' + $table.attr('data-view'));
+            localStorage.removeItem('Vconfig_' + window.location.pathname + '_' + $table.attr('data-view'));
             window.location.reload();
         } else {
             console.log(message);
@@ -50,6 +50,7 @@ var maps = [];
 var notifications = [];
 var searchtimeout = null;
 var tables = [];
+var calendar = null;
 var dzs = {};
 var app = false;
 var socket;
@@ -202,33 +203,33 @@ var application = {
         //Filter
         {
             $(document).on('click', 'button.btnfilter', function () {
-                var $table = $('#' + $(this).attr('data-table'));
-                var $filtermodal = $('#' + $table[0].id + 'filter');
+                var $view = $('#' + $(this).attr('data-view'));
+                var $filtermodal = $('#' + $view[0].id + 'filter');
                 if ($filtermodal.length) {
                     $filtermodal.modal('show');
                 } else {
                     $.ajax({
-                        url: '/v/' + $table.attr('data-view') + '/filter'
+                        url: '/v/' + $view.attr('data-view') + '/filter'
                         , type: 'GET'
                         , dataType: 'json'
                         , data: {
-                            issubview: $table.attr('data-subview') || false
+                            issubview: $view.attr('data-subview') || false
                         }
                         , success: function (response) {
                             if (response.success) {
                                 $('body').append(application.modal.create({
-                                    id: 'tableview' + response.name + 'filter'
+                                    id: 'view' + response.name + 'filter'
                                     , fullscreen: response.filter.available > 8
                                     , title: 'Filtro'
                                     , body: response.filter.html
                                     , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="button" class="btn btncleanfilter btn-default">Limpar</button> <button type="button" class="btn btngofilter btn-primary">Filtrar</button>'
                                     , attr: [
-                                        { key: 'data-table', value: 'tableview' + response.name }
+                                        { key: 'data-view', value: 'view' + response.name }
                                         , { key: 'data-role', value: 'filter' }
                                     ]
                                 }));
-                                application.components.renderInside($('#tableview' + response.name + 'filter'));
-                                $('#tableview' + response.name + 'filter').modal('show');
+                                application.components.renderInside($('#view' + response.name + 'filter'));
+                                $('#view' + response.name + 'filter').modal('show');
                             } else {
                                 application.notify.error('Não foi possível carregar o filtro');
                             }
@@ -238,10 +239,9 @@ var application = {
             });
             $(document).on('click', 'button.btngofilter', function () {
                 var $modal = $(this).closest('div.modal');
-                var table = $modal.attr('data-table');
-
-                application.tables.saveFilter(table);
-                application.tables.reload(table, true);
+                var view = $modal.attr('data-view');
+                application.tables.saveFilter(view);
+                application.view.reload(view);
                 $modal.modal('hide');
             });
             $(document).on('click', 'button.btncleanfilter', function () {
@@ -261,14 +261,14 @@ var application = {
             $(document).on('keyup', '.dt-search', function (e) {
                 clearTimeout(searchtimeout);
                 searchtimeout = setTimeout(function () {
-                    var cookiename = $(this).attr('data-table') + 'fs';
+                    var cookiename = $(this).attr('data-view') + 'fs';
                     var fastsearch = $(this).val();
                     if (fastsearch) {
-                        Cookies.set(cookiename, fastsearch, { expires: 0.5 });
+                        Cookies.set(cookiename, fastsearch, { expires: 0.25 });
                     } else {
                         Cookies.remove(cookiename);
                     }
-                    application.tables.reload($(this).attr('data-table'), true);
+                    application.tables.reload($(this).attr('data-view'), true);
                 }.bind(this), 300);
             });
         }
@@ -545,7 +545,7 @@ var application = {
             $obj.each(function () {
                 var where = $(this).attr('data-where');
                 var needreplace = where && where.indexOf('$parent') >= 0;
-                var $modal = $(this).closest('div.modal').attr('data-table');
+                var $modal = $(this).closest('div.modal').attr('data-view');
                 if ($modal) {
                     if (needreplace) {
                         where = where.replace(/\$parent/g, application.functions.getId());
@@ -627,31 +627,16 @@ var application = {
             $obj.each(function () {
                 var $this = $(this);
                 if ($this.attr('data-view')) {
-                    var cacheconfig = localStorage.getItem('DTconfig_' + window.location.pathname + '_' + $this.attr('data-view'));
-                    if (cacheconfig) {
-                        application.tables.create(JSON.parse(cacheconfig));
-                    } else {
-                        $.ajax({
-                            url: '/v/' + $this.attr('data-view') + '/config'
-                            , type: 'GET'
-                            , dataType: 'json'
-                            , data: {
-                                issubview: $this.attr('data-subview') || false
+                    application.view.getConfig($this.attr('data-view'), function (config) {
+                        if (config.success) {
+                            application.tables.create(config);
+                        } else {
+                            if (config.status == '403') {
+                                $this.parent().addClass('text-center').append('<i class="fa fa-lock fa-2x" aria-hidden="true"></i>');
+                                $this.remove();
                             }
-                            , success: function (response) {
-                                localStorage.setItem('DTconfig_' + window.location.pathname + '_' + $this.attr('data-view'), JSON.stringify(response));
-                                application.tables.create(response);
-                            }
-                            , error: function (response) {
-                                if (response.status == '403') {
-                                    $this.parent().addClass('text-center').append('<i class="fa fa-lock fa-2x" aria-hidden="true"></i>');
-                                    $this.remove();
-                                } else {
-                                    application.notify.error(response);
-                                }
-                            }
-                        });
-                    }
+                        }
+                    });
                 }
             });
         }
@@ -668,7 +653,7 @@ var application = {
             }
             // Footer
             if (data.footer) {
-                $('#tableview' + data.name).append(data.footer);
+                $('#view' + data.name).append(data.footer);
             }
             // Buttons
             var eventButtons = [{
@@ -794,12 +779,12 @@ var application = {
                 });
             }
             // Datatable
-            $('#tableview' + data.name).addClass('nowrap');
-            $('#tableview' + data.name).attr('data-fastsearch', data.fastsearch || '');
-            tables['tableview' + data.name] = $('#tableview' + data.name).DataTable({
+            $('#view' + data.name).addClass('nowrap');
+            $('#view' + data.name).attr('data-fastsearch', data.fastsearch || '');
+            tables['view' + data.name] = $('#view' + data.name).DataTable({
                 ajax: function (data, callback, settings) {
                     $.ajax({
-                        url: '/datatables'
+                        url: '/datasource'
                         , type: 'POST'
                         , data: $.extend({}, data, {
                             id: application.functions.getId()
@@ -848,9 +833,9 @@ var application = {
                     var isFiltered = filter ? true : false;
                     var filterhtml = '<div class="input-group input-group-sm">' +
                         '<input type="text" class="form-control dt-search ' + ($table.attr('data-fastsearch') == '' ? 'hidden' : '') + '" placeholder="' + $table.attr('data-fastsearch') + '" ' +
-                        'data-table="' + ($table.attr('id')) + '" value="' + (Cookies.get($table.attr('id') + 'fs') || '') + '"/>' +
+                        'data-view="' + ($table.attr('id')) + '" value="' + (Cookies.get($table.attr('id') + 'fs') || '') + '"/>' +
                         '<span class="input-group-btn">' +
-                        '<button type="button" class="btn btnfilter ' + (isFiltered ? 'btn-primary' : 'btn-default') + '" data-table="' + settings.sTableId + '">' +
+                        '<button type="button" class="btn btnfilter ' + (isFiltered ? 'btn-primary' : 'btn-default') + '" data-view="' + settings.sTableId + '">' +
                         '<i class="fa fa-search fa-flip-horizontal"></i>' +
                         '</button>' +
                         '</span>' +
@@ -871,7 +856,7 @@ var application = {
                 , rowId: 'id'
                 , scrollCollapse: true
                 , scrollX: true
-                , scrollY: $('#tableview' + data.name).attr('data-height') || data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
+                , scrollY: $('#view' + data.name).attr('data-height') || data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
                 , scroller: {
                     loadingIndicator: true
                 }
@@ -949,6 +934,8 @@ var application = {
             if (!keepSelection) {
                 application.tables.deselectAll(idtable);
             }
+            if (!tables[idtable])
+                return;
             tables[idtable].ajax.reload(function () {
                 $('#' + this.table).parent().scrollTop(this.scrollTop);
             }.bind({ table: idtable, scrollTop: keepSelection ? 0 : $('#' + idtable).parent('div.dataTables_scrollBody').scrollTop() }), false);
@@ -964,7 +951,7 @@ var application = {
             $('#' + idtable).find('span.totalize').each(function () {
                 var $this = $(this);
                 $.ajax({
-                    url: '/datatables/sum'
+                    url: '/datasource/sum'
                     , type: 'POST'
                     , dataType: 'json'
                     , data: {
@@ -1067,8 +1054,8 @@ var application = {
                 return '<div class="progress"><div class="progress-bar" style="width: ' + value + '%;background-color:' + hsl_col_perc(value, 0, 100) + '">' + value + '%</div></div>';
             }
         }
-        , saveFilter: function (idtable) {
-            var $modal = $('div#' + idtable + 'filter');
+        , saveFilter: function (view) {
+            var $modal = $('div#' + view + 'filter');
             var cookie = [];
             var types = [
                 'input[data-type="text"]'
@@ -1084,7 +1071,6 @@ var application = {
                 $modal.find(types[i]).each(function () {
                     var $this = $(this);
                     var val = $this.val();
-
                     if (typeof val == 'object') {
                         if (val.length > 0) {
                             var o = {};
@@ -1103,10 +1089,9 @@ var application = {
                             cookie.push(o);
                         }
                     }
-
                 });
             }
-            var $button = $('button.btnfilter[data-table="' + idtable + '"]');
+            var $button = $('button.btnfilter[data-view="' + view + '"]');
             if (cookie.length > 0) {
                 $button.removeClass('btn-default').addClass('btn-primary');
                 Cookies.set($modal[0].id, JSON.stringify(cookie), { expires: 0.5 });
@@ -1439,21 +1424,6 @@ var application = {
             }, $.extend(application.notify.getOptions(), { type: 'warning', timer: message.length * 50 }));
         }
     }
-    , route: {
-        handler: function (data, func) {
-            $.ajax({
-                type: 'POST'
-                , dataType: 'json'
-                , data: data
-                , success: function (response) {
-                    func(response);
-                }
-                , error: function (response) {
-                    application.handlers.responseError(response);
-                }
-            });
-        }
-    }
     , jsfunction: function (name, obj, func) {
         $.ajax({
             url: '/jsfunction'
@@ -1472,6 +1442,37 @@ var application = {
                 application.handlers.responseError(response);
             }
         });
+    }
+    , view: {
+        getConfig: function (view, callback) {
+            var cacheconfig = localStorage.getItem('Vconfig_' + window.location.pathname + '_' + view);
+            if (cacheconfig) {
+                callback(JSON.parse(cacheconfig));
+            } else {
+                $.ajax({
+                    url: '/v/' + view + '/config'
+                    , type: 'GET'
+                    , dataType: 'json'
+                    , data: {
+                        issubview: $('[data-view="' + view + '"]').attr('data-subview') || false
+                    }
+                    , success: function (response) {
+                        if (response.success)
+                            localStorage.setItem('Vconfig_' + window.location.pathname + '_' + view, JSON.stringify(response));
+                        callback(response);
+                    }
+                    , error: function (response) {
+                        callback(response);
+                    }
+                });
+            }
+        }
+        , reload: function (view) {
+            application.tables.reload(view, true);
+            if (calendar) {
+                calendar.refetchEvents();
+            }
+        }
     }
 }
 

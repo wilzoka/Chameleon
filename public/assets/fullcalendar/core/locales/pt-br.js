@@ -16,7 +16,7 @@
             list: "Compromissos"
         },
         weekLabel: "Sm",
-        allDayText: "dia inteiro",
+        allDayText: "dia\ntodo",
         eventLimitText: function (n) {
             return "mais +" + n;
         },

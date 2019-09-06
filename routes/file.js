@@ -1,5 +1,6 @@
 const application = require('./application')
     , db = require('../models')
+    , platform = require('../custom/platform')
     , multer = require('multer')
     , fs = require('fs-extra')
     , moment = require('moment')
@@ -26,46 +27,6 @@ for (let i = 0; i < requiredFolders.length; i++) {
 }
 let fileupload = multer({ storage: storage }).single('file');
 
-const hasPermission = function (iduser, idview) {
-    return new Promise((resolve) => {
-        let permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
-        let getChilds = function (idview, subviews) {
-            let returnsubviews = [];
-            for (let i = 0; i < subviews.length; i++) {
-                if (idview == subviews[i].idview) {
-                    returnsubviews.push(subviews[i].idsubview);
-                    let moresubviews = getChilds(subviews[i].idsubview, subviews);
-                    for (let z = 0; z < moresubviews.length; z++) {
-                        returnsubviews.push(moresubviews[z]);
-                    }
-                }
-            }
-            return returnsubviews;
-        }
-        db.sequelize.query(permissionquery, {
-            replacements: { iduser: iduser }
-            , type: db.sequelize.QueryTypes.SELECT
-        }).then(permissions => {
-            for (let i = 0; i < permissions.length; i++) {
-                if (permissions[i].idview == idview) {
-                    return resolve(permissions[i]);
-                }
-            }
-            db.getModel('viewsubview').findAll({ raw: true }).then(subviews => {
-                for (let i = 0; i < permissions.length; i++) {
-                    permissions[i].childs = getChilds(permissions[i].idview, subviews);
-                    for (let x = 0; x < permissions[i].childs.length; x++) {
-                        if (permissions[i].childs[x] == idview) {
-                            return resolve(permissions[i]);
-                        }
-                    }
-                }
-                return resolve(false);
-            });
-        });
-    });
-}
-
 module.exports = function (app) {
 
     app.get('/file/:id', async (req, res) => {
@@ -88,7 +49,7 @@ module.exports = function (app) {
                 }
                 let allow = false;
                 for (let i = 0; i < views.length; i++) {
-                    const permission = await hasPermission(req.user.id, views[i].id);
+                    const permission = await platform.view.f_hasPermission(req.user.id, views[i].id);
                     if (permission.visible) {
                         if (views[i].wherefixed) {
                             let wherefixed = views[i].wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, file.modelid);

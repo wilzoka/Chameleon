@@ -1,5 +1,6 @@
 const application = require('./application')
     , db = require('../models')
+    , platform = require('../custom/platform')
     , moment = require('moment')
     , fs = require('fs-extra')
     , escape = require('escape-html')
@@ -340,7 +341,7 @@ const renderSubView = function (viewsubview) {
     return `
     <div class="col-md-12 divsubview${viewsubview.subview.url}">
         <h4 class="title_subview">${viewsubview.description || ''}</h4>
-        <table id="tableview${viewsubview.subview.url}" class="table table-bordered table-hover dataTable" width="100%"
+        <table id="view${viewsubview.subview.url}" class="table table-bordered table-hover dataTable" width="100%"
         data-subview="true"
         data-view="${viewsubview.subview.url}">
         </table>
@@ -382,102 +383,102 @@ const render = function (viewfield, register) {
 }
 
 const modelate = function (obj) {
-
     for (let i = 0; i < obj.viewfields.length; i++) {
-        switch (obj.viewfields[i].modelattribute.type) {
-            case 'text':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'textarea':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'file':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'georeference':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'date':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.date(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'datetime':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.datetime(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'time':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name] === '0') {
-                    obj.register[obj.viewfields[i].modelattribute.name] = 0;
-                } else if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.time(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'boolean':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name] == undefined) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = false;
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = true;
-                }
-                break;
-            case 'integer':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'autocomplete':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name] != undefined) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'decimal':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name]).toFixed(application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
-            case 'radio':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    if (Array.isArray(obj.req.body[obj.viewfields[i].modelattribute.name])) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name].sort().join(',');
-                    } else {
+        if (obj.viewfields[i].modelattribute.name in obj.req.body) {
+            switch (obj.viewfields[i].modelattribute.type) {
+                case 'text':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
                         obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
                     }
-                } else {
-                    obj.register[obj.viewfields[i].modelattribute.name] = null;
-                }
-                break;
+                    break;
+                case 'textarea':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'file':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'georeference':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'date':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.date(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'datetime':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.datetime(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'time':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name] === '0') {
+                        obj.register[obj.viewfields[i].modelattribute.name] = 0;
+                    } else if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.time(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'boolean':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name] == undefined) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = false;
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = true;
+                    }
+                    break;
+                case 'integer':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'autocomplete':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name] != undefined) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'decimal':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name]).toFixed(application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+                case 'radio':
+                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                        if (Array.isArray(obj.req.body[obj.viewfields[i].modelattribute.name])) {
+                            obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name].sort().join(',');
+                        } else {
+                            obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                        }
+                    } else {
+                        obj.register[obj.viewfields[i].modelattribute.name] = null;
+                    }
+                    break;
+            }
         }
     }
-
     for (let i = 0; i < obj.modelattributes.length; i++) {
         if (obj.modelattributes[i].type == 'parent') {
             if (obj.req.query.parent && obj.req.query.parent > 0) {
@@ -485,7 +486,6 @@ const modelate = function (obj) {
             }
         }
     }
-
     return obj;
 }
 
@@ -591,12 +591,13 @@ const validateAndSave = async function (obj) {
         if (validation.success) {
             let saved = await save(obj);
             if (saved.success) {
-                let ret = {
-                    data: saved.register
-                    , redirect: '/v/' + obj.view.url + '/' + saved.register.id
-                    , msg: application.message.success
-                    , historyBack: obj.hasSubview ? false : true
-                };
+                let ret = {};
+                ret.data = saved.register;
+                ret.msg = application.message.success;
+                if (!obj.req.body._calendar) {
+                    ret.redirect = '/v/' + obj.view.url + '/' + saved.register.id;
+                    ret.historyBack = obj.hasSubview ? false : true;
+                }
                 if (obj._cookies) {
                     for (let i = 0; i < obj._cookies.length; i++) {
                         obj.res.cookie(obj._cookies[i].key, obj._cookies[i].value);
@@ -656,47 +657,6 @@ const deleteModel = async function (obj) {
     }
 }
 
-const hasPermission = async function (iduser, idview) {
-    try {
-        let permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
-        let getChilds = function (idview, subviews) {
-            let returnsubviews = [];
-            for (let i = 0; i < subviews.length; i++) {
-                if (idview == subviews[i].idview) {
-                    returnsubviews.push(subviews[i].idsubview);
-                    let moresubviews = getChilds(subviews[i].idsubview, subviews);
-                    for (let z = 0; z < moresubviews.length; z++) {
-                        returnsubviews.push(moresubviews[z]);
-                    }
-                }
-            }
-            return returnsubviews;
-        }
-        let permissions = await db.sequelize.query(permissionquery, {
-            replacements: { iduser: iduser }
-            , type: db.sequelize.QueryTypes.SELECT
-        })
-        for (let i = 0; i < permissions.length; i++) {
-            if (permissions[i].idview == idview) {
-                return permissions[i];
-            }
-        }
-        let subviews = await db.getModel('viewsubview').findAll({ raw: true })
-        for (let i = 0; i < permissions.length; i++) {
-            permissions[i].childs = getChilds(permissions[i].idview, subviews);
-            for (let x = 0; x < permissions[i].childs.length; x++) {
-                if (permissions[i].childs[x] == idview) {
-                    return permissions[i];
-                }
-            }
-        }
-        return false;
-    } catch (err) {
-        console.error(err);
-        return false;
-    }
-}
-
 const getTemplate = function (template) {
     let templatename = __dirname + (template.indexOf('/') < 0 ? '/../views/templates/' : '/../custom/') + template + '.html';
     if (!(templatename in application.Handlebars.compiledTemplates)) {
@@ -728,105 +688,111 @@ module.exports = function (app) {
             const view = await findView(req.params.view);
             if (!view)
                 return application.error(res, {});
-            const permission = await hasPermission(req.user.id, view.id);
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
             if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
-            const viewtables = await db.getModel('viewtable').findAll({
-                where: { idview: view.id }
-                , order: [['ordertable', 'ASC']]
-                , include: [{ all: true }]
-            });
-            const permissionevents = await db.sequelize.query(`select e.*, pe.available from permissionevent pe
+            if (view.type == 'Calendar') {
+                return application.success(res, {
+                    add: JSON.parse(view.add || '{}')
+                });
+            } else {
+                const viewtables = await db.getModel('viewtable').findAll({
+                    where: { idview: view.id }
+                    , order: [['ordertable', 'ASC']]
+                    , include: [{ all: true }]
+                });
+                const permissionevents = await db.sequelize.query(`select e.*, pe.available from permissionevent pe
             left join viewevent e on (pe.idevent = e.id)
             left join permission p on (pe.idpermission = p.id)
             where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
-            const viewevents = await db.getModel('viewevent').findAll({
-                where: { idview: view.id }
-                , order: [['description', 'ASC']]
-                , include: [{ all: true }]
-            });
+                const viewevents = await db.getModel('viewevent').findAll({
+                    where: { idview: view.id }
+                    , order: [['description', 'ASC']]
+                    , include: [{ all: true }]
+                });
 
-            let events = [];
-            let columns = [];
-            let needfooter = false;
-            let footer = '';
-            let permissions = {};
-            // Permissions
-            permissions.insertable = permission.insertable;
-            permissions.editable = permission.editable;
-            permissions.deletable = permission.deletable;
-            permissions.orderable = view.orderfixed ? false : true;
-            // Events
-            if (permissionevents.length > 0) {
-                for (let i = 0; i < permissionevents.length; i++) {
-                    if (permissionevents[i].available) {
+                let events = [];
+                let columns = [];
+                let needfooter = false;
+                let footer = '';
+                let permissions = {};
+                // Permissions
+                permissions.insertable = permission.insertable;
+                permissions.editable = permission.editable;
+                permissions.deletable = permission.deletable;
+                permissions.orderable = view.orderfixed ? false : true;
+                // Events
+                if (permissionevents.length > 0) {
+                    for (let i = 0; i < permissionevents.length; i++) {
+                        if (permissionevents[i].available) {
+                            events.push({
+                                id: permissionevents[i].id
+                                , description: permissionevents[i].description
+                                , icon: permissionevents[i].icon
+                            });
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < viewevents.length; i++) {
                         events.push({
-                            id: permissionevents[i].id
-                            , description: permissionevents[i].description
-                            , icon: permissionevents[i].icon
+                            id: viewevents[i].id
+                            , description: viewevents[i].description
+                            , icon: viewevents[i].icon
                         });
                     }
                 }
-            } else {
-                for (let i = 0; i < viewevents.length; i++) {
-                    events.push({
-                        id: viewevents[i].id
-                        , description: viewevents[i].description
-                        , icon: viewevents[i].icon
+                // Columns
+                if (!view.supressid) {
+                    columns.push({
+                        title: 'ID'
+                        , data: 'id'
+                        , name: 'id'
+                        , width: 37
+                        , orderable: view.orderfixed ? false : true
                     });
                 }
-            }
-            // Columns
-            if (!view.supressid) {
-                columns.push({
-                    title: 'ID'
-                    , data: 'id'
-                    , name: 'id'
-                    , width: 37
-                    , orderable: view.orderfixed ? false : true
-                });
-            }
-            for (let i = 0; i < viewtables.length; i++) {
-                columns.push({
-                    title: viewtables[i].modelattribute.label
-                    , data: viewtables[i].modelattribute.name
-                    , name: viewtables[i].modelattribute.name
-                    , orderable: view.orderfixed ? false : viewtables[i].orderable
-                    , render: viewtables[i].render
-                    , class: (viewtables[i].modelattribute.type == 'virtual'
-                        ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
-                        : decodeClass(viewtables[i].modelattribute.type))
-                        + (viewtables[i].class ? ' ' + viewtables[i].class : '')
-                });
-                if (viewtables[i].totalize) {
-                    needfooter = true;
-                }
-            }
-            if (needfooter) {
-                footer = '<tfoot><tr>';
-                if (!view.supressid) {
-                    footer += '<td style="text-align: center;"><b>Total</b></td>';
-                }
                 for (let i = 0; i < viewtables.length; i++) {
-                    let data = 'data-view="' + view.url + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
+                    columns.push({
+                        title: viewtables[i].modelattribute.label
+                        , data: viewtables[i].modelattribute.name
+                        , name: viewtables[i].modelattribute.name
+                        , orderable: view.orderfixed ? false : viewtables[i].orderable
+                        , render: viewtables[i].render
+                        , class: (viewtables[i].modelattribute.type == 'virtual'
+                            ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
+                            : decodeClass(viewtables[i].modelattribute.type))
+                            + (viewtables[i].class ? ' ' + viewtables[i].class : '')
+                    });
                     if (viewtables[i].totalize) {
-                        footer += '<td> <span class="totalize" ' + data + '></span> </td>';
-                    } else {
-                        footer += '<td></td>';
+                        needfooter = true;
                     }
                 }
-                footer += '</tr></tfoot>';
+                if (needfooter) {
+                    footer = '<tfoot><tr>';
+                    if (!view.supressid) {
+                        footer += '<td style="text-align: center;"><b>Total</b></td>';
+                    }
+                    for (let i = 0; i < viewtables.length; i++) {
+                        let data = 'data-view="' + view.url + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
+                        if (viewtables[i].totalize) {
+                            footer += '<td> <span class="totalize" ' + data + '></span> </td>';
+                        } else {
+                            footer += '<td></td>';
+                        }
+                    }
+                    footer += '</tr></tfoot>';
+                }
+                return application.success(res, {
+                    name: view.url
+                    , columns: columns
+                    , footer: footer
+                    , events: events
+                    , permissions: permissions
+                    , fastsearch: view.idfastsearch ? view.fastsearch.label : false
+                    , subview: req.query.issubview == 'true' ? true : false
+                    , lineheight: view.lineheight
+                });
             }
-            return application.success(res, {
-                name: view.url
-                , columns: columns
-                , footer: footer
-                , events: events
-                , permissions: permissions
-                , fastsearch: view.idfastsearch ? view.fastsearch.label : false
-                , subview: req.query.issubview == 'true' ? true : false
-                , lineheight: view.lineheight
-            });
         } catch (err) {
             return application.fatal(res, err);
         }
@@ -837,7 +803,7 @@ module.exports = function (app) {
             const view = await findView(req.params.view);
             if (!view)
                 return application.error(res, {});
-            const permission = await hasPermission(req.user.id, view.id);
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
             if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
             const viewfields = await db.getModel('viewfield').findAll({
@@ -857,8 +823,8 @@ module.exports = function (app) {
             let cookiefilter = {};
             let cookiefiltercount = 0;
             const separator = '+';
-            if ('tableview' + view.url + 'filter' in req.cookies) {
-                let cookiefilteraux = JSON.parse(req.cookies['tableview' + view.url + 'filter']);
+            if ('view' + view.url + 'filter' in req.cookies) {
+                let cookiefilteraux = JSON.parse(req.cookies['view' + view.url + 'filter']);
                 cookiefiltercount = cookiefilteraux.length;
                 for (let i = 0; i < cookiefilteraux.length; i++) {
                     for (let k in cookiefilteraux[i]) {
@@ -1082,7 +1048,7 @@ module.exports = function (app) {
             const view = await findView(req.params.view);
             if (!view)
                 return application.notFound(res);
-            const permission = await hasPermission(req.user.id, view.id);
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
             if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
             switch (view.type) {
@@ -1120,7 +1086,7 @@ module.exports = function (app) {
                 return application.notFound(res);
             if (isNaN(id))
                 return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
-            const permission = await hasPermission(req.user.id, view.id);
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
             if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
             if (id > 0 && view.wherefixed) {
@@ -1210,7 +1176,7 @@ module.exports = function (app) {
             const view = await findView(req.params.view);
             if (!view)
                 return application.error(res, {});
-            const permission = await hasPermission(req.user.id, view.id);
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
             if (!permission.deletable)
                 return application.error(res, { msg: application.message.permissionDenied });
             let obj = {
@@ -1239,7 +1205,7 @@ module.exports = function (app) {
             const view = await findView(req.params.view);
             if (!view)
                 return application.error(res, {});
-            const permission = await hasPermission(req.user.id, view.id);
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
             if ((req.params.id == 0 && !permission.insertable) || (req.params.id > 0 && !permission.editable)) {
                 return application.error(res, { msg: application.message.permissionDenied });
             }

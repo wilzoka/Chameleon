@@ -24,6 +24,7 @@ $(function () {
                     , attribute_start: ''
                     , attribute_end: ''
                     , attribute_bgcolor: ''
+                    , slotDuration: '00:30:00'
                 };
                 break;
         }

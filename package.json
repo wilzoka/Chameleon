@@ -1,7 +1,7 @@
 {
   "name": "chameleon",
   "description": "",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "dependencies": {
     "barcode-2-svg": "0.3.3",

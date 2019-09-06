@@ -1246,9 +1246,7 @@ let platform = {
                 if ('onlySelected' in parameters && parameters.onlySelected) {
                     Object.assign(where, { id: { [db.Op.in]: obj.ids } })
                 } else {
-                    if ('tableview' + view.url + 'filter' in obj.req.cookies) {
-                        Object.assign(where, await platform.view.f_getFilter(obj.req, view));
-                    }
+                    Object.assign(where, await platform.view.f_getFilter(obj.req, view));
                 }
                 let order = parameters.order;
                 let ordercolumn = order[0];
@@ -1462,8 +1460,8 @@ let platform = {
                         view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
                         Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed) });
                     }
-                    if ('tableview' + view.id + 'filter' in obj.req.cookies) {
-                        Object.assign(where, getFilter(obj.req.cookies['tableview' + view.id + 'filter'], modelattributes));
+                    if ('view' + view.id + 'filter' in obj.req.cookies) {
+                        Object.assign(where, getFilter(obj.req.cookies['view' + view.id + 'filter'], modelattributes));
                     }
                     let attributes = ['id'];
                     let header = ['id'];
@@ -1566,7 +1564,7 @@ let platform = {
                     }
                     let total = [];
                     let report = {};
-                    report.__title = obj.event.description;
+                    report.__title = parameters.title || obj.event.description;
                     report.__table = '<table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">';
                     report.__table += '<tr>';
                     for (let i = 0; i < parameters.columns.length; i++) {
@@ -1616,7 +1614,7 @@ let platform = {
         , f_getFilter: async function (req, view) {
             let obj = {};
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.idmodel } });
-            let cookie = JSON.parse(req.cookies['tableview' + view.url + 'filter'] || '{}');
+            let cookie = JSON.parse(req.cookies['view' + view.url + 'filter'] || '{}');
             let m;
             for (let i = 0; i < cookie.length; i++) {
                 for (let k in cookie[i]) {
@@ -1750,10 +1748,10 @@ let platform = {
                     }
                 }
             }
-            if (view.idfastsearch && req.cookies['tableview' + view.url + 'fs']) {
+            if (view.idfastsearch && req.cookies['view' + view.url + 'fs']) {
                 const mafastsearch = await db.getModel('modelattribute').findOne({ where: { id: view.idfastsearch } });
                 let j = application.modelattribute.parseTypeadd(mafastsearch.typeadd);
-                let fastsearch = req.cookies['tableview' + view.url + 'fs'];
+                let fastsearch = req.cookies['view' + view.url + 'fs'];
                 switch (mafastsearch.type) {
                     case 'autocomplete':
                         if (j.query) {
@@ -1829,6 +1827,46 @@ let platform = {
                 }
             }
             return registers;
+        }
+        , f_hasPermission: async function (iduser, idview) {
+            try {
+                let permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
+                let getChilds = function (idview, subviews) {
+                    let returnsubviews = [];
+                    for (let i = 0; i < subviews.length; i++) {
+                        if (idview == subviews[i].idview) {
+                            returnsubviews.push(subviews[i].idsubview);
+                            let moresubviews = getChilds(subviews[i].idsubview, subviews);
+                            for (let z = 0; z < moresubviews.length; z++) {
+                                returnsubviews.push(moresubviews[z]);
+                            }
+                        }
+                    }
+                    return returnsubviews;
+                }
+                let permissions = await db.sequelize.query(permissionquery, {
+                    replacements: { iduser: iduser }
+                    , type: db.sequelize.QueryTypes.SELECT
+                })
+                for (let i = 0; i < permissions.length; i++) {
+                    if (permissions[i].idview == idview) {
+                        return permissions[i];
+                    }
+                }
+                let subviews = await db.getModel('viewsubview').findAll({ raw: true })
+                for (let i = 0; i < permissions.length; i++) {
+                    permissions[i].childs = getChilds(permissions[i].idview, subviews);
+                    for (let x = 0; x < permissions[i].childs.length; x++) {
+                        if (permissions[i].childs[x] == idview) {
+                            return permissions[i];
+                        }
+                    }
+                }
+                return false;
+            } catch (err) {
+                console.error(err);
+                return false;
+            }
         }
     }
     , viewfield: {
