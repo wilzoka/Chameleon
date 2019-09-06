@@ -114,7 +114,6 @@
           }
           calendarState = getCalendarState();
           function setEvent(info) {
-            var start = moment(info.event.start);
             // Round nearest minute
             var minute = parseInt(config.add.slotDuration.split(':')[1]);
             var intervals = [0];
@@ -135,7 +134,15 @@
               }
               return closestValueIndex;
             };
+            var start = moment(info.event.start);
             start.minute(intervals[getIndexOfClosestValue(start.minute(), intervals)]);
+            start = moment(start).format('DD/MM/YYYY HH:mm');
+            var end = info.event.end;
+            if (end) {
+              end = moment(info.event.end);
+              end.minute(intervals[getIndexOfClosestValue(end.minute(), intervals)]);
+              end = end.format('DD/MM/YYYY HH:mm');
+            }
             $.ajax({
               url: '/v/' + view + '/' + info.event.id
               , method: 'POST'
@@ -143,8 +150,8 @@
               , data: {
                 _calendar: true
                 , id: info.event.id
-                , [config.add.attribute_start]: moment(start).format('DD/MM/YYYY HH:mm')
-                , [config.add.attribute_end]: info.event.end ? moment(info.event.end).format('DD/MM/YYYY HH:mm') : ''
+                , [config.add.attribute_start]: start
+                , [config.add.attribute_end]: end
               }
               , success: function (response) {
                 application.handlers.responseSuccess(response);
