@@ -384,99 +384,99 @@ const render = function (viewfield, register) {
 
 const modelate = function (obj) {
     for (let i = 0; i < obj.viewfields.length; i++) {
-        if (obj.viewfields[i].modelattribute.name in obj.req.body) {
-            switch (obj.viewfields[i].modelattribute.type) {
-                case 'text':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+        if (obj.req.body._calendar && !(obj.viewfields[i].modelattribute.name in obj.req.body))
+            continue;
+        switch (obj.viewfields[i].modelattribute.type) {
+            case 'text':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'textarea':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'file':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'georeference':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'date':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.date(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'datetime':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.datetime(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'time':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name] === '0') {
+                    obj.register[obj.viewfields[i].modelattribute.name] = 0;
+                } else if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.time(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'boolean':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name] == undefined) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = false;
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = true;
+                }
+                break;
+            case 'integer':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'autocomplete':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name] != undefined) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'decimal':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name]).toFixed(application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
+            case 'radio':
+                if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
+                    if (Array.isArray(obj.req.body[obj.viewfields[i].modelattribute.name])) {
+                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name].sort().join(',');
+                    } else {
                         obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
                     }
-                    break;
-                case 'textarea':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'file':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'georeference':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'date':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.date(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'datetime':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.datetime(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'time':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name] === '0') {
-                        obj.register[obj.viewfields[i].modelattribute.name] = 0;
-                    } else if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.time(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'boolean':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name] == undefined) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = false;
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = true;
-                    }
-                    break;
-                case 'integer':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'autocomplete':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name] != undefined) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.integer(obj.req.body[obj.viewfields[i].modelattribute.name]);
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'decimal':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        obj.register[obj.viewfields[i].modelattribute.name] = application.formatters.be.decimal(obj.req.body[obj.viewfields[i].modelattribute.name]).toFixed(application.modelattribute.parseTypeadd(obj.viewfields[i].modelattribute.typeadd).precision);
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-                case 'radio':
-                    if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                        if (Array.isArray(obj.req.body[obj.viewfields[i].modelattribute.name])) {
-                            obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name].sort().join(',');
-                        } else {
-                            obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
-                        }
-                    } else {
-                        obj.register[obj.viewfields[i].modelattribute.name] = null;
-                    }
-                    break;
-            }
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = null;
+                }
+                break;
         }
     }
     for (let i = 0; i < obj.modelattributes.length; i++) {
