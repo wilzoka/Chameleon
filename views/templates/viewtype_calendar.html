@@ -219,7 +219,11 @@
             , viewSkeletonRender: saveCalendarState
             , datesRender: saveCalendarState
             , eventClick: function (info) {
-              window.location.href = window.location.pathname + '/' + info.event.id;
+              if (info.jsEvent.ctrlKey) {
+                window.open(window.location.pathname + '/' + info.event.id);
+              } else {
+                window.location.href = window.location.pathname + '/' + info.event.id;
+              }
             }
             , eventDrop: setEvent
             , eventResize: setEvent
