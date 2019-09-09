@@ -359,7 +359,7 @@ let bi = {
                 if (obj.register.id == 0) {
                     //Popular medidas/dimensoes
                 }
-                next(obj);
+                await next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
@@ -371,7 +371,7 @@ let bi = {
                 if (obj.register.id == 0) {
                     obj.register.iduser = obj.req.user.id;
                 }
-                next(obj);
+                await next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
@@ -603,7 +603,7 @@ let bi = {
                 if (obj.register.id == 0) {
                     obj.register.iduser = obj.req.user.id;
                 }
-                next(obj);
+                await next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
@@ -615,7 +615,7 @@ let bi = {
                 if (obj.register.width < 1 || obj.register.width > 12) {
                     return application.error(obj.res, { msg: 'A largura deve ser entre 1 e 12', invalidfields: ['width'] });
                 }
-                next(obj);
+                await next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
