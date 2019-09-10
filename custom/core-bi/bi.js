@@ -114,9 +114,9 @@ let bi = {
         }
         if (row_total && column_total) {
             structure.grandtotal = emptyTotal();
-            let withValues = 0;
-            for (let i = 0; i < data.length; i++) {
-                for (let m = 0; m < measures.length; m++) {
+            for (let m = 0; m < measures.length; m++) {
+                let withValues = 0;
+                for (let i = 0; i < data.length; i++) {
                     structure.grandtotal[m] += parseFloat(data[i].measures[m] || 0);
                     if (data[i].measures[m])
                         withValues++;
