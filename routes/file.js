@@ -72,7 +72,7 @@ module.exports = function (app) {
             if (fs.existsSync(filepath)) {
                 let filestream = fs.createReadStream(filepath);
                 res.setHeader('Content-Length', file.size);
-                res.setHeader('Content-type', file.mimetype);
+                res.setHeader('Content-Type', file.mimetype);
                 res.setHeader('Content-Disposition', `;filename=${file.filename}`);
                 return filestream.pipe(res);
             } else {

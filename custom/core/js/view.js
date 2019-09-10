@@ -25,6 +25,8 @@ $(function () {
                     , attribute_end: ''
                     , attribute_bgcolor: ''
                     , slotDuration: '00:30:00'
+                    , minTime: '00:00:00'
+                    , maxTime: '24:00:00'
                 };
                 break;
         }

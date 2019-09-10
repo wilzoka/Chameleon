@@ -26,7 +26,7 @@ let bi = {
             for (let z = 0; z < columns.length; z++) {
                 currentcolumn.push(sql[i][columns[z]]);
             }
-            let currentmeasures = []; 2
+            let currentmeasures = [];
             for (let z = 0; z < measures.length; z++) {
                 currentmeasures.push(sql[i][measures[z]]);
             }
@@ -85,6 +85,9 @@ let bi = {
                 if (data[i].row == structure.r[r].val) {
                     for (let m = 0; m < measures.length; m++) {
                         structure.r[r].total[m] += parseFloat(data[i].measures[m] || 0);
+                        if (i == data.length - 1 && options._measures[m].aggregator == 'avg') {
+                            structure.r[r].total[m] = structure.r[r].total[m] / data.length;
+                        }
                     }
                 }
             }
@@ -94,6 +97,9 @@ let bi = {
                 if (data[i].column === structure.c[c].val) {
                     for (let m = 0; m < measures.length; m++) {
                         structure.c[c].total[m] = parseFloat(structure.c[c].total[m]) + parseFloat(data[i].measures[m] || 0);
+                        if (i == data.length - 1 && options._measures[m].aggregator == 'avg') {
+                            structure.c[c].total[m] = structure.c[c].total[m] / data.length;
+                        }
                     }
                 }
             }
@@ -485,6 +491,7 @@ let bi = {
         , js_executeAnalysis: async function (obj) {
             try {
                 let query = await bi.analysis.f_getQuery(obj.data.idcube, obj.data);
+                let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
                 let calculatedmeasures = JSON.parse(obj.data.calculatedmeasures);
                 let cm = [];
                 for (let k in calculatedmeasures) {
@@ -504,7 +511,20 @@ let bi = {
                     rows: obj.data.rows
                     , columns: obj.data.columns
                     , measures: obj.data.measures
+                    , _measures: []
                 };
+                for (let i = 0; i < options.measures.length; i++) {
+                    let cubename = cube.description;
+                    let measurename = options.measures[i];
+                    let split = options.measures[i].split('.');
+                    if (split.length > 1) {//Virtual
+                        cubename = split[0];
+                        measurename = split[1];
+                    }
+                    options._measures.push((await db.sequelize.query(`select cm.* from bi_cube c left join bi_cubemeasure cm on (c.id = cm.idcube)
+                    where c.description like '${cubename}' and cm.sqlfield like '${measurename}'`
+                        , { type: db.Sequelize.QueryTypes.SELECT }))[0]);
+                }
                 return application.success(obj.res, { data: bi.f_pivot(sql, options) });
             } catch (err) {
                 return application.fatal(obj.res, err);

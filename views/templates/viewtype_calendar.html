@@ -177,6 +177,13 @@
             , defaultDate: calendarState.date || null
             , defaultView: calendarState.viewType || null
             , slotDuration: config.add.slotDuration || null
+            , slotLabelFormat: {
+              hour: 'numeric'
+              , minute: '2-digit'
+              , omitZeroMinute: false
+            }
+            , minTime: config.add.minTime || '00:00:00'
+            , maxTime: config.add.maxTime || '24:00:00'
             , events: function (info, successCallback, failureCallback) {
               $.ajax({
                 url: '/datasource'
