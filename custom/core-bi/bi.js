@@ -75,19 +75,18 @@ let bi = {
             return emptytotal;
         }
         for (let i = 0; i < structure.c.length; i++) {
-            structure.c[i] = { val: structure.c[i], total: emptyTotal() };
+            structure.c[i] = { val: structure.c[i], total: emptyTotal(), withValues: emptyTotal() };
         }
         for (let i = 0; i < structure.r.length; i++) {
-            structure.r[i] = { val: structure.r[i], total: emptyTotal() };
+            structure.r[i] = { val: structure.r[i], total: emptyTotal(), withValues: emptyTotal() };
         }
         for (let i = 0; i < data.length; i++) {
             for (let r = 0; r < structure.r.length; r++) {
                 if (data[i].row == structure.r[r].val) {
                     for (let m = 0; m < measures.length; m++) {
                         structure.r[r].total[m] += parseFloat(data[i].measures[m] || 0);
-                        if (i == data.length - 1 && options._measures[m].aggregator == 'avg') {
-                            structure.r[r].total[m] = structure.r[r].total[m] / data.length;
-                        }
+                        if (data[i].measures[m])
+                            structure.r[r].withValues[m]++;
                     }
                 }
             }
@@ -97,18 +96,35 @@ let bi = {
                 if (data[i].column === structure.c[c].val) {
                     for (let m = 0; m < measures.length; m++) {
                         structure.c[c].total[m] = parseFloat(structure.c[c].total[m]) + parseFloat(data[i].measures[m] || 0);
-                        if (i == data.length - 1 && options._measures[m].aggregator == 'avg') {
-                            structure.c[c].total[m] = structure.c[c].total[m] / data.length;
-                        }
+                        if (data[i].measures[m])
+                            structure.c[c].withValues[m]++;
                     }
+                }
+            }
+        }
+        for (let m = 0; m < measures.length; m++) {
+            if (options._measures[m].aggregator == 'avg') {
+                for (let r = 0; r < structure.r.length; r++) {
+                    structure.r[r].total[m] = structure.r[r].total[m] / structure.r[r].withValues[m];
+                }
+                for (let c = 0; c < structure.c.length; c++) {
+                    structure.c[c].total[m] = structure.c[c].total[m] / structure.c[c].withValues[m];
                 }
             }
         }
         if (row_total && column_total) {
             structure.grandtotal = emptyTotal();
+            let withValues = 0;
             for (let i = 0; i < data.length; i++) {
                 for (let m = 0; m < measures.length; m++) {
                     structure.grandtotal[m] += parseFloat(data[i].measures[m] || 0);
+                    if (data[i].measures[m])
+                        withValues++;
+                    if (i == data.length - 1) {
+                        if (options._measures[m].aggregator == 'avg') {
+                            structure.grandtotal[m] = structure.grandtotal[m] / withValues;
+                        }
+                    }
                 }
             }
         }
