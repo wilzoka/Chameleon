@@ -118,7 +118,7 @@ let bi = {
                 let withValues = 0;
                 for (let i = 0; i < data.length; i++) {
                     structure.grandtotal[m] += parseFloat(data[i].measures[m] || 0);
-                    if (data[i].measures[m])
+                    if (!isNaN(data[i].measures[m]))
                         withValues++;
                     if (i == data.length - 1) {
                         if (options._measures[m].aggregator == 'avg') {
