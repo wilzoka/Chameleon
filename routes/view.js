@@ -1093,7 +1093,7 @@ module.exports = function (app) {
                 let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
                 let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
                 if (exists <= 0) {
-                    return application.forbidden(res);
+                    return res.redirect(`/v/${req.params.view}`);
                 }
             }
             const viewfields = await db.getModel('viewfield').findAll({
