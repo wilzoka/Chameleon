@@ -12,8 +12,7 @@ module.exports = function (app) {
             if (view.type == 'Calendar') {
                 const j = application.modelattribute.parseTypeadd(view.add);
                 const start = await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_start } });
-                const end = j.attribute_end ? await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_end } }) : null;
-                const date_format = start.type == 'date' ? application.formatters.be.date_format : application.formatters.be.datetime_format;
+                const end = j.attribute_end ? await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_end } }) : null;            
                 let where = {};
                 if (view.wherefixed) {
                     Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)})`) });
@@ -36,8 +35,8 @@ module.exports = function (app) {
                     events.push({
                         id: registers.rows[i].id
                         , title: registers.rows[i][j.attribute_title]
-                        , start: registers.rows[i][start.name] ? moment(registers.rows[i][start.name], application.formatters.fe.datetime_format).format(date_format) : moment().format(date_format)
-                        , end: end ? moment(registers.rows[i][end.name], application.formatters.fe.datetime_format).format(date_format) : null
+                        , start: registers.rows[i][start.name] ? moment(registers.rows[i][start.name], application.formatters.fe.datetime_format).format(application.formatters.be.datetime_format) : moment().format(application.formatters.be.datetime_format)
+                        , end: end ? moment(registers.rows[i][end.name], application.formatters.fe.datetime_format).format(application.formatters.be.datetime_format) : null
                         , backgroundColor: registers.rows[i][start.name] ? (j.attribute_bgcolor ? registers.rows[i][attribute_bgcolor] : null) : 'red'
                     });
                 }

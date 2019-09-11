@@ -85,7 +85,7 @@ let bi = {
                 if (data[i].row == structure.r[r].val) {
                     for (let m = 0; m < measures.length; m++) {
                         structure.r[r].total[m] += parseFloat(data[i].measures[m] || 0);
-                        if (data[i].measures[m])
+                        if (!isNaN(data[i].measures[m]))
                             structure.r[r].withValues[m]++;
                     }
                 }
@@ -96,7 +96,7 @@ let bi = {
                 if (data[i].column === structure.c[c].val) {
                     for (let m = 0; m < measures.length; m++) {
                         structure.c[c].total[m] = parseFloat(structure.c[c].total[m]) + parseFloat(data[i].measures[m] || 0);
-                        if (data[i].measures[m])
+                        if (!isNaN(data[i].measures[m]))
                             structure.c[c].withValues[m]++;
                     }
                 }
