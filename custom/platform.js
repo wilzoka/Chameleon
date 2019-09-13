@@ -721,76 +721,80 @@ let platform = {
                 return application.fatal(obj.res, err);
             }
         }
-        , f_generate: function (report, replaces) {
-            return new Promise((resolve, reject) => {
+        , f_generate: function (reportname, replaces) {
+            return new Promise(async (resolve, reject) => {
                 try {
                     let where = {};
-                    if (isNaN(report)) {
-                        where = { name: report };
+                    if (isNaN(reportname)) {
+                        where = { name: reportname };
                     } else {
-                        where = { id: report };
+                        where = { id: reportname };
                     }
-                    db.getModel('report').findOne({ where: where }).then(report => {
-                        if (!report) {
-                            return reject(`Relatório ${report} não encontrado`);
+                    let report = await db.getModel('report').findOne({ where: where });
+                    if (!report) {
+                        return reject(`Relatório ${report} não encontrado`);
+                    }
+                    let config = await db.getModel('config').findOne({ raw: true });
+                    let html = `
+                    <html>
+                        <head>
+                            <meta charset="utf8">
+                            <style>
+                                html, body, table {
+                                    font-family: "Courier New", Courier, monospace;
+                                    font-size: ${report.fontsize || 10};
+                                }
+                                p {
+                                    margin: 0;
+                                }
+                                tbody td {
+                                    border-color: #bfbfbf;
+                                    height: 14px;
+                                    padding: 3px;
+                                }
+                                thead td, tfoot td {
+                                    border: 1px solid black;
+                                }
+                                tr td {
+                                    page-break-inside: avoid;
+                                }
+                            </style>
+                        </head>
+                        <body>`;
+                    if (replaces.constructor === Object)
+                        replaces = [replaces];
+                    for (let i = 0; i < replaces.length; i++) {
+                        replaces[i].__reportimage = '';
+                        if (config.reportimage) {
+                            let reportimage = JSON.parse(config.reportimage);
+                            replaces[i].__reportimage = `${__dirname}/../files/${process.env.NODE_APPNAME}/${reportimage[0].id}.${reportimage[0].type}`;
                         }
-                        db.getModel('config').findOne({ raw: true }).then(config => {
-                            replaces.__reportimage = '';
-                            if (config.reportimage) {
-                                let reportimage = JSON.parse(config.reportimage);
-                                replaces.__reportimage = `${__dirname}/../files/${process.env.NODE_APPNAME}/${reportimage[0].id}.${reportimage[0].type}`;
-                            }
-                            replaces.__datetime = moment().format(application.formatters.fe.datetime_format);
-                            let html = `
-                            <html>
-                                <head>
-                                    <meta charset="utf8">
-                                    <style>
-                                        html {
-                                            zoom: 0.95;
-                                        }
-                                        html, body, table {
-                                            font-size: ${report.fontsize || 12};
-                                        }
-                                        tbody td {
-                                            border-color: #bfbfbf;
-                                            height: 14px;
-                                        }
-                                        thead td, tfoot td {
-                                            border: 1px solid black;
-                                        }
-                                        tr td {
-                                            page-break-inside: avoid;
-                                        }
-                                    </style>
-                                </head>
-                                <body>          
-                                    ${report.html}
-                                </body>
-                            </html>
-                            `;
-                            for (let k in replaces) {
-                                html = html.replace('{{' + k + '}}', replaces[k] || '');
-                            }
-                            let options = {
-                                border: {
-                                    top: "0.5cm",
-                                    right: "0.5cm",
-                                    bottom: "0.5cm",
-                                    left: "0.5cm"
-                                }
-                                , orientation: report.landscape ? 'landscape' : 'portait'
-                                , timeout: '100000'
-                            }
-                            let filename = process.hrtime()[1] + '.pdf';
-
-                            pdf.create(html, options).toFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, function (err, res) {
-                                if (err) {
-                                    return reject(err);
-                                }
-                                return resolve(filename);
-                            });
-                        });
+                        replaces[i].__datetime = moment().format(application.formatters.fe.datetime_format);
+                        let htmlpart = report.html;
+                        for (let k in replaces[i]) {
+                            htmlpart = htmlpart.replace(new RegExp('{{' + k + '}}', 'g'), replaces[i][k] || '');
+                        }
+                        if (i < replaces.length - 1) // not last page
+                            htmlpart += '<div style="page-break-after:always"></div>';
+                        html += htmlpart;
+                    }
+                    html += `</body></html>`;
+                    let options = {
+                        border: {
+                            top: "0.5cm",
+                            right: "0.5cm",
+                            bottom: "0.5cm",
+                            left: "0.5cm"
+                        }
+                        , orientation: report.landscape ? 'landscape' : 'portait'
+                        , timeout: '100000'
+                    };
+                    let filename = process.hrtime()[1] + '.pdf';
+                    pdf.create(html, options).toFile(`${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`, function (err, res) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        return resolve(filename);
                     });
                 } catch (err) {
                     return reject(err);
