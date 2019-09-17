@@ -121,7 +121,7 @@ let bi = {
                     if (!isNaN(data[i].measures[m]))
                         withValues++;
                     if (i == data.length - 1) {
-                        if (options._measures[m].aggregator == 'avg') {
+                        if (options._measures[m] && options._measures[m].aggregator == 'avg') {
                             structure.grandtotal[m] = structure.grandtotal[m] / withValues;
                         }
                     }
