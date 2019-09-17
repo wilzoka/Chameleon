@@ -103,7 +103,7 @@ let bi = {
             }
         }
         for (let m = 0; m < measures.length; m++) {
-            if (options._measures[m].aggregator == 'avg') {
+            if (options._measures[m] && options._measures[m].aggregator == 'avg') {
                 for (let r = 0; r < structure.r.length; r++) {
                     structure.r[r].total[m] = structure.r[r].total[m] / structure.r[r].withValues[m];
                 }
