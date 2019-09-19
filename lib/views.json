@@ -48,32 +48,28 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": "booleancircle",
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "description",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "function",
                 "ordertable": 3,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "settings",
                 "ordertable": 4,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -203,40 +199,35 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "filename",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "size",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "bounded",
                 "ordertable": 4,
                 "orderable": false,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "public",
                 "ordertable": 5,
                 "orderable": false,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -322,48 +313,42 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "iduser",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "type",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "idmodel",
                 "ordertable": 4,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "modelid",
                 "ordertable": 5,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "changes",
                 "ordertable": 6,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -377,7 +362,7 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "tpl_config",
+        "template": "core/templates/config",
         "model": "config",
         "module": "Plataforma",
         "menu": "Plataforma - Configurações",
@@ -537,8 +522,7 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -601,32 +585,28 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": "booleancircle",
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "description",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "type",
                 "ordertable": 3,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "ongathering",
                 "ordertable": 4,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -694,16 +674,14 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "icon",
                 "ordertable": 2,
                 "orderable": false,
                 "render": "icon",
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -785,32 +763,28 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "description",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "onsave",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "ondelete",
                 "ordertable": 4,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [
@@ -918,40 +892,35 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "label",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "notnull",
                 "ordertable": 3,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "type",
                 "ordertable": 4,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "typeadd",
                 "ordertable": 5,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             }
         ],
         "_subview": [],
@@ -990,8 +959,7 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             }
         ],
         "_subview": [],
@@ -1054,40 +1022,35 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "datetime",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "title",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "description",
                 "ordertable": 4,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "link",
                 "ordertable": 5,
                 "orderable": false,
                 "render": "url",
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -1142,24 +1105,21 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "key",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "value",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -1238,48 +1198,42 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "idview",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "visible",
                 "ordertable": 3,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "insertable",
                 "ordertable": 4,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "editable",
                 "ordertable": 5,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "deletable",
                 "ordertable": 6,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": null,
-                "class": null
+                "totalize": null
             }
         ],
         "_subview": [
@@ -1332,16 +1286,14 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "available",
                 "ordertable": 2,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -1404,8 +1356,7 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -1459,16 +1410,14 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "comment",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             }
         ],
         "_subview": [
@@ -1513,8 +1462,7 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             }
         ],
         "_subview": [],
@@ -1609,40 +1557,35 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "username",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "email",
                 "ordertable": 3,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "idgroupusers",
                 "ordertable": 4,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "active",
                 "ordertable": 6,
                 "orderable": true,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -1651,12 +1594,12 @@
     {
         "name": "View",
         "namecomplete": "Plataforma - View",
-        "js": "core/js/view.js",
+        "js": null,
         "wherefixed": null,
         "orderfixed": "namecomplete,asc",
         "supressid": false,
         "neednoperm": false,
-        "template": "tpl_view",
+        "template": "core/templates/view",
         "model": "view",
         "module": "Plataforma",
         "menu": "Plataforma - Views",
@@ -1666,6 +1609,14 @@
         "lineheight": null,
         "add": null,
         "_field": [
+            {
+                "templatezone": "viewtable",
+                "modelattribute": "supressid",
+                "width": 2,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
             {
                 "templatezone": "view",
                 "modelattribute": "name",
@@ -1683,9 +1634,25 @@
                 "disablefilter": false
             },
             {
+                "templatezone": "viewtable",
+                "modelattribute": "orderfixed",
+                "width": 5,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
                 "templatezone": "view",
                 "modelattribute": "idmodel",
                 "width": 6,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "viewtable",
+                "modelattribute": "lineheight",
+                "width": 5,
                 "order": 3,
                 "disabled": false,
                 "disablefilter": false
@@ -1740,30 +1707,6 @@
             },
             {
                 "templatezone": "view",
-                "modelattribute": "orderfixed",
-                "width": 6,
-                "order": 10,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "view",
-                "modelattribute": "lineheight",
-                "width": 6,
-                "order": 11,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "view",
-                "modelattribute": "supressid",
-                "width": 6,
-                "order": 12,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "view",
                 "modelattribute": "neednoperm",
                 "width": 6,
                 "order": 13,
@@ -1785,24 +1728,21 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "idmenu",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "url",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [
@@ -1810,11 +1750,6 @@
                 "subview": "View - Atributo",
                 "templatezone": "viewfield",
                 "description": "Atributos"
-            },
-            {
-                "subview": "View - Tabela",
-                "templatezone": "viewtable",
-                "description": "Campos da Tabela"
             },
             {
                 "subview": "View - Evento",
@@ -1921,48 +1856,42 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "idtemplatezone",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "order",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "width",
                 "ordertable": 4,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "disabled",
                 "ordertable": 5,
                 "orderable": false,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "disablefilter",
                 "ordertable": 6,
                 "orderable": false,
                 "render": "boolean",
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -2044,32 +1973,28 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "icon",
                 "ordertable": 2,
                 "orderable": false,
                 "render": "icon",
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "function",
                 "ordertable": 3,
                 "orderable": false,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             },
             {
                 "modelattribute": "parameters",
                 "ordertable": 4,
                 "orderable": false,
                 "render": null,
-                "totalize": null,
-                "class": null
+                "totalize": null
             }
         ],
         "_subview": [],
@@ -2124,160 +2049,24 @@
                 "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "idsubview",
                 "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "idtemplatezone",
                 "ordertable": 3,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
         "_event": []
-    },
-    {
-        "name": "View - Tabela",
-        "namecomplete": "Plataforma - View - Tabela",
-        "js": null,
-        "wherefixed": null,
-        "orderfixed": "ordertable,asc",
-        "supressid": true,
-        "neednoperm": false,
-        "template": "box-6",
-        "model": "viewtable",
-        "module": "Plataforma",
-        "menu": null,
-        "type": null,
-        "url": "view_-_tabela",
-        "fastsearch": "idmodelattribute",
-        "lineheight": null,
-        "add": null,
-        "_field": [
-            {
-                "templatezone": "z1",
-                "modelattribute": "idmodelattribute",
-                "width": 12,
-                "order": 1,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "ordertable",
-                "width": 12,
-                "order": 2,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "orderable",
-                "width": 12,
-                "order": 3,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "render",
-                "width": 12,
-                "order": 4,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "totalize",
-                "width": 12,
-                "order": 5,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "z1",
-                "modelattribute": "class",
-                "width": 6,
-                "order": 6,
-                "disabled": false,
-                "disablefilter": false
-            }
-        ],
-        "_table": [
-            {
-                "modelattribute": "idmodelattribute",
-                "ordertable": 1,
-                "orderable": true,
-                "render": null,
-                "totalize": null,
-                "class": null
-            },
-            {
-                "modelattribute": "ordertable",
-                "ordertable": 2,
-                "orderable": true,
-                "render": null,
-                "totalize": null,
-                "class": null
-            },
-            {
-                "modelattribute": "orderable",
-                "ordertable": 3,
-                "orderable": true,
-                "render": "boolean",
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "render",
-                "ordertable": 4,
-                "orderable": true,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "totalize",
-                "ordertable": 5,
-                "orderable": true,
-                "render": "boolean",
-                "totalize": false,
-                "class": null
-            },
-            {
-                "modelattribute": "class",
-                "ordertable": 6,
-                "orderable": true,
-                "render": null,
-                "totalize": false,
-                "class": null
-            }
-        ],
-        "_subview": [],
-        "_event": [
-            {
-                "description": "Decrementar Ordem",
-                "icon": "fa fa-minus",
-                "function": "platform.viewtable.e_decrementorder",
-                "parameters": null
-            },
-            {
-                "description": "Incrementar Ordem",
-                "icon": "fa fa-plus",
-                "function": "platform.viewtable.e_incrementorder",
-                "parameters": null
-            }
-        ]
     }
 ]

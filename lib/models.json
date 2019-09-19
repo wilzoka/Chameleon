@@ -1043,13 +1043,6 @@
         "ondelete": null,
         "_attribute": [
             {
-                "name": "class",
-                "label": "Classes",
-                "type": "text",
-                "notnull": false,
-                "typeadd": null
-            },
-            {
                 "name": "idmodelattribute",
                 "label": "Atributo",
                 "type": "autocomplete",
