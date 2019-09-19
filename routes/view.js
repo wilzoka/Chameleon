@@ -761,7 +761,6 @@ module.exports = function (app) {
                         , class: (viewtables[i].modelattribute.type == 'virtual'
                             ? decodeClass(application.modelattribute.parseTypeadd(viewtables[i].modelattribute.typeadd).type)
                             : decodeClass(viewtables[i].modelattribute.type))
-                            + (viewtables[i].class ? ' ' + viewtables[i].class : '')
                     });
                     if (viewtables[i].totalize) {
                         needfooter = true;
@@ -1164,7 +1163,7 @@ module.exports = function (app) {
                 , title: view.name
                 , events: events.join('')
                 , template: getTemplate(view.template.name)(zoneobj)
-                , js: view.js ? `<script type="text/javascript">${fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8')}</script>` : ''
+                , js: view.js && fs.existsSync(__dirname + '/../custom/' + view.js) ? `<script type="text/javascript">${fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8')}</script>` : ''
             });
         } catch (err) {
             return application.fatal(res, err);

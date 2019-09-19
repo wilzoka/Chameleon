@@ -575,14 +575,6 @@ var application = {
                         , placeholder: "Selecione"
                         , allowClear: true
                         , language: "pt-BR"
-                    }).on('select2:close', function (evt) {
-                        $(this).focus();
-                    }).on('select2:open', function (e) {
-                        // if (application.functions.isMobile()) {
-                        //     setTimeout(function () {
-                        //         $(document.activeElement).blur();
-                        //     }, 10);
-                        // }
                     });
                 } else {
                     $(this).select2({
@@ -611,14 +603,6 @@ var application = {
                         , language: "pt-BR"
                         , templateResult: resultTemplate
                         , templateSelection: resultSelection
-                    }).on('select2:close', function (evt) {
-                        $(this).focus();
-                    }).on('select2:open', function (e) {
-                        // if (application.functions.isMobile()) {
-                        //     setTimeout(function () {
-                        //         $(document.activeElement).blur();
-                        //     }, 10);
-                        // }
                     });
                 }
             });
@@ -769,7 +753,7 @@ var application = {
                         var $table = $('#' + dt.settings()[0].sTableId);
                         var view = $table.attr('data-view');
                         var subview = $table.attr('data-subview');
-                        if (subview && application.functions.getId() == 0) {
+                        if (subview) {
                             Cookies.set('subview_redirect', view);
                             $('#view-submit').trigger('click');
                         } else {
@@ -1224,6 +1208,7 @@ var application = {
                     }
                     if ('subview_redirect' in response) {
                         Cookies.remove('subview_redirect');
+                        localStorage.removeItem('msg');
                         return window.location.href = response.subview_redirect;
                     } else {
                         return window.location.href = response.redirect;

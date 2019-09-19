@@ -1,0 +1,221 @@
+<style>
+    .dataTables_filter > label {
+        display: inline-block;
+    }
+
+    .box {
+        margin-bottom: 10px;
+    }
+
+    .box-header {
+        padding: 5px;
+        text-align: center;
+    }
+
+    .ul-sortable {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .todo-list > li {
+        padding: 5px;
+        background: #ffffff;
+        margin: 2px;
+    }
+
+    .todo-list > li .text {
+        cursor: move;
+        cursor: -webkit-grabbing;
+    }
+
+    .ul-horizontal {
+        padding: 0;
+    }
+
+    .ul-horizontal > li {
+        display: inline-block;
+    }
+</style>
+
+<div class="col-md-12">
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab_1" data-toggle="tab"> Geral</a></li>
+            <li><a href="#tab_2" data-toggle="tab"> Tabela</a></li>
+            <li><a href="#tab_3" data-toggle="tab"> Atributos</a></li>
+            <li><a href="#tab_4" data-toggle="tab"> Subviews</a></li>
+            <li><a href="#tab_5" data-toggle="tab"> Eventos</a></li>
+        </ul>
+        <div class="tab-content">
+
+            <div class="tab-pane active" id="tab_1">
+                <div class="row">
+                    <div class="col-md-12 no-padding">
+                        {{{view}}}
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <textarea name="viewtable" class="hidden"></textarea>
+                        <ul id="ulviewtable" class="todo-list ui-sortable">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_3">
+                <div class="row">
+                    <div class="col-md-12 no-padding">
+                        {{{viewfield}}}
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_4">
+                <div class="row">
+                    <div class="col-md-12 no-padding">
+                        {{{viewsubview}}}
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab_5">
+                <div class="row">
+                    <div class="col-md-12 no-padding">
+                        {{{viewevent}}}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+
+        var $idmodel = $('select[name="idmodel"]');
+        var $type = $('select[name="type"]');
+        var $idfastsearch = $('select[name="idfastsearch"]');
+
+        $idmodel.on('select2:select', function (e) {
+            $idfastsearch.val(null).trigger('change');
+            $idfastsearch.attr('data-where', 'idmodel = ' + e.params.data.id);
+        });
+        $idmodel.on('select2:unselecting', function (e) {
+            $idfastsearch.val(null).trigger('change');
+            $idfastsearch.attr('data-where', 'idmodel = 0');
+        });
+
+        $idfastsearch.attr('data-where', 'idmodel = ' + $idmodel.val() || 0);
+
+        $type.on('select2:select', function (e) {
+            var obj = {};
+            switch (e.params.data.text) {
+                case 'Calendar':
+                    obj = {
+                        attribute_title: ''
+                        , attribute_start: ''
+                        , attribute_end: ''
+                        , attribute_bgcolor: ''
+                        , slotDuration: '00:30:00'
+                        , minTime: '00:00:00'
+                        , maxTime: '24:00:00'
+                    };
+                    break;
+            }
+            var html = '{\n';
+            var first = true;
+            for (var k in obj) {
+                html += (first ? '' : ', ') + '"' + k + '": ' + JSON.stringify(obj[k]) + '\n ';
+                first = false;
+            }
+            html += '}';
+            $('textarea[name="add"]').html(html);
+        });
+
+        //Sortable
+        application.functions.getJs([
+            '/public/assets/sortablejs/Sortable.min.js'
+        ]);
+        var tableTPL = '<li class="list-group-item noselect clearfix">'
+            + '<input type="checkbox" class="checkviewtable" data-key="${id}" ${checked}>'
+            + '<span class="text">${name}</span>'
+            + '<div class="tools" style="display: inline-block; color: #888888;">'
+            + '<span>Render: </span>'
+            + '${renders}'
+            + '<span class="fa-stack ban-toggle totalize" style="margin-top: -4px;">'
+            + '<i class="fas fa-calculator fa-stack-1x"></i>'
+            + '<i class="fas fa-ban fa-stack-2x ${totalize}" style="color:Tomato"></i>'
+            + '</span>'
+            + '<span class="fa-stack ban-toggle orderable" style="margin-top: -4px;">'
+            + '<i class="fas fa-sort-amount-down fa-stack-1x"></i>'
+            + '<i class="fas fa-ban fa-stack-2x ${orderable}" style="color:Tomato"></i>'
+            + '</span>'
+            + '</div>'
+            + '</li>';
+        function renderTPL(value) {
+            var renders = ["booleancircle", "boolean", "file", "url", "icon", "label", "progressbar"];
+            var ret = '<select class="render"><option></option>';
+            for (var i = 0; i < renders.length; i++) {
+                ret += '<option ' + (renders[i] == value ? ' selected' : '') + '>' + renders[i] + '</option>';
+            }
+            ret += '</select>';
+            return ret;
+        }
+
+        application.jsfunction('platform.view.js_getAttributes', { idview: application.functions.getId() }, function (response) {
+            if (response.success) {
+                for (var i = 0; i < response.table.length; i++) {
+                    $('#ulviewtable').append(tableTPL
+                        .replace('${id}', response.table[i].id)
+                        .replace('${checked}', response.table[i].active ? 'checked' : '')
+                        .replace('${name}', response.table[i].name)
+                        .replace('${renders}', renderTPL(response.table[i].render))
+                        .replace('${orderable}', response.table[i].orderable ? 'hidden' : '')
+                        .replace('${totalize}', response.table[i].totalize ? 'hidden' : '')
+                    );
+                }
+                setViewTable();
+            }
+        });
+        function setViewTable() {
+            var j = [];
+            $('#ulviewtable > li').each(function () {
+                if ($(this).find('input.checkviewtable').is(':checked')) {
+                    j.push({
+                        id: $(this).find('input.checkviewtable').attr('data-key')
+                        , render: $(this).find('select.render').val()
+                        , totalize: $(this).find('span.totalize').find('.fa-ban').hasClass('hidden')
+                        , orderable: $(this).find('span.orderable').find('.fa-ban').hasClass('hidden')
+                    });
+                }
+            });
+            $('textarea[name="viewtable"]').val(JSON.stringify(j));
+        }
+        $(document).on('app-loadjs', function () {
+            //Sortable
+            var sortables = ['ulviewtable'];
+            for (var i = 0; i < sortables.length; i++) {
+                new Sortable(document.getElementById(sortables[i]), {
+                    handle: '.text'
+                    , animation: 150
+                    , ghostClass: 'blue-background-class'
+                    , group: 'sortables'
+                    , onEnd: function () {
+                        setViewTable();
+                    }
+                });
+            }
+        });
+
+        $(document).on('click', '.ban-toggle', function (e) {
+            $(this).find('.fa-ban').toggleClass('hidden');
+            setViewTable();
+        });
+        $(document).on('change', 'input.checkviewtable', function () {
+            setViewTable();
+        });
+
+    });
+</script>

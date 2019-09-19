@@ -951,6 +951,22 @@ let platform = {
                 }
                 let modulee = await db.getModel('module').findOne({ where: { id: obj.register.idmodule || 0 } });
                 obj.register.namecomplete = modulee ? modulee.description + ' - ' + obj.register.name : obj.register.name;
+
+                if (obj.register.id > 0) {
+                    //viewtable
+                    let viewtables = JSON.parse(obj.req.body.viewtable || '[]');
+                    let idma = [];
+                    for (let i = 0; i < viewtables.length; i++) {
+                        idma.push(viewtables[i].id);
+                        let vt = (await db.getModel('viewtable').findOrCreate({ where: { idmodelattribute: viewtables[i].id, idview: obj.register.id }, transaction: obj.transaction }))[0];
+                        vt.ordertable = i + 1;
+                        vt.render = viewtables[i].render;
+                        vt.orderable = viewtables[i].orderable;
+                        vt.totalize = viewtables[i].totalize;
+                        await vt.save({ iduser: obj.req.user.id, transaction: obj.transaction });
+                    }
+                    await db.getModel('viewtable').destroy({ where: { idview: obj.register.id, idmodelattribute: { [db.Op.notIn]: idma } }, transaction: obj.transaction });
+                }
                 await next(obj);
                 db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
             } catch (err) {
@@ -1010,7 +1026,6 @@ let platform = {
                             , orderable: viewtables[z].orderable
                             , render: viewtables[z].render
                             , totalize: viewtables[z].totalize
-                            , class: viewtables[z].class
                         });
                     }
                     let viewsubviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: views[i].id }, order: [['description', 'asc']] });
@@ -1170,7 +1185,6 @@ let platform = {
                                         , orderable: views[i]._table[z].orderable
                                         , render: views[i]._table[z].render
                                         , totalize: views[i]._table[z].totalize
-                                        , class: views[i]._table[z].class
                                     });
                                 }
                                 viewtables.push(viewtable.id);
@@ -1872,6 +1886,44 @@ let platform = {
                 return false;
             }
         }
+        , js_getAttributes: async (obj) => {
+            try {
+                let view = await db.getModel('view').findOne({ where: { id: obj.data.idview || 0 } });
+                let table = await db.sequelize.query(`
+                select
+                    ma.id
+                    , case when vt.id is not null then true else false end as active
+                    , ma.label || '(' || ma.name || ')' as name
+                    , vt.render
+                    , vt.orderable
+                    , vt.totalize
+                from
+                    modelattribute ma
+                left join viewtable vt on (vt.idview = ${view.id || 0} and vt.idmodelattribute = ma.id)
+                where
+                    ma.idmodel = ${view.idmodel || 0}
+                order by vt.ordertable, ma.label
+                `, { type: db.Sequelize.QueryTypes.SELECT });
+                // let tables = await db.getModel('viewtable').findAll({ include: [{ all: true }], where: { idview: view.id || 0 } });
+
+                let ret = {
+                    table: []
+                };
+                for (let i = 0; i < table.length; i++) {
+                    ret.table.push({
+                        id: table[i].id
+                        , active: table[i].active
+                        , name: table[i].name
+                        , render: table[i].render
+                        , orderable: table[i].orderable
+                        , totalize: table[i].totalize
+                    });
+                }
+                application.success(obj.res, ret);
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
     }
     , viewfield: {
         e_changezone: async function (obj) {
@@ -1942,36 +1994,6 @@ let platform = {
                 viewfields.map(viewfield => {
                     viewfield.order--;
                     viewfield.save();
-                });
-                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-            }).catch(err => {
-                return application.fatal(obj.res, err);
-            });
-        }
-    }
-    , viewtable: {
-        e_incrementorder: function (obj) {
-            if (obj.ids.length == 0) {
-                return application.error(obj.res, { msg: application.message.selectOneEvent });
-            }
-            db.getModel('viewtable').findAll({ where: { id: { [db.Op.in]: obj.ids } } }).then(viewtables => {
-                viewtables.map(viewtable => {
-                    viewtable.ordertable++;
-                    viewtable.save();
-                });
-                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
-            }).catch(err => {
-                return application.fatal(obj.res, err);
-            });
-        }
-        , e_decrementorder: function (obj) {
-            if (obj.ids.length == 0) {
-                return application.error(obj.res, { msg: application.message.selectOneEvent });
-            }
-            db.getModel('viewtable').findAll({ where: { id: { [db.Op.in]: obj.ids } } }).then(viewtables => {
-                viewtables.map(viewtable => {
-                    viewtable.ordertable--;
-                    viewtable.save();
                 });
                 return application.success(obj.res, { msg: application.message.success, reloadtables: true });
             }).catch(err => {
