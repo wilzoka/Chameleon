@@ -120,6 +120,9 @@ ul.dropdown-menu > li > a > i {
 .main-sidebar {
     height: 100%;
 }
+hr {
+    border-top: 1px solid #d4d4d4;
+}
 
 /* Bootstrap */
 @media (min-width: 768px) {

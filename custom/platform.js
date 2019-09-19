@@ -1899,13 +1899,11 @@ let platform = {
                     , vt.totalize
                 from
                     modelattribute ma
-                left join viewtable vt on (vt.idview = ${view.id || 0} and vt.idmodelattribute = ma.id)
+                left join viewtable vt on (vt.idview = ${view ? view.id : 0} and vt.idmodelattribute = ma.id)
                 where
-                    ma.idmodel = ${view.idmodel || 0}
+                    ma.idmodel = ${view ? view.idmodel : 0}
                 order by vt.ordertable, ma.label
                 `, { type: db.Sequelize.QueryTypes.SELECT });
-                // let tables = await db.getModel('viewtable').findAll({ include: [{ all: true }], where: { idview: view.id || 0 } });
-
                 let ret = {
                     table: []
                 };

@@ -1,5 +1,5 @@
 <style>
-    .dataTables_filter > label {
+    .dataTables_filter>label {
         display: inline-block;
     }
 
@@ -18,13 +18,13 @@
         padding: 0;
     }
 
-    .todo-list > li {
+    .todo-list>li {
         padding: 5px;
         background: #ffffff;
         margin: 2px;
     }
 
-    .todo-list > li .text {
+    .todo-list>li .text {
         cursor: move;
         cursor: -webkit-grabbing;
     }
@@ -33,7 +33,7 @@
         padding: 0;
     }
 
-    .ul-horizontal > li {
+    .ul-horizontal>li {
         display: inline-block;
     }
 </style>
@@ -58,6 +58,12 @@
             </div>
             <div class="tab-pane" id="tab_2">
                 <div class="row">
+                    <div class="col-md-12">
+                        {{{viewtable}}}
+                    </div>
+                    <div class="col-md-12">
+                        <hr>
+                    </div>
                     <div class="col-md-12">
                         <textarea name="viewtable" class="hidden"></textarea>
                         <ul id="ulviewtable" class="todo-list ui-sortable">
@@ -185,7 +191,7 @@
                 if ($(this).find('input.checkviewtable').is(':checked')) {
                     j.push({
                         id: $(this).find('input.checkviewtable').attr('data-key')
-                        , render: $(this).find('select.render').val()
+                        , render: $(this).find('select.render').val() || null
                         , totalize: $(this).find('span.totalize').find('.fa-ban').hasClass('hidden')
                         , orderable: $(this).find('span.orderable').find('.fa-ban').hasClass('hidden')
                     });
