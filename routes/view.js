@@ -702,15 +702,10 @@ module.exports = function (app) {
                     , include: [{ all: true }]
                 });
                 const permissionevents = await db.sequelize.query(`select e.*, pe.available from permissionevent pe
-            left join viewevent e on (pe.idevent = e.id)
-            left join permission p on (pe.idpermission = p.id)
-            where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
-                const viewevents = await db.getModel('viewevent').findAll({
-                    where: { idview: view.id }
-                    , order: [['description', 'ASC']]
-                    , include: [{ all: true }]
-                });
-
+                left join viewevent e on (pe.idevent = e.id)
+                left join permission p on (pe.idpermission = p.id)
+                where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
+                const viewevents = await db.sequelize.query(`select e.*, true as available from viewevent e where e.idview = ${view.id} order by e.description`, { type: db.Sequelize.QueryTypes.SELECT });
                 let events = [];
                 let columns = [];
                 let needfooter = false;
@@ -722,24 +717,14 @@ module.exports = function (app) {
                 permissions.deletable = permission.deletable;
                 permissions.orderable = view.orderfixed ? false : true;
                 // Events
-                if (permissionevents.length > 0) {
-                    for (let i = 0; i < permissionevents.length; i++) {
-                        if (permissionevents[i].available) {
-                            events.push({
-                                id: permissionevents[i].id
-                                , description: permissionevents[i].description
-                                , icon: permissionevents[i].icon
-                            });
-                        }
-                    }
-                } else {
-                    for (let i = 0; i < viewevents.length; i++) {
+                const realevents = permissionevents.length > 0 ? permissionevents : viewevents;
+                for (let i = 0; i < realevents.length; i++) {
+                    if (realevents[i].available)
                         events.push({
-                            id: viewevents[i].id
-                            , description: viewevents[i].description
-                            , icon: viewevents[i].icon
+                            id: realevents[i].id
+                            , description: realevents[i].description
+                            , icon: realevents[i].icon
                         });
-                    }
                 }
                 // Columns
                 if (!view.supressid) {
@@ -1148,14 +1133,16 @@ module.exports = function (app) {
                 }
             }
             // Events
-            const viewevents = await db.getModel('viewevent').findAll({
-                where: { idview: view.id }
-                , order: [['description', 'ASC']]
-                , include: [{ all: true }]
-            });
+            const permissionevents = await db.sequelize.query(`select e.*, pe.available from permissionevent pe
+                left join viewevent e on (pe.idevent = e.id)
+                left join permission p on (pe.idpermission = p.id)
+                where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
+            const viewevents = await db.sequelize.query(`select e.*, true as available from viewevent e where e.idview = ${view.id} order by e.description`, { type: db.Sequelize.QueryTypes.SELECT });
+            const realevents = permissionevents.length > 0 ? permissionevents : viewevents;
             let events = [];
-            for (let i = 0; i < viewevents.length; i++) {
-                events.push(`<li class="btn-event" data-event="${viewevents[i].id}"><a href="javascript:void(0)"><i class="${viewevents[i].icon}"></i>${viewevents[i].description}</a></li>`);
+            for (let i = 0; i < realevents.length; i++) {
+                if (realevents[i].available)
+                    events.push(`<li class="btn-event" data-event="${realevents[i].id}"><a href="javascript:void(0)"><i class="${realevents[i].icon}"></i>${realevents[i].description}</a></li>`);
             }
             res.setHeader('Cache-Control', 'no-cache, no-store');
             return application.render(res, __dirname + '/../views/templates/viewregister.html', {
