@@ -37,8 +37,8 @@ module.exports = function (app) {
                         , title: registers.rows[i][j.attribute_title]
                         , start: registers.rows[i][start.name] ? moment(registers.rows[i][start.name], application.formatters.fe.datetime_format).format(application.formatters.be.datetime_format) : moment().format(application.formatters.be.datetime_format)
                         , end: end ? moment(registers.rows[i][end.name], application.formatters.fe.datetime_format).format(application.formatters.be.datetime_format) : null
-                        , backgroundColor: registers.rows[i][start.name] ? (j.attribute_bgcolor ? registers.rows[i][attribute_bgcolor] : null) : 'red'
-                    });
+                        , backgroundColor: registers.rows[i][start.name] ? (j.attribute_bgcolor ? registers.rows[i][j.attribute_bgcolor] : null) : 'red'
+                    });                    
                 }
                 return application.success(res, { events: events });
             } else {
