@@ -1,6 +1,7 @@
 const lodash = require('lodash')
 	, moment = require('moment')
 	, fs = require('fs-extra')
+	, jwt = require('jsonwebtoken')
 	;
 
 let application = {
@@ -424,10 +425,21 @@ let application = {
 		if (req.isAuthenticated()) {
 			next();
 		} else {
-			if (req.xhr) {
-				res.status(401).json({});
+			let token = req.headers['x-access-token'];
+			if (token) {
+				jwt.verify(token, application.sk, function (err, decoded) {
+					if (err) {
+						return res.status(401).json({});
+					}
+					req.user = decoded;
+					next();
+				});
 			} else {
-				res.redirect('/login');
+				if (req.xhr) {
+					res.status(401).json({});
+				} else {
+					res.redirect('/login');
+				}
 			}
 		}
 	}

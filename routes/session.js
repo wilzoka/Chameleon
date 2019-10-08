@@ -1,5 +1,6 @@
 const passport = require('passport')
     , LocalStrategy = require('passport-local').Strategy
+    , jwt = require('jsonwebtoken')
     , db = require('../models')
     , application = require('./application')
     , Cyjs = require("crypto-js")
@@ -76,16 +77,23 @@ module.exports = function (app) {
                     i--;
                 }
             }
-            let menuhtml = '';
-            for (let i = 0; i < menu.length; i++) {
-                menuhtml += application.menu.renderMenu(menu[i]);
-            }
             let redirect = '/home';
             if (req.user.idview) {
                 let defaultpage = await db.getModel('view').findOne({ raw: true, where: { id: req.user.idview } });
                 if (defaultpage) {
                     redirect = '/v/' + defaultpage.url;
                 }
+            }
+            if (req.body._mobile) {
+                return application.success(res, {
+                    redirect: redirect
+                    , menu: menu
+                    , token: jwt.sign({ id: req.user.id }, application.sk)
+                });
+            }
+            let menuhtml = '';
+            for (let i = 0; i < menu.length; i++) {
+                menuhtml += application.menu.renderMenu(menu[i]);
             }
             return application.success(res, {
                 redirect: redirect

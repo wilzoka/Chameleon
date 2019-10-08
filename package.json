@@ -20,6 +20,7 @@
     "jquery": "3.4.1",
     "jsbarcode": "3.11.0",
     "jsdom": "15.1.1",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "4.17.15",
     "mail-listener2-updated": "0.3.3",
     "mime-types": "2.1.24",
