@@ -1175,7 +1175,12 @@ module.exports = function (app) {
             if (view.model && view.model.ondelete) {
                 let config = await db.getModel('config').findOne();
                 let custom = require('../custom/' + config.customfile);
-                await application.functions.getRealReference(custom, view.model.ondelete)(obj, deleteModel);
+                let realfunction = application.functions.getRealReference(custom, view.model.ondelete);
+                if (realfunction) {
+                    await realfunction(obj, deleteModel);
+                } else {
+                    application.error(res, { msg: `Função ${view.model.ondelete} não encontrada` });
+                }
             } else {
                 await deleteModel(obj);
             }
@@ -1220,9 +1225,11 @@ module.exports = function (app) {
                 let config = await db.getModel('config').findOne();
                 let custom = require('../custom/' + config.customfile);
                 let realfunction = application.functions.getRealReference(custom, view.model.onsave);
-                if (!realfunction)
-                    return application.error(res, { msg: `Função ${view.model.onsave} não encontrada` });
-                await realfunction(obj, validateAndSave);
+                if (realfunction) {
+                    await realfunction(obj, validateAndSave);
+                } else {
+                    application.error(res, { msg: `Função ${view.model.onsave} não encontrada` });
+                }
             } else {
                 await validateAndSave(obj);
             }
