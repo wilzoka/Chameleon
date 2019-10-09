@@ -1157,6 +1157,84 @@ module.exports = function (app) {
         }
     });
 
+    app.get('/v/:view/:id/config', application.IsAuthenticated, async (req, res) => {
+        try {
+            const view = await findView(req.params.view);
+            const id = parseInt(req.params.id)
+            if (!view)
+                return application.notFound(res);
+            if (isNaN(id))
+                return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
+            if (!view.neednoperm && !permission.visible)
+                return application.forbidden(res);
+            if (id > 0 && view.wherefixed) {
+                let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
+                let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
+                if (exists <= 0) {
+                    return res.redirect(`/v/${req.params.view}`);
+                }
+            }
+            const viewfields = await db.getModel('viewfield').findAll({
+                where: { idview: view.id }
+                , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]
+                , include: [{ all: true }]
+            });
+            let attributes = ['id'];
+            for (let i = 0; i < viewfields.length; i++) {
+                let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                switch (viewfields[i].modelattribute.type) {
+                    case 'autocomplete':
+                        if (j.query) {
+                            attributes.push([db.Sequelize.literal(j.query), viewfields[i].modelattribute.name]);
+                        } else {
+                            attributes.push(viewfields[i].modelattribute.name);
+                        }
+                        break;
+                    case 'virtual':
+                        attributes.push([db.Sequelize.literal(j.subquery.replace(/\$user/g, req.user.id)), viewfields[i].modelattribute.name]);
+                        break;
+                    default:
+                        attributes.push(viewfields[i].modelattribute.name);
+                        break;
+                }
+            }
+            let register = await db.getModel(view.model.name).findOne({
+                attributes: attributes
+                , where: { id: id }
+                , include: [{ all: true }]
+            });
+            if (!register && id != 0) {
+                return application.error(res, {});
+            }
+            let templatezones = await db.getModel('templatezone').findAll({
+                where: { idtemplate: view.template.id }
+                , order: [['name', 'asc']]
+            });
+            // Fill zones with blank
+            let obj = {
+                zones: {}
+            };
+            for (let i = 0; i < templatezones.length; i++) {
+                obj.zones[templatezones[i].name] = {
+                    fields: []
+                };
+            }
+            for (let i = 0; i < viewfields.length; i++) {
+                obj.zones[viewfields[i].templatezone.name].fields.push({
+                    name: viewfields[i].modelattribute.name
+                    , label: viewfields[i].modelattribute.label
+                    , type: viewfields[i].modelattribute.type
+                    , notnull: viewfields[i].modelattribute.notnull
+                    , value: register.dataValues[viewfields[i].modelattribute.name] || ''
+                });;
+            }
+            return application.success(res, obj);
+        } catch (err) {
+            return application.fatal(res, err);
+        }
+    });
+
     app.post('/v/:view/delete', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);
