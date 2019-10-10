@@ -1221,12 +1221,20 @@ module.exports = function (app) {
                 };
             }
             for (let i = 0; i < viewfields.length; i++) {
+                let value = register.dataValues[viewfields[i].modelattribute.name];
+                let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                switch (j.type || viewfields[i].modelattribute.type) {
+                    case 'decimal':
+                        if (value != null)
+                            value = application.formatters.fe.decimal(value, j.precision);
+                        break;
+                }
                 obj.zones[viewfields[i].templatezone.name].fields.push({
                     name: viewfields[i].modelattribute.name
                     , label: viewfields[i].modelattribute.label
                     , type: viewfields[i].modelattribute.type
                     , notnull: viewfields[i].modelattribute.notnull
-                    , value: register.dataValues[viewfields[i].modelattribute.name] || ''
+                    , value: value
                 });;
             }
             return application.success(res, obj);
