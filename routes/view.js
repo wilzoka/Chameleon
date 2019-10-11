@@ -1209,32 +1209,51 @@ module.exports = function (app) {
             }
             let templatezones = await db.getModel('templatezone').findAll({
                 where: { idtemplate: view.template.id }
-                , order: [['name', 'asc']]
+                , order: [['order', 'asc']]
             });
             // Fill zones with blank
             let obj = {
-                zones: {}
+                view: {
+                    name: view.name
+                }
+                , zone: []
+                , zones: {}
             };
             for (let i = 0; i < templatezones.length; i++) {
+                obj.zone.push(templatezones[i].name);
                 obj.zones[templatezones[i].name] = {
-                    fields: []
+                    description: templatezones[i].description
+                    , fields: []
                 };
             }
             for (let i = 0; i < viewfields.length; i++) {
                 let value = register.dataValues[viewfields[i].modelattribute.name];
                 let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                switch (j.type || viewfields[i].modelattribute.type) {
+                switch (viewfields[i].modelattribute.type) {
+                    case 'date':
+                        if (value != null)
+                            value = application.formatters.fe.date(value);
+                        break;
                     case 'decimal':
                         if (value != null)
                             value = application.formatters.fe.decimal(value, j.precision);
                         break;
+                    case 'autocomplete':
+                        if (value != null)
+                            value = {
+                                id: value
+                                , text: j.query ? register[viewfields[i].modelattribute.name] : register[j.as || j.model][j.attribute]
+                            };
+                        break;
                 }
+
                 obj.zones[viewfields[i].templatezone.name].fields.push({
                     name: viewfields[i].modelattribute.name
                     , label: viewfields[i].modelattribute.label
                     , type: viewfields[i].modelattribute.type
                     , notnull: viewfields[i].modelattribute.notnull
                     , value: value
+                    , add: j
                 });;
             }
             return application.success(res, obj);
