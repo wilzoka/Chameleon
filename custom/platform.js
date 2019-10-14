@@ -261,6 +261,26 @@ let platform = {
                 return application.fatal(obj.res, err);
             }
         }
+        , f_getMenu: async function (user) {
+            let menu = await db.sequelize.query(`select m.*, v.id as idview, v.url from menu m left join view v on (m.id = v.idmenu) where m.idmenuparent is null order by tree`, { type: db.Sequelize.QueryTypes.SELECT });
+            let childs = await db.sequelize.query(`select m.*, v.id as idview, v.url from menu m left join view v on (m.id = v.idmenu) where m.idmenuparent is not null order by tree`, { type: db.Sequelize.QueryTypes.SELECT });
+            let permissions = await db.getModel('permission').findAll({
+                where: { iduser: user.id, idview: { [db.Op.not]: null }, visible: true }
+                , raw: true
+            });
+            permissionarr = [];
+            for (let i = 0; i < permissions.length; i++) {
+                permissionarr.push(permissions[i].idview);
+            }
+            for (let i = 0; i < menu.length; i++) {
+                menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
+                if (menu[i].children.length == 0) {
+                    menu.splice(i, 1);
+                    i--;
+                }
+            }
+            return menu;
+        }
     }
     , model: {
         onsave: async function (obj, next) {

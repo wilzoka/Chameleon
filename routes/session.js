@@ -4,22 +4,23 @@ const passport = require('passport')
     , db = require('../models')
     , application = require('./application')
     , Cyjs = require("crypto-js")
+    , platform = require("../custom/platform")
     ;
 
 let config, authfunction = null;
 
 // Serialize Sessions
-passport.serializeUser(function (user, done) {
+passport.serializeUser(function(user, done) {
     done(null, user);
 });
 
 // Deserialize Sessions
-passport.deserializeUser(function (user, done) {
+passport.deserializeUser(function(user, done) {
     done(null, user);
 });
 
 // For Authentication Purposes
-passport.use(new LocalStrategy(function (username, password, done) {
+passport.use(new LocalStrategy(function(username, password, done) {
     db.getModel('users').findOne({
         where: {
             active: true
@@ -35,9 +36,9 @@ passport.use(new LocalStrategy(function (username, password, done) {
     });
 }));
 
-module.exports = function (app) {
+module.exports = function(app) {
 
-    app.get('/login', function (req, res) {
+    app.get('/login', function(req, res) {
         if (req.isAuthenticated()) {
             return res.redirect('/home');
         } else {
@@ -60,36 +61,18 @@ module.exports = function (app) {
                     return res.status(401).send();
                 }
             }
-            let menu = await db.sequelize.query(`select m.*, v.id as idview, v.url from menu m left join view v on (m.id = v.idmenu) where m.idmenuparent is null order by tree`, { type: db.Sequelize.QueryTypes.SELECT });
-            let childs = await db.sequelize.query(`select m.*, v.id as idview, v.url from menu m left join view v on (m.id = v.idmenu) where m.idmenuparent is not null order by tree`, { type: db.Sequelize.QueryTypes.SELECT });
-            let permissions = await db.getModel('permission').findAll({
-                where: { iduser: req.user.id, idview: { [db.Op.not]: null }, visible: true }
-                , raw: true
-            });
-            permissionarr = [];
-            for (let i = 0; i < permissions.length; i++) {
-                permissionarr.push(permissions[i].idview);
+            if (req.body._mobile) {
+                return application.success(res, {
+                    token: jwt.sign({ id: req.user.id }, application.sk)
+                });
             }
-            for (let i = 0; i < menu.length; i++) {
-                menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
-                if (menu[i].children.length == 0) {
-                    menu.splice(i, 1);
-                    i--;
-                }
-            }
+            let menu = await platform.menu.f_getMenu(req.user);
             let redirect = '/home';
             if (req.user.idview) {
                 let defaultpage = await db.getModel('view').findOne({ raw: true, where: { id: req.user.idview } });
                 if (defaultpage) {
                     redirect = '/v/' + defaultpage.url;
                 }
-            }
-            if (req.body._mobile) {
-                return application.success(res, {
-                    redirect: redirect
-                    , menu: menu
-                    , token: jwt.sign({ id: req.user.id }, application.sk)
-                });
             }
             let menuhtml = '';
             for (let i = 0; i < menu.length; i++) {
@@ -107,13 +90,13 @@ module.exports = function (app) {
         } catch (err) {
             return application.fatal(res, err);
         }
-    }, function (err, req, res) {
+    }, function(err, req, res) {
         if (req.xhr) {
             return res.json(err);
         }
     });
 
-    app.get('/logout', function (req, res) {
+    app.get('/logout', function(req, res) {
         req.logout();
         return res.redirect("/login");
     });
