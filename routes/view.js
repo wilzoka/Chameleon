@@ -596,7 +596,7 @@ const validateAndSave = async function (obj) {
                 ret.msg = application.message.success;
                 if (!obj.req.body._calendar) {
                     ret.redirect = '/v/' + obj.view.url + '/' + saved.register.id;
-                    ret.historyBack = true;
+                    ret.historyBack = obj.hasSubview ? false : true;
                 }
                 if (obj._cookies) {
                     for (let i = 0; i < obj._cookies.length; i++) {
