@@ -111,7 +111,7 @@ var application = {
                     url: $this[0].action
                     , type: 'POST'
                     , dataType: 'json'
-                    , data: $this.serialize()
+                    , data: $this.serializeJSON({ parseBooleans: true })
                     , beforeSend: function () {
                         $this.find('button:submit').prop('disabled', true);
                     }

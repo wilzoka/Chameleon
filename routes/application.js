@@ -184,7 +184,7 @@ let application = {
 				<div class="col-md-${obj.width}">
 					<div class="checkbox">
 						<label>
-							<input name="${obj.name}" type="checkbox" ${obj.checked} ${obj.disabled}>
+							<input name="${obj.name}" type="checkbox" value="true" ${obj.checked} data-unchecked-value="false" ${obj.disabled}>
 							${obj.label}
 						</label>
 					</div>

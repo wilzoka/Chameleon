@@ -384,7 +384,7 @@ const render = function (viewfield, register) {
 
 const modelate = function (obj) {
     for (let i = 0; i < obj.viewfields.length; i++) {
-        if (obj.req.body._calendar && !(obj.viewfields[i].modelattribute.name in obj.req.body))
+        if (!(obj.viewfields[i].modelattribute.name in obj.req.body))
             continue;
         switch (obj.viewfields[i].modelattribute.type) {
             case 'text':
@@ -439,10 +439,10 @@ const modelate = function (obj) {
                 }
                 break;
             case 'boolean':
-                if (obj.req.body[obj.viewfields[i].modelattribute.name] == undefined) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = false;
-                } else {
+                if (obj.req.body[obj.viewfields[i].modelattribute.name] == 'true') {
                     obj.register[obj.viewfields[i].modelattribute.name] = true;
+                } else {
+                    obj.register[obj.viewfields[i].modelattribute.name] = false;
                 }
                 break;
             case 'integer':
@@ -596,7 +596,7 @@ const validateAndSave = async function (obj) {
                 ret.msg = application.message.success;
                 if (!obj.req.body._calendar) {
                     ret.redirect = '/v/' + obj.view.url + '/' + saved.register.id;
-                    ret.historyBack = obj.hasSubview ? false : true;
+                    ret.historyBack = true;
                 }
                 if (obj._cookies) {
                     for (let i = 0; i < obj._cookies.length; i++) {
@@ -607,6 +607,7 @@ const validateAndSave = async function (obj) {
                     ret = obj._responseModifier(ret);
                 }
                 if (obj.req.cookies.subview_redirect) {
+                    ret.historyBack = false;
                     Object.assign(ret, {
                         subview_redirect: `/v/${obj.req.cookies.subview_redirect}/0?parent=${saved.register.id}`
                     });
@@ -1218,6 +1219,7 @@ module.exports = function (app) {
                 }
                 , zone: []
                 , zones: {}
+                , fields: {}
             };
             for (let i = 0; i < templatezones.length; i++) {
                 obj.zone.push(templatezones[i].name);
@@ -1227,7 +1229,7 @@ module.exports = function (app) {
                 };
             }
             for (let i = 0; i < viewfields.length; i++) {
-                let value = register.dataValues[viewfields[i].modelattribute.name];
+                let value = register ? register[viewfields[i].modelattribute.name] : null;
                 let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                 switch (viewfields[i].modelattribute.type) {
                     case 'date':
@@ -1246,15 +1248,17 @@ module.exports = function (app) {
                             };
                         break;
                 }
-
-                obj.zones[viewfields[i].templatezone.name].fields.push({
+                obj.fields[viewfields[i].modelattribute.name] = {
                     name: viewfields[i].modelattribute.name
                     , label: viewfields[i].modelattribute.label
                     , type: viewfields[i].modelattribute.type
                     , notnull: viewfields[i].modelattribute.notnull
                     , value: value
                     , add: j
-                });;
+                };
+                obj.zones[viewfields[i].templatezone.name].fields.push(
+                    viewfields[i].modelattribute.name
+                );
             }
             return application.success(res, obj);
         } catch (err) {
