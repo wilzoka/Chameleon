@@ -753,7 +753,7 @@ var application = {
                         var $table = $('#' + dt.settings()[0].sTableId);
                         var view = $table.attr('data-view');
                         var subview = $table.attr('data-subview');
-                        if (subview) {
+                        if (subview && permission.editable) {
                             Cookies.set('subview_redirect', view);
                             $('#view-submit').trigger('click');
                         } else {
