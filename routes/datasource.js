@@ -114,7 +114,7 @@ module.exports = function (app) {
                     , order: [[ordercolumn, orderdir], ['id', orderdir]]
                 }));
                 registers = platform.view.f_fixResults(registers, viewtables);
-                return application.success(res, {
+                application.success(res, {
                     recordsTotal: registers.count
                     , recordsFiltered: registers.count
                     , data: registers.rows

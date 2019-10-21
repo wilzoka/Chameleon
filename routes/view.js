@@ -773,7 +773,7 @@ module.exports = function (app) {
                     , footer: footer
                     , events: events
                     , permissions: permissions
-                    , fastsearch: view.idfastsearch ? view.fastsearch.label : false
+                    , fastsearch: view.idfastsearch ? view.fastsearch.label : ''
                     , subview: req.query.issubview == 'true' ? true : false
                     , lineheight: view.lineheight
                 });
