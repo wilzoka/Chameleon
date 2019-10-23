@@ -1227,7 +1227,16 @@ module.exports = function (app) {
                 obj.zones[templatezones[i].name] = {
                     description: templatezones[i].description
                     , fields: []
+                    , subviews: []
                 };
+
+                let subviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: view.id, idtemplatezone: templatezones[i].id } });
+                for (let z = 0; z < subviews.length; z++) {
+                    console.log(subviews[z]);
+                    obj.zones[templatezones[i].name].subviews.push({
+                        url: subviews[z].subview.url
+                    });
+                }
             }
             for (let i = 0; i < viewfields.length; i++) {
                 let value = register ? register[viewfields[i].modelattribute.name] : null;
@@ -1236,6 +1245,10 @@ module.exports = function (app) {
                     case 'date':
                         if (value != null)
                             value = application.formatters.fe.date(value);
+                        break;
+                    case 'datetime':
+                        if (value != null)
+                            value = application.formatters.fe.datetime(value);
                         break;
                     case 'decimal':
                         if (value != null)
