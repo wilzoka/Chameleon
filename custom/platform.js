@@ -274,7 +274,12 @@ let platform = {
             }
             for (let i = 0; i < menu.length; i++) {
                 menu[i].children = application.menu.getChilds(menu[i].id, childs, permissionarr);
-                if (menu[i].children.length == 0) {
+                if (menu[i].idview) {
+                    if (permissionarr.indexOf(menu[i].idview) < 0) {
+                        menu.splice(i, 1);
+                        i--;
+                    }
+                } else if (menu[i].children.length == 0) {
                     menu.splice(i, 1);
                     i--;
                 }

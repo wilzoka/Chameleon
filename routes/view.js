@@ -1227,21 +1227,26 @@ module.exports = function (app) {
                 obj.zones[templatezones[i].name] = {
                     description: templatezones[i].description
                     , fields: []
-                    , subviews: []
+                    , subview: null
                 };
-
-                let subviews = await db.getModel('viewsubview').findAll({ include: [{ all: true }], where: { idview: view.id, idtemplatezone: templatezones[i].id } });
-                for (let z = 0; z < subviews.length; z++) {
-                    console.log(subviews[z]);
-                    obj.zones[templatezones[i].name].subviews.push({
-                        url: subviews[z].subview.url
-                    });
+                let subview = await db.getModel('viewsubview').findOne({ include: [{ all: true }], where: { idview: view.id, idtemplatezone: templatezones[i].id } });
+                if (subview) {
+                    obj.zones[templatezones[i].name].subview = {
+                        url: subview.subview.url
+                    };
                 }
             }
             for (let i = 0; i < viewfields.length; i++) {
-                let value = register ? register[viewfields[i].modelattribute.name] : null;
+                let value = register ? register.dataValues[viewfields[i].modelattribute.name] : null;
                 let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                 switch (viewfields[i].modelattribute.type) {
+                    case 'autocomplete':
+                        if (value != null)
+                            value = {
+                                id: value
+                                , text: j.query ? register[viewfields[i].modelattribute.name] : register[j.as || j.model][j.attribute]
+                            };
+                        break;
                     case 'date':
                         if (value != null)
                             value = application.formatters.fe.date(value);
@@ -1254,25 +1259,25 @@ module.exports = function (app) {
                         if (value != null)
                             value = application.formatters.fe.decimal(value, j.precision);
                         break;
-                    case 'autocomplete':
-                        if (value != null)
-                            value = {
-                                id: value
-                                , text: j.query ? register[viewfields[i].modelattribute.name] : register[j.as || j.model][j.attribute]
-                            };
-                        break;
                 }
                 obj.fields[viewfields[i].modelattribute.name] = {
                     name: viewfields[i].modelattribute.name
                     , label: viewfields[i].modelattribute.label
                     , type: viewfields[i].modelattribute.type
                     , notnull: viewfields[i].modelattribute.notnull
+                    , enabled: viewfields[i].modelattribute.type == 'virtual' ? false : !viewfields[i].disabled
                     , value: value
                     , add: j
                 };
                 obj.zones[viewfields[i].templatezone.name].fields.push(
                     viewfields[i].modelattribute.name
                 );
+            }
+            for (let k in obj.zones) {
+                if (obj.zones[k].fields.length == 0 && obj.zones[k].subview == null) {
+                    obj.zone.splice(obj.zone.indexOf(k), 1);
+                    delete obj.zones[k];
+                }
             }
             return application.success(res, obj);
         } catch (err) {
