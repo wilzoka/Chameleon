@@ -111,7 +111,7 @@ var application = {
                     url: $this[0].action
                     , type: 'POST'
                     , dataType: 'json'
-                    , data: $this.serializeJSON({ parseBooleans: true })
+                    , data: application.functions.serializeForm($this)
                     , beforeSend: function () {
                         $this.find('button:submit').prop('disabled', true);
                     }
@@ -1160,6 +1160,14 @@ var application = {
             } else {
                 return parseFloat(value.replace(/\./g, '').replace(',', '.'));
             }
+        }
+        , serializeForm: function ($form) {
+            var ret = $form.serializeJSON({ parseBooleans: true });
+            $form.find('[data-type="autocomplete"]').each(function () {
+                var $field = $(this);
+                ret[$field.attr('name')] = $field.val();
+            });
+            return ret;
         }
         , setPageCookie: function (conf) {
             var pagecookie = application.functions.getPageCookie();
