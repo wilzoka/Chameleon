@@ -1232,7 +1232,8 @@ module.exports = function (app) {
                 let subview = await db.getModel('viewsubview').findOne({ include: [{ all: true }], where: { idview: view.id, idtemplatezone: templatezones[i].id } });
                 if (subview) {
                     obj.zones[templatezones[i].name].subview = {
-                        url: subview.subview.url
+                        description: subview.description
+                        , url: subview.subview.url
                     };
                 }
             }
@@ -1279,9 +1280,9 @@ module.exports = function (app) {
                     delete obj.zones[k];
                 }
             }
-            return application.success(res, obj);
+            application.success(res, obj);
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
