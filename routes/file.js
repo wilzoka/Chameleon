@@ -5,6 +5,7 @@ const application = require('./application')
     , fs = require('fs-extra')
     , moment = require('moment')
     , sharp = require('sharp')
+    , mime = require('mime-types')
     ;
 
 let storage = multer.diskStorage({
@@ -94,9 +95,10 @@ module.exports = function (app) {
                 }
                 let filenamesplited = req.file.filename.split('.');
                 let type = filenamesplited[filenamesplited.length - 1].toLowerCase();
+                let mimetype = mime.lookup(type);
                 let file = await db.getModel('file').create({
                     filename: req.file.filename
-                    , mimetype: req.file.mimetype
+                    , mimetype: mimetype
                     , size: req.file.size
                     , type: type
                     , bounded: false
@@ -104,7 +106,7 @@ module.exports = function (app) {
                     , iduser: req.user.id
                 });
                 let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/`;
-                if (file.mimetype.match(/image.*/)) {
+                if (mimetype.match(/image.*/)) {
                     const quality = 80;
                     let maxwh = parseInt(req.body.maxwh || 0);
                     let forcejpg = req.body.forcejpg == 'true' ? true : false;
@@ -119,6 +121,7 @@ module.exports = function (app) {
                         file.type = 'jpg';
                         file.mimetype = 'image/jpeg';
                     }
+                    sharped.rotate();
                     if (['jpeg', 'jpg'].indexOf(file.type) >= 0) {
                         sharped.jpeg({ quality: quality, chromaSubsampling: '4:4:4' });
                     } else if (['png'].indexOf(file.type) >= 0) {
