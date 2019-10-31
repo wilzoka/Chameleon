@@ -41,6 +41,9 @@ module.exports = function (app) {
             }
             if (!file.public) {
                 if (!req.isAuthenticated()) {
+                    application.jwt(req);
+                }
+                if (!req.user) {
                     return application.forbidden(res);
                 }
                 let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { idmodel: file.idmodel } });

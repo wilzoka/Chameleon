@@ -425,15 +425,9 @@ let application = {
 		if (req.isAuthenticated()) {
 			next();
 		} else {
-			let token = req.headers['x-access-token'];
-			if (token) {
-				jwt.verify(token, application.sk, function (err, decoded) {
-					if (err) {
-						return res.status(401).json({});
-					}
-					req.user = decoded;
-					next();
-				});
+			application.jwt(req);
+			if (req.user) {
+				next();
 			} else {
 				if (req.xhr) {
 					res.status(401).json({});
@@ -442,6 +436,15 @@ let application = {
 				}
 			}
 		}
+	}
+	, jwt: function (req) {
+		let token = req.headers['x-access-token'];
+		jwt.verify(token, application.sk, function (err, decoded) {
+			if (!err) {
+				req.user = decoded;
+			}
+		});
+		return req;
 	}
 	, menu: {
 		createGroup: function (menu) {
