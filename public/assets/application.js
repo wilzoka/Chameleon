@@ -753,11 +753,12 @@ var application = {
                         var $table = $('#' + dt.settings()[0].sTableId);
                         var view = $table.attr('data-view');
                         var subview = $table.attr('data-subview');
-                        if (subview && permission.editable) {
+                        var id = application.functions.getId();
+                        if (subview && ((id == 0 && permission.insertable) || (id > 0 && permission.editable))) {
                             Cookies.set('subview_redirect', view);
                             $('#view-submit').trigger('click');
                         } else {
-                            window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + application.functions.getId() : '');
+                            window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + id : '');
                         }
                     }
                 });
