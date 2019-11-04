@@ -1,7 +1,6 @@
 const application = require('./application')
     , db = require('../models')
     , platform = require('../custom/platform')
-    , moment = require('moment')
     , fs = require('fs-extra')
     , escape = require('escape-html')
     ;

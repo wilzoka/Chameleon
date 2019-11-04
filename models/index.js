@@ -76,8 +76,9 @@ const application = require('../routes/application')
     , setModels = function (fmodels) {
         models = fmodels;
     };
-
-//Models
+// Timezone
+moment.tz.setDefault('America/Sao_Paulo');
+// Models
 let models = {};
 defineModel('session', {
     sid: {
@@ -100,7 +101,7 @@ sequelize.query(`
   `, { type: sequelize.QueryTypes.SELECT }).then(results => {
     let modelname
         , modelattributeobj = {};
-    //Create Attributes
+    // Create Attributes
     for (let i = 0; i < results.length; i++) {
         // Start
         if (i == 0) {
@@ -139,7 +140,7 @@ sequelize.query(`
             defineModel(modelname, modelattributeobj);
         }
     }
-    //Create References
+    // Create References
     for (let i = 0; i < results.length; i++) {
         let j = application.modelattribute.parseTypeadd(results[i].typeadd);
         let vas = j.as || j.model;
