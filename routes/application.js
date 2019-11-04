@@ -316,11 +316,11 @@ let application = {
 			, date_format: 'YYYY-MM-DD'
 			, datetime_format: 'YYYY-MM-DD HH:mm'
 			, date: function (value) {
-				value = moment.tz(value, 'DD/MM/YYYY', 'America/Sao_Paulo');
+				value = moment(value, 'DD/MM/YYYY');
 				return value.isValid() ? value.format('YYYY-MM-DD') : null;
 			}
 			, datetime: function (value) {
-				value = moment.tz(value, 'DD/MM/YYYY HH:mm', 'America/Sao_Paulo');
+				value = moment(value, 'DD/MM/YYYY HH:mm');
 				return value.isValid() ? value.format('YYYY-MM-DD HH:mm') : null;
 			}
 			, integer: function (value) {
@@ -351,7 +351,7 @@ let application = {
 				return value.isValid() ? value.format('DD/MM/YYYY') : null;
 			}
 			, datetime: function (value) {
-				value = moment(value, 'YYYY-MM-DD HH:mm');
+				value = moment.tz(value, 'YYYY-MM-DD HH:mm', 'America/Sao_Paulo');
 				return value.isValid() ? value.format('DD/MM/YYYY HH:mm') : null;
 			}
 		}
