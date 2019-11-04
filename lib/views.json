@@ -7,7 +7,16 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "schedule",
         "module": "Plataforma",
         "menu": "Plataforma - Agendamentos",
@@ -102,7 +111,21 @@
         "orderfixed": "datetime,desc",
         "supressid": false,
         "neednoperm": false,
-        "template": "box-12",
+        "template": {
+            "name": "box-12",
+            "zones": [
+                {
+                    "name": "hidden",
+                    "description": null,
+                    "order": 100
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "file",
         "module": "Plataforma",
         "menu": "Plataforma - Arquivos",
@@ -248,7 +271,21 @@
         "orderfixed": "datetime,desc",
         "supressid": true,
         "neednoperm": false,
-        "template": "box-12",
+        "template": {
+            "name": "box-12",
+            "zones": [
+                {
+                    "name": "hidden",
+                    "description": null,
+                    "order": 100
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "audit",
         "module": "Plataforma",
         "menu": "Plataforma - Auditoria",
@@ -362,7 +399,31 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "core/templates/config",
+        "template": {
+            "name": "core/templates/config",
+            "zones": [
+                {
+                    "name": "system",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "company",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "customization",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "email",
+                    "description": null,
+                    "order": null
+                }
+            ]
+        },
         "model": "config",
         "module": "Plataforma",
         "menu": "Plataforma - Configurações",
@@ -497,7 +558,16 @@
         "orderfixed": "description,asc",
         "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "groupusers",
         "module": "Plataforma",
         "menu": "Plataforma - Grupos de Usuário",
@@ -536,7 +606,16 @@
         "orderfixed": null,
         "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "messenger",
         "module": "Plataforma",
         "menu": "Plataforma - Mensageiros",
@@ -633,7 +712,16 @@
         "orderfixed": "tree,asc",
         "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "menu",
         "module": "Plataforma",
         "menu": "Plataforma - Menus",
@@ -714,7 +802,26 @@
         "orderfixed": "name,asc",
         "supressid": false,
         "neednoperm": false,
-        "template": "box-12-12",
+        "template": {
+            "name": "box-12-12",
+            "zones": [
+                {
+                    "name": "hidden",
+                    "description": null,
+                    "order": 100
+                },
+                {
+                    "name": "z2",
+                    "description": "Outros",
+                    "order": 2
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "model",
         "module": "Plataforma",
         "menu": "Plataforma - Modelos",
@@ -835,7 +942,16 @@
         "orderfixed": null,
         "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "modelattribute",
         "module": "Plataforma",
         "menu": null,
@@ -934,7 +1050,16 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "module",
         "module": "Plataforma",
         "menu": "Plataforma - Módulos",
@@ -973,7 +1098,21 @@
         "orderfixed": "datetime,desc",
         "supressid": true,
         "neednoperm": true,
-        "template": "box-12",
+        "template": {
+            "name": "box-12",
+            "zones": [
+                {
+                    "name": "hidden",
+                    "description": null,
+                    "order": 100
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "notification",
         "module": "Plataforma",
         "menu": null,
@@ -1064,14 +1203,28 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "box-12",
+        "template": {
+            "name": "box-12",
+            "zones": [
+                {
+                    "name": "hidden",
+                    "description": null,
+                    "order": 100
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "parameter",
         "module": "Plataforma",
         "menu": "Plataforma - Parâmetros",
         "type": null,
         "url": "parametro",
         "fastsearch": "key",
-        "lineheight": null,
+        "lineheight": 2,
         "add": null,
         "_field": [
             {
@@ -1133,7 +1286,21 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "box-6-6",
+        "template": {
+            "name": "box-6-6",
+            "zones": [
+                {
+                    "name": "z2",
+                    "description": "Outros",
+                    "order": 2
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "permission",
         "module": "Plataforma",
         "menu": "Plataforma - Permissões",
@@ -1253,7 +1420,16 @@
         "orderfixed": null,
         "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "permissionevent",
         "module": "Plataforma",
         "menu": null,
@@ -1300,6 +1476,62 @@
         "_event": []
     },
     {
+        "name": "Profile",
+        "namecomplete": "Plataforma - Profile",
+        "js": null,
+        "wherefixed": "users.id = $user",
+        "orderfixed": null,
+        "supressid": false,
+        "neednoperm": true,
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
+        "model": "users",
+        "module": "Plataforma",
+        "menu": null,
+        "type": null,
+        "url": "profile",
+        "fastsearch": null,
+        "lineheight": null,
+        "add": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "username",
+                "width": 12,
+                "order": 1,
+                "disabled": true,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "fullname",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "image",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": true
+            }
+        ],
+        "_table": [],
+        "_subview": [],
+        "_event": []
+    },
+    {
         "name": "Relatório",
         "namecomplete": "Plataforma - Relatório",
         "js": "core/js/report.js",
@@ -1307,7 +1539,26 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "box-6-6-12",
+        "template": {
+            "name": "box-6-6-12",
+            "zones": [
+                {
+                    "name": "z3",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "z2",
+                    "description": "Outros",
+                    "order": 2
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "report",
         "module": "Plataforma",
         "menu": "Plataforma - Relatórios",
@@ -1377,7 +1628,21 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "box-6-6",
+        "template": {
+            "name": "box-6-6",
+            "zones": [
+                {
+                    "name": "z2",
+                    "description": "Outros",
+                    "order": 2
+                },
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "template",
         "module": "Plataforma",
         "menu": "Plataforma - Templates",
@@ -1434,10 +1699,19 @@
         "namecomplete": "Plataforma - Template - Zona",
         "js": null,
         "wherefixed": null,
-        "orderfixed": null,
-        "supressid": false,
+        "orderfixed": "order,asc",
+        "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "templatezone",
         "module": "Plataforma",
         "menu": null,
@@ -1454,15 +1728,45 @@
                 "order": 1,
                 "disabled": false,
                 "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "description",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "order",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
             }
         ],
         "_table": [
             {
-                "modelattribute": "name",
+                "modelattribute": "order",
                 "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            },
+            {
+                "modelattribute": "name",
+                "ordertable": 2,
                 "orderable": true,
                 "render": null,
-                "totalize": null
+                "totalize": false
+            },
+            {
+                "modelattribute": "description",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -1476,7 +1780,16 @@
         "orderfixed": null,
         "supressid": false,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "users",
         "module": "Plataforma",
         "menu": "Plataforma - Usuários",
@@ -1599,7 +1912,36 @@
         "orderfixed": "namecomplete,asc",
         "supressid": false,
         "neednoperm": false,
-        "template": "core/templates/view",
+        "template": {
+            "name": "core/templates/view",
+            "zones": [
+                {
+                    "name": "view",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "viewfield",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "viewtable",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "viewsubview",
+                    "description": null,
+                    "order": null
+                },
+                {
+                    "name": "viewevent",
+                    "description": null,
+                    "order": null
+                }
+            ]
+        },
         "model": "view",
         "module": "Plataforma",
         "menu": "Plataforma - Views",
@@ -1791,7 +2133,16 @@
         "orderfixed": "order,asc",
         "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "viewfield",
         "module": "Plataforma",
         "menu": null,
@@ -1924,7 +2275,16 @@
         "orderfixed": "description,asc",
         "supressid": false,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "viewevent",
         "module": "Plataforma",
         "menu": null,
@@ -2008,7 +2368,16 @@
         "orderfixed": null,
         "supressid": true,
         "neednoperm": false,
-        "template": "box-6",
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "viewsubview",
         "module": "Plataforma",
         "menu": null,

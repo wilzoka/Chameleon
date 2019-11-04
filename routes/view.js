@@ -80,12 +80,9 @@ const renderDecimal = function (viewfield, register) {
 
     let value = register && register.dataValues[viewfield.modelattribute.name] ? register.dataValues[viewfield.modelattribute.name] : '';
 
-    let json = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
-    precision = json.precision;
+    let j = application.modelattribute.parseTypeadd(viewfield.modelattribute.typeadd);
     if (value) {
-        value = parseFloat(value);
-        let reg = '\\d(?=(\\d{3})+\\D)';
-        value = value.toFixed(json.precision).replace('.', ',').replace(new RegExp(reg, 'g'), '$&.');
+        value = application.formatters.fe.decimal(value, j ? j.precision : 2);
     }
 
     let label = viewfield.modelattribute.label;
@@ -102,7 +99,7 @@ const renderDecimal = function (viewfield, register) {
         , label: label
         , name: viewfield.modelattribute.name
         , value: value
-        , precision: precision
+        , precision: j.precision
         , disabled: disabled
     });
 }
@@ -155,8 +152,7 @@ const renderDate = function (viewfield, register) {
     }
 
     if (value) {
-        let m = moment(value, 'YYYY-MM-DD');
-        value = m.format('DD/MM/YYYY');
+        value = application.formatters.fe.date(value);
     }
 
     return application.components.html.date({
@@ -182,8 +178,7 @@ const renderDateTime = function (viewfield, register) {
     }
 
     if (value) {
-        let m = moment(value, 'YYYY-MM-DD HH:mm');
-        value = m.format('DD/MM/YYYY HH:mm');
+        value = application.formatters.fe.datetime(value);
     }
 
     return application.components.html.datetime({
@@ -1326,9 +1321,10 @@ module.exports = function (app) {
             if (!view)
                 return application.error(res, {});
             const permission = await platform.view.f_hasPermission(req.user.id, view.id);
-            if ((req.params.id == 0 && !permission.insertable) || (req.params.id > 0 && !permission.editable)) {
-                return application.error(res, { msg: application.message.permissionDenied });
-            }
+            if (!view.neednoperm)
+                if ((req.params.id == 0 && !permission.insertable) || (req.params.id > 0 && !permission.editable)) {
+                    return application.error(res, { msg: application.message.permissionDenied });
+                }
             const viewfields = await db.getModel('viewfield').findAll({
                 where: { idview: view.id, disabled: { [db.Op.eq]: false } }
                 , include: [{ all: true }]

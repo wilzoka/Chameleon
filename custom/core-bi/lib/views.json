@@ -6,24 +6,47 @@
         "wherefixed": "iduser = $user",
         "orderfixed": null,
         "supressid": false,
-        "template": "core-bi/templates/analysis",
+        "neednoperm": false,
+        "template": {
+            "name": "core-bi/templates/analysis",
+            "zones": [
+                {
+                    "name": "zheader",
+                    "description": "Cabeçalho",
+                    "order": 1
+                },
+                {
+                    "name": "chart",
+                    "description": "Gráfico",
+                    "order": 2
+                },
+                {
+                    "name": "hidden",
+                    "description": "Hidden",
+                    "order": 0
+                }
+            ]
+        },
         "model": "bi_analysis",
         "module": "BI",
+        "menu": "Business Intelligence - Análises",
+        "type": null,
         "url": "analise",
-        "pagelength": null,
         "fastsearch": null,
+        "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "hidden",
-                "modelattribute": "filter",
+                "modelattribute": "rows",
                 "width": 0,
                 "order": 0,
                 "disabled": false,
-                "disablefilter": false
+                "disablefilter": true
             },
             {
                 "templatezone": "hidden",
-                "modelattribute": "measures",
+                "modelattribute": "columns",
                 "width": 0,
                 "order": 0,
                 "disabled": false,
@@ -39,7 +62,7 @@
             },
             {
                 "templatezone": "hidden",
-                "modelattribute": "columns",
+                "modelattribute": "measures",
                 "width": 0,
                 "order": 0,
                 "disabled": false,
@@ -47,11 +70,11 @@
             },
             {
                 "templatezone": "hidden",
-                "modelattribute": "rows",
+                "modelattribute": "filter",
                 "width": 0,
                 "order": 0,
                 "disabled": false,
-                "disablefilter": true
+                "disablefilter": false
             },
             {
                 "templatezone": "zheader",
@@ -80,20 +103,18 @@
         ],
         "_table": [
             {
-                "modelattribute": "idcube",
-                "ordertable": 1,
-                "orderable": false,
-                "render": null,
-                "totalize": false,
-                "class": null
-            },
-            {
                 "modelattribute": "description",
-                "ordertable": 2,
+                "ordertable": 1,
                 "orderable": true,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
+            },
+            {
+                "modelattribute": "idcube",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -106,12 +127,45 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
-        "template": "core-bi/templates/cube",
+        "neednoperm": false,
+        "template": {
+            "name": "core-bi/templates/cube",
+            "zones": [
+                {
+                    "name": "hidden",
+                    "description": "Hidden",
+                    "order": 0
+                },
+                {
+                    "name": "header",
+                    "description": "Cabeçalho",
+                    "order": 1
+                },
+                {
+                    "name": "dimension",
+                    "description": "Dimensão",
+                    "order": 2
+                },
+                {
+                    "name": "measure",
+                    "description": "Medidas",
+                    "order": 3
+                },
+                {
+                    "name": "virtual",
+                    "description": "Virtual",
+                    "order": 4
+                }
+            ]
+        },
         "model": "bi_cube",
         "module": "BI",
+        "menu": "Business Intelligence - Cubos",
+        "type": null,
         "url": "cubo",
-        "pagelength": null,
         "fastsearch": "description",
+        "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "header",
@@ -144,8 +198,7 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [
@@ -174,12 +227,25 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": true,
-        "template": "box-6",
+        "neednoperm": false,
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "bi_cubedimension",
         "module": "BI",
+        "menu": null,
+        "type": null,
         "url": "cubo_-_dimensao",
-        "pagelength": null,
         "fastsearch": null,
+        "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -196,8 +262,7 @@
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -210,12 +275,25 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": true,
-        "template": "box-6",
+        "neednoperm": false,
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "bi_cubemeasure",
         "module": "BI",
+        "menu": null,
+        "type": null,
         "url": "cubo_-_medida",
-        "pagelength": null,
         "fastsearch": null,
+        "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -240,16 +318,14 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             },
             {
                 "modelattribute": "aggregator",
                 "ordertable": 2,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
             }
         ],
         "_subview": [],
@@ -262,12 +338,25 @@
         "wherefixed": null,
         "orderfixed": null,
         "supressid": false,
-        "template": "box-6",
+        "neednoperm": false,
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
         "model": "bi_cubevirtual",
         "module": "BI",
+        "menu": null,
+        "type": null,
         "url": "cubo_-_virtual",
-        "pagelength": null,
         "fastsearch": "idcubev",
+        "lineheight": null,
+        "add": null,
         "_field": [
             {
                 "templatezone": "z1",
@@ -284,8 +373,70 @@
                 "ordertable": 1,
                 "orderable": false,
                 "render": null,
-                "totalize": false,
-                "class": null
+                "totalize": false
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Permissão do Cubo",
+        "namecomplete": "BI - Permissão do Cubo",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "neednoperm": false,
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
+        "model": "bi_permissioncube",
+        "module": "BI",
+        "menu": "Business Intelligence - Permissões",
+        "type": null,
+        "url": "permissao_do_cubo",
+        "fastsearch": "iduser",
+        "lineheight": null,
+        "add": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "idcube",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "iduser",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idcube",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            },
+            {
+                "modelattribute": "iduser",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false
             }
         ],
         "_subview": [],

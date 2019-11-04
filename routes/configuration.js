@@ -21,7 +21,7 @@ module.exports = function (app) {
             }
         }
         filestream = fs.createReadStream(`${__dirname}/../public/images/loginimage.png`);
-        return filestream.pipe(res);
+        filestream.pipe(res);
     });
 
     app.get('/config/menu', application.IsAuthenticated, async (req, res) => {
@@ -35,6 +35,7 @@ module.exports = function (app) {
                 id: user.id
                 , fullname: user.fullname
                 , email: user.email
+                , image: user.image ? JSON.parse(user.image)[0] : null
             }
         });
     });

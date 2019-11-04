@@ -939,6 +939,8 @@ let platform = {
     , users: {
         onsave: async (obj, next) => {
             try {
+                if (!obj.register.username)
+                    return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['username'] });
                 let user = await db.getModel('users').findOne({ where: { id: { [db.Op.ne]: obj.register.id }, username: obj.register.username } });
                 if (user) {
                     return application.error(obj.res, { msg: 'Já existe um usuário com este Username', invalidfields: ['username'] });
@@ -1012,6 +1014,19 @@ let platform = {
                 }
                 let j = [];
                 for (let i = 0; i < views.length; i++) {
+                    let template = await db.getModel('template').findOne({ where: { id: views[i].idtemplate } });
+                    let tpl = {
+                        name: template.name
+                        , zones: []
+                    };
+                    let templatezones = await db.getModel('templatezone').findAll({ where: { idtemplate: template.id } });
+                    for (let x = 0; x < templatezones.length; x++) {
+                        tpl.zones.push({
+                            name: templatezones[x].name
+                            , description: templatezones[x].description
+                            , order: templatezones[x].order
+                        });
+                    }
                     j.push({
                         name: views[i].name
                         , namecomplete: views[i].namecomplete
@@ -1020,7 +1035,7 @@ let platform = {
                         , orderfixed: views[i].orderfixed
                         , supressid: views[i].supressid ? true : false
                         , neednoperm: views[i].neednoperm ? true : false
-                        , template: views[i].template.name
+                        , template: tpl
                         , model: views[i].model ? views[i].model.name : null
                         , module: views[i].module.description
                         , menu: views[i].idmenu ? views[i].menu.tree : null
@@ -1085,6 +1100,7 @@ let platform = {
             }
         }
         , e_import: async function (obj) {
+            let t;
             try {
                 if (obj.req.method == 'GET') {
                     let body = '';
@@ -1113,18 +1129,31 @@ let platform = {
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
                     let views = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
+                    t = await db.sequelize.transaction();
                     console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
                         console.log('VIEW ' + views[i].name);
                         let view = await db.getModel('view').findOne({ where: { name: views[i].name } });
                         let model = await db.getModel('model').findOne({ where: { name: views[i].model } });
                         let menu = await db.getModel('menu').findOne({ where: { tree: views[i].menu } });
-                        let modulee = await db.getModel('module').findOrCreate({ where: { description: views[i].module } });
-                        let template = await db.getModel('template').findOrCreate({ where: { name: views[i].template } });
+                        let modulee = await db.getModel('module').findOrCreate({ transaction: t, where: { description: views[i].module } });
+                        let template = (await db.getModel('template').findOrCreate({ transaction: t, where: { name: views[i].template.name } }))[0];
+                        for (let x = 0; x < views[i].template.zones.length; x++) {
+                            let templatezone = (await db.getModel('templatezone').findOrCreate({
+                                transaction: t
+                                , where: {
+                                    idtemplate: template.id
+                                    , name: views[i].template.zones[x].name
+                                }
+                            }))[0];
+                            templatezone.description = views[i].template.zones[x].description;
+                            templatezone.order = views[i].template.zones[x].order;
+                            await templatezone.save({ transaction: t });
+                        }
                         let fastsearch = await db.getModel('modelattribute').findOne({ where: { idmodel: model ? model.id : 0, name: views[i].fastsearch } });
                         if (view) {
                             view.name = views[i].name;
-                            view.idtemplate = template[0].id;
+                            view.idtemplate = template ? template.id : null;
                             view.idmodel = model ? model.id : null;
                             view.idmodule = modulee[0].id;
                             view.idmenu = menu ? menu.id : null;
@@ -1139,7 +1168,7 @@ let platform = {
                             view.idfastsearch = fastsearch ? fastsearch.id : null;
                             view.lineheight = views[i].lineheight;
                             view.add = views[i].add;
-                            await view.save();
+                            await view.save({ transaction: t });
                         } else {
                             view = await db.getModel('view').create({
                                 name: views[i].name
@@ -1158,38 +1187,42 @@ let platform = {
                                 , idfastsearch: fastsearch ? fastsearch.id : null
                                 , lineheight: views[i].lineheight
                                 , add: views[i].add
-                            });
+                            }, { transaction: t });
                         }
-                        let viewfields = []
+                        let viewfields = [];
                         for (let z = 0; z < views[i]._field.length; z++) {
-                            let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: template[0].id, name: views[i]._field[z].templatezone } });
+                            let templatezone = await db.getModel('templatezone').findOne({ where: { idtemplate: template.id, name: views[i]._field[z].templatezone } });
                             let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
                             if (modelattribute) {
                                 let viewfield = await db.getModel('viewfield').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
                                 if (viewfield) {
-                                    viewfield.idtemplatezone = templatezone[0].id;
+                                    viewfield.idtemplatezone = templatezone.id;
                                     viewfield.width = views[i]._field[z].width;
                                     viewfield.order = views[i]._field[z].order;
                                     viewfield.disabled = views[i]._field[z].disabled;
                                     viewfield.disablefilter = views[i]._field[z].disablefilter;
-                                    await viewfield.save();
+                                    await viewfield.save({ transaction: t });
                                 } else {
                                     viewfield = await db.getModel('viewfield').create({
                                         idview: view.id
-                                        , idtemplatezone: templatezone[0].id
+                                        , idtemplatezone: templatezone.id
                                         , idmodelattribute: modelattribute.id
                                         , width: views[i]._field[z].width
                                         , order: views[i]._field[z].order
                                         , disabled: views[i]._field[z].disabled
                                         , disablefilter: views[i]._field[z].disablefilter
-                                    });
+                                    }, { transaction: t });
                                 }
                                 viewfields.push(viewfield.id);
                             } else {
                                 console.error('ERROR: Model attribute "' + views[i]._field[z].modelattribute + '" not found');
                             }
                         }
-                        await db.getModel('viewfield').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewfields } } });
+                        await db.getModel('viewfield').destroy({
+                            transaction: t
+                            , iduser: obj.req.user.id
+                            , where: { idview: view.id, id: { [db.Op.notIn]: viewfields } }
+                        });
                         let viewtables = [];
                         for (let z = 0; z < views[i]._table.length; z++) {
                             let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
@@ -1201,7 +1234,7 @@ let platform = {
                                     viewtable.render = views[i]._table[z].render;
                                     viewtable.totalize = views[i]._table[z].totalize;
                                     viewtable.class = views[i]._table[z].class;
-                                    await viewtable.save();
+                                    await viewtable.save({ transaction: t });
                                 } else {
                                     viewtable = await db.getModel('viewtable').create({
                                         idview: view.id
@@ -1210,14 +1243,18 @@ let platform = {
                                         , orderable: views[i]._table[z].orderable
                                         , render: views[i]._table[z].render
                                         , totalize: views[i]._table[z].totalize
-                                    });
+                                    }, { transaction: t });
                                 }
                                 viewtables.push(viewtable.id);
                             } else {
                                 console.error('ERROR: Model attribute "' + views[i]._table[z].modelattribute + '" not found');
                             }
                         }
-                        await db.getModel('viewtable').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewtables } } });
+                        await db.getModel('viewtable').destroy({
+                            transaction: t
+                            , iduser: obj.req.user.id
+                            , where: { idview: view.id, id: { [db.Op.notIn]: viewtables } }
+                        });
                         let viewevents = [];
                         for (let z = 0; z < views[i]._event.length; z++) {
                             let viewevent = await db.getModel('viewevent').findOne({ where: { idview: view.id, description: views[i]._event[z].description } });
@@ -1225,7 +1262,7 @@ let platform = {
                                 viewevent.icon = views[i]._event[z].icon;
                                 viewevent.function = views[i]._event[z].function;
                                 viewevent.parameters = views[i]._event[z].parameters;
-                                await viewevent.save();
+                                await viewevent.save({ transaction: t });
                             } else {
                                 viewevent = await db.getModel('viewevent').create({
                                     idview: view.id
@@ -1233,11 +1270,15 @@ let platform = {
                                     , icon: views[i]._event[z].icon
                                     , function: views[i]._event[z].function
                                     , parameters: views[i]._event[z].parameters
-                                });
+                                }, { transaction: t });
                             }
                             viewevents.push(viewevent.id);
                         }
-                        await db.getModel('viewevent').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewevents } } });
+                        await db.getModel('viewevent').destroy({
+                            transaction: t
+                            , iduser: obj.req.user.id
+                            , where: { idview: view.id, id: { [db.Op.notIn]: viewevents } }
+                        });
                         if (i != views.length - 1) {
                             console.log('------------------------------');
                         }
@@ -1249,31 +1290,40 @@ let platform = {
                             let viewsubview = await db.getModel('view').findOne({ where: { name: views[i]._subview[z].subview } });
                             if (viewsubview) {
                                 let subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id, idsubview: viewsubview.id } });
-                                let templatezone = await db.getModel('templatezone').findOrCreate({ where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone } });
+                                let templatezone = await db.getModel('templatezone').findOrCreate({
+                                    transaction: t
+                                    , where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone }
+                                });
                                 if (subview) {
                                     subview.description = views[i]._subview[z].description;
                                     subview.idtemplatezone = templatezone[0].id;
-                                    await subview.save();
+                                    await subview.save({ transaction: t });
                                 } else {
                                     subview = await db.getModel('viewsubview').create({
                                         idview: view.id
                                         , idsubview: viewsubview.id
                                         , idtemplatezone: templatezone[0].id
                                         , description: views[i]._subview[z].description
-                                    });
+                                    }, { transaction: t });
                                 }
                                 viewsubviews.push(subview.id);
                             } else {
                                 console.error('ERROR: Subview "' + views[i]._subview[z].subview + '" not found');
                             }
                         }
-                        await db.getModel('viewsubview').destroy({ iduser: obj.req.user.id, where: { idview: view.id, id: { [db.Op.notIn]: viewsubviews } } });
+                        await db.getModel('viewsubview').destroy({
+                            transaction: t
+                            , iduser: obj.req.user.id
+                            , where: { idview: view.id, id: { [db.Op.notIn]: viewsubviews } }
+                        });
                     }
+                    await t.commit();
                     console.log('-----------FINISHED-----------');
-                    return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }
             } catch (err) {
-                return application.fatal(obj.res, err);
+                t.rollback();
+                application.fatal(obj.res, err);
             }
         }
         , f_getFilteredRegisters: async function (obj) {

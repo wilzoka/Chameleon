@@ -45,7 +45,7 @@
                 "label": "Cubo",
                 "type": "autocomplete",
                 "notnull": true,
-                "typeadd": "{\"model\": \"bi_cube\", \"attribute\": \"description\"}"
+                "typeadd": "{\"model\": \"bi_cube\", \"attribute\": \"description\", \"where\": \"bi_cube.id in (select p.idcube from bi_permissioncube p where p.iduser = $user)\"}"
             },
             {
                 "name": "iduser",
@@ -169,6 +169,28 @@
                 "type": "autocomplete",
                 "notnull": true,
                 "typeadd": "{\r\n\"as\": \"virtual\"\r\n , \"cascade\": false\r\n , \"model\": \"bi_cube\"\r\n , \"attribute\": \"description\"\r\n , \"where\": \"bi_cube.virtual = false\"\r\n }"
+            }
+        ]
+    },
+    {
+        "name": "bi_permissioncube",
+        "description": "Permissão do Cubo",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "idcube",
+                "label": "Cubo",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\r\n\"cascade\": true\r\n , \"model\": \"bi_cube\"\r\n , \"attribute\": \"description\"\r\n }"
+            },
+            {
+                "name": "iduser",
+                "label": "Usuário",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\r\n\"cascade\": true\r\n , \"model\": \"users\"\r\n , \"attribute\": \"fullname\"\r\n }"
             }
         ]
     }

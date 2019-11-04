@@ -694,6 +694,13 @@
         "ondelete": null,
         "_attribute": [
             {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            },
+            {
                 "name": "idtemplate",
                 "label": "ID Template",
                 "type": "parent",
@@ -706,6 +713,13 @@
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
+            },
+            {
+                "name": "order",
+                "label": "Ordem",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": "{\r\n}"
             }
         ]
     },
@@ -756,6 +770,13 @@
                 "type": "autocomplete",
                 "notnull": false,
                 "typeadd": "{\"model\": \"view\", \"attribute\": \"namecomplete\"}"
+            },
+            {
+                "name": "image",
+                "label": "Imagem de Perfil",
+                "type": "file",
+                "notnull": false,
+                "typeadd": "{\r\n\"acceptedfiles\": \"image/*\"\r\n , \"maxfiles\": \"1\"\r\n , \"forcejpg\": false\r\n , \"maxwh\": \"350\"\r\n , \"public\": false\r\n }"
             },
             {
                 "name": "newpassword",
