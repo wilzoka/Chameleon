@@ -320,7 +320,7 @@ let application = {
 				return value.isValid() ? value.format('YYYY-MM-DD') : null;
 			}
 			, datetime: function (value) {
-				value = moment(value, 'DD/MM/YYYY HH:mm');
+				value = moment.tz(value, 'DD/MM/YYYY HH:mm', 'America/Sao_Paulo');
 				return value.isValid() ? value.format('YYYY-MM-DD HH:mm') : null;
 			}
 			, integer: function (value) {
