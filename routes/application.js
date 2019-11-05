@@ -351,7 +351,7 @@ let application = {
 				return value.isValid() ? value.format('DD/MM/YYYY') : null;
 			}
 			, datetime: function (value) {
-				value = moment(value, 'YYYY-MM-DD HH:mm');
+				value = moment.tz(value, 'YYYY-MM-DD HH:mm', 'America/Sao_Paulo');
 				return value.isValid() ? value.format('DD/MM/YYYY HH:mm') : null;
 			}
 		}
