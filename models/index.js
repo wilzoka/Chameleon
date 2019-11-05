@@ -76,6 +76,8 @@ const application = require('../routes/application')
     , setModels = function (fmodels) {
         models = fmodels;
     };
+// Timezone
+moment.tz.setDefault('America/Sao_Paulo');
 // Models
 let models = {};
 defineModel('session', {
