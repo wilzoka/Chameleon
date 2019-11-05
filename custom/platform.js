@@ -1133,9 +1133,9 @@ let platform = {
                     console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
                         console.log('VIEW ' + views[i].name);
-                        let view = await db.getModel('view').findOne({ where: { name: views[i].name } });
-                        let model = await db.getModel('model').findOne({ where: { name: views[i].model } });
-                        let menu = await db.getModel('menu').findOne({ where: { tree: views[i].menu } });
+                        let view = await db.getModel('view').findOne({ transaction: t, where: { name: views[i].name } });
+                        let model = await db.getModel('model').findOne({ transaction: t, where: { name: views[i].model } });
+                        let menu = await db.getModel('menu').findOne({ transaction: t, where: { tree: views[i].menu } });
                         let modulee = (await db.getModel('module').findOrCreate({ transaction: t, where: { description: views[i].module } }))[0];
                         let template = (await db.getModel('template').findOrCreate({ transaction: t, where: { name: views[i].template.name } }))[0];
                         for (let x = 0; x < views[i].template.zones.length; x++) {
@@ -1150,7 +1150,7 @@ let platform = {
                             templatezone.order = views[i].template.zones[x].order;
                             await templatezone.save({ transaction: t });
                         }
-                        let fastsearch = await db.getModel('modelattribute').findOne({ where: { idmodel: model ? model.id : 0, name: views[i].fastsearch } });
+                        let fastsearch = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: model ? model.id : 0, name: views[i].fastsearch } });
                         if (view) {
                             view.name = views[i].name;
                             view.idtemplate = template ? template.id : null;
@@ -1191,10 +1191,10 @@ let platform = {
                         }
                         let viewfields = [];
                         for (let z = 0; z < views[i]._field.length; z++) {
-                            let templatezone = await db.getModel('templatezone').findOne({ where: { idtemplate: template.id, name: views[i]._field[z].templatezone } });
-                            let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
+                            let templatezone = await db.getModel('templatezone').findOne({ transaction: t, where: { idtemplate: template.id, name: views[i]._field[z].templatezone } });
+                            let modelattribute = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
                             if (modelattribute) {
-                                let viewfield = await db.getModel('viewfield').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                let viewfield = await db.getModel('viewfield').findOne({ transaction: t, where: { idview: view.id, idmodelattribute: modelattribute.id } });
                                 if (viewfield) {
                                     viewfield.idtemplatezone = templatezone.id;
                                     viewfield.width = views[i]._field[z].width;
@@ -1225,9 +1225,9 @@ let platform = {
                         });
                         let viewtables = [];
                         for (let z = 0; z < views[i]._table.length; z++) {
-                            let modelattribute = await db.getModel('modelattribute').findOne({ where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
+                            let modelattribute = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
                             if (modelattribute) {
-                                let viewtable = await db.getModel('viewtable').findOne({ where: { idview: view.id, idmodelattribute: modelattribute.id } });
+                                let viewtable = await db.getModel('viewtable').findOne({ transaction: t, where: { idview: view.id, idmodelattribute: modelattribute.id } });
                                 if (viewtable) {
                                     viewtable.ordertable = views[i]._table[z].ordertable;
                                     viewtable.orderable = views[i]._table[z].orderable;
@@ -1257,7 +1257,7 @@ let platform = {
                         });
                         let viewevents = [];
                         for (let z = 0; z < views[i]._event.length; z++) {
-                            let viewevent = await db.getModel('viewevent').findOne({ where: { idview: view.id, description: views[i]._event[z].description } });
+                            let viewevent = await db.getModel('viewevent').findOne({ transaction: t, where: { idview: view.id, description: views[i]._event[z].description } });
                             if (viewevent) {
                                 viewevent.icon = views[i]._event[z].icon;
                                 viewevent.function = views[i]._event[z].function;
@@ -1284,12 +1284,12 @@ let platform = {
                         }
                     }
                     for (let i = 0; i < views.length; i++) {
-                        let view = await db.getModel('view').findOne({ include: [{ all: true }], where: { name: views[i].name } });
+                        let view = await db.getModel('view').findOne({ transaction: t, include: [{ all: true }], where: { name: views[i].name } });
                         let viewsubviews = [];
                         for (let z = 0; z < views[i]._subview.length; z++) {
-                            let viewsubview = await db.getModel('view').findOne({ where: { name: views[i]._subview[z].subview } });
+                            let viewsubview = await db.getModel('view').findOne({ transaction: t, where: { name: views[i]._subview[z].subview } });
                             if (viewsubview) {
-                                let subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id, idsubview: viewsubview.id } });
+                                let subview = await db.getModel('viewsubview').findOne({ transaction: t, where: { idview: view.id, idsubview: viewsubview.id } });
                                 let templatezone = await db.getModel('templatezone').findOrCreate({
                                     transaction: t
                                     , where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone }
