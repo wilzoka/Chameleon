@@ -1136,7 +1136,7 @@ let platform = {
                         let view = await db.getModel('view').findOne({ where: { name: views[i].name } });
                         let model = await db.getModel('model').findOne({ where: { name: views[i].model } });
                         let menu = await db.getModel('menu').findOne({ where: { tree: views[i].menu } });
-                        let modulee = await db.getModel('module').findOrCreate({ transaction: t, where: { description: views[i].module } });
+                        let modulee = (await db.getModel('module').findOrCreate({ transaction: t, where: { description: views[i].module } }))[0];
                         let template = (await db.getModel('template').findOrCreate({ transaction: t, where: { name: views[i].template.name } }))[0];
                         for (let x = 0; x < views[i].template.zones.length; x++) {
                             let templatezone = (await db.getModel('templatezone').findOrCreate({
@@ -1155,7 +1155,7 @@ let platform = {
                             view.name = views[i].name;
                             view.idtemplate = template ? template.id : null;
                             view.idmodel = model ? model.id : null;
-                            view.idmodule = modulee[0].id;
+                            view.idmodule = modulee.id;
                             view.idmenu = menu ? menu.id : null;
                             view.type = views[i].type;
                             view.wherefixed = views[i].wherefixed;
@@ -1172,9 +1172,9 @@ let platform = {
                         } else {
                             view = await db.getModel('view').create({
                                 name: views[i].name
-                                , idtemplate: template[0].id
+                                , idtemplate: template.id
                                 , idmodel: model ? model.id : null
-                                , idmodule: modulee[0].id
+                                , idmodule: modulee.id
                                 , idmenu: menu ? menu.id : null
                                 , type: views[i].type
                                 , wherefixed: views[i].wherefixed
