@@ -200,7 +200,7 @@ let bi = {
             for (let m = 0; m < measures.length; m++) {
                 let series = [];
                 for (let c = 0; c < structure.c.length; c++) {
-                    seriesdata = [];
+                    let seriesdata = [];
                     for (let r = 0; r < structure.r.length; r++) {
                         let sd = null;
                         for (let i = 0; i < data.length; i++) {
@@ -486,7 +486,7 @@ let bi = {
                     if (k == dimensions[z].sqlfield) {
                         let arr = filterobj[k];
                         for (let i = 0; i < arr.length; i++) {
-                            arr[i] = `'${arr[i]}'`;
+                            arr[i] = `'${db.sanitizeString(arr[i])}'`;
                         }
                         filter.push(`"${k}" in (${arr.join(',')})`);
                         break;

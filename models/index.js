@@ -75,6 +75,10 @@ const application = require('../routes/application')
     }
     , setModels = function (fmodels) {
         models = fmodels;
+    }
+    , sanitizeString = function (value) {
+        value = value.replace(/'/g, '\'\'');
+        return value;
     };
 // Models
 let models = {};
@@ -174,4 +178,5 @@ module.exports = {
     , getModel: getModel
     , setModels: setModels
     , Op: Sequelize.Op
+    , sanitizeString: sanitizeString
 };
