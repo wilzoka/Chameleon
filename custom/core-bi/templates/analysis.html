@@ -19,9 +19,10 @@
     }
 
     .todo-list>li {
-        padding: 5px;
+        padding: 2px;
         background: #ffffff;
         margin: 2px;
+        border-left: 1px solid #e6e7e8;
     }
 
     .todo-list>li .text {
@@ -45,7 +46,12 @@
     }
 
     .todo-list>li.li-filtered {
-        background-color: #afe2ff;
+        border-color: #469fefb5;
+        background-color: #9dd5f57d;
+    }
+
+    .checkmeasure {
+        margin: 2px 6px !important;
     }
 </style>
 
@@ -63,32 +69,43 @@
     </div>
 </div>
 
-<div class="col-md-12">
-    <div class="box">
-        <div class="box-header">
-            <h3 class="box-title">Dimensões</h3>
-        </div>
-        <div class="box-body">
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="drop-area">
-                        <ul id="dim" class="todo-list ui-sortable ul-horizontal">
+<div class="col-md-2 no-padding">
+    <div class="col-md-12">
+        <div class="box">
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-12 text-center">
+                        <span class="text-bold">Medidas</span>
+                        <div id="measureconf"
+                            style="color:#888888;position:absolute;width:20px;top:0px;right:15px;cursor:pointer;">
+                            <i class="fa fa-cog"></i>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <ul id="measure" class="todo-list ui-sortable">
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="col-md-2 no-padding">
     <div class="col-md-12">
         <div class="box">
-            <div class="box-header">
-                <h3 class="box-title">Linhas</h3>
-            </div>
             <div class="box-body">
                 <div class="row">
+                    <div class="col-sm-12 text-center">
+                        <span class="text-bold">Colunas</span>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="drop-area">
+                            <ul id="dimcol" class="todo-list ui-sortable">
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 text-center">
+                        <span class="text-bold">Linhas</span>
+                    </div>
                     <div class="col-sm-12">
                         <div class="drop-area">
                             <ul id="dimrow" class="todo-list ui-sortable">
@@ -99,20 +116,19 @@
             </div>
         </div>
     </div>
+
     <div class="col-md-12">
         <div class="box">
-            <div class="box-header">
-                <h3 class="box-title">Medidas</h3>
-                <div id="measureconf"
-                    style="color:#888888;position:absolute;width:20px;top:5px;right:5px;cursor:pointer;">
-                    <i class="fa fa-cog"></i>
-                </div>
-            </div>
             <div class="box-body">
                 <div class="row">
+                    <div class="col-sm-12 text-center">
+                        <span class="text-bold">Filtros</span>
+                    </div>
                     <div class="col-sm-12">
-                        <ul id="measure" class="todo-list ui-sortable">
-                        </ul>
+                        <div class="drop-area">
+                            <ul id="dim" class="todo-list ui-sortable">
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -120,29 +136,12 @@
     </div>
 </div>
 
-<div class="col-md-10 no-padding-left">
-    <div class="box">
-        <div class="box-header">
-            <h3 class="box-title">Colunas</h3>
-        </div>
-        <div class="box-body">
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="drop-area">
-                        <ul id="dimcol" class="todo-list ui-sortable ul-horizontal">
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="col-md-10 no-padding-left">
     <div class="nav-tabs-custom">
         <ul class="nav nav-tabs">
             <li class="active">
-                <a href="#tab_table" data-toggle="tab"> Tabela</a>
+                <a href="#tab_table" data-toggle="tab"> Dados</a>
             </li>
             <li>
                 <a href="#tab_chart" data-toggle="tab"> Gráfico</a>
@@ -363,8 +362,10 @@
                     decimalPoint: ','
                     , thousandsSep: ','
                 }
+                , credits: {
+                    enabled: false
+                }
             });
-
             if ($('#tab_chart').hasClass('active')) {
                 $('#charts').children().remove();
                 for (var i = 0; i < chart.charts.length; i++) {
@@ -372,19 +373,20 @@
                     Highcharts.chart('chart' + i, {
                         chart: {
                             type: decodeChartType($('select[name="charttype"]').val())
-                        },
-                        title: {
+                            , height: $(window).height() * 0.60
+                        }
+                        , title: {
                             text: chart.charts[i].title || ''
-                        },
-                        yAxis: {
+                        }
+                        , yAxis: {
                             title: {
                                 text: ''
                             }
-                        },
-                        xAxis: {
+                        }
+                        , xAxis: {
                             categories: chart.charts[i].categories
-                        },
-                        series: chart.charts[i].series
+                        }
+                        , series: chart.charts[i].series
                     });
                 }
                 chart.rendered = true;
@@ -589,7 +591,8 @@
                 });
             }
             new Sortable(document.getElementById('measure'), {
-                animation: 150
+                handle: '.text'
+                , animation: 150
                 , ghostClass: 'blue-background-class'
                 , onEnd: function () {
                     renderTable();
