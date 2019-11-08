@@ -202,12 +202,42 @@
                             <ul class="nav nav-tabs">
                                 <li class="active">
                                     <a href="#tab_1" data-toggle="tab">
+                                        Geral
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#tab_2" data-toggle="tab">
                                         Medidas Calculadas
                                     </a>
                                 </li>
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane active" id="tab_1">
+                                    <div class="row">
+                                        <div class="col-md-6 no-padding">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Ordem</label>
+                                                    <select name="ordermeasure" class="form-control select2"
+                                                        style="width:100%;padding:0px 5px;">
+                                                        <option></option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Tipo</label>
+                                                    <select name="ordertype" class="form-control select2"
+                                                        style="width:100%;padding:0px 5px;">
+                                                        <option>Crescente</option>
+                                                        <option>Decrescente</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="tab_2">
                                     <div class="row">
                                         <div class="col-md-12 no-padding">
                                             <div class="col-sm-3 no-padding">
@@ -269,7 +299,10 @@
         var $idcube = $('select[name="idcube"]');
         var $charttype = $('select[name="charttype"]');
         var $filter = $('textarea[name="filter"]');
+        var $config = $('textarea[name="config"]');
         var $calculatedmeasures = $('textarea[name="calculatedmeasures"]');
+        var $ordermeasure = $('select[name="ordermeasure"]');
+        var $ordertype = $('select[name="ordertype"]');
         var chart = {
             charts: []
             , rendered: false
@@ -281,11 +314,13 @@
         var measureTPL = '<li class="list-group-item">'
             + '<input type="checkbox" class="checkmeasure" data-key="${key}" ${checked}>'
             + '<span class="text">${name}</span>'
+            + '<div class="tools" style="display: inline-block; color: #888888;">'
+            + '</div>'
             + '</li>';
         var dimensionTPL = '<li class="list-group-item" data-key="${key}">'
             + '<span class="text">${name}</span>'
-            + '<div class="tools dimfilter" style="display: inline-block; color: #888888;">'
-            + '<i class="fa fa-filter"></i>'
+            + '<div class="tools" style="display: inline-block; color: #888888;">'
+            + '<i class="fa fa-filter dimfilter"></i>'
             + '</div>'
             + '</li>';
 
@@ -298,6 +333,17 @@
             , '/public/assets/highcharts/highcharts.js'
         ]);
 
+        function setConfig(key, value) {
+            var config = JSON.parse($config.val() || '{}');
+            config[key] = value;
+            $config.val(JSON.stringify(config));
+        }
+
+        function getConfig(key) {
+            var config = JSON.parse($config.val() || '{}');
+            return config[key];
+        }
+
         function renderTable() {
             var request = {
                 idcube: $idcube.val()
@@ -306,6 +352,7 @@
                 , measures: []
                 , calculatedmeasures: $calculatedmeasures.val() || '{}'
                 , filter: $filter.val() || '{}'
+                , config: $config.val() || '{}'
             };
             $('#dimrow > li').each(function () {
                 request.rows.push($(this).attr('data-key'));
@@ -374,6 +421,13 @@
                         chart: {
                             type: decodeChartType($('select[name="charttype"]').val())
                             , height: $(window).height() * 0.60
+                            , options3d: {
+                                enabled: true,
+                                alpha: 15,
+                                beta: 15,
+                                viewDistance: 25,
+                                depth: 40
+                            }
                         }
                         , title: {
                             text: chart.charts[i].title || ''
@@ -401,6 +455,18 @@
             $filter.val('');
         }
 
+        function updateOptionsFor(name, options) {
+            var $el = $('select[name="' + name + '"]');
+            var value = $('select[name="' + name + '"]').val();
+            $el.find('option').remove();
+            for (var i = 0; i < options.length; i++) {
+                if (i == 0)
+                    $('<option>').appendTo($el);
+                $('<option>').text(options[i]).appendTo($el);
+            }
+            $el.val(value);
+        }
+
         function renderUI(idcube) {
             application.jsfunction('platform.core_bi.analysis.js_getCube', { idcube: idcube }, function (response) {
                 if (response.success) {
@@ -411,6 +477,7 @@
                     var rows = $('input[name="rows"]').val() ? $('input[name="rows"]').val().split(',') : [];
                     var columns = $('input[name="columns"]').val() ? $('input[name="columns"]').val().split(',') : [];
                     var measures = $('input[name="measures"]').val() ? $('input[name="measures"]').val().split(',') : [];
+                    var allmeasures = response.data.measures;
                     var measurescalculated = JSON.parse($calculatedmeasures.val() || '{}');
                     for (var i = 0; i < response.data.dimensions.length; i++) {
                         if (rows.indexOf(response.data.dimensions[i]) >= 0 || columns.indexOf(response.data.dimensions[i]) >= 0) {
@@ -419,22 +486,25 @@
                         }
                     }
                     current.measures = response.data.measures;
-                    for (let i = 0; i < rows.length; i++) {
+                    for (var i = 0; i < rows.length; i++) {
                         $('#dimrow').append(dimensionTPL.replace('${name}', rows[i]).replace('${key}', rows[i]));
                     }
-                    for (let i = 0; i < columns.length; i++) {
+                    for (var i = 0; i < columns.length; i++) {
                         $('#dimcol').append(dimensionTPL.replace('${name}', columns[i]).replace('${key}', columns[i]));
                     }
                     for (var i = 0; i < response.data.dimensions.length; i++) {
                         $('#dim').append(dimensionTPL.replace('${name}', response.data.dimensions[i]).replace('${key}', response.data.dimensions[i]));
                     }
-                    for (let i = 0; i < response.data.measures.length; i++) {
+                    for (var i = 0; i < response.data.measures.length; i++) {
                         $('#measure').append(measureTPL.replace('${name}', response.data.measures[i]).replace('${key}', response.data.measures[i]).replace('${checked}', measures.indexOf(response.data.measures[i]) >= 0 ? 'checked' : ''));
                     }
                     for (var k in measurescalculated) {
+                        allmeasures.push(k);
                         $('#measure').append(measureTPL.replace('${name}', k).replace('${key}', k).replace('${checked}', measures.indexOf(k) >= 0 ? 'checked' : ''));
                     }
                     renderTable();
+
+                    updateOptionsFor('ordermeasure', allmeasures);
                 }
             });
         }
@@ -448,9 +518,7 @@
             renderUI(e.params.data.id);
         });
 
-        $charttype.on('select2:select', function (e) {
-            renderCharts();
-        });
+        $charttype.on('select2:select', renderCharts);
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             if ($(e.target).attr("href") == '#tab_chart' && !chart.rendered) {
@@ -458,8 +526,8 @@
             }
         });
 
-        $(document).on('click', 'div.dimfilter', function (e) {
-            var key = $(this).parent().attr('data-key');
+        $(document).on('click', '.dimfilter', function (e) {
+            var key = $(this).closest('li.list-group-item').attr('data-key');
             application.jsfunction('platform.core_bi.analysis.js_getFilter', { idcube: $idcube.val(), key: key }, function (response) {
                 if (response.success) {
                     $('#modalfilter').find('.modal-body').html(response.data.html);
@@ -545,7 +613,6 @@
             }
             $calculatedmeasures.val(JSON.stringify(calculatedmeasures));
             renderCalculateMeasureUI();
-            renderUI($idcube.val());
         });
 
         function renderCalculateMeasureUI() {
@@ -568,12 +635,19 @@
             $calculatemeasurename.val('');
             $calculatemeasureformula.val('');
             renderCalculateMeasureUI();
-            renderUI($idcube.val());
         });
 
         $('#measureconf').click(function () {
             renderCalculateMeasureUI();
+            $ordermeasure.val(getConfig('ordermeasure'));
+            $ordertype.val(getConfig('ordertype'));
             $('#modalmeasure').modal('show');
+        });
+
+        $('#modalmeasure').on('hidden.bs.modal', function () {
+            setConfig('ordermeasure', $ordermeasure.val());
+            setConfig('ordertype', $ordertype.val());
+            renderUI($idcube.val());
         });
 
         $(document).on('app-loadjs', function () {

@@ -1843,6 +1843,7 @@ let platform = {
             }
             let fastsearch = req.cookies['view' + view.url + 'fs'] || req.body['_filterfs'];
             if (view.idfastsearch && fastsearch) {
+                fastsearch = db.sanitizeString(fastsearch);
                 const mafastsearch = await db.getModel('modelattribute').findOne({ where: { id: view.idfastsearch } });
                 let j = application.modelattribute.parseTypeadd(mafastsearch.typeadd);
                 switch (mafastsearch.type) {

@@ -4,12 +4,18 @@ const application = require('../../routes/application')
 
 let bi = {
     f_pivot: function (sql, options) {
+        let config = options.config || {};
         let columns = options.columns || [];
         let rows = options.rows || [];
         let measures = options.measures || [];
 
-        let row_order = []//[0, 'asc'];
-        let column_order = []//[0, 'asc'];
+        let measure_order = [];
+        if (config.ordermeasure) {
+            let i = measures.indexOf(config.ordermeasure);
+            if (i >= 0) {
+                measure_order = [i, config.ordertype == 'Crescente' ? 'asc' : 'desc'];
+            }
+        }
 
         let row_total = true;
         let column_total = true;
@@ -53,10 +59,8 @@ let bi = {
             }
         }
 
-        if (column_order.length === 0) {
+        if (measure_order.length === 0) {
             structure.c = structure.c.sort();
-        }
-        if (row_order.length === 0) {
             structure.r = structure.r.sort();
         }
 
@@ -75,59 +79,66 @@ let bi = {
             return emptytotal;
         }
         for (let i = 0; i < structure.c.length; i++) {
-            structure.c[i] = { val: structure.c[i], total: emptyTotal(), withValues: emptyTotal() };
+            structure.c[i] = { val: structure.c[i] };
         }
         for (let i = 0; i < structure.r.length; i++) {
-            structure.r[i] = { val: structure.r[i], total: emptyTotal(), withValues: emptyTotal() };
+            structure.r[i] = { val: structure.r[i] };
         }
-        for (let i = 0; i < data.length; i++) {
+        function calcTotal() {
             for (let r = 0; r < structure.r.length; r++) {
-                if (data[i].row == structure.r[r].val) {
-                    for (let m = 0; m < measures.length; m++) {
-                        structure.r[r].total[m] += parseFloat(data[i].measures[m] || 0);
-                        if (!isNaN(data[i].measures[m]))
-                            structure.r[r].withValues[m]++;
-                    }
-                }
-            }
-        }
-        for (let c = 0; c < structure.c.length; c++) {
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].column === structure.c[c].val) {
-                    for (let m = 0; m < measures.length; m++) {
-                        structure.c[c].total[m] = parseFloat(structure.c[c].total[m]) + parseFloat(data[i].measures[m] || 0);
-                        if (!isNaN(data[i].measures[m]))
-                            structure.c[c].withValues[m]++;
-                    }
-                }
-            }
-        }
-        for (let m = 0; m < measures.length; m++) {
-            if (options._measures[m] && options._measures[m].aggregator == 'avg') {
-                for (let r = 0; r < structure.r.length; r++) {
-                    structure.r[r].total[m] = structure.r[r].total[m] / structure.r[r].withValues[m];
-                }
-                for (let c = 0; c < structure.c.length; c++) {
-                    structure.c[c].total[m] = structure.c[c].total[m] / structure.c[c].withValues[m];
-                }
-            }
-        }
-        if (row_total && column_total) {
-            structure.grandtotal = emptyTotal();
-            for (let m = 0; m < measures.length; m++) {
-                let withValues = 0;
+                structure.r[r].total = emptyTotal();
+                structure.r[r].withValues = emptyTotal();
                 for (let i = 0; i < data.length; i++) {
-                    structure.grandtotal[m] += parseFloat(data[i].measures[m] || 0);
-                    if (!isNaN(data[i].measures[m]))
-                        withValues++;
-                    if (i == data.length - 1) {
-                        if (options._measures[m] && options._measures[m].aggregator == 'avg') {
-                            structure.grandtotal[m] = structure.grandtotal[m] / withValues;
+                    if (data[i].row === structure.r[r].val) {
+                        for (let m = 0; m < measures.length; m++) {
+                            structure.r[r].total[m] += parseFloat(data[i].measures[m] || 0);
+                            if (!isNaN(data[i].measures[m]))
+                                structure.r[r].withValues[m]++;
+                        }
+                    }
+                }
+            }
+            for (let c = 0; c < structure.c.length; c++) {
+                structure.c[c].total = emptyTotal();
+                structure.c[c].withValues = emptyTotal();
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].column === structure.c[c].val) {
+                        for (let m = 0; m < measures.length; m++) {
+                            structure.c[c].total[m] += parseFloat(data[i].measures[m] || 0);
+                            if (!isNaN(data[i].measures[m]))
+                                structure.c[c].withValues[m]++;
+                        }
+                    }
+                }
+            }
+            for (let m = 0; m < measures.length; m++) {
+                if (options._measures[m] && options._measures[m].aggregator == 'avg') {
+                    for (let r = 0; r < structure.r.length; r++) {
+                        structure.r[r].total[m] = structure.r[r].total[m] / structure.r[r].withValues[m];
+                    }
+                    for (let c = 0; c < structure.c.length; c++) {
+                        structure.c[c].total[m] = structure.c[c].total[m] / structure.c[c].withValues[m];
+                    }
+                }
+            }
+            if (row_total && column_total) {
+                structure.grandtotal = emptyTotal();
+                for (let m = 0; m < measures.length; m++) {
+                    let withValues = 0;
+                    for (let i = 0; i < data.length; i++) {
+                        structure.grandtotal[m] += parseFloat(data[i].measures[m] || 0);
+                        if (!isNaN(data[i].measures[m]))
+                            withValues++;
+                        if (i == data.length - 1) {
+                            if (options._measures[m] && options._measures[m].aggregator == 'avg') {
+                                structure.grandtotal[m] = structure.grandtotal[m] / withValues;
+                            }
                         }
                     }
                 }
             }
         }
+        calcTotal();
 
         function compare(order) {
             return function (a, b) {
@@ -138,14 +149,39 @@ let bi = {
                 return 0;
             }
         }
-        if (column_order.length > 0) {
-            structure.c = structure.c.sort(compare(column_order));
-        }
-        if (row_order.length > 0) {
-            structure.r = structure.r.sort(compare(row_order));
+        if (measure_order.length > 0) {
+            structure.c = structure.c.sort(compare(measure_order));
+            structure.r = structure.r.sort(compare(measure_order));
         }
 
-        //Cria os levels de span para linha e coluna
+        if (false) {
+            structure.r = structure.r.splice(0, 5);
+            // Lista dos valores atuais para que deve manter no obj data
+            let values = [];
+            for (let r = 0; r < structure.r.length; r++) {
+                values.push(structure.r[r].val);
+            }
+            for (let i = 0; i < data.length; i++) {
+                if (values.indexOf(data[i].row) < 0) {
+                    data.splice(i, 1);
+                    i--;
+                }
+            }
+            structure.c = structure.c.splice(0, 5);
+            values = [];
+            for (let c = 0; c < structure.c.length; c++) {
+                values.push(structure.c[c].val);
+            }
+            for (let i = 0; i < data.length; i++) {
+                if (values.indexOf(data[i].column) < 0) {
+                    data.splice(i, 1);
+                    i--;
+                }
+            }
+            calcTotal();
+        }
+
+        // Cria os levels de span para linha e coluna
         for (let c = 0; c < columns.length; c++) {
             structure.columns.push([]);
             for (let i = 0; i < structure.c.length; i++) {
@@ -196,57 +232,33 @@ let bi = {
         for (let i = 0; i < structure.r.length; i++) {
             categories.push(structure.r[i].val);
         }
-        if (structure.columns.length > 0) {
-            for (let m = 0; m < measures.length; m++) {
-                let series = [];
-                for (let c = 0; c < structure.c.length; c++) {
-                    let seriesdata = [];
-                    for (let r = 0; r < structure.r.length; r++) {
-                        let sd = null;
-                        for (let i = 0; i < data.length; i++) {
-                            if (structure.c[c].val == data[i].column && structure.r[r].val == data[i].row) {
-                                sd = { name: data[i].row, y: parseFloat(parseFloat(data[i].measures[m]).toFixed(2)) };
-                                break;
-                            }
-                        }
-                        if (!sd) {
-                            sd = { name: '', y: 0 };
-                        }
-                        seriesdata.push(sd);
-                    }
-                    series.push({
-                        name: structure.c[c].val
-                        , data: seriesdata
-                    });
-                }
-                charts.push({
-                    title: measures[m]
-                    , categories: categories
-                    , series: series
-                });
-            }
-        } else {
-            let series = [];
-            for (let i = 0; i < measures.length; i++) {
+        let series = [];
+        for (let m = 0; m < measures.length; m++) {
+            for (let c = 0; c < structure.c.length; c++) {
                 let seriesdata = [];
                 for (let r = 0; r < structure.r.length; r++) {
-                    for (let z = 0; z < data.length; z++) {
-                        if (structure.r[r].val == data[z].row) {
-                            seriesdata.push({ name: data[z].row, y: parseFloat(parseFloat(data[z].measures[i]).toFixed(2)) });
+                    let sd = null;
+                    for (let i = 0; i < data.length; i++) {
+                        if (structure.c[c].val == data[i].column && structure.r[r].val == data[i].row) {
+                            sd = { name: data[i].row, y: parseFloat(parseFloat(data[i].measures[m]).toFixed(2)) };
                             break;
                         }
                     }
+                    if (!sd) {
+                        sd = { name: '', y: 0 };
+                    }
+                    seriesdata.push(sd);
                 }
                 series.push({
-                    name: measures[i]
+                    name: (structure.c[c].val ? structure.c[c].val + ' - ' : '') + measures[m]
                     , data: seriesdata
                 });
             }
-            charts.push({
-                categories: categories
-                , series: series
-            });
         }
+        charts.push({
+            categories: categories
+            , series: series
+        });
 
         // Format Values
         for (let i = 0; i < data.length; i++) {
@@ -528,6 +540,7 @@ let bi = {
                     , columns: obj.data.columns
                     , measures: obj.data.measures
                     , _measures: []
+                    , config: JSON.parse(obj.data.config || '{}')
                 };
                 for (let i = 0; i < options.measures.length; i++) {
                     let cubename = cube.description;
