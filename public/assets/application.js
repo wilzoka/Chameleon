@@ -1265,6 +1265,12 @@ var application = {
 
             } else {
 
+                var subview_redirect = Cookies.get('subview_redirect');
+                if (subview_redirect) {
+                    Cookies.remove('subview_redirect');
+                    return window.location.href = '/v/' + subview_redirect + '/0' + '?parent=' + application.functions.getId();
+                }
+
                 if ('invalidfields' in response) {
                     for (var i = 0; i < response.invalidfields.length; i++) {
                         $('input[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
