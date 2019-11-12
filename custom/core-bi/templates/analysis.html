@@ -137,36 +137,38 @@
 </div>
 
 
-<div class="col-md-10 no-padding-left">
-    <div class="nav-tabs-custom">
-        <ul class="nav nav-tabs">
-            <li class="active">
-                <a href="#tab_table" data-toggle="tab"> Dados</a>
-            </li>
-            <li>
-                <a href="#tab_chart" data-toggle="tab"> Gráfico</a>
-            </li>
-        </ul>
-        <div class="tab-content">
-            <div class="tab-pane active" id="tab_table">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div id="divtable" style="overflow: auto;">
-
+<div class="col-md-10 no-padding">
+    <div class="col-md-11 no-padding-left">
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#tab_table" data-toggle="tab"> Dados</a>
+                </li>
+                <li>
+                    <a href="#tab_chart" data-toggle="tab"> Gráfico</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab_table">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div id="divtable" style="overflow: auto;"></div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="tab-pane" id="tab_chart">
-                <div class="row">
-                    {{{chart}}}
-                </div>
-                <hr style="margin: 5px 0;">
-                <div id="charts">
-
+                <div class="tab-pane" id="tab_chart">
+                    <div class="row">
+                        {{{chart}}}
+                    </div>
+                    <hr style="margin: 5px 0;">
+                    <div id="charts"></div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="col-md-1 no-padding-left">
+        <div class="btn-group-vertical" style="width: 100%;">
+            <button type="button" class="btn btn-default" id="actprint"><i class="fa fa-print"></i></button>
         </div>
     </div>
 </div>
@@ -305,6 +307,7 @@
         var $ordertype = $('select[name="ordertype"]');
         var chart = {
             charts: []
+            , dom: []
             , rendered: false
         };
         var current = {
@@ -331,6 +334,7 @@
         application.functions.getJs([
             '/public/assets/sortablejs/Sortable.min.js'
             , '/public/assets/highcharts/highcharts.js'
+            , '/public/assets/highcharts/exporting.js'
         ]);
 
         function setConfig(key, value) {
@@ -381,8 +385,9 @@
                         $('#divtable').children().remove();
                         $('#divtable').append(response.data.html);
                         chart.charts = response.data.charts;
+                        chart.dom = [];
                         chart.rendered = false;
-                        renderCharts();
+                        renderCharts(false);
                     }
                 });
             }
@@ -403,7 +408,7 @@
             }
         }
 
-        function renderCharts() {
+        function renderCharts(force) {
             Highcharts.setOptions({
                 lang: {
                     decimalPoint: ','
@@ -413,21 +418,14 @@
                     enabled: false
                 }
             });
-            if ($('#tab_chart').hasClass('active')) {
+            if ($('#tab_chart').hasClass('active') || force) {
                 $('#charts').children().remove();
                 for (var i = 0; i < chart.charts.length; i++) {
                     $('#charts').append('<div id="chart' + i + '"></div>')
-                    Highcharts.chart('chart' + i, {
+                    chart.dom[i] = Highcharts.chart('chart' + i, {
                         chart: {
                             type: decodeChartType($('select[name="charttype"]').val())
                             , height: $(window).height() * 0.60
-                            , options3d: {
-                                enabled: true,
-                                alpha: 15,
-                                beta: 15,
-                                viewDistance: 25,
-                                depth: 40
-                            }
                         }
                         , title: {
                             text: chart.charts[i].title || ''
@@ -441,6 +439,9 @@
                             categories: chart.charts[i].categories
                         }
                         , series: chart.charts[i].series
+                        , exporting: {
+                            enabled: false
+                        }
                     });
                 }
                 chart.rendered = true;
@@ -522,7 +523,7 @@
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             if ($(e.target).attr("href") == '#tab_chart' && !chart.rendered) {
-                renderCharts();
+                renderCharts(false);
             }
         });
 
@@ -648,6 +649,21 @@
             setConfig('ordermeasure', $ordermeasure.val());
             setConfig('ordertype', $ordertype.val());
             renderUI($idcube.val());
+        });
+
+        $('#actprint').click(function () {
+            var svgs = [];
+            if (!chart.rendered) {
+                renderCharts(true);
+            }
+            for (var i = 0; i < chart.charts.length; i++) {
+                svgs.push(chart.dom[i].getSVG({ chart: { width: 1300, height: 930 } }));
+            }
+            application.jsfunction('platform.core_bi.analysis.js_print', { table: $('#divtable').html(), charts: svgs }, function (response) {
+                if (response.success) {
+                    application.handlers.responseSuccess(response);
+                }
+            });
         });
 
         $(document).on('app-loadjs', function () {

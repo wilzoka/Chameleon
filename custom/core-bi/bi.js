@@ -1,5 +1,7 @@
 const application = require('../../routes/application')
     , db = require('../../models')
+    , fs = require('fs-extra')
+    , puppeteer = require('puppeteer')
     ;
 
 let bi = {
@@ -641,6 +643,50 @@ let bi = {
                 }
                 html += `</tbody></table></div></div>`;
                 return application.success(obj.res, { data: { html: html } });
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , js_print: async function (obj) {
+            try {
+                let pagebreak = '<div style="page-break-after:always"></div>';
+                let html = `
+                <html>
+                    <head>
+                        <meta charset="utf8">
+                    </head>
+                    <body>
+                        <style>
+                            ${fs.readFileSync(`${application.functions.rootDir()}public/assets/pivotjs/pivot.css`)}
+                        </style>
+                        ${obj.data.table}
+                        ${pagebreak}
+                        <div style="width:100%">
+                            ${obj.data.charts.join(pagebreak)}
+                        </div>
+                    </body>
+                </html>`;
+                let filename = process.hrtime()[1];
+                let path = `${application.functions.rootDir()}tmp/${process.env.NODE_APPNAME}`;
+                fs.writeFileSync(`${path}/${filename}.html`, html);
+                const browser = await puppeteer.launch();
+                const page = await browser.newPage();
+                await page.goto(`http://localhost:${process.env.NODE_PORT}/download/${filename}.html`);
+                await page.pdf({
+                    path: `${path}/${filename}.pdf`
+                    , format: 'A4'
+                    , printBackground: true
+                    , scale: 0.8
+                    , margin: {
+                        top: "0.5cm"
+                        , right: "0.5cm"
+                        , bottom: "0.5cm"
+                        , left: "0.5cm"
+                    }
+                    , landscape: true
+                });
+                await browser.close();
+                return application.success(obj.res, { openurl: `/download/${filename}.pdf` });
             } catch (err) {
                 return application.fatal(obj.res, err);
             }

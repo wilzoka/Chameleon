@@ -419,6 +419,9 @@ let application = {
 				return Math.trunc(minutes / 60 / 24) + ' dias';
 			}
 		}
+		, rootDir: function () {
+			return `${__dirname}/../`;
+		}
 	}
 	, Handlebars: require('handlebars')
 	, IsAuthenticated: function (req, res, next) {
