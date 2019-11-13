@@ -74,7 +74,7 @@
         "name": "bi_cube",
         "description": "Cubo",
         "onsave": "platform.core_bi.cube.onsave",
-        "ondelete": null,
+        "ondelete": "platform.core_bi.cube.ondelete",
         "_attribute": [
             {
                 "name": "description",
@@ -82,6 +82,20 @@
                 "type": "text",
                 "notnull": true,
                 "typeadd": null
+            },
+            {
+                "name": "lastloaddate",
+                "label": "Última Carga em",
+                "type": "datetime",
+                "notnull": false,
+                "typeadd": "{\r\n}"
+            },
+            {
+                "name": "loadfrequency",
+                "label": "Frequência de Carga",
+                "type": "radio",
+                "notnull": false,
+                "typeadd": "{\r\n\"options\": [\"De Hora em Hora\", \"Diariamente\", \"Semanalmente\"]\r\n , \"renderAsSelect\": true\r\n }"
             },
             {
                 "name": "sql",

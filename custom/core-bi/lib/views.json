@@ -142,19 +142,24 @@
                     "order": 1
                 },
                 {
-                    "name": "dimension",
-                    "description": "Dimensão",
-                    "order": 2
+                    "name": "virtual",
+                    "description": "Virtual",
+                    "order": 3
                 },
                 {
                     "name": "measure",
                     "description": "Medidas",
-                    "order": 3
+                    "order": 5
                 },
                 {
-                    "name": "virtual",
-                    "description": "Virtual",
+                    "name": "dimension",
+                    "description": "Dimensão",
                     "order": 4
+                },
+                {
+                    "name": "geral",
+                    "description": "Geral",
+                    "order": 2
                 }
             ]
         },
@@ -184,10 +189,18 @@
                 "disablefilter": false
             },
             {
-                "templatezone": "header",
+                "templatezone": "geral",
                 "modelattribute": "sql",
                 "width": 12,
                 "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "geral",
+                "modelattribute": "loadfrequency",
+                "width": 6,
+                "order": 4,
                 "disabled": false,
                 "disablefilter": false
             }
@@ -196,6 +209,20 @@
             {
                 "modelattribute": "description",
                 "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            },
+            {
+                "modelattribute": "loadfrequency",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            },
+            {
+                "modelattribute": "lastloaddate",
+                "ordertable": 3,
                 "orderable": false,
                 "render": null,
                 "totalize": false

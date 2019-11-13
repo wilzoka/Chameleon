@@ -8,6 +8,9 @@
             <div class="row">
                 {{{header}}}
             </div>
+            <div id="divgeral" class="row">
+                {{{geral}}}
+            </div>
             <div id="divvirtual" class="row hidden">
                 {{{virtual}}}
             </div>
@@ -38,12 +41,13 @@
     $(function () {
         function controllerVirtual() {
             if ($('input[name="virtual"]').is(':checked')) {
-                $('textarea[name="sql"]').parent().parent().addClass('hidden');
                 $('#divdimension').addClass('hidden');
                 $('#divmeasure').addClass('hidden');
+                $('#divgeral').addClass('hidden');
                 $('#divvirtual').removeClass('hidden');
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
             } else {
-                $('textarea[name="sql"]').parent().parent().removeClass('hidden');
+                $('#divgeral').removeClass('hidden');
                 $('#divdimension').removeClass('hidden');
                 $('#divmeasure').removeClass('hidden');
                 $('#divvirtual').addClass('hidden');
