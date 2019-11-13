@@ -677,7 +677,7 @@ let bi = {
                     select distinct
                         "${obj.data.key}" as option
                     from
-                        (${cube.sql}) as x
+                        bi_cube_${cube.id}
                     order by 1
                     `, { type: db.sequelize.QueryTypes.SELECT });
                 }
