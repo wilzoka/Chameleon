@@ -98,7 +98,7 @@ module.exports = function (app) {
                 }
                 let filenamesplited = req.file.filename.split('.');
                 let type = filenamesplited[filenamesplited.length - 1].toLowerCase();
-                let mimetype = mime.lookup(type);
+                let mimetype = mime.lookup(type) || '';
                 let file = await db.getModel('file').create({
                     filename: req.file.filename
                     , mimetype: mimetype

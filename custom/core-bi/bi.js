@@ -2,7 +2,11 @@ const application = require('../../routes/application')
     , db = require('../../models')
     , fs = require('fs-extra')
     , puppeteer = require('puppeteer')
+    , moment = require('moment')
+    , schedule = require('node-schedule')
     ;
+
+let cube_schedules = [];
 
 let bi = {
     f_pivot: function (sql, options) {
@@ -390,15 +394,64 @@ let bi = {
         };
     }
     , cube: {
-        onsave: async function (obj, next) {
+        onsave: async (obj, next) => {
             try {
                 if (obj.register.id == 0) {
                     //Popular medidas/dimensoes
                 }
-                await next(obj);
+                let saved = await next(obj);
+                bi.cube.f_otimizar(saved.register.id);
+                bi.cube.f_agendar(saved.register);
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
+        }
+        , ondelete: async (obj, next) => {
+            try {
+                let deleted = await next(obj);
+                if (deleted.success) {
+                    for (let i = 0; i < obj.ids.length; i++) {
+                        bi.cube.f_desagendar(obj.ids[i]);
+                        db.sequelize.query(`drop table if exists bi_cube_${obj.ids[i]};`);
+                    }
+                }
+            } catch (err) {
+                return application.fatal(obj.res, err);
+            }
+        }
+        , f_otimizar: async (idcube) => {
+            try {
+                let cube = await db.getModel('bi_cube').findOne({ where: { id: idcube } });
+                if (cube && !cube.virtual) {
+                    await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql}`);
+                    cube.lastloaddate = moment();
+                    cube.save();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        , f_desagendar: function (idcube) {
+            if (cube_schedules[idcube]) {
+                cube_schedules[idcube].cancel();
+                delete cube_schedules[idcube];
+            }
+        }
+        , f_agendar: function (cube) {
+            if (cube.virtual)
+                return;
+            bi.cube.f_desagendar(cube.id);
+            let rule = null;
+            if (cube.loadfrequency == 'De Hora em Hora') {
+                rule = '0 * * * *';
+            } else if (cube.loadfrequency == 'Diariamente') {
+                rule = '0 0 * * *';
+            } else if (cube.loadfrequency == 'Semanalmente') {
+                rule = '0 0 * * 1'; //Segunda
+            }
+            if (rule)
+                cube_schedules[cube.id] = schedule.scheduleJob(rule
+                    , bi.cube.f_otimizar.bind(null, cube.id));
         }
     }
     , analysis: {
@@ -513,7 +566,7 @@ let bi = {
             select
                 ${sqlcolumns.concat(sqlmeasures).join(', ')}
             from
-                (${cube.sql}) as x
+                bi_cube_${cube.id}
                 ${filter}
                 ${groupby}`;
 
@@ -535,7 +588,7 @@ let bi = {
                         query += ` or "${obj.data.measures[i]}" is not null`;
                     }
                 }
-                // require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
+                require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
                 let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 let options = {
                     rows: obj.data.rows
@@ -693,5 +746,12 @@ let bi = {
         }
     }
 }
+
+//Agendamento de Carga dos Cubos
+db.sequelize.query("SELECT * FROM bi_cube WHERE virtual = false", { type: db.sequelize.QueryTypes.SELECT }).then(scheds => {
+    scheds.map(sched => {
+        bi.cube.f_agendar(sched);
+    });
+});
 
 module.exports = bi;
