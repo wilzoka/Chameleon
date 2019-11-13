@@ -666,7 +666,7 @@ let bi = {
                         let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cubes[i]['virtual.id'] } });
                         for (let z = 0; z < dimensions.length; z++) {
                             if (dimensions[z].sqlfield == obj.data.key) {
-                                unions.push(`select distinct "${obj.data.key}" as option from (${cubes[i]['virtual.sql']}) as x`);
+                                unions.push(`select distinct "${obj.data.key}" as option from bi_cube_${cubes[i]['virtual.id']}`);
                             }
                         }
                     }
