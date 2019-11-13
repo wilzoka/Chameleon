@@ -58,7 +58,7 @@
                 "width": 0,
                 "order": 0,
                 "disabled": false,
-                "disablefilter": false
+                "disablefilter": true
             },
             {
                 "templatezone": "hidden",
@@ -70,11 +70,19 @@
             },
             {
                 "templatezone": "hidden",
+                "modelattribute": "config",
+                "width": 0,
+                "order": 0,
+                "disabled": false,
+                "disablefilter": true
+            },
+            {
+                "templatezone": "hidden",
                 "modelattribute": "filter",
                 "width": 0,
                 "order": 0,
                 "disabled": false,
-                "disablefilter": false
+                "disablefilter": true
             },
             {
                 "templatezone": "zheader",

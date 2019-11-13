@@ -27,6 +27,13 @@
                 "typeadd": "{\r\n}"
             },
             {
+                "name": "config",
+                "label": "Configurações",
+                "type": "textarea",
+                "notnull": false,
+                "typeadd": "{\r\n\"rows\": 5\r\n , \"placeholder\": \"\"\r\n }"
+            },
+            {
                 "name": "description",
                 "label": "Descrição",
                 "type": "text",
@@ -58,7 +65,7 @@
                 "name": "measures",
                 "label": "Medidas",
                 "type": "text",
-                "notnull": true,
+                "notnull": false,
                 "typeadd": "{\r\n}"
             },
             {
