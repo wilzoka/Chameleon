@@ -174,13 +174,16 @@
 </div>
 
 <div class="modal fade" id="modalfilter">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="bootbox-close-button close" aria-hidden="true">×</button>
                 <h4 class="modal-title"></h4>
             </div>
             <div class="modal-body">
+                <table id="tablefilter" class="table table-bordered table-hover dataTable no-footer nowrap"
+                    width="100%">
+                </table>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
@@ -313,7 +316,34 @@
         var current = {
             measures: []
         }
-        var tablefilter;
+        var tablefilter = $('#tablefilter').DataTable({
+            columns: [{ "title": "Selecione para Filtrar", "orderable": true, "class": "text-left" }]
+            , dom: 'Bfrt'
+            , select: {
+                style: 'multi'
+            }
+            // , deferRender: true
+            , scrollY: '300px'
+            , scroller: {
+                loadingIndicator: false
+            }
+            , buttons: [
+                {
+                    text: 'Todos'
+                    , className: 'btn-default'
+                    , action: function () {
+                        tablefilter.rows().select();
+                    }
+                },
+                {
+                    text: 'Nenhum'
+                    , className: 'btn-default'
+                    , action: function () {
+                        tablefilter.rows().deselect();
+                    }
+                }
+            ]
+        });;
         var measureTPL = '<li class="list-group-item">'
             + '<input type="checkbox" class="checkmeasure" data-key="${key}" ${checked}>'
             + '<span class="text">${name}</span>'
@@ -527,45 +557,25 @@
             }
         });
 
+        $('#modalfilter').on('shown.bs.modal', function () {
+            $('.dataTables_scrollBody').scrollTop(0);
+        });
+        $('#modalfilter').on('hidden.bs.modal', function () {
+            tablefilter.search('');
+        });
         $(document).on('click', '.dimfilter', function (e) {
             var key = $(this).closest('li.list-group-item').attr('data-key');
             application.jsfunction('platform.core_bi.analysis.js_getFilter', { idcube: $idcube.val(), key: key }, function (response) {
                 if (response.success) {
-                    $('#modalfilter').find('.modal-body').html(response.data.html);
                     $('#modalfilter').find('.modal-title').html(key);
                     $('#modalfilter').attr('data-key', key);
-                    tablefilter = $('#tablefilter').DataTable({
-                        dom: 'Bfrtp'
-                        , columnDefs: [{
-                            orderable: false,
-                            className: 'select-checkbox',
-                            targets: 0
-                        }]
-                        , order: [[1, 'asc']]
-                        , select: {
-                            style: 'multi'
-                        }
-                        , pageLength: 50
-                        , buttons: [
-                            {
-                                text: 'Todos',
-                                action: function () {
-                                    tablefilter.rows().select();
-                                }
-                            },
-                            {
-                                text: 'Nenhum',
-                                action: function () {
-                                    tablefilter.rows().deselect();
-                                }
-                            }
-                        ]
-                    });
-
+                    tablefilter.clear();
+                    tablefilter.rows.add(response.data);
+                    tablefilter.draw();
                     var filter = JSON.parse($filter.val() || '{}');
                     tablefilter.rows().every(function () {
                         var d = this.data();
-                        if (filter[key] && filter[key].indexOf(d[1]) >= 0) {
+                        if (filter[key] && filter[key].indexOf(d[0]) >= 0) {
                             this.select();
                         }
                     });
@@ -580,7 +590,7 @@
             filter[key] = [];
             var rows = tablefilter.rows({ selected: true }).data();
             for (var i = 0; i < rows.length; i++) {
-                filter[key].push(rows[i][1])
+                filter[key].push(rows[i][0])
             }
             if (filter[key].length == 0) {
                 delete filter[key];

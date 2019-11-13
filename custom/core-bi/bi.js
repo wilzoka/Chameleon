@@ -681,21 +681,11 @@ let bi = {
                     order by 1
                     `, { type: db.sequelize.QueryTypes.SELECT });
                 }
-                let html = `<div class="row"><div class="col-md-12"><table id="tablefilter" class="table table-bordered table-hover dataTable no-footer" width="100%">
-                <thead>
-                    <tr>
-                        <td></td>
-                        <td>${obj.data.key}</td>
-                    </tr>
-                </thead>
-                <tbody>`;
+                let ret = [];
                 for (let i = 0; i < sql.length; i++) {
-                    html += `<tr>`;
-                    html += `<td></td> <td>${sql[i].option}</td>`;
-                    html += `</tr>`;
+                    ret.push([sql[i].option]);
                 }
-                html += `</tbody></table></div></div>`;
-                return application.success(obj.res, { data: { html: html } });
+                return application.success(obj.res, { data: ret });
             } catch (err) {
                 return application.fatal(obj.res, err);
             }
