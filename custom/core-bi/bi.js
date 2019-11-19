@@ -431,7 +431,12 @@ let bi = {
             try {
                 let cube = await db.getModel('bi_cube').findOne({ where: { id: idcube } });
                 if (cube && !cube.virtual) {
-                    await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql}`);
+                    let dimensions = await db.getModel('bi_cubedimension').findAll({ where: { idcube: cube.id } });
+                    let indexes = [];
+                    for (let i = 0; i < dimensions.length; i++) {
+                        indexes.push(`create index "idx_bi_cube_${idcube}_${dimensions[i].sqlfield}" on bi_cube_${idcube}("${dimensions[i].sqlfield}")`);
+                    }
+                    await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql};` + indexes.join(';'));
                     cube.lastloaddate = moment();
                     cube.save();
                 }
