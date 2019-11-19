@@ -65,6 +65,14 @@ let bi = {
             }
         }
 
+        let tablelimit = 500;
+        if (structure.c.length > tablelimit || structure.r.length > tablelimit) {
+            return {
+                html: '<span>Muitos resultados para exibir, realize mais filtros para visualizar</span>'
+                , charts: []
+            };
+        }
+
         if (measure_order.length === 0) {
             structure.c = structure.c.sort();
             structure.r = structure.r.sort();
@@ -499,6 +507,11 @@ let bi = {
                         }
                         joins += `)`;
                     }
+                    let j = [];
+                    for (let i = 0; i < columnsAndRows.length; i++) {
+                        j.push(i + 1);
+                    }
+                    joins += ' group by ' + j.join(',');
                 } else {
                     joins = cubesjoined.join(',');
                 }
@@ -512,7 +525,7 @@ let bi = {
                 }
                 let vmeasures = [];
                 for (let i = 0; i < allmeasures.length; i++) {
-                    vmeasures.push(`"${allmeasures[i]}"`);
+                    vmeasures.push(`sum("${allmeasures[i]}") as "${allmeasures[i]}"`);
                 }
                 return `${query} select ${vcolumns.concat(vmeasures)} from ${joins}`;
             }
@@ -550,10 +563,10 @@ let bi = {
             let filter = [];
             for (let k in filterobj) {
                 for (let z = 0; z < dimensions.length; z++) {
-                    if (k == dimensions[z].sqlfield) {
+                    if (dimensions[z].sqlfield == k) {
                         let arr = filterobj[k];
                         for (let i = 0; i < arr.length; i++) {
-                            arr[i] = `'${db.sanitizeString(arr[i])}'`;
+                            arr[i] = `'${db.sanitizeString(arr[i].toString())}'`;
                         }
                         filter.push(`"${k}" in (${arr.join(',')})`);
                         break;
@@ -577,17 +590,65 @@ let bi = {
                 let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
                 let calculatedmeasures = JSON.parse(obj.data.calculatedmeasures);
                 let cm = [];
+                let realcube;
+                let dimensions = [];
                 for (let k in calculatedmeasures) {
-                    cm.push(`(${calculatedmeasures[k]}) as "${k}"`);
+                    let value = calculatedmeasures[k];
+                    let splitted = value.split(' ');
+                    for (let i = 0; i < splitted.length; i++) {
+                        if (splitted[i] == 'from') {
+                            realcube = await db.getModel('bi_cube').findOne({ raw: true, where: { description: splitted[i + 1].replace(/"/g, '') } });
+                            splitted[i + 1] = 'bi_cube_' + realcube.id;
+                        } else if (splitted[i] == '$filters') {
+                            if (realcube) {
+                                dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: realcube.id } });
+                                let dimarr = [];
+                                for (let z = 0; z < dimensions.length; z++) {
+                                    dimarr.push(dimensions[z].sqlfield);
+                                }
+                                let filterobj = JSON.parse(obj.data.filter || '{}');
+                                let filter = [];
+                                for (let f in filterobj) {
+                                    if (dimarr.indexOf(f) >= 0) {
+                                        let arr = filterobj[f];
+                                        for (let i = 0; i < arr.length; i++) {
+                                            arr[i] = `'${db.sanitizeString(arr[i].toString())}'`;
+                                        }
+                                        filter.push(`"${f}" in (${arr.join(',')})`);
+                                    }
+                                }
+                                if (obj.data.rows) {
+                                    for (let i = 0; i < obj.data.rows.length; i++) {
+                                        if (dimarr.indexOf(obj.data.rows[i]) >= 0) {
+                                            filter.push(`"${obj.data.rows[i]}"::text = x."${obj.data.rows[i]}"::text`);
+                                        } else {
+                                            filter.push(`x."${obj.data.rows[i]}"::text is null`);
+                                        }
+                                    }
+                                }
+                                if (obj.data.columns) {
+                                    for (let i = 0; i < obj.data.columns.length; i++) {
+                                        if (dimarr.indexOf(obj.data.columns[i]) >= 0) {
+                                            filter.push(`"${obj.data.columns[i]}"::text = x."${obj.data.columns[i]}"::text`)
+                                        } else {
+                                            filter.push(`x."${obj.data.rows[i]}"::text is null`);
+                                        }
+                                    }
+                                }
+                                splitted[i] = filter.length > 0 ? filter.join(' and ') : '1=1';
+                            }
+                        }
+                    }
+                    value = splitted.join(' ');
+
+                    cm.push(`(${value}) as "${k}"`);
                 }
                 query = `select * from (select x.* ${cm.length > 0 ? ',' + cm.join(',') : ''} from (${query}) as x) as x`;
+                let w = [];
                 for (let i = 0; i < obj.data.measures.length; i++) {
-                    if (i == 0) {
-                        query += ` where "${obj.data.measures[i]}" is not null`;
-                    } else {
-                        query += ` or "${obj.data.measures[i]}" is not null`;
-                    }
+                    w.push(`"${obj.data.measures[i]}" is not null`);
                 }
+                query += w.length > 0 ? ' where ' + w.join(' or ') : '';
                 require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
                 let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 let options = {

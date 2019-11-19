@@ -427,12 +427,18 @@
             switch (type) {
                 case 'Barra':
                     return 'bar';
+                case 'Barra Empilhada':
+                    return 'bar';
                 case 'Coluna':
+                    return 'column';
+                case 'Coluna Empilhada':
                     return 'column';
                 case 'Linha':
                     return 'line';
                 case 'Pizza':
                     return 'pie';
+                case 'Dispersão':
+                    return 'scatter';
                 default:
                     return 'line';
             }
@@ -451,8 +457,12 @@
             if ($('#tab_chart').hasClass('active') || force) {
                 $('#charts').children().remove();
                 for (var i = 0; i < chart.charts.length; i++) {
-                    $('#charts').append('<div id="chart' + i + '"></div>')
-                    chart.dom[i] = Highcharts.chart('chart' + i, {
+                    $('#charts').append('<div id="chart' + i + '"></div>');
+                    var stacked = false;
+                    if ($('select[name="charttype"]').val().includes('Empilhada') > 0) {
+                        stacked = true;
+                    }
+                    var options = {
                         chart: {
                             type: decodeChartType($('select[name="charttype"]').val())
                             , height: $(window).height() * 0.60
@@ -472,7 +482,15 @@
                         , exporting: {
                             enabled: false
                         }
-                    });
+                    }
+                    if (stacked) {
+                        options.plotOptions = {
+                            series: {
+                                stacking: 'normal'
+                            }
+                        };
+                    }
+                    chart.dom[i] = Highcharts.chart('chart' + i, options);
                 }
                 chart.rendered = true;
             }
@@ -508,8 +526,6 @@
                     var rows = $('input[name="rows"]').val() ? $('input[name="rows"]').val().split(',') : [];
                     var columns = $('input[name="columns"]').val() ? $('input[name="columns"]').val().split(',') : [];
                     var measures = $('input[name="measures"]').val() ? $('input[name="measures"]').val().split(',') : [];
-                    var allmeasures = response.data.measures;
-                    var measurescalculated = JSON.parse($calculatedmeasures.val() || '{}');
                     for (var i = 0; i < response.data.dimensions.length; i++) {
                         if (rows.indexOf(response.data.dimensions[i]) >= 0 || columns.indexOf(response.data.dimensions[i]) >= 0) {
                             response.data.dimensions.splice(i, 1);
@@ -529,13 +545,14 @@
                     for (var i = 0; i < response.data.measures.length; i++) {
                         $('#measure').append(measureTPL.replace('${name}', response.data.measures[i]).replace('${key}', response.data.measures[i]).replace('${checked}', measures.indexOf(response.data.measures[i]) >= 0 ? 'checked' : ''));
                     }
+                    var arrcm = [];
+                    var measurescalculated = JSON.parse($calculatedmeasures.val() || '{}');
                     for (var k in measurescalculated) {
-                        allmeasures.push(k);
+                        arrcm.push(k);
                         $('#measure').append(measureTPL.replace('${name}', k).replace('${key}', k).replace('${checked}', measures.indexOf(k) >= 0 ? 'checked' : ''));
                     }
                     renderTable();
-
-                    updateOptionsFor('ordermeasure', allmeasures);
+                    updateOptionsFor('ordermeasure', response.data.measures.concat(arrcm));
                 }
             });
         }
@@ -635,7 +652,6 @@
             var calculatedmeasures = JSON.parse($calculatedmeasures.val() || '{}');
             for (var k in calculatedmeasures) {
                 $('#calculatedmeasures').append('<li><i class="fa fa-trash calculatedmeasureremove" style="color:#ff4f4f;padding:5px;"></i><a class="calculatedmeasure" href="javascript:void(0)">' + k + '</a></li>');
-                $calculatemeasurename.val();
             }
         }
 
