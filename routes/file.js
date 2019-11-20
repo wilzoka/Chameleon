@@ -8,7 +8,7 @@ const application = require('./application')
     , mime = require('mime-types')
     ;
 
-let storage = multer.diskStorage({
+const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, `${__dirname}/../tmp/${process.env.NODE_APPNAME}/`);
     },
@@ -26,7 +26,7 @@ for (let i = 0; i < requiredFolders.length; i++) {
         fs.mkdirSync(requiredFolders[i]);
     }
 }
-let fileupload = multer({ storage: storage }).single('file');
+const fileupload = multer({ storage: storage }).single('file');
 
 module.exports = function (app) {
 
@@ -35,7 +35,7 @@ module.exports = function (app) {
             if (isNaN(req.params.id)) {
                 return res.send('Arquivo inválido');
             }
-            let file = await db.getModel('file').findOne({ where: { id: req.params.id } });
+            const file = await db.getModel('file').findOne({ where: { id: req.params.id } });
             if (!file) {
                 return res.send('Arquivo inválido');
             }
@@ -47,7 +47,7 @@ module.exports = function (app) {
                     return application.forbidden(res);
                 }
                 let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { idmodel: file.idmodel } });
-                let viewfile = await db.getModel('view').findOne({ include: [{ all: true }], where: { url: 'arquivo' } });
+                const viewfile = await db.getModel('view').findOne({ include: [{ all: true }], where: { url: 'arquivo' } });
                 if (viewfile) {
                     views.unshift(viewfile);
                 }
@@ -56,8 +56,8 @@ module.exports = function (app) {
                     const permission = await platform.view.f_hasPermission(req.user.id, views[i].id);
                     if (permission.visible) {
                         if (views[i].wherefixed) {
-                            let wherefixed = views[i].wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, file.modelid);
-                            let exists = await db.getModel(views[i].model.name).count({ include: [{ all: true }], where: { id: file.modelid, [db.Op.col]: db.Sequelize.literal(wherefixed) } });
+                            const wherefixed = views[i].wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, file.modelid);
+                            const exists = await db.getModel(views[i].model.name).count({ include: [{ all: true }], where: { id: file.modelid, [db.Op.col]: db.Sequelize.literal(wherefixed) } });
                             if (exists > 0) {
                                 allow = true;
                                 break;
@@ -72,18 +72,18 @@ module.exports = function (app) {
                     return application.forbidden(res);
                 }
             }
-            let filepath = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
+            const filepath = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
-                let filestream = fs.createReadStream(filepath);
+                const filestream = fs.createReadStream(filepath);
                 res.setHeader('Content-Length', file.size);
                 res.setHeader('Content-Type', file.mimetype);
                 res.setHeader('Content-Disposition', `;filename=${file.filename}`);
-                return filestream.pipe(res);
+                filestream.pipe(res);
             } else {
                 res.send('Arquivo inexistente');
             }
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
@@ -96,10 +96,10 @@ module.exports = function (app) {
                 if (!req.file) {
                     return application.fatal(res, 'No file given');
                 }
-                let filenamesplited = req.file.filename.split('.');
-                let type = filenamesplited[filenamesplited.length - 1].toLowerCase();
-                let mimetype = mime.lookup(type) || '';
-                let file = await db.getModel('file').create({
+                const filenamesplited = req.file.filename.split('.');
+                const type = filenamesplited[filenamesplited.length - 1].toLowerCase();
+                const mimetype = mime.lookup(type) || '';
+                const file = await db.getModel('file').create({
                     filename: req.file.filename
                     , mimetype: mimetype
                     , size: req.file.size
@@ -111,9 +111,9 @@ module.exports = function (app) {
                 let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/`;
                 if (mimetype.match(/image.*/)) {
                     const quality = 80;
-                    let maxwh = parseInt(req.body.maxwh || 0);
-                    let forcejpg = req.body.forcejpg == 'true' ? true : false;
-                    let sharped = sharp(req.file.path);
+                    const maxwh = parseInt(req.body.maxwh || 0);
+                    const forcejpg = req.body.forcejpg == 'true' ? true : false;
+                    const sharped = sharp(req.file.path, { failOnError: false });
                     if (maxwh > 0) {
                         sharped.resize(maxwh, maxwh, { fit: 'inside' });
                     }
@@ -131,7 +131,7 @@ module.exports = function (app) {
                         sharped.png({ quality: quality });
                     }
                     path += `${file.id}.${file.type}`;
-                    let fileinfo = await sharped.toFile(path);
+                    const fileinfo = await sharped.toFile(path);
                     file.size = fileinfo.size;
                     fs.unlinkSync(req.file.path);
                 } else {
@@ -139,10 +139,10 @@ module.exports = function (app) {
                     fs.renameSync(req.file.path, path);
                 }
                 await file.save();
-                return res.json({ success: true, data: file });
+                res.json({ success: true, data: file });
             });
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 }
