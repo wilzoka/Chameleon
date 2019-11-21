@@ -5,16 +5,15 @@ const fs = require('fs-extra')
 module.exports = function (app) {
 
     app.get('/download/:filename', function (req, res) {
-        let filename = req.params.filename;
-        let fsplited = filename.split('.');
-        let type = fsplited[fsplited.length - 1];
-        let filepath = `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`;
+        const filename = req.params.filename;
+        const fsplited = filename.split('.');
+        const type = fsplited[fsplited.length - 1];
+        const filepath = `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`;
         if (fs.existsSync(filepath)) {
-            let filestream = fs.createReadStream(filepath);
             res.setHeader('Content-Length', fs.statSync(filepath).size);
             res.setHeader('Content-Type', mime.lookup(type));
             res.setHeader('Content-Disposition', `;filename=${filename}`);
-            let stream = filestream.pipe(res);
+            const stream = fs.createReadStream(filepath).pipe(res);
             stream.on('finish', function () {
                 setTimeout(function () {
                     if (fs.existsSync(filepath))

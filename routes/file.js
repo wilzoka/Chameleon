@@ -74,11 +74,10 @@ module.exports = function (app) {
             }
             const filepath = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
-                const filestream = fs.createReadStream(filepath);
                 res.setHeader('Content-Length', file.size);
                 res.setHeader('Content-Type', file.mimetype);
                 res.setHeader('Content-Disposition', `;filename=${file.filename}`);
-                filestream.pipe(res);
+                fs.createReadStream(filepath).pipe(res);
             } else {
                 res.send('Arquivo inexistente');
             }

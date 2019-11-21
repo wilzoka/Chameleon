@@ -2,6 +2,7 @@ const db = require('../models')
     , moment = require('moment')
     , fs = require('fs-extra')
     , schedule = require('../routes/schedule')
+    , ns = require('node-schedule')
     , messenger = require('../routes/messenger')
     , lodash = require('lodash')
     , application = require('../routes/application')
@@ -116,15 +117,16 @@ let platform = {
         }
     }
     , maintenance: {
-        f_clearUnboundFiles: function () {
+        f_clearUnboundFiles: async () => {
             try {
-                db.sequelize.query(`select * from file where datetime < now()::date -1 and bounded = false`
-                    , { type: db.Sequelize.QueryTypes.SELECT }).then(sql => {
-                        for (let i = 0; i < sql.length; i++) {
-                            fs.unlinkSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${sql[i].id}.${sql[i].type}`);
-                            db.getModel('file').destroy({ where: { id: sql[i].id } });
-                        }
-                    });
+                const sql = await db.sequelize.query(`select * from file where datetime < now()::date -1 and bounded = false`
+                    , { type: db.Sequelize.QueryTypes.SELECT });
+                for (let i = 0; i < sql.length; i++) {
+                    const path = `${__dirname}/../files/${process.env.NODE_APPNAME}/${sql[i].id}.${sql[i].type}`;
+                    if (fs.existsSync(path))
+                        fs.unlinkSync(path);
+                    db.getModel('file').destroy({ where: { id: sql[i].id } });
+                }
             } catch (err) {
                 console.error(err);
             }
@@ -137,21 +139,16 @@ let platform = {
         }
         , treeAll: function () {
             let getChildren = function (current, childs) {
-
                 for (let i = 0; i < childs.length; i++) {
                     if (current.idmenuparent == childs[i].id) {
-
                         if (childs[i].idmenuparent) {
                             return getChildren(childs[i], childs) + childs[i].description + ' - ';
                         } else {
                             return childs[i].description + ' - ';
                         }
-
                     }
                 }
-
             }
-
             db.getModel('menu').findAll().then(menus => {
                 menus.map(menu => {
                     if (menu.idmenuparent) {
@@ -159,7 +156,6 @@ let platform = {
                     } else {
                         menu.tree = menu.description;
                     }
-
                     menu.save();
                 });
             });
@@ -1977,5 +1973,7 @@ let platform = {
         }
     }
 }
+
+ns.scheduleJob('0 0 * * *', platform.maintenance.f_clearUnboundFiles);
 
 module.exports = platform;

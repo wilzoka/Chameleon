@@ -40,7 +40,7 @@ module.exports = function (app) {
                         , backgroundColor: registers.rows[i][start.name] ? (j.attribute_bgcolor ? registers.rows[i][j.attribute_bgcolor] : null) : 'red'
                     });
                 }
-                return application.success(res, { events: events });
+                application.success(res, { events: events });
             } else {
                 const viewtables = await db.getModel('viewtable').findAll({ where: { idview: view.id }, include: [{ all: true }] });
                 const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
@@ -60,7 +60,7 @@ module.exports = function (app) {
                 }
                 let attributes = ['id'];
                 for (let i = 0; i < modelattributes.length; i++) {
-                    let j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
+                    const j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
                     switch (modelattributes[i].type) {
                         case 'parent':
                             if (req.body.issubview == 'true') {
@@ -89,7 +89,7 @@ module.exports = function (app) {
                                 if (j.query) {
                                     ordercolumn = db.Sequelize.literal(j.query);
                                 } else {
-                                    let vas = j.as || j.model;
+                                    const vas = j.as || j.model;
                                     ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
                                 }
                                 break;
@@ -122,7 +122,7 @@ module.exports = function (app) {
                 });
             }
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
@@ -136,14 +136,14 @@ module.exports = function (app) {
             }
             Object.assign(where, await platform.view.f_getFilter(req, view));
             if (req.body.issubview == 'true') {
-                let modelattributeparent = await db.getModel('modelattribute').findOne({
+                const modelattributeparent = await db.getModel('modelattribute').findOne({
                     where: { idmodel: view.model.id, type: 'parent' }
                 });
                 if (modelattributeparent) {
                     where[modelattributeparent.name] = req.body.id;
                 }
             }
-            let register = await db.getModel(view.model.name).findOne({
+            const register = await db.getModel(view.model.name).findOne({
                 raw: true
                 , attributes: [
                     [db.Sequelize.literal('sum(' + (modelattribute.type == 'virtual' ? application.modelattribute.parseTypeadd(modelattribute.typeadd).subquery : view.model.name + '.' + modelattribute.name) + ')'), 'sum']
@@ -152,7 +152,7 @@ module.exports = function (app) {
                 , where: where
             });
             if (register.sum) {
-                let j = application.modelattribute.parseTypeadd(modelattribute.typeadd);
+                const j = application.modelattribute.parseTypeadd(modelattribute.typeadd);
                 switch (j.type || modelattribute.type) {
                     case 'decimal':
                         register.sum = application.formatters.fe.decimal(register.sum, application.modelattribute.parseTypeadd(modelattribute.typeadd).precision);
@@ -162,9 +162,9 @@ module.exports = function (app) {
                         break;
                 }
             }
-            return application.success(res, { data: register.sum, view: req.body.view, attribute: req.body.idmodelattribute });
+            application.success(res, { data: register.sum, view: req.body.view, attribute: req.body.idmodelattribute });
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 

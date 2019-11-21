@@ -11,21 +11,21 @@ module.exports = function (app) {
             if (!config) {
                 config = await db.getModel('config').findOne();
             }
-            let custom = require('../custom/' + config.customfile);
-            let obj = {
+            const custom = require('../custom/' + config.customfile);
+            const obj = {
                 name: req.body.name
                 , data: req.body.data
                 , res: res
                 , req: req
             };
-            let realfunction = application.functions.getRealReference(custom, obj.name);
+            const realfunction = application.functions.getRealReference(custom, obj.name);
             if (realfunction) {
-                return realfunction(obj);
+                realfunction(obj);
             } else {
-                return application.error(res, { success: false, msg: 'Função não encontrada' });
+                application.error(res, { success: false, msg: 'Função não encontrada' });
             }
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
