@@ -574,11 +574,11 @@ let bi = {
             for (let k in options.filter) {
                 for (let z = 0; z < dimensions.length; z++) {
                     if (dimensions[z].sqlfield == k) {
-                        let arr = options.filter[k];
-                        for (let i = 0; i < arr.length; i++) {
-                            arr[i] = `'${db.sanitizeString(arr[i].toString())}'`;
+                        let items = [];
+                        for (let i = 0; i < options.filter[k].length; i++) {
+                            items.push(`'${db.sanitizeString(options.filter[k][i].toString())}'`);
                         }
-                        filter.push(`"${k}" in (${arr.join(',')})`);
+                        filter.push(`"${k}" in (${items.join(',')})`);
                         break;
                     }
                 }
@@ -684,6 +684,7 @@ let bi = {
                 };
                 let query = await bi.analysis.f_getBaseQuery(obj.data.idcube, options);
                 query = await bi.analysis.f_getQuery(query, options);
+                // require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
                 let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 return application.success(obj.res, { data: bi.f_pivot(sql, options) });
             } catch (err) {
