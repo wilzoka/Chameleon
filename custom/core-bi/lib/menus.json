@@ -18,6 +18,12 @@
         "tree": "Business Intelligence - Cubos"
     },
     {
+        "description": "Dashboards",
+        "icon": "fa fa-chart-pie",
+        "menuparent": "Business Intelligence",
+        "tree": "Business Intelligence - Dashboards"
+    },
+    {
         "description": "Permissões",
         "icon": "fa fa-lock",
         "menuparent": "Business Intelligence",

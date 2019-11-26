@@ -17,7 +17,7 @@
                 "label": "Tipo de Gráfico",
                 "type": "radio",
                 "notnull": false,
-                "typeadd": "{\r\n\"options\": [\"Linha\", \"Barra\", \"Coluna\", \"Pizza\"]\r\n , \"renderAsSelect\": true\r\n }"
+                "typeadd": "{\r\n\"options\": [\"Linha\", \"Barra\", \"Barra Empilhada\", \"Coluna\", \"Coluna Empilhada\", \"Pizza\", \"Dispersão\", \"Velocímetro\"]\r\n , \"renderAsSelect\": true\r\n }"
             },
             {
                 "name": "columns",
@@ -190,6 +190,64 @@
                 "type": "autocomplete",
                 "notnull": true,
                 "typeadd": "{\r\n\"as\": \"virtual\"\r\n , \"cascade\": false\r\n , \"model\": \"bi_cube\"\r\n , \"attribute\": \"description\"\r\n , \"where\": \"bi_cube.virtual = false\"\r\n }"
+            }
+        ]
+    },
+    {
+        "name": "bi_dashboard",
+        "description": "Dashboard",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "description",
+                "label": "Descrição",
+                "type": "text",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            }
+        ]
+    },
+    {
+        "name": "bi_dashboardanalysis",
+        "description": "Análises do Dashboard",
+        "onsave": null,
+        "ondelete": null,
+        "_attribute": [
+            {
+                "name": "idanalysis",
+                "label": "Análise",
+                "type": "autocomplete",
+                "notnull": true,
+                "typeadd": "{\r\n\"cascade\": true\r\n , \"model\": \"bi_analysis\"\r\n , \"attribute\": \"description\"\r\n , \"where\": \"bi_analysis.iduser = $user\"\r\n }"
+            },
+            {
+                "name": "iddashboard",
+                "label": "ID Dashboard",
+                "type": "parent",
+                "notnull": true,
+                "typeadd": "{\r\n\"cascade\": true\r\n , \"model\": \"bi_dashboard\"\r\n }"
+            },
+            {
+                "name": "order",
+                "label": "Ordem",
+                "type": "integer",
+                "notnull": true,
+                "typeadd": "{\r\n}"
+            },
+            {
+                "name": "viewtype",
+                "label": "Tipo de Visualização",
+                "type": "radio",
+                "notnull": true,
+                "typeadd": "{\r\n\"options\": [\"Dados\", \"Gráfico\"]\r\n , \"renderAsSelect\": true\r\n }"
+            },
+            {
+                "name": "width",
+                "label": "Largura",
+                "type": "radio",
+                "notnull": true,
+                "typeadd": "{\r\n\"options\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\"]\r\n , \"renderAsSelect\": true\r\n }"
             }
         ]
     },

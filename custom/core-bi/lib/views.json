@@ -103,7 +103,7 @@
             {
                 "templatezone": "chart",
                 "modelattribute": "charttype",
-                "width": 2,
+                "width": 3,
                 "order": 101,
                 "disabled": false,
                 "disablefilter": true
@@ -406,6 +406,163 @@
             {
                 "modelattribute": "idcubev",
                 "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            }
+        ],
+        "_subview": [],
+        "_event": []
+    },
+    {
+        "name": "Dashboard",
+        "namecomplete": "BI - Dashboard",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": null,
+        "supressid": true,
+        "neednoperm": false,
+        "template": {
+            "name": "core-bi/templates/dashboard",
+            "zones": [
+                {
+                    "name": "hidden",
+                    "description": "Hidden",
+                    "order": 0
+                },
+                {
+                    "name": "analysis",
+                    "description": "Análises",
+                    "order": 2
+                },
+                {
+                    "name": "dashboard",
+                    "description": "Dashboard",
+                    "order": 1
+                }
+            ]
+        },
+        "model": "bi_dashboard",
+        "module": "BI",
+        "menu": "Business Intelligence - Dashboards",
+        "type": null,
+        "url": "dashboard",
+        "fastsearch": "description",
+        "lineheight": null,
+        "add": null,
+        "_field": [
+            {
+                "templatezone": "dashboard",
+                "modelattribute": "description",
+                "width": 6,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "description",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            }
+        ],
+        "_subview": [
+            {
+                "subview": "Dashboard - Análise",
+                "templatezone": "analysis",
+                "description": null
+            }
+        ],
+        "_event": []
+    },
+    {
+        "name": "Dashboard - Análise",
+        "namecomplete": "BI - Dashboard - Análise",
+        "js": null,
+        "wherefixed": null,
+        "orderfixed": "order,asc",
+        "supressid": true,
+        "neednoperm": false,
+        "template": {
+            "name": "box-6",
+            "zones": [
+                {
+                    "name": "z1",
+                    "description": "Geral",
+                    "order": 1
+                }
+            ]
+        },
+        "model": "bi_dashboardanalysis",
+        "module": "BI",
+        "menu": null,
+        "type": null,
+        "url": "dashboard_-_analise",
+        "fastsearch": "idanalysis",
+        "lineheight": null,
+        "add": null,
+        "_field": [
+            {
+                "templatezone": "z1",
+                "modelattribute": "order",
+                "width": 12,
+                "order": 1,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "idanalysis",
+                "width": 12,
+                "order": 2,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "viewtype",
+                "width": 12,
+                "order": 3,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "z1",
+                "modelattribute": "width",
+                "width": 12,
+                "order": 4,
+                "disabled": false,
+                "disablefilter": false
+            }
+        ],
+        "_table": [
+            {
+                "modelattribute": "idanalysis",
+                "ordertable": 1,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            },
+            {
+                "modelattribute": "viewtype",
+                "ordertable": 2,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            },
+            {
+                "modelattribute": "order",
+                "ordertable": 3,
+                "orderable": false,
+                "render": null,
+                "totalize": false
+            },
+            {
+                "modelattribute": "width",
+                "ordertable": 4,
                 "orderable": false,
                 "render": null,
                 "totalize": false
