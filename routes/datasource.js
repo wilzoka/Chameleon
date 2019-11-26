@@ -8,7 +8,9 @@ module.exports = function (app) {
 
     app.post('/datasource', application.IsAuthenticated, async (req, res) => {
         try {
-            const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
+            const view = await db.getModel('view').findOne({ where: { url: req.body.view || null }, include: [{ all: true }] });
+            if (!view)
+                return application.error(res, {});
             if (view.type == 'Calendar') {
                 const j = application.modelattribute.parseTypeadd(view.add);
                 const start = await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_start } });
@@ -99,7 +101,9 @@ module.exports = function (app) {
                         }
                     }
                 }
-                let pagination = {};
+                let pagination = {
+                    limit: 100
+                };
                 if (req.body.length > 0) {
                     pagination = {
                         limit: req.body.length

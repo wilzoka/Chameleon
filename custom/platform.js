@@ -1282,18 +1282,12 @@ let platform = {
             xls: async function (obj) {
                 let getFilter = function (cookie, modelattributes) {
                     let obj = {};
-
                     cookie = JSON.parse(cookie);
-
                     let m;
                     let v;
-
                     for (let i = 0; i < cookie.length; i++) {
-
                         for (let k in cookie[i]) {
-
                             let field = k.split('+');
-
                             switch (field[1]) {
                                 case 'date':
                                     m = moment(cookie[i][k], 'DD/MM/YYYY');
@@ -1440,11 +1434,10 @@ let platform = {
                     return ret;
                 }
                 try {
-                    let XLSX = require('xlsx');
-
-                    let view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] });
-                    let viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }], order: [['order', 'asc']] });
-                    let modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
+                    const XLSX = require('xlsx');
+                    const view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] });
+                    const viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }], order: [['order', 'asc']] });
+                    const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
                     let where = {};
                     if (view.wherefixed) {
                         view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
@@ -1466,7 +1459,6 @@ let platform = {
                         }
                         header.push(viewfields[i].modelattribute.name);
                     }
-
                     let registers = await db.getModel(view.model.name).findAll({
                         attributes: attributes
                         , raw: true
@@ -1474,11 +1466,9 @@ let platform = {
                         , where: where
                     });
                     registers = fixResults(registers, modelattributes);
-
-                    let wb = XLSX.utils.book_new();
+                    const wb = XLSX.utils.book_new();
                     wb.SheetNames.push('Sheet1');
-                    let ws = XLSX.utils.json_to_sheet(registers, { header: header, cellDates: true });
-
+                    const ws = XLSX.utils.json_to_sheet(registers, { header: header, cellDates: true });
                     for (let i = 0; i < viewfields.length; i++) {
                         let cn = toColumnName(i + 2);
                         switch (viewfields[i].modelattribute.type) {
@@ -1528,18 +1518,15 @@ let platform = {
                                 break;
                         }
                     }
-
                     //Fix Header
                     ws['A1'] = lodash.extend(ws['A1'], { v: 'ID' });
                     for (let i = 0; i < viewfields.length; i++) {
-                        let cn = toColumnName(i + 2);
+                        const cn = toColumnName(i + 2);
                         ws[cn + '1'] = lodash.extend(ws[cn + '1'], { v: viewfields[i].modelattribute.label });
                     }
-
-                    let filename = process.hrtime()[1] + '.xls';
+                    const filename = process.hrtime()[1] + '.xls';
                     wb.Sheets['Sheet1'] = ws;
                     XLSX.writeFile(wb, `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`);
-
                     return application.success(obj.res, { openurl: '/download/' + filename });
                 } catch (err) {
                     return application.fatal(obj.res, err);
@@ -1821,13 +1808,13 @@ let platform = {
         }
         , f_hasPermission: async function (iduser, idview) {
             try {
-                let permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
-                let getChilds = function (idview, subviews) {
+                const permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
+                const getChilds = function (idview, subviews) {
                     let returnsubviews = [];
                     for (let i = 0; i < subviews.length; i++) {
                         if (idview == subviews[i].idview) {
                             returnsubviews.push(subviews[i].idsubview);
-                            let moresubviews = getChilds(subviews[i].idsubview, subviews);
+                            const moresubviews = getChilds(subviews[i].idsubview, subviews);
                             for (let z = 0; z < moresubviews.length; z++) {
                                 returnsubviews.push(moresubviews[z]);
                             }
@@ -1835,7 +1822,7 @@ let platform = {
                     }
                     return returnsubviews;
                 }
-                let permissions = await db.sequelize.query(permissionquery, {
+                const permissions = await db.sequelize.query(permissionquery, {
                     replacements: { iduser: iduser }
                     , type: db.sequelize.QueryTypes.SELECT
                 })
@@ -1844,7 +1831,7 @@ let platform = {
                         return permissions[i];
                     }
                 }
-                let subviews = await db.getModel('viewsubview').findAll({ raw: true })
+                const subviews = await db.getModel('viewsubview').findAll({ raw: true })
                 for (let i = 0; i < permissions.length; i++) {
                     permissions[i].childs = getChilds(permissions[i].idview, subviews);
                     for (let x = 0; x < permissions[i].childs.length; x++) {

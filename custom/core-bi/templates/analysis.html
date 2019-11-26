@@ -76,10 +76,6 @@
                 <div class="row">
                     <div class="col-sm-12 text-center">
                         <span class="text-bold">Medidas</span>
-                        <div id="measureconf"
-                            style="color:#888888;position:absolute;width:20px;top:0px;right:15px;cursor:pointer;">
-                            <i class="fa fa-cog"></i>
-                        </div>
                     </div>
                     <div class="col-sm-12">
                         <ul id="measure" class="todo-list ui-sortable">
@@ -168,6 +164,7 @@
     </div>
     <div class="col-md-1 no-padding-left">
         <div class="btn-group-vertical" style="width: 100%;">
+            <button type="button" class="btn btn-default" id="actconfig"><i class="fa fa-cog"></i></button>
             <button type="button" class="btn btn-default" id="actprint"><i class="fa fa-print"></i></button>
         </div>
     </div>
@@ -193,12 +190,12 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalmeasure">
+<div class="modal fade" id="modalconfig">
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="bootbox-close-button close" aria-hidden="true">×</button>
-                <h4 class="modal-title">Propriedade das Medidas</h4>
+                <h4 class="modal-title">Propriedades</h4>
             </div>
             <div class="modal-body">
                 <div class="row">
@@ -219,25 +216,51 @@
                             <div class="tab-content">
                                 <div class="tab-pane active" id="tab_1">
                                     <div class="row">
-                                        <div class="col-md-6 no-padding">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Ordem</label>
-                                                    <select name="ordermeasure" class="form-control select2"
-                                                        style="width:100%;padding:0px 5px;">
-                                                        <option></option>
-                                                    </select>
-                                                </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Ordem</label>
+                                                <select name="ordermeasure" class="form-control select2"
+                                                    style="width:100%;padding:0px 5px;">
+                                                    <option></option>
+                                                </select>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Tipo</label>
-                                                    <select name="ordertype" class="form-control select2"
-                                                        style="width:100%;padding:0px 5px;">
-                                                        <option>Crescente</option>
-                                                        <option>Decrescente</option>
-                                                    </select>
-                                                </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Tipo</label>
+                                                <select name="ordertype" class="form-control select2"
+                                                    style="width:100%;padding:0px 5px;">
+                                                    <option>Crescente</option>
+                                                    <option>Decrescente</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Limite de Linhas</label>
+                                                <input name="limitrow" type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Limite de Colunas</label>
+                                                <input name="limitcolumn" type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input name="totalrow" type="checkbox">
+                                                    Totalizar Linhas?
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input name="totalcolumn" type="checkbox">
+                                                    Totalizar Colunas?
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
@@ -250,7 +273,7 @@
                                                     <div class="form-group">
                                                         <label>Nome</label>
                                                         <input name="calculatemeasurename" type="text"
-                                                            class="form-control">
+                                                            class="form-control" />
                                                     </div>
                                                 </div>
                                                 <div class="col-md-12">
@@ -308,6 +331,10 @@
         var $calculatedmeasures = $('textarea[name="calculatedmeasures"]');
         var $ordermeasure = $('select[name="ordermeasure"]');
         var $ordertype = $('select[name="ordertype"]');
+        var $limitrow = $('input[name="limitrow"]');
+        var $limitcolumn = $('input[name="limitcolumn"]');
+        var $totalrow = $('input[name="totalrow"]');
+        var $totalcolumn = $('input[name="totalcolumn"]');
         var chart = {
             charts: []
             , dom: []
@@ -365,6 +392,8 @@
             '/public/assets/sortablejs/Sortable.min.js'
             , '/public/assets/highcharts/highcharts.js'
             , '/public/assets/highcharts/exporting.js'
+            , 'https://code.highcharts.com/highcharts-more.js'
+            , 'https://code.highcharts.com/modules/solid-gauge.js'
         ]);
 
         function setConfig(key, value) {
@@ -439,6 +468,8 @@
                     return 'pie';
                 case 'Dispersão':
                     return 'scatter';
+                case 'Velocímetro':
+                    return 'solidgauge';
                 default:
                     return 'line';
             }
@@ -458,14 +489,11 @@
                 $('#charts').children().remove();
                 for (var i = 0; i < chart.charts.length; i++) {
                     $('#charts').append('<div id="chart' + i + '"></div>');
-                    var stacked = false;
-                    if ($('select[name="charttype"]').val().includes('Empilhada') > 0) {
-                        stacked = true;
-                    }
                     var options = {
                         chart: {
                             type: decodeChartType($('select[name="charttype"]').val())
                             , height: $(window).height() * 0.60
+                            // , polar:true
                         }
                         , title: {
                             text: chart.charts[i].title || ''
@@ -483,11 +511,68 @@
                             enabled: false
                         }
                     }
-                    if (stacked) {
+                    if ($('select[name="charttype"]').val().includes('Empilhada') > 0) {
                         options.plotOptions = {
                             series: {
                                 stacking: 'normal'
                             }
+                        };
+                    }
+                    if ($('select[name="charttype"]').val() == 'Velocímetro') {
+                        options.chart.width = 300;
+                        options.chart.height = 200;
+                        for (var z = 0; z < options.series.length; z++) {
+                            options.series[z].dataLabels = {
+                                format:
+                                    '<div style="text-align:center">' +
+                                    '<span style="font-size:25px">{y}</span><br/>' +
+                                    '</div>'
+                            };
+                        }
+                        options.pane = {
+                            center: ['50%', '85%'],
+                            size: '140%',
+                            startAngle: -90,
+                            endAngle: 90,
+                            background: {
+                                backgroundColor:
+                                    Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+                                innerRadius: '60%',
+                                outerRadius: '100%',
+                                shape: 'arc'
+                            }
+                        };
+                        options.yAxis = {
+                            min: 0,
+                            max: 100,
+                            stops: [
+                                [0.1, '#55BF3B'], // green
+                                [0.5, '#DDDF0D'], // yellow
+                                [0.9, '#DF5353'] // red
+                            ],
+                            lineWidth: 0,
+                            tickWidth: 0,
+                            minorTickInterval: null,
+                            tickAmount: 2,
+                            title: {
+                                y: -70,
+                                text: options.series[0].name
+                            },
+                            labels: {
+                                y: 16
+                            }
+                        };
+                        options.plotOptions = {
+                            solidgauge: {
+                                dataLabels: {
+                                    y: 5,
+                                    borderWidth: 0,
+                                    useHTML: true
+                                }
+                            }
+                        };
+                        options.tooltip = {
+                            enabled: false
                         };
                     }
                     chart.dom[i] = Highcharts.chart('chart' + i, options);
@@ -664,16 +749,24 @@
             renderCalculateMeasureUI();
         });
 
-        $('#measureconf').click(function () {
+        $('#actconfig').click(function () {
             renderCalculateMeasureUI();
             $ordermeasure.val(getConfig('ordermeasure'));
             $ordertype.val(getConfig('ordertype'));
-            $('#modalmeasure').modal('show');
+            $limitrow.val(getConfig('limitrow'));
+            $limitcolumn.val(getConfig('limitcolumn'));
+            $totalrow.prop('checked', getConfig('totalrow') || false);
+            $totalcolumn.prop('checked', getConfig('totalcolumn') || false);
+            $('#modalconfig').modal('show');
         });
 
-        $('#modalmeasure').on('hidden.bs.modal', function () {
+        $('#modalconfig').on('hidden.bs.modal', function () {
             setConfig('ordermeasure', $ordermeasure.val());
             setConfig('ordertype', $ordertype.val());
+            setConfig('limitrow', $limitrow.val());
+            setConfig('limitcolumn', $limitcolumn.val());
+            setConfig('totalrow', $totalrow.is(':checked'));
+            setConfig('totalcolumn', $totalcolumn.is(':checked'));
             renderUI($idcube.val());
         });
 

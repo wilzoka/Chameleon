@@ -486,7 +486,7 @@ const modelate = function (obj) {
 const validate = function (obj) {
     let invalidfields = [];
     for (let i = 0; i < obj.modelattributes.length; i++) {
-        let j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+        const j = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
         // NotNull
         if (obj.modelattributes[i].type == 'boolean' && obj.register[obj.modelattributes[i].name] == null) {
             obj.register[obj.modelattributes[i].name] = false;
@@ -504,7 +504,7 @@ const validate = function (obj) {
             if (j.sizeTotal) {
                 if (obj.register[obj.modelattributes[i].name]) {
                     let filesize = 0;
-                    let files = JSON.parse(obj.register[obj.modelattributes[i].name]);
+                    const files = JSON.parse(obj.register[obj.modelattributes[i].name]);
                     for (let z = 0; z < files.length; z++) {
                         filesize += files[z].size;
                     }
@@ -526,8 +526,8 @@ const boundFiles = async function (obj) {
     try {
         for (let i = 0; i < obj.modelattributes.length; i++) {
             if (obj.modelattributes[i].type == 'file' && obj.register[obj.modelattributes[i].name] != undefined && obj.register[obj.modelattributes[i].name] != '') {
-                let j = JSON.parse(obj.register[obj.modelattributes[i].name]);
-                let typeadd = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
+                const j = JSON.parse(obj.register[obj.modelattributes[i].name]);
+                const typeadd = application.modelattribute.parseTypeadd(obj.modelattributes[i].typeadd);
                 for (let z = 0; z < j.length; z++) {
                     await db.getModel('file').update({
                         bounded: true, idmodel: obj.view.model.id, modelid: obj.register.id, public: typeadd.public == true ? true : false
@@ -569,7 +569,7 @@ const save = async function (obj) {
                 }
             }
         }
-        let register = await obj.register.save({ iduser: obj.req.user.id, transaction: obj.transaction });
+        const register = await obj.register.save({ iduser: obj.req.user.id, transaction: obj.transaction });
         await boundFiles(Object.assign(obj, { register: register }));
         await obj.transaction.commit();
         return { success: true, register: register };
@@ -581,9 +581,9 @@ const save = async function (obj) {
 
 const validateAndSave = async function (obj) {
     try {
-        let validation = validate(obj);
+        const validation = validate(obj);
         if (validation.success) {
-            let saved = await save(obj);
+            const saved = await save(obj);
             if (saved.success) {
                 let ret = {};
                 ret.data = saved.register;
@@ -624,16 +624,16 @@ const validateAndSave = async function (obj) {
 
 const deleteModel = async function (obj) {
     try {
-        let registers = await db.getModel(obj.view.model.name).findAll({ where: { id: { [db.Op.in]: obj.ids } }, raw: true });
+        const registers = await db.getModel(obj.view.model.name).findAll({ where: { id: { [db.Op.in]: obj.ids } }, raw: true });
         await db.getModel(obj.view.model.name).destroy({ transaction: obj.transaction, iduser: obj.req.user.id, where: { id: { [db.Op.in]: obj.ids } } });
         await obj.transaction.commit();
         application.success(obj.res, { msg: application.message.success });
         return { success: true, registers: registers };
     } catch (err) {
         if ('name' in err && err.name == 'SequelizeForeignKeyConstraintError') {
-            let errsplited = err.original.detail.split('"');
+            const errsplited = err.original.detail.split('"');
             if (errsplited.length == 3) {
-                let model = await db.getModel('model').findOne({ where: { name: errsplited[1] } });
+                const model = await db.getModel('model').findOne({ where: { name: errsplited[1] } });
                 if (model) {
                     application.error(obj.res, { msg: 'Este registro está em uso em ' + (model.description || model.name) });
                     return { success: false, err: err };
@@ -653,7 +653,7 @@ const deleteModel = async function (obj) {
 }
 
 const getTemplate = function (template) {
-    let templatename = __dirname + (template.indexOf('/') < 0 ? '/../views/templates/' : '/../custom/') + template + '.html';
+    const templatename = __dirname + (template.indexOf('/') < 0 ? '/../views/templates/' : '/../custom/') + template + '.html';
     if (!(templatename in application.Handlebars.compiledTemplates)) {
         application.Handlebars.compiledTemplates[templatename] = application.Handlebars.compile(fs.readFileSync(templatename, 'utf8'));
     }
@@ -752,7 +752,7 @@ module.exports = function (app) {
                         footer += '<td style="text-align: center;"><b>Total</b></td>';
                     }
                     for (let i = 0; i < viewtables.length; i++) {
-                        let data = 'data-view="' + view.url + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
+                        const data = 'data-view="' + view.url + '" data-attribute="' + viewtables[i].modelattribute.id + '"';
                         if (viewtables[i].totalize) {
                             footer += '<td> <span class="totalize" ' + data + '></span> </td>';
                         } else {

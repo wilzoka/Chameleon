@@ -23,8 +23,8 @@ let bi = {
             }
         }
 
-        let row_total = true;
-        let column_total = true;
+        let row_total = options.config.totalrow;
+        let column_total = options.config.totalcolumn;
 
         let delimiter = '->';
 
@@ -168,9 +168,10 @@ let bi = {
             structure.r = structure.r.sort(compare(measure_order));
         }
 
-        if (false) {
-            structure.r = structure.r.splice(0, 5);
-            // Lista dos valores atuais para que deve manter no obj data
+        let limited = false;
+        if (options.config.limitrow) {
+            limited = true;
+            structure.r = structure.r.splice(0, options.config.limitrow);
             let values = [];
             for (let r = 0; r < structure.r.length; r++) {
                 values.push(structure.r[r].val);
@@ -181,8 +182,11 @@ let bi = {
                     i--;
                 }
             }
-            structure.c = structure.c.splice(0, 5);
-            values = [];
+        }
+        if (options.config.limitcolumn) {
+            limited = true;
+            structure.c = structure.c.splice(0, options.config.limitcolumn);
+            let values = [];
             for (let c = 0; c < structure.c.length; c++) {
                 values.push(structure.c[c].val);
             }
@@ -192,6 +196,8 @@ let bi = {
                     i--;
                 }
             }
+        }
+        if (limited) {
             calcTotal();
         }
 
@@ -478,7 +484,7 @@ let bi = {
                 return application.fatal(obj.res, err);
             }
         }
-        , f_getQuery: async function (idcube, options) {
+        , f_getBaseQuery: async function (idcube, options) {
             let cube = await db.getModel('bi_cube').findOne({ where: { id: idcube } });
             let columnsAndRows = [];
             columnsAndRows = columnsAndRows.concat(options.columns || []);
@@ -493,7 +499,7 @@ let bi = {
                 let cubesjoined = [];
                 let allmeasures = [];
                 for (let i = 0; i < cubes.length; i++) {
-                    let currentquery = await bi.analysis.f_getQuery(cubes[i].idcubev, options);
+                    let currentquery = await bi.analysis.f_getBaseQuery(cubes[i].idcubev, options);
                     if (currentquery) {
                         query += (cubesjoined.length > 0 ? ', ' : '') + cubes[i]['virtual.description'] + ' as (' + currentquery + ')';
                         cubesjoined.push(cubes[i]['virtual.description']);
@@ -564,12 +570,11 @@ let bi = {
             }
             groupby = groupby.length > 0 ? `group by ${groupby.join(',')}` : '';
 
-            let filterobj = JSON.parse(options.filter || '{}');
             let filter = [];
-            for (let k in filterobj) {
+            for (let k in options.filter) {
                 for (let z = 0; z < dimensions.length; z++) {
                     if (dimensions[z].sqlfield == k) {
-                        let arr = filterobj[k];
+                        let arr = options.filter[k];
                         for (let i = 0; i < arr.length; i++) {
                             arr[i] = `'${db.sanitizeString(arr[i].toString())}'`;
                         }
@@ -578,8 +583,7 @@ let bi = {
                     }
                 }
             }
-            filter = filter.length > 0 ? ` where ${filter.join(' and ')}` : ''
-
+            filter = filter.length > 0 ? ` where ${filter.join(' and ')}` : '';
             return `
             select
                 ${sqlcolumns.concat(sqlmeasures).join(', ')}
@@ -587,94 +591,100 @@ let bi = {
                 bi_cube_${cube.id}
                 ${filter}
                 ${groupby}`;
+        }
+        , f_getQuery: async function (query, options) {
+            let cm = [];
+            let realcube;
+            let dimensions = [];
+            for (let k in options.calculatedmeasures) {
+                let value = options.calculatedmeasures[k];
+                let splitted = value.split(' ');
+                for (let i = 0; i < splitted.length; i++) {
+                    if (splitted[i] == 'from') {
+                        realcube = await db.getModel('bi_cube').findOne({ raw: true, where: { description: splitted[i + 1].replace(/"/g, '') } });
+                        splitted[i + 1] = 'bi_cube_' + realcube.id;
+                    } else if (splitted[i] == '$filters') {
+                        if (realcube) {
+                            dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: realcube.id } });
+                            let dimarr = [];
+                            for (let z = 0; z < dimensions.length; z++) {
+                                dimarr.push(dimensions[z].sqlfield);
+                            }
+                            let filter = [];
+                            for (let f in options.filter) {
+                                if (dimarr.indexOf(f) >= 0) {
+                                    let arr = options.filter[f];
+                                    for (let i = 0; i < arr.length; i++) {
+                                        arr[i] = `'${db.sanitizeString(arr[i].toString())}'`;
+                                    }
+                                    filter.push(`"${f}" in (${arr.join(',')})`);
+                                }
+                            }
+                            if (options.rows) {
+                                for (let i = 0; i < options.rows.length; i++) {
+                                    if (dimarr.indexOf(options.rows[i]) >= 0) {
+                                        filter.push(`"${options.rows[i]}"::text = x."${options.rows[i]}"::text`);
+                                    } else {
+                                        filter.push(`x."${options.rows[i]}"::text is null`);
+                                    }
+                                }
+                            }
+                            if (options.columns) {
+                                for (let i = 0; i < options.columns.length; i++) {
+                                    if (dimarr.indexOf(options.columns[i]) >= 0) {
+                                        filter.push(`"${options.columns[i]}"::text = x."${options.columns[i]}"::text`)
+                                    } else {
+                                        filter.push(`x."${options.rows[i]}"::text is null`);
+                                    }
+                                }
+                            }
+                            splitted[i] = filter.length > 0 ? filter.join(' and ') : '1=1';
+                        }
+                    }
+                }
+                value = splitted.join(' ');
 
+                cm.push(`(${value}) as "${k}"`);
+            }
+            query = `select * from (select x.* ${cm.length > 0 ? ',' + cm.join(',') : ''} from (${query}) as x) as x`;
+            let w = [];
+            for (let i = 0; i < options.measures.length; i++) {
+                w.push(`"${options.measures[i]}" is not null`);
+            }
+            query += w.length > 0 ? ' where ' + w.join(' or ') : '';
+            return query;
+        }
+        , f_getCubeMeasures: async function (idcube, measures) {
+            let _measures = []
+            let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: idcube } });
+            for (let i = 0; i < measures.length; i++) {
+                let cubename = cube.description;
+                let measurename = measures[i];
+                let split = measures[i].split('.');
+                if (split.length > 1) {//Virtual
+                    cubename = split[0];
+                    measurename = split[1];
+                }
+                _measures.push((await db.sequelize.query(`select cm.* from bi_cube c left join bi_cubemeasure cm on (c.id = cm.idcube)
+                    where c.description like '${cubename}' and cm.sqlfield like '${measurename}'`
+                    , { type: db.Sequelize.QueryTypes.SELECT }))[0]);
+            }
+            return _measures;
         }
         , js_executeAnalysis: async function (obj) {
             try {
-                let query = await bi.analysis.f_getQuery(obj.data.idcube, obj.data);
-                let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
-                let calculatedmeasures = JSON.parse(obj.data.calculatedmeasures);
-                let cm = [];
-                let realcube;
-                let dimensions = [];
-                for (let k in calculatedmeasures) {
-                    let value = calculatedmeasures[k];
-                    let splitted = value.split(' ');
-                    for (let i = 0; i < splitted.length; i++) {
-                        if (splitted[i] == 'from') {
-                            realcube = await db.getModel('bi_cube').findOne({ raw: true, where: { description: splitted[i + 1].replace(/"/g, '') } });
-                            splitted[i + 1] = 'bi_cube_' + realcube.id;
-                        } else if (splitted[i] == '$filters') {
-                            if (realcube) {
-                                dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: realcube.id } });
-                                let dimarr = [];
-                                for (let z = 0; z < dimensions.length; z++) {
-                                    dimarr.push(dimensions[z].sqlfield);
-                                }
-                                let filterobj = JSON.parse(obj.data.filter || '{}');
-                                let filter = [];
-                                for (let f in filterobj) {
-                                    if (dimarr.indexOf(f) >= 0) {
-                                        let arr = filterobj[f];
-                                        for (let i = 0; i < arr.length; i++) {
-                                            arr[i] = `'${db.sanitizeString(arr[i].toString())}'`;
-                                        }
-                                        filter.push(`"${f}" in (${arr.join(',')})`);
-                                    }
-                                }
-                                if (obj.data.rows) {
-                                    for (let i = 0; i < obj.data.rows.length; i++) {
-                                        if (dimarr.indexOf(obj.data.rows[i]) >= 0) {
-                                            filter.push(`"${obj.data.rows[i]}"::text = x."${obj.data.rows[i]}"::text`);
-                                        } else {
-                                            filter.push(`x."${obj.data.rows[i]}"::text is null`);
-                                        }
-                                    }
-                                }
-                                if (obj.data.columns) {
-                                    for (let i = 0; i < obj.data.columns.length; i++) {
-                                        if (dimarr.indexOf(obj.data.columns[i]) >= 0) {
-                                            filter.push(`"${obj.data.columns[i]}"::text = x."${obj.data.columns[i]}"::text`)
-                                        } else {
-                                            filter.push(`x."${obj.data.rows[i]}"::text is null`);
-                                        }
-                                    }
-                                }
-                                splitted[i] = filter.length > 0 ? filter.join(' and ') : '1=1';
-                            }
-                        }
-                    }
-                    value = splitted.join(' ');
-
-                    cm.push(`(${value}) as "${k}"`);
-                }
-                query = `select * from (select x.* ${cm.length > 0 ? ',' + cm.join(',') : ''} from (${query}) as x) as x`;
-                let w = [];
-                for (let i = 0; i < obj.data.measures.length; i++) {
-                    w.push(`"${obj.data.measures[i]}" is not null`);
-                }
-                query += w.length > 0 ? ' where ' + w.join(' or ') : '';
-                require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
-                let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 let options = {
                     rows: obj.data.rows
                     , columns: obj.data.columns
                     , measures: obj.data.measures
-                    , _measures: []
+                    , _measures: bi.analysis.f_getCubeMeasures(obj.data.idcube, obj.data.measures)
                     , config: JSON.parse(obj.data.config || '{}')
+                    , calculatedmeasures: JSON.parse(obj.data.calculatedmeasures || '{}')
+                    , filter: JSON.parse(obj.data.filter || '{}')
                 };
-                for (let i = 0; i < options.measures.length; i++) {
-                    let cubename = cube.description;
-                    let measurename = options.measures[i];
-                    let split = options.measures[i].split('.');
-                    if (split.length > 1) {//Virtual
-                        cubename = split[0];
-                        measurename = split[1];
-                    }
-                    options._measures.push((await db.sequelize.query(`select cm.* from bi_cube c left join bi_cubemeasure cm on (c.id = cm.idcube)
-                    where c.description like '${cubename}' and cm.sqlfield like '${measurename}'`
-                        , { type: db.Sequelize.QueryTypes.SELECT }))[0]);
-                }
+                let query = await bi.analysis.f_getBaseQuery(obj.data.idcube, options);
+                query = await bi.analysis.f_getQuery(query, options);
+                let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 return application.success(obj.res, { data: bi.f_pivot(sql, options) });
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -798,6 +808,34 @@ let bi = {
                 return application.success(obj.res, { openurl: `/download/${filename}.pdf` });
             } catch (err) {
                 return application.fatal(obj.res, err);
+            }
+        }
+    }
+    , dashboard: {
+        js_renderAnalysis: async (obj) => {
+            try {
+                const dashboardanalysis = await db.getModel('bi_dashboardanalysis').findAll({ raw: true, where: { iddashboard: obj.data.iddashboard }, order: [['order', 'asc']] });
+                let rendered = [];
+                for (let i = 0; i < dashboardanalysis.length; i++) {
+                    const analysis = await db.getModel('bi_analysis').findOne({ raw: true, where: { id: dashboardanalysis[i].idanalysis } });
+                    const m = analysis.measures ? analysis.measures.split(',') : [];
+                    const options = {
+                        rows: analysis.rows ? analysis.rows.split(',') : []
+                        , columns: analysis.columns ? analysis.columns.split(',') : []
+                        , measures: m
+                        , _measures: bi.analysis.f_getCubeMeasures(analysis.idcube, m)
+                        , config: JSON.parse(analysis.config || '{}')
+                        , calculatedmeasures: JSON.parse(analysis.calculatedmeasures || '{}')
+                        , filter: JSON.parse(analysis.filter || '{}')
+                    };
+                    let query = await bi.analysis.f_getBaseQuery(analysis.idcube, options);
+                    query = await bi.analysis.f_getQuery(query, options);
+                    const sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
+                    rendered.push({ analysis: analysis, dashboardanalysis: dashboardanalysis[i], data: bi.f_pivot(sql, options) });
+                }
+                return application.success(obj.res, { rendered: rendered });
+            } catch (err) {
+                application.fatal(obj.res, err);
             }
         }
     }

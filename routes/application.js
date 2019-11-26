@@ -4,7 +4,7 @@ const lodash = require('lodash')
 	, jwt = require('jsonwebtoken')
 	;
 
-let application = {
+const application = {
 	components: {
 		html: {
 			hidden: function (obj) {
@@ -289,7 +289,7 @@ let application = {
 	, fatal: function (res, err) {
 		console.error(moment().format(application.formatters.fe.datetime_format), err);
 		if (!res.headersSent) {
-			res.status(500).json({});
+			res.status(500).json({ success: false });
 		}
 	}
 	, forbidden: function (res) {
@@ -441,7 +441,7 @@ let application = {
 		}
 	}
 	, jwt: function (req) {
-		let token = req.headers['x-access-token'];
+		const token = req.headers['x-access-token'];
 		jwt.verify(token, application.sk, function (err, decoded) {
 			if (!err) {
 				req.user = decoded;
@@ -451,8 +451,8 @@ let application = {
 	}
 	, menu: {
 		createGroup: function (menu) {
-			let icon = menu.icon;
-			let description = menu.description;
+			const icon = menu.icon;
+			const description = menu.description;
 			return `
 			<li class="treeview">
 				<a href="#">
@@ -465,8 +465,8 @@ let application = {
 			<ul class="treeview-menu">`;
 		}
 		, createItem: function (menu) {
-			let description = menu.description;
-			let url = '/v/' + menu.url;
+			const description = menu.description;
+			const url = '/v/' + menu.url;
 			return `
 			<li>
 				<a href="${url}">
