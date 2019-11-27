@@ -11,6 +11,7 @@ module.exports = function (app) {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view || null }, include: [{ all: true }] });
             if (!view)
                 return application.error(res, {});
+            const bodyID = req.body.id || 0
             if (view.type == 'Calendar') {
                 const j = application.modelattribute.parseTypeadd(view.add);
                 const start = await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_start } });
@@ -48,7 +49,11 @@ module.exports = function (app) {
                 const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
                 let where = {};
                 if (view.wherefixed) {
-                    Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)})`) });
+                    Object.assign(where, {
+                        [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed
+                            .replace(/\$user/g, req.user.id)
+                            .replace(/\$id/g, bodyID)})`)
+                    });
                 }
                 Object.assign(where, await platform.view.f_getFilter(req, view));
                 let ordercolumn = 'id';
@@ -66,7 +71,7 @@ module.exports = function (app) {
                     switch (modelattributes[i].type) {
                         case 'parent':
                             if (req.body.issubview == 'true') {
-                                where[modelattributes[i].name] = req.body.id;
+                                where[modelattributes[i].name] = bodyID;
                             }
                             attributes.push(modelattributes[i].name);
                             break;
@@ -132,11 +137,14 @@ module.exports = function (app) {
 
     app.post('/datasource/sum', application.IsAuthenticated, async (req, res) => {
         try {
-            const view = await db.getModel('view').findOne({ where: { url: req.body.view }, include: [{ all: true }] });
-            let modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute }, include: [{ all: true }] });
+            const view = await db.getModel('view').findOne({ where: { url: req.body.view || null }, include: [{ all: true }] });
+            if (!view)
+                return application.error(res, {});
+            const bodyID = req.body.id || 0
+            const modelattribute = await db.getModel('modelattribute').findOne({ where: { id: req.body.idmodelattribute || 0 }, include: [{ all: true }] });
             let where = {};
             if (view.wherefixed) {
-                Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.body.id)})`) });
+                Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, bodyID)})`) });
             }
             Object.assign(where, await platform.view.f_getFilter(req, view));
             if (req.body.issubview == 'true') {
@@ -144,7 +152,7 @@ module.exports = function (app) {
                     where: { idmodel: view.model.id, type: 'parent' }
                 });
                 if (modelattributeparent) {
-                    where[modelattributeparent.name] = req.body.id;
+                    where[modelattributeparent.name] = bodyID;
                 }
             }
             const register = await db.getModel(view.model.name).findOne({

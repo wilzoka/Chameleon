@@ -414,7 +414,6 @@ let bi = {
                     //Popular medidas/dimensoes
                 }
                 let saved = await next(obj);
-                bi.cube.f_otimizar(saved.register.id);
                 bi.cube.f_agendar(saved.register);
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -431,6 +430,20 @@ let bi = {
                 }
             } catch (err) {
                 return application.fatal(obj.res, err);
+            }
+        }
+        , e_executarCarga: async (obj) => {
+            try {
+                if (obj.ids.length <= 0) {
+                    return application.error(obj.res, { msg: application.message.selectOneEvent });
+                }
+                const cubes = await db.getModel('bi_cube').findAll({ raw: true, where: { id: { [db.Op.in]: obj.ids } } });
+                for (let i = 0; i < cubes.length; i++) {
+                    bi.cube.f_otimizar(cubes[i].id);
+                }
+                return application.success(obj.res, { msg: application.message.success });
+            } catch (err) {
+                application.fatal(obj.res, err);
             }
         }
         , f_otimizar: async (idcube) => {
