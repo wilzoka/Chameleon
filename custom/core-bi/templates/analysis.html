@@ -447,6 +447,8 @@
                         chart.dom = [];
                         chart.rendered = false;
                         renderCharts(false);
+                    } else {
+                        application.notify.error(response.msg);
                     }
                 });
             }

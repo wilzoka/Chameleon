@@ -439,9 +439,9 @@ let bi = {
                 }
                 const cubes = await db.getModel('bi_cube').findAll({ raw: true, where: { id: { [db.Op.in]: obj.ids } } });
                 for (let i = 0; i < cubes.length; i++) {
-                    bi.cube.f_otimizar(cubes[i].id);
+                    await bi.cube.f_otimizar(cubes[i].id);
                 }
-                return application.success(obj.res, { msg: application.message.success });
+                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
             } catch (err) {
                 application.fatal(obj.res, err);
             }
@@ -450,14 +450,14 @@ let bi = {
             try {
                 let cube = await db.getModel('bi_cube').findOne({ where: { id: idcube } });
                 if (cube && !cube.virtual) {
-                    let dimensions = await db.getModel('bi_cubedimension').findAll({ where: { idcube: cube.id } });
+                    const dimensions = await db.getModel('bi_cubedimension').findAll({ where: { idcube: cube.id } });
                     let indexes = [];
                     for (let i = 0; i < dimensions.length; i++) {
                         indexes.push(`create index "idx_bi_cube_${idcube}_${dimensions[i].sqlfield}" on bi_cube_${idcube}("${dimensions[i].sqlfield}")`);
                     }
                     await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql};` + indexes.join(';'));
                     cube.lastloaddate = moment();
-                    cube.save();
+                    await cube.save();
                 }
             } catch (err) {
                 console.error(err);
@@ -615,7 +615,8 @@ let bi = {
                 for (let i = 0; i < splitted.length; i++) {
                     if (splitted[i] == 'from') {
                         realcube = await db.getModel('bi_cube').findOne({ raw: true, where: { description: splitted[i + 1].replace(/"/g, '') } });
-                        splitted[i + 1] = 'bi_cube_' + realcube.id;
+                        if (realcube)
+                            splitted[i + 1] = 'bi_cube_' + realcube.id;
                     } else if (splitted[i] == '$filters') {
                         if (realcube) {
                             dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: realcube.id } });
@@ -656,7 +657,6 @@ let bi = {
                     }
                 }
                 value = splitted.join(' ');
-
                 cm.push(`(${value}) as "${k}"`);
             }
             query = `select * from (select x.* ${cm.length > 0 ? ',' + cm.join(',') : ''} from (${query}) as x) as x`;
@@ -673,7 +673,7 @@ let bi = {
             for (let i = 0; i < measures.length; i++) {
                 let cubename = cube.description;
                 let measurename = measures[i];
-                let split = measures[i].split('.');
+                const split = measures[i].split('.');
                 if (split.length > 1) {//Virtual
                     cubename = split[0];
                     measurename = split[1];
@@ -686,7 +686,7 @@ let bi = {
         }
         , js_executeAnalysis: async function (obj) {
             try {
-                let options = {
+                const options = {
                     rows: obj.data.rows
                     , columns: obj.data.columns
                     , measures: obj.data.measures
@@ -698,10 +698,10 @@ let bi = {
                 let query = await bi.analysis.f_getBaseQuery(obj.data.idcube, options);
                 query = await bi.analysis.f_getQuery(query, options);
                 // require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
-                let sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
+                const sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                 return application.success(obj.res, { data: bi.f_pivot(sql, options) });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                return application.error(obj.res, { msg: err.message });
             }
         }
         , js_getCube: async function (obj) {
