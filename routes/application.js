@@ -24,10 +24,10 @@ const application = {
 					, disabled: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" data-type="text" ${obj.disabled}>
+						<label>${o.label}</label>
+						<input name="${o.name}" type="text" class="form-control" value="${o.value}" data-type="text" ${o.disabled}>
 					</div>
 				</div>`;
 			}
@@ -42,10 +42,10 @@ const application = {
 					, disabled: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<textarea name="${obj.name}" rows="${obj.rows}" class="form-control" data-type="textarea" ${obj.disabled}>${obj.value}</textarea>
+						<label>${o.label}</label>
+						<textarea name="${o.name}" rows="${o.rows}" class="form-control" data-type="textarea" ${o.disabled}>${o.value}</textarea>
 					</div>
 				</div>`;
 			}
@@ -59,10 +59,10 @@ const application = {
 					, disabled: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" data-type="integer" ${obj.disabled}>
+						<label>${o.label}</label>
+						<input name="${o.name}" type="text" class="form-control" value="${o.value}" data-type="integer" ${o.disabled}>
 					</div>
 				</div>`;
 			}
@@ -79,12 +79,12 @@ const application = {
 					, add: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" placeholder="${obj.placeholder}" style="text-align:right;"
+						<label>${o.label}</label>
+						<input name="${o.name}" type="text" class="form-control" value="${o.value}" placeholder="${o.placeholder}" style="text-align:right;"
 							data-type="decimal"
-							data-precision="${obj.precision}" ${obj.add} ${obj.disabled}>
+							data-precision="${o.precision}" ${o.add} ${o.disabled}>
 					</div>
 				</div>`;
 			}
@@ -104,18 +104,18 @@ const application = {
 					, options: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<select name="${obj.name}" class="form-control select2" ${obj.disabled}	style="width:100%;"
+						<label>${o.label}</label>
+						<select name="${o.name}" class="form-control select2" ${o.disabled}	style="width:100%;"
 							data-type="autocomplete"
-							data-model="${obj.model}"
-							data-attribute="${obj.attribute}"
-							data-where="${obj.where}"
-							data-query="${obj.query}"
-							data-options="${obj.options}"
-							${obj.multiple}>
-							${obj.option}
+							data-model="${o.model}"
+							data-attribute="${o.attribute}"
+							data-where="${o.where}"
+							data-query="${o.query}"
+							data-options="${o.options}"
+							${o.multiple}>
+							${o.option}
 						</select>
 					</div>
 				</div>`;
@@ -130,10 +130,10 @@ const application = {
 					, disabled: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" placeholder="dd/mm/aaaa" ${obj.disabled}
+						<label>${o.label}</label>
+						<input name="${o.name}" type="text" class="form-control" value="${o.value}" placeholder="dd/mm/aaaa" ${o.disabled}
 							data-type="date"
 						>
 					</div>
@@ -149,10 +149,10 @@ const application = {
 					, disabled: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" ${obj.disabled}
+						<label>${o.label}</label>
+						<input name="${o.name}" type="text" class="form-control" value="${o.value}" ${o.disabled}
 							data-type="datetime"
 							placeholder="dd/mm/aaaa hh:mm"
 						>
@@ -170,12 +170,12 @@ const application = {
 					, placeholder: 'hh:mm'
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<input name="${obj.name}" type="text" class="form-control" value="${obj.value}" ${obj.disabled} style="text-align:right;"
+						<label>${o.label}</label>
+						<input name="${o.name}" type="text" class="form-control" value="${o.value}" ${o.disabled} style="text-align:right;"
 							data-type="time"
-							placeholder="${obj.placeholder}"
+							placeholder="${o.placeholder}"
 						>
 					</div>
 				</div>`;
@@ -190,11 +190,11 @@ const application = {
 					, disabled: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="checkbox">
 						<label>
-							<input name="${obj.name}" type="checkbox" value="true" ${obj.checked} data-unchecked-value="false" ${obj.disabled}>
-							${obj.label}
+							<input name="${o.name}" type="checkbox" value="true" ${o.checked} data-unchecked-value="false" ${o.disabled}>
+							${o.label}
 						</label>
 					</div>
 				</div>`;
@@ -213,16 +213,16 @@ const application = {
 					, maxwh: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<div class="dropzone" data-name="${obj.name}" data-type="file"
-							data-maxfiles="${obj.maxfiles}"
-							data-sizetotal="${obj.sizetotal}"
-							data-acceptedfiles="${obj.acceptedfiles}"
-							data-forcejpg="${obj.forcejpg}"
-							data-maxwh="${obj.maxwh}"
-							><input name="${obj.name}" type="hidden" value="${obj.value}">
+						<label>${o.label}</label>
+						<div class="dropzone" data-name="${o.name}" data-type="file"
+							data-maxfiles="${o.maxfiles}"
+							data-sizetotal="${o.sizetotal}"
+							data-acceptedfiles="${o.acceptedfiles}"
+							data-forcejpg="${o.forcejpg}"
+							data-maxwh="${o.maxwh}"
+							><input name="${o.name}" type="hidden" value="${o.value}">
 						</div>
 					</div>
 				</div>`;
@@ -236,10 +236,10 @@ const application = {
 					, value: ''
 				}, obj);
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
-						<input name="${obj.name}" type="hidden" value="${obj.value}">
+						<label>${o.label}</label>
+						<input name="${o.name}" type="hidden" value="${o.value}">
 						<div data-type="georeference"></div>
 					</div>
 				</div>`;
@@ -255,20 +255,20 @@ const application = {
 					, options: []
 				}, obj);
 				let options = '';
-				for (let i = 0; i < obj.options.length; i++) {
+				for (let i = 0; i < o.options.length; i++) {
 					options += `
 					<div class="radio">
 						<label>
-							<input type="radio" name="${obj.name}" value="${obj.options[i]}" ${obj.options[i] == obj.value ? 'checked="checked"' : ''} ${obj.disabled}>
-							${obj.options[i]}
+							<input type="radio" name="${obj.name}" value="${o.options[i]}" ${o.options[i] == o.value ? 'checked="checked"' : ''} ${o.disabled}>
+							${o.options[i]}
 						</label>
 					</div>
 					`;
 				}
 				return `
-				<div class="col-md-${obj.width}">
+				<div class="col-md-${o.width}">
 					<div class="form-group">
-						<label>${obj.label}</label>
+						<label>${o.label}</label>
 						${options}
 					</div>
 				</div>`;
