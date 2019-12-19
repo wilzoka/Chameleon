@@ -1543,11 +1543,11 @@ let platform = {
                     let report = {};
                     report.__title = parameters.title || obj.event.description;
                     report.__table = '<table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">';
-                    report.__table += '<tr>';
+                    report.__table += '<tr><thead>';
                     for (let i = 0; i < parameters.columns.length; i++) {
                         report.__table += `<td style="text-align:center;"><strong> ${parameters.columnsLabel[i]} </strong></td>`;
                     }
-                    report.__table += '</tr>';
+                    report.__table += '</thead></tr>';
                     for (let i = 0; i < registers.length; i++) {
                         report.__table += '<tr>';
                         for (let z = 0; z < parameters.columns.length; z++) {

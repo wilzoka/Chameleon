@@ -1,7 +1,8 @@
 const application = require('../../../routes/application')
     , db = require(application.functions.rootDir() + 'models')
     , moment = require('moment')
-    , pdf = require('html-pdf')
+    , fs = require('fs-extra')
+    , puppeteer = require('puppeteer')
     ;
 
 let main = {
@@ -31,11 +32,11 @@ let main = {
                 } else {
                     where = { id: reportname };
                 }
-                let report = await db.getModel('report').findOne({ where: where });
+                const report = await db.getModel('report').findOne({ where: where });
                 if (!report) {
                     return reject(`Relatório ${report} não encontrado`);
                 }
-                let config = await db.getModel('config').findOne({ raw: true });
+                const config = await db.getModel('config').findOne({ raw: true });
                 let html = `
                     <html>
                         <head>
@@ -64,12 +65,16 @@ let main = {
                         <body>`;
                 if (replaces.constructor === Object)
                     replaces = [replaces];
+                function base64_encode(file) {
+                    const bitmap = fs.readFileSync(file);
+                    return 'data:image/png;base64,' + (new Buffer.from(bitmap).toString('base64'));
+                }
                 for (let i = 0; i < replaces.length; i++) {
                     replaces[i].__reportimage = '';
                     if (config.reportimage) {
-                        let reportimage = JSON.parse(config.reportimage);
+                        const reportimage = JSON.parse(config.reportimage);
                         if (reportimage.length > 0)
-                            replaces[i].__reportimage = application.functions.rootDir() + `files/${process.env.NODE_APPNAME}/${reportimage[0].id}.${reportimage[0].type}`;
+                            replaces[i].__reportimage = base64_encode(application.functions.filesDir() + `${reportimage[0].id}.${reportimage[0].type}`);
                     }
                     replaces[i].__datetime = moment().format(application.formatters.fe.datetime_format);
                     let htmlpart = report.html;
@@ -81,23 +86,27 @@ let main = {
                     html += htmlpart;
                 }
                 html += `</body></html>`;
-                let options = {
-                    border: {
-                        top: "0.5cm",
-                        right: "0.5cm",
-                        bottom: "0.5cm",
-                        left: "0.5cm"
+                const filename = process.hrtime()[1];
+                const path = application.functions.tmpDir();
+                fs.writeFileSync(`${path}/${filename}.html`, html);
+                const browser = await puppeteer.launch();
+                const page = await browser.newPage();
+                await page.goto(`http://localhost:${process.env.NODE_PORT}/download/${filename}.html`);
+                await page.pdf({
+                    path: `${path}/${filename}.pdf`
+                    , format: 'A4'
+                    , printBackground: true
+                    , scale: 1
+                    , margin: {
+                        top: "0.5cm"
+                        , right: "0.5cm"
+                        , bottom: "0.5cm"
+                        , left: "0.5cm"
                     }
-                    , orientation: report.landscape ? 'landscape' : 'portait'
-                    , timeout: '100000'
-                };
-                let filename = process.hrtime()[1] + '.pdf';
-                pdf.create(html, options).toFile(application.functions.rootDir() + `tmp/${process.env.NODE_APPNAME}/${filename}`, function (err, res) {
-                    if (err) {
-                        return reject(err);
-                    }
-                    return resolve(filename);
+                    , landscape: report.landscape ? true : false
                 });
+                await browser.close();
+                resolve(`${filename}.pdf`);
             } catch (err) {
                 return reject(err);
             }

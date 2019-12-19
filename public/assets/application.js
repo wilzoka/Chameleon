@@ -1185,6 +1185,11 @@ var application = {
         , getAvailableHeight: function () {
             return $(window).height() - 175 - $('header.main-header').innerHeight() - $('section.content-header').innerHeight();
         }
+        , setAutocomplete: function ($el, id, text) {
+            $el.find('option').remove();
+            var newOption = new Option(text, id, false, false);
+            $el.append(newOption).trigger('change');
+        }
     }
     , handlers: {
         responseSuccess: function (response) {

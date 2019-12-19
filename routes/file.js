@@ -46,7 +46,7 @@ module.exports = function (app) {
                 if (!req.user) {
                     return application.forbidden(res);
                 }
-                let views = await db.getModel('view').findAll({ include: [{ all: true }], where: { idmodel: file.idmodel } });
+                const views = await db.getModel('view').findAll({ include: [{ all: true }], where: { idmodel: file.idmodel } });
                 const viewfile = await db.getModel('view').findOne({ include: [{ all: true }], where: { url: 'arquivo' } });
                 if (viewfile) {
                     views.unshift(viewfile);

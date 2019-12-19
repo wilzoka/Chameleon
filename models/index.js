@@ -144,8 +144,8 @@ sequelize.query(`
     }
     // Create References
     for (let i = 0; i < results.length; i++) {
-        let j = application.modelattribute.parseTypeadd(results[i].typeadd);
-        let vas = j.as || j.model;
+        const j = application.modelattribute.parseTypeadd(results[i].typeadd);
+        const vas = j.as || j.model;
         switch (results[i].type) {
             case 'parent':
                 models[results[i].model].belongsTo(models[j.model], {

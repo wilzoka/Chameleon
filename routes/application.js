@@ -1,5 +1,4 @@
-const lodash = require('lodash')
-	, moment = require('moment')
+const moment = require('moment')
 	, fs = require('fs-extra')
 	, jwt = require('jsonwebtoken')
 	;
@@ -8,14 +7,16 @@ const application = {
 	components: {
 		html: {
 			hidden: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					name: ''
 					, value: ''
 				}, obj);
-				return `<input name="${obj.name}" type="hidden" value="${obj.value}">`;
+				return `<input name="${o.name}" type="hidden" value="${o.value}">`;
 			}
 			, text: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -31,7 +32,8 @@ const application = {
 				</div>`;
 			}
 			, textarea: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -48,7 +50,8 @@ const application = {
 				</div>`;
 			}
 			, integer: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -64,7 +67,8 @@ const application = {
 				</div>`;
 			}
 			, decimal: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -85,7 +89,8 @@ const application = {
 				</div>`;
 			}
 			, autocomplete: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -116,7 +121,8 @@ const application = {
 				</div>`;
 			}
 			, date: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -134,7 +140,8 @@ const application = {
 				</div>`;
 			}
 			, datetime: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -153,7 +160,8 @@ const application = {
 				</div>`;
 			}
 			, time: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -173,7 +181,8 @@ const application = {
 				</div>`;
 			}
 			, checkbox: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, name: ''
 					, checked: ''
@@ -191,7 +200,8 @@ const application = {
 				</div>`;
 			}
 			, file: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, name: ''
 					, label: ''
@@ -218,7 +228,8 @@ const application = {
 				</div>`;
 			}
 			, georeference: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -234,7 +245,8 @@ const application = {
 				</div>`;
 			}
 			, radio: function (obj) {
-				obj = lodash.extend({
+				const o = {};
+				Object.assign(o, {
 					width: ''
 					, label: ''
 					, name: ''
@@ -283,7 +295,8 @@ const application = {
 	}
 	, error: function (res, json) {
 		if (!res.headersSent) {
-			res.json(lodash.extend({ success: false }, json));
+			Object.assign(json, { success: false });
+			res.json(json);
 		}
 	}
 	, fatal: function (res, err) {
@@ -421,6 +434,12 @@ const application = {
 		}
 		, rootDir: function () {
 			return `${__dirname}/../`;
+		}
+		, filesDir: function () {
+			return `${application.functions.rootDir()}files/${process.env.NODE_APPNAME}/`;
+		}
+		, tmpDir: function () {
+			return `${application.functions.rootDir()}tmp/${process.env.NODE_APPNAME}/`;
 		}
 	}
 	, Handlebars: require('handlebars')
@@ -567,7 +586,8 @@ const application = {
 	, sk: '$H!T'
 	, success: function (res, obj) {
 		if (!res.headersSent) {
-			res.json(lodash.extend({ success: true }, obj));
+			Object.assign(obj, { success: true });
+			res.json(obj);
 		}
 	}
 }

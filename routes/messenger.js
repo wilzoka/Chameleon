@@ -1,7 +1,6 @@
 const application = require('./application')
     , db = require('../models')
     , MailListener = require('mail-listener2-updated')
-    , lodash = require('lodash')
     ;
 
 // SMTP Config Example
@@ -30,7 +29,8 @@ const activeMessenger = async function (mes) {
     try {
         switch (mes.type) {
             case 'E-Mail':
-                messengers[mes.id] = new MailListener(lodash.extend({
+                const o = {};
+                Object.assign(o, {
                     mailbox: "INBOX",
                     // debug: console.log,
                     searchFilter: ["UNSEEN"],
@@ -39,7 +39,8 @@ const activeMessenger = async function (mes) {
                     mailParserOptions: { streamAttachments: false },
                     attachments: false,
                     attachmentOptions: { directory: "files/" }
-                }, JSON.parse(mes.conf)));
+                }, JSON.parse(mes.conf));
+                messengers[mes.id] = new MailListener(o);
                 messengers[mes.id].start();
                 messengers[mes.id].on("server:connected", function () {
                     console.log(`Messenger ${mes.description} Connected`);

@@ -799,8 +799,8 @@ let bi = {
                         </div>
                     </body>
                 </html>`;
-                let filename = process.hrtime()[1];
-                let path = `${application.functions.rootDir()}tmp/${process.env.NODE_APPNAME}`;
+                const filename = process.hrtime()[1];
+                const path = `${application.functions.rootDir()}tmp/${process.env.NODE_APPNAME}`;
                 fs.writeFileSync(`${path}/${filename}.html`, html);
                 const browser = await puppeteer.launch();
                 const page = await browser.newPage();
