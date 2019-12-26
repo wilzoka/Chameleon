@@ -6,8 +6,8 @@ module.exports = function (app) {
 
     app.get('/autocomplete', application.IsAuthenticated, async (req, res) => {
         try {
-            let field = req.query.query || req.query.attribute;
-            let where = [];
+            const field = req.query.query || req.query.attribute;
+            const where = [];
             if (req.query.where) {
                 where.push(req.query.where);
             }
@@ -19,8 +19,8 @@ module.exports = function (app) {
                 wherestr = 'where ' + where.join(' and ');
                 wherestr = wherestr.replace(/\$user/g, req.user.id);
             }
-            let query = `SELECT id, ${field} as text FROM ${req.query.model} ${wherestr} ORDER BY ${field} LIMIT 100`;
-            let results = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
+            const query = `SELECT id, ${field} as text FROM ${req.query.model} ${wherestr} ORDER BY ${field} LIMIT 100`;
+            const results = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
             return application.success(res, { data: results });
         } catch (err) {
             return application.fatal(res, err);

@@ -35,7 +35,7 @@ module.exports = function (app) {
             if (isNaN(req.params.id)) {
                 return res.send('Arquivo inválido');
             }
-            const file = await db.getModel('file').findOne({ where: { id: req.params.id } });
+            const file = await db.getModel('file').findOne({ raw: true, where: { id: req.params.id } });
             if (!file) {
                 return res.send('Arquivo inválido');
             }
@@ -89,12 +89,10 @@ module.exports = function (app) {
     app.post('/file', application.IsAuthenticated, async (req, res) => {
         try {
             fileupload(req, res, async (err) => {
-                if (err) {
+                if (err)
                     return application.fatal(res, err);
-                }
-                if (!req.file) {
+                if (!req.file)
                     return application.fatal(res, 'No file given');
-                }
                 const filenamesplited = req.file.filename.split('.');
                 const type = filenamesplited[filenamesplited.length - 1].toLowerCase();
                 const mimetype = mime.lookup(type) || '';
@@ -137,7 +135,7 @@ module.exports = function (app) {
                     path += `${file.id}.${file.type}`;
                     fs.renameSync(req.file.path, path);
                 }
-                await file.save();
+                await file.save({ iduser: req.user.id });
                 res.json({ success: true, data: file });
             });
         } catch (err) {
