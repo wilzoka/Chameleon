@@ -65,7 +65,7 @@ let bi = {
             }
         }
 
-        let tablelimit = 500;
+        const tablelimit = 500;
         if (structure.c.length > tablelimit || structure.r.length > tablelimit) {
             return {
                 html: '<span>Muitos resultados para exibir, realize mais filtros para visualizar</span>'

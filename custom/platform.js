@@ -1729,7 +1729,7 @@ let platform = {
             if (view.idfastsearch && fastsearch) {
                 fastsearch = db.sanitizeString(fastsearch);
                 const mafastsearch = await db.getModel('modelattribute').findOne({ where: { id: view.idfastsearch } });
-                let j = application.modelattribute.parseTypeadd(mafastsearch.typeadd);
+                const j = application.modelattribute.parseTypeadd(mafastsearch.typeadd);
                 switch (mafastsearch.type) {
                     case 'autocomplete':
                         if (j.query) {
@@ -1750,11 +1750,11 @@ let platform = {
         }
         , f_fixResults: function (registers, viewtables) {
             for (let i = 0; i < viewtables.length; i++) {
-                let ma = viewtables[i].modelattribute;
-                let j = application.modelattribute.parseTypeadd(ma.typeadd);
+                const ma = viewtables[i].modelattribute;
+                const j = application.modelattribute.parseTypeadd(ma.typeadd);
                 switch (j.type || ma.type) {
                     case 'autocomplete':
-                        let vas = j.as || j.model;
+                        const vas = j.as || j.model;
                         for (let x = 0; x < registers.rows.length; x++) {
                             if (registers.rows[x][ma.name]) {
                                 if (j.attribute && registers.rows[x][vas + '.' + j.attribute]) {
@@ -1793,7 +1793,7 @@ let platform = {
                         break;
                 }
             }
-            let keys = ['id'];
+            const keys = ['id'];
             for (let i = 0; i < viewtables.length; i++) {
                 keys.push(viewtables[i].modelattribute.name);
             }

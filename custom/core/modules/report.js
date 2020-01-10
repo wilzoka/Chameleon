@@ -66,8 +66,12 @@ let main = {
                 if (replaces.constructor === Object)
                     replaces = [replaces];
                 function base64_encode(file) {
-                    const bitmap = fs.readFileSync(file);
-                    return 'data:image/png;base64,' + (new Buffer.from(bitmap).toString('base64'));
+                    if (fs.existsSync(file)) {
+                        const bitmap = fs.readFileSync(file);
+                        return 'data:image/png;base64,' + (new Buffer.from(bitmap).toString('base64'));
+                    } else {
+                        return '';
+                    }
                 }
                 for (let i = 0; i < replaces.length; i++) {
                     replaces[i].__reportimage = '';
