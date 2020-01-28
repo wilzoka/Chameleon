@@ -1044,6 +1044,7 @@ module.exports = function (app) {
                 case 'Registration':
                     return res.redirect(req.path + '/0');
                 case 'Configuration':
+                    await db.getModel(view.model.name).findOrCreate({ where: { id: 1 } });
                     return res.redirect(req.path + '/1');
                 default:
                     return application.render(res, __dirname + '/../views/templates/viewtable.html', {
@@ -1288,7 +1289,7 @@ module.exports = function (app) {
             const permission = await platform.view.f_hasPermission(req.user.id, view.id);
             if (!permission.deletable)
                 return application.error(res, { msg: application.message.permissionDenied });
-            let obj = {
+            const obj = {
                 ids: req.body.ids ? req.body.ids.split(',') : []
                 , view: view
                 , req: req
@@ -1296,9 +1297,9 @@ module.exports = function (app) {
                 , transaction: await db.sequelize.transaction()
             };
             if (view.model && view.model.ondelete) {
-                let config = await db.getModel('config').findOne();
-                let custom = require('../custom/' + config.customfile);
-                let realfunction = application.functions.getRealReference(custom, view.model.ondelete);
+                const config = await db.getModel('config').findOne();
+                const custom = require('../custom/' + config.customfile);
+                const realfunction = application.functions.getRealReference(custom, view.model.ondelete);
                 if (realfunction) {
                     await realfunction(obj, deleteModel);
                 } else {
