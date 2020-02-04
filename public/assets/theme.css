@@ -208,6 +208,7 @@ table.dataTable tbody td.select-checkbox, table.dataTable tbody th.select-checkb
 div.dt-button-collection {
     width: auto;
     max-height: 400px;
+    min-width: 175px;
     overflow: auto;    
 }
 div.dataTables_wrapper div.dataTables_info {
