@@ -386,6 +386,9 @@ const application = {
 		, singleSpace: function (value) {
 			return value.replace(/\s\s+/g, ' ');
 		}
+		, removeSpecialCharacters: function (value) {
+			return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+		}
 		, getRealReference: function (object, string) {
 			try {
 				let referencesplited = string.split('.');

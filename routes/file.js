@@ -93,11 +93,12 @@ module.exports = function (app) {
                     return application.fatal(res, err);
                 if (!req.file)
                     return application.fatal(res, 'No file given');
-                const filenamesplited = req.file.filename.split('.');
+                const filename = application.functions.removeSpecialCharacters(application.functions.singleSpace(req.file.filename));
+                const filenamesplited = filename.split('.');
                 const type = filenamesplited[filenamesplited.length - 1].toLowerCase();
                 const mimetype = mime.lookup(type) || '';
                 const file = await db.getModel('file').create({
-                    filename: req.file.filename
+                    filename: filename
                     , mimetype: mimetype
                     , size: req.file.size
                     , type: type
