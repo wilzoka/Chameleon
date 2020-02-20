@@ -1225,27 +1225,35 @@ let platform = {
         }
         , f_getFilteredRegisters: async function (obj) {
             try {
-                let view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] })
-                let viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }] });
-                let where = {};
+                const view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] })
+                const viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }] });
+                const where = {};
                 if (view.wherefixed) {
                     view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id).replace(/\$id/g, obj.req.body.id);
                     Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed) })
                 }
-                let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
+                const parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
                 if ('onlySelected' in parameters && parameters.onlySelected) {
                     Object.assign(where, { id: { [db.Op.in]: obj.ids } })
                 } else {
                     Object.assign(where, await platform.view.f_getFilter(obj.req, view));
                 }
-                let order = parameters.order;
+                const attributes = ['id'];
+                const order = parameters.order;
                 let ordercolumn = order[0];
-                let orderdir = order[1];
-                let attributes = ['id'];
+                const orderdir = order[1];
                 for (let i = 0; i < viewfields.length; i++) {
+                    const j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                     switch (viewfields[i].modelattribute.type) {
+                        case 'autocomplete':
+                            if (j.query) {
+                                attributes.push([db.Sequelize.literal(j.query), viewfields[i].modelattribute.name]);
+                            } else {
+                                attributes.push(viewfields[i].modelattribute.name);
+                            }
+                            break;
                         case 'virtual':
-                            attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
+                            attributes.push([db.Sequelize.literal(j.subquery), viewfields[i].modelattribute.name]);
                             break;
                         default:
                             attributes.push(viewfields[i].modelattribute.name);
@@ -1255,8 +1263,7 @@ let platform = {
                     if (viewfields[i].modelattribute.name == ordercolumn) {
                         switch (viewfields[i].modelattribute.type) {
                             case 'autocomplete':
-                                let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                                let vas = j.as || j.model;
+                                const vas = j.as || j.model;
                                 ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
                                 break;
                             case 'virtual':
@@ -1265,7 +1272,7 @@ let platform = {
                         }
                     }
                 }
-                let registers = await db.getModel(view.model.name).findAndCountAll({
+                const registers = await db.getModel(view.model.name).findAndCountAll({
                     attributes: attributes
                     , raw: true
                     , include: [{ all: true }]
