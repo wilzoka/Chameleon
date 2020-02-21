@@ -1334,7 +1334,7 @@ module.exports = function (app) {
             let register = await db.getModel(view.model.name).findOne({ where: { id: req.params.id }, include: [{ all: true }] });
             if (!register)
                 register = db.getModel(view.model.name).build({ id: 0 });
-            let obj = {
+            const obj = modelate({
                 id: req.params.id
                 , view: view
                 , viewfields: viewfields
@@ -1344,8 +1344,7 @@ module.exports = function (app) {
                 , req: req
                 , res: res
                 , transaction: await db.sequelize.transaction()
-            };
-            obj = modelate(obj);
+            });
             if (view.model && view.model.onsave) {
                 let config = await db.getModel('config').findOne();
                 let custom = require('../custom/' + config.customfile);
