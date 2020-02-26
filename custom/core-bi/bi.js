@@ -65,7 +65,7 @@ let bi = {
             }
         }
 
-        const tablelimit = 500;
+        const tablelimit = 1000;
         if (structure.c.length > tablelimit || structure.r.length > tablelimit) {
             return {
                 html: '<span>Muitos resultados para exibir, realize mais filtros para visualizar</span>'
@@ -126,7 +126,7 @@ let bi = {
                 }
             }
             for (let m = 0; m < measures.length; m++) {
-                if (options._measures[m] && options._measures[m].aggregator == 'avg') {                    
+                if (options._measures[m] && options._measures[m].aggregator == 'avg') {
                     for (let r = 0; r < structure.r.length; r++) {
                         structure.r[r].total[m] = structure.r[r].total[m] / structure.r[r].withValues[m];
                     }
@@ -372,8 +372,8 @@ let bi = {
                         for (let m = 0; m < measures.length; m++) {
                             td += `<td class="pvtVal">${data[z].measures[m]}</td>`;
                         }
-                        data.splice(z, 1);
-                        z--;
+                        // data.splice(z, 1);
+                        // z--;
                         break;
                     }
                 }
@@ -405,6 +405,7 @@ let bi = {
         return {
             html: html
             , charts: charts
+            , data: data
         };
     }
     , cube: {
@@ -614,10 +615,20 @@ let bi = {
                 let splitted = value.split(' ');
                 for (let i = 0; i < splitted.length; i++) {
                     if (splitted[i] == 'from') {
-                        realcube = await db.getModel('bi_cube').findOne({ raw: true, where: { description: splitted[i + 1].replace(/"/g, '') } });
+                        i++;
+                        // console.log('try finding', splitted[i + 1]);
+                        // let realname = [];
+                        // while (i < splitted.length) {
+                        //     realname.push(splitted[i]);
+                        //     i++;
+                        //     if (realname.length > 0 && splitted[i - 1].includes('"'))
+                        //         break;
+                        // }
+                        // console.log(realname);
+                        realcube = await db.getModel('bi_cube').findOne({ raw: true, where: { description: splitted[i].replace(/"/g, '') } });
                         if (realcube)
-                            splitted[i + 1] = 'bi_cube_' + realcube.id;
-                    } else if (splitted[i] == '$filters') {
+                            splitted[i] = 'bi_cube_' + realcube.id;
+                    } else if (splitted[i].includes('$filter')) {
                         if (realcube) {
                             dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: realcube.id } });
                             let dimarr = [];
@@ -634,25 +645,27 @@ let bi = {
                                     filter.push(`"${f}" in (${arr.join(',')})`);
                                 }
                             }
-                            if (options.rows) {
-                                for (let i = 0; i < options.rows.length; i++) {
-                                    if (dimarr.indexOf(options.rows[i]) >= 0) {
-                                        filter.push(`"${options.rows[i]}"::text = x."${options.rows[i]}"::text`);
-                                    } else {
-                                        filter.push(`x."${options.rows[i]}"::text is null`);
+                            if (splitted[i].includes('$filters')) {
+                                if (options.rows) {
+                                    for (let i = 0; i < options.rows.length; i++) {
+                                        if (dimarr.indexOf(options.rows[i]) >= 0) {
+                                            filter.push(`"${options.rows[i]}"::text = x."${options.rows[i]}"::text`);
+                                        } else {
+                                            filter.push(`x."${options.rows[i]}"::text is null`);
+                                        }
+                                    }
+                                }
+                                if (options.columns) {
+                                    for (let i = 0; i < options.columns.length; i++) {
+                                        if (dimarr.indexOf(options.columns[i]) >= 0) {
+                                            filter.push(`"${options.columns[i]}"::text = x."${options.columns[i]}"::text`)
+                                        } else {
+                                            filter.push(`x."${options.rows[i]}"::text is null`);
+                                        }
                                     }
                                 }
                             }
-                            if (options.columns) {
-                                for (let i = 0; i < options.columns.length; i++) {
-                                    if (dimarr.indexOf(options.columns[i]) >= 0) {
-                                        filter.push(`"${options.columns[i]}"::text = x."${options.columns[i]}"::text`)
-                                    } else {
-                                        filter.push(`x."${options.rows[i]}"::text is null`);
-                                    }
-                                }
-                            }
-                            splitted[i] = filter.length > 0 ? filter.join(' and ') : '1=1';
+                            splitted[i] = splitted[i].replace(splitted[i].includes('$filters') ? '$filters' : '$filter', filter.length > 0 ? filter.join(' and ') : '1=1');
                         }
                     }
                 }
@@ -666,6 +679,23 @@ let bi = {
             }
             query += w.length > 0 ? ' where ' + w.join(' or ') : '';
             return query;
+        }
+        , f_getCubeDimensions: async function (idcube, dimensions) {
+            let _dimensions = []
+            let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: idcube } });
+            for (let i = 0; i < dimensions.length; i++) {
+                let cubename = cube.description;
+                let dimensionname = dimensions[i];
+                const split = dimensions[i].split('.');
+                if (split.length > 1) {//Virtual
+                    cubename = split[0];
+                    dimensionname = split[1];
+                }
+                _dimensions.push((await db.sequelize.query(`select cd.* from bi_cube c left join bi_cubedimension cd on (c.id = cd.idcube)
+                    where c.description like '${cubename}' and cd.sqlfield like '${dimensionname}'`
+                    , { type: db.Sequelize.QueryTypes.SELECT }))[0]);
+            }
+            return _dimensions;
         }
         , f_getCubeMeasures: async function (idcube, measures) {
             let _measures = []
