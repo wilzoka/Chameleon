@@ -515,8 +515,8 @@ let bi = {
                 for (let i = 0; i < cubes.length; i++) {
                     let currentquery = await bi.analysis.f_getBaseQuery(cubes[i].idcubev, options);
                     if (currentquery) {
-                        query += (cubesjoined.length > 0 ? ', ' : '') + cubes[i]['virtual.description'] + ' as (' + currentquery + ')';
-                        cubesjoined.push(cubes[i]['virtual.description']);
+                        query += (cubesjoined.length > 0 ? ', ' : '') + `"${cubes[i]['virtual.description']}"` + ' as (' + currentquery + ')';
+                        cubesjoined.push(`"${cubes[i]['virtual.description']}"`);
                         let measures = await db.getModel('bi_cubemeasure').findAll({ where: { idcube: cubes[i].idcubev } });
                         for (let z = 0; z < measures.length; z++) {
                             allmeasures.push(`${cubes[i]['virtual.description']}.${measures[z].sqlfield}`);
