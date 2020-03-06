@@ -638,9 +638,9 @@ let bi = {
                             let filter = [];
                             for (let f in options.filter) {
                                 if (dimarr.indexOf(f) >= 0) {
-                                    let arr = options.filter[f];
-                                    for (let i = 0; i < arr.length; i++) {
-                                        arr[i] = `'${db.sanitizeString(arr[i].toString())}'`;
+                                    const arr = [];
+                                    for (let i = 0; i < options.filter[f].length; i++) {
+                                        arr.push(`'${db.sanitizeString(options.filter[f][i].toString())}'`);
                                     }
                                     filter.push(`"${f}" in (${arr.join(',')})`);
                                 }
