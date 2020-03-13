@@ -579,10 +579,12 @@ let platform = {
                         }
                         switch (modelattributes[i].type) {
                             case 'autocomplete':
-                                let vas = j.as || j.model;
+                                const vas = j.as || j.model;
                                 for (let x = 0; x < registers.rows.length; x++) {
                                     if (registers.rows[x][modelattributes[i].name]) {
-                                        registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + j.attribute];
+                                        if (j.attribute && registers.rows[x][vas + '.' + j.attribute]) {
+                                            registers.rows[x][modelattributes[i].name] = registers.rows[x][vas + '.' + j.attribute];
+                                        }
                                     }
                                 }
                                 break;
@@ -633,27 +635,32 @@ let platform = {
                     if (!model) {
                         return reject('model not found');
                     }
-                    db.getModel('modelattribute').findAll({ where: { idmodel: model.id } }).then(modelattributes => {
-                        let attributes = ['id'];
+                    db.getModel('modelattribute').findAll({ where: { idmodel: model.id }, order: [['name', 'asc']] }).then(modelattributes => {
+                        const attributes = ['id'];
                         for (let i = 0; i < modelattributes.length; i++) {
+                            const j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
                             switch (modelattributes[i].type) {
-                                case 'parent':
-                                    attributes.push(modelattributes[i].name);
+                                case 'autocomplete':
+                                    if (j.query) {
+                                        attributes.push([db.Sequelize.literal(j.query), modelattributes[i].name]);
+                                    } else {
+                                        attributes.push(modelattributes[i].name);
+                                    }
                                     break;
                                 case 'virtual':
-                                    attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[i].typeadd).subquery), modelattributes[i].name]);
+                                    attributes.push([db.Sequelize.literal(j.subquery), modelattributes[i].name]);
                                     break;
                                 default:
                                     attributes.push(modelattributes[i].name);
                                     break;
                             }
                         }
-                        db.getModel(model.name).findAndCountAll(lodash.extend({
+                        db.getModel(model.name).findAndCountAll(Object.assign({}, options, {
                             attributes: attributes
                             , raw: true
                             , include: [{ all: true }]
-                        }, options)).then(registers => {
-                            let original = JSON.stringify(registers.rows);
+                        })).then(registers => {
+                            const original = JSON.stringify(registers.rows);
                             registers = fixResults(registers, modelattributes);
                             registers.original = JSON.parse(original);
                             return resolve(registers);
