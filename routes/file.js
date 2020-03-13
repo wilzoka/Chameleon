@@ -8,6 +8,8 @@ const application = require('./application')
     , mime = require('mime-types')
     ;
 
+sharp.cache(false);
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, `${__dirname}/../tmp/${process.env.NODE_APPNAME}/`);
