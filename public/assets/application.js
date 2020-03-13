@@ -1190,6 +1190,37 @@ var application = {
             var newOption = new Option(text, id, false, false);
             $el.append(newOption).trigger('change');
         }
+        , randomColor: function () {
+            return "#000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
+        }
+        , getClosestLatLang: function (alreadyPloted, cord, distance) {
+            var direction = application.functions.randomIntFromInterval(1, 4);
+            var lat = parseFloat(cord.split(',')[0]);
+            var lng = parseFloat(cord.split(',')[1]);
+            switch (direction) {
+                case 1://Cima
+                    lng += distance;
+                    break;
+                case 2://Direita
+                    lat += distance;
+                    break;
+                case 3://Baixo
+                    lng -= distance;
+                    break;
+                case 4://Esquerda
+                    lat -= distance;
+                    break;
+            }
+            var newcords = lat.toFixed(7) + ',' + lng.toFixed(7);
+            if (alreadyPloted[newcords]) {
+                distance = distance * 2;
+                return application.functions.getClosestLatLang(alreadyPloted, cord, distance);
+            }
+            return newcords;
+        }
+        , randomIntFromInterval(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
     }
     , handlers: {
         responseSuccess: function (response) {

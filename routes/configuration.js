@@ -40,4 +40,29 @@ module.exports = function (app) {
         });
     });
 
+    app.get('/icon/marker', application.IsAuthenticated, async (req, res) => {
+        const marker = __dirname + '/../public/images/map_marker.png';
+        if (!req.query.color) {
+            return fs.createReadStream(marker).pipe(res);
+        }
+        const Jimp = require('jimp');
+        Jimp.read(marker, (err, img) => {
+            if (err) throw err;
+            const color = Jimp.cssColorToHex(req.query.color);
+            for (let w = 0; w < img.bitmap.width; w++) {
+                for (let h = 0; h < img.bitmap.height; h++) {
+                    const cip = img.getPixelColor(w, h);
+                    if (cip == 255) {
+                        img.setPixelColor(color, w, h);
+                    }
+                }
+            }
+            img.getBufferAsync(Jimp.MIME_PNG).then((buffer) => {
+                res.setHeader('Content-Type', 'image/png');
+                res.setHeader('Content-Length', buffer.length);
+                res.send(buffer);
+            });
+        });
+    });
+
 }
