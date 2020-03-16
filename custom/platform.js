@@ -23,7 +23,7 @@ let platform = {
         }
         , js_getGoogleMapsKey: async function (obj) {
             try {
-                let config = await db.getModel('config').findOne();
+                const config = await db.getModel('config').findOne();
                 return application.success(obj.res, { data: config.googlemapskey });
             } catch (err) {
                 return application.fatal(obj.res, err);
@@ -129,6 +129,24 @@ let platform = {
                 }
             } catch (err) {
                 console.error(err);
+            }
+        }
+    }
+    , map: {
+        geocode: async (address) => {
+            const config = await db.getModel('config').findOne();
+            if (!config) {
+                return null;
+            }
+            const googleMapsClient = require('@google/maps').createClient({
+                key: config.googlemapskey,
+                Promise: Promise
+            });
+            const geo = await googleMapsClient.geocode({ address: address }).asPromise();
+            if (geo.status == 200) {
+                return geo.json.results;
+            } else {
+                return null;
             }
         }
     }
