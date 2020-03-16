@@ -1218,7 +1218,7 @@ var application = {
             }
             return newcords;
         }
-        , randomIntFromInterval(min, max) {
+        , randomIntFromInterval: function (min, max) {
             return Math.floor(Math.random() * (max - min + 1) + min);
         }
     }
