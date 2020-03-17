@@ -575,7 +575,11 @@ let bi = {
 
             let sqlmeasures = [];
             for (let z = 0; z < measures.length; z++) {
-                sqlmeasures.push(`${measures[z].aggregator}("${measures[z].sqlfield}") as "${options.virtual ? `${cube.description}.` : ''}${measures[z].sqlfield}"`)
+                if (measures[z].aggregator == 'count distinct') {
+                    sqlmeasures.push(`count(distinct "${measures[z].sqlfield}") as "${options.virtual ? `${cube.description}.` : ''}${measures[z].sqlfield}"`)
+                } else {
+                    sqlmeasures.push(`${measures[z].aggregator}("${measures[z].sqlfield}") as "${options.virtual ? `${cube.description}.` : ''}${measures[z].sqlfield}"`)
+                }
             }
 
             let groupby = [];
