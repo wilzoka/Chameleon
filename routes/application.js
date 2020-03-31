@@ -240,6 +240,7 @@ const application = {
 					<div class="form-group">
 						<label>${o.label}</label>
 						<input name="${o.name}" type="hidden" value="${o.value}">
+						<input id="${o.name}_gms" type="text" class="form-control hidden" style="border-radius:0px;" placeholder="Pesquise um local" ${o.disabled}>
 						<div data-type="georeference"></div>
 					</div>
 				</div>`;

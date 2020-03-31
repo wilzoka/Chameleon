@@ -507,6 +507,42 @@ var application = {
                         } else {
                             maps[$hidden.attr('name')].marker = null;
                         }
+                        //
+                        var input = document.getElementById($hidden.attr('name') + '_gms');
+                        var searchBox = new google.maps.places.SearchBox(input);
+                        setTimeout(function () {
+                            $(input).removeClass('hidden');
+                        }, 500);
+                        maps[$hidden.attr('name')].controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+                        searchBox.addListener('places_changed', function () {
+                            var places = searchBox.getPlaces();
+                            if (places.length == 0) {
+                                return;
+                            }
+                            place = places[0];
+                            var bounds = new google.maps.LatLngBounds();
+                            if (!place.geometry) {
+                                console.log("Returned place contains no geometry");
+                                return;
+                            }
+                            if (maps[$hidden.attr('name')].marker)
+                                maps[$hidden.attr('name')].marker.setMap(null);
+                            maps[$hidden.attr('name')].marker = new google.maps.Marker({
+                                map: maps[$hidden.attr('name')]
+                                , hidden: $hidden
+                                , draggable: true
+                                , position: place.geometry.location
+                            });
+                            $hidden.val(place.geometry.location.lat() + ',' + place.geometry.location.lng());
+                            google.maps.event.addListener(maps[$hidden.attr('name')].marker, 'dragend', dragfunction);
+                            if (place.geometry.viewport) {
+                                bounds.union(place.geometry.viewport);
+                            } else {
+                                bounds.extend(place.geometry.location);
+                            }
+                            maps[$hidden.attr('name')].fitBounds(bounds);
+                        });
+                        //
                         google.maps.event.addListener(maps[$hidden.attr('name')], 'click', function (e) {
                             if (this.marker) {
                                 this.marker.setPosition(e.latLng);
@@ -528,7 +564,7 @@ var application = {
                     realrender($obj);
                 } else {
                     application.jsfunction('platform.config.js_getGoogleMapsKey', {}, function (response) {
-                        $.getScript('https://maps.googleapis.com/maps/api/js?key=' + response.data, function () {
+                        $.getScript('https://maps.googleapis.com/maps/api/js?key=' + response.data + '&libraries=places', function () {
                             realrender($obj);
                         });
                     });
