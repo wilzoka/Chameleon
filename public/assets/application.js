@@ -1186,9 +1186,14 @@ var application = {
             return $(window).height() - 175 - $('header.main-header').innerHeight() - $('section.content-header').innerHeight();
         }
         , setAutocomplete: function ($el, id, text) {
-            $el.find('option').remove();
-            var newOption = new Option(text, id, false, false);
-            $el.append(newOption).trigger('change');
+            if ($el.attr('data-options')) {
+                $el.val(id);
+            } else {
+                $el.find('option').remove();
+                var newOption = new Option(text, id, false, false);
+                $el.append(newOption);
+            }
+            $el.trigger('change');
         }
         , randomColor: function () {
             return "#000000".replace(/0/g, function () { return (~~(Math.random() * 16)).toString(16); });
