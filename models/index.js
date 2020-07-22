@@ -21,16 +21,17 @@ const application = require('../routes/application')
                     register._isInsert = register.isNewRecord;
                 }
                 , afterSave: (register, options) => {
-                    if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0 && Object.keys(register._changed).length > 0) {
+                    const changed = register.changed();
+                    if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0 && changed) {
                         getModel('model').findOne({ where: { name: register.constructor.name } }).then(model => {
-                            let audit = getModel('audit').build();
-                            let iduser = options.iduser || register._iduser;
+                            const audit = getModel('audit').build();
                             audit.datetime = moment();
                             audit.idmodel = model.id;
-                            audit.iduser = iduser || null;
+                            audit.iduser = options.iduser || register._iduser || null;
                             audit.type = register._isInsert ? 1 : 2;
-                            let changes = {};
-                            for (let k in register._changed) {
+                            const changes = {};
+                            for (let i = 0; i < changed.length; i++) {
+                                const k = changed[i];
                                 changes[k] = register[k];
                             }
                             audit.changes = JSON.stringify(changes);
@@ -45,8 +46,8 @@ const application = require('../routes/application')
                 , afterDestroy: (register, options) => {
                     if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0) {
                         getModel('model').findOne({ where: { name: register.constructor.name } }).then(model => {
-                            let audit = getModel('audit').build();
-                            let iduser = options.iduser;
+                            const audit = getModel('audit').build();
+                            const iduser = options.iduser;
                             audit.datetime = moment();
                             audit.idmodel = model.id;
                             audit.iduser = iduser || null;
