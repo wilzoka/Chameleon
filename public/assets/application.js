@@ -1345,7 +1345,8 @@ var application = {
                 var subview_redirect = Cookies.get('subview_redirect');
                 if (subview_redirect) {
                     Cookies.remove('subview_redirect');
-                    return window.location.href = '/v/' + subview_redirect + '/0' + '?parent=' + application.functions.getId();
+                    if (application.functions.getId() > 0)
+                        return window.location.href = '/v/' + subview_redirect + '/0' + '?parent=' + application.functions.getId();
                 }
 
                 if ('invalidfields' in response) {
