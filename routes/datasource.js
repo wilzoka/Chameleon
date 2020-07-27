@@ -11,7 +11,7 @@ module.exports = function (app) {
             const view = await db.getModel('view').findOne({ where: { url: req.body.view || null }, include: [{ all: true }] });
             if (!view)
                 return application.error(res, {});
-            const bodyID = req.body.id || 0
+            const bodyID = req.body.id || 0;
             if (view.type == 'Calendar') {
                 const j = application.modelattribute.parseTypeadd(view.add);
                 const start = await db.getModel('modelattribute').findOne({ where: { idmodel: view.model.id, name: j.attribute_start } });
@@ -32,8 +32,8 @@ module.exports = function (app) {
 
                     }
                 });
-                const registers = await platform.model.findAll(view.model.name, { where: where });
-                let events = [];
+                const registers = await platform.model.findAll(view.model.name, { iduser: req.user.id, where: where });
+                const events = [];
                 for (let i = 0; i < registers.rows.length; i++) {
                     events.push({
                         id: registers.rows[i].id
@@ -65,7 +65,7 @@ module.exports = function (app) {
                     ordercolumn = req.body.columns[req.body.order[0].column].data;
                     orderdir = req.body.order[0].dir;
                 }
-                let attributes = ['id'];
+                const attributes = ['id'];
                 for (let i = 0; i < modelattributes.length; i++) {
                     const j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
                     switch (modelattributes[i].type) {

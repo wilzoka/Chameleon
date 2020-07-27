@@ -1081,9 +1081,9 @@ module.exports = function (app) {
                 , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]
                 , include: [{ all: true }]
             });
-            let attributes = ['id'];
+            const attributes = ['id'];
             for (let i = 0; i < viewfields.length; i++) {
-                let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                const j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                 switch (viewfields[i].modelattribute.type) {
                     case 'autocomplete':
                         if (j.query) {

@@ -768,7 +768,7 @@ const platform = {
                                     }
                                     break;
                                 case 'virtual':
-                                    attributes.push([db.Sequelize.literal(j.subquery), modelattributes[i].name]);
+                                    attributes.push([db.Sequelize.literal(j.subquery.replace(/\$user/g, options.iduser || '0')), modelattributes[i].name]);
                                     break;
                                 default:
                                     attributes.push(modelattributes[i].name);
