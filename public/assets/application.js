@@ -83,9 +83,9 @@ var application = {
                 $('#appusername').text(localStorage.getItem('username'));
             }
             document.title = $('#title-app').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
-            var pagecookie = Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
-            if ('currentTab' in pagecookie) {
-                $('ul.nav a[href="' + pagecookie.currentTab + '"]').tab('show');
+            var pageconf = application.functions.getPageConf();
+            if ('currentTab' in pageconf) {
+                $('ul.nav a[href="' + pageconf.currentTab + '"]').tab('show');
             }
         }
         // Events
@@ -182,7 +182,7 @@ var application = {
                 }
             });
             $('.nav-tabs a').click(function (e) {
-                application.functions.setPageCookie({
+                application.functions.setPageConf({
                     currentTab: this.hash
                 });
             });
@@ -1188,8 +1188,14 @@ var application = {
                 $.ajaxSetup({ cache: false });
             }
         }
-        , getPageCookie: function () {
-            return Cookies.get(window.location.href) ? JSON.parse(Cookies.get(window.location.href)) : {};
+        , getPageConf: function () {
+            var item = localStorage.getItem(window.location.href);
+            return item ? JSON.parse(item) : {};
+        }
+        , setPageConf: function (conf) {
+            var pageconf = application.functions.getPageConf();
+            pageconf = $.extend(pageconf, conf);
+            localStorage.setItem(window.location.href, JSON.stringify(pageconf));
         }
         , parseFloat: function (value) {
             if (value == '') {
@@ -1205,11 +1211,6 @@ var application = {
                 ret[$field.attr('name')] = $field.val();
             });
             return ret;
-        }
-        , setPageCookie: function (conf) {
-            var pagecookie = application.functions.getPageCookie();
-            pagecookie = $.extend(pagecookie, conf);
-            Cookies.set(window.location.href, JSON.stringify(pagecookie), { expires: 0.5 });
         }
         , getKeyFromArrayObject: function (o, k) {
             var array = [];

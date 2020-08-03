@@ -812,7 +812,7 @@ module.exports = function (app) {
                 }
             }
 
-            filter = `<div class="${viewfields.length > 8 ? 'col-md-6 no-padding' : ''}">`;
+            filter = `<div class="${viewfields.length > 8 ? 'col-md-6 no-padding' : ''}"><form autocomplete="off">`;
             if (!view.supressid) {
                 filter += application.components.html.integer({
                     width: 4
@@ -1008,8 +1008,8 @@ module.exports = function (app) {
                         break;
                 }
             }
-            filter += '</div>';
-            return application.success(res, {
+            filter += '</form></div>';
+            application.success(res, {
                 name: view.url
                 , filter: {
                     count: cookiefiltercount
@@ -1018,7 +1018,7 @@ module.exports = function (app) {
                 }
             });
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
@@ -1054,7 +1054,7 @@ module.exports = function (app) {
                     });
             }
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
@@ -1141,7 +1141,7 @@ module.exports = function (app) {
                     events.push(`<li class="btn-event" data-event="${realevents[i].id}"><a href="javascript:void(0)"><i class="${realevents[i].icon}"></i>${realevents[i].description}</a></li>`);
             }
             res.setHeader('Cache-Control', 'no-cache, no-store');
-            return application.render(res, __dirname + '/../views/templates/viewregister.html', {
+            application.render(res, __dirname + '/../views/templates/viewregister.html', {
                 id: register ? register.id : 0
                 , title: view.name
                 , events: events.join('')
@@ -1150,7 +1150,7 @@ module.exports = function (app) {
                 , js: view.js && fs.existsSync(__dirname + '/../custom/' + view.js) ? `<script type="text/javascript">${fs.readFileSync(__dirname + '/../custom/' + view.js, 'utf8')}</script>` : ''
             });
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
@@ -1311,7 +1311,7 @@ module.exports = function (app) {
             if (!obj.transaction.finished)
                 obj.transaction.rollback();
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
@@ -1346,9 +1346,9 @@ module.exports = function (app) {
                 , transaction: await db.sequelize.transaction()
             });
             if (view.model && view.model.onsave) {
-                let config = await db.getModel('config').findOne();
-                let custom = require('../custom/' + config.customfile);
-                let realfunction = application.functions.getRealReference(custom, view.model.onsave);
+                const config = await db.getModel('config').findOne();
+                const custom = require('../custom/' + config.customfile);
+                const realfunction = application.functions.getRealReference(custom, view.model.onsave);
                 if (realfunction) {
                     await realfunction(obj, validateAndSave);
                 } else {

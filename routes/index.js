@@ -15,16 +15,16 @@ module.exports = function (app) {
 	});
 
 	app.get('/', function (req, res) {
-		return res.redirect('/login');
+		res.redirect('/login');
 	});
 
 	app.get('/home', application.IsAuthenticated, function (req, res) {
-		return application.render(res, __dirname + '/../views/home.html', {});
+		application.render(res, __dirname + '/../views/home.html', {});
 	});
 
 	//catch 404
 	app.use(function (req, res) {
-		return application.notFound(res);
+		application.notFound(res);
 	});
 
 }
