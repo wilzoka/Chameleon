@@ -40,9 +40,9 @@ module.exports = function(app) {
 
     app.get('/login', function(req, res) {
         if (req.isAuthenticated()) {
-            return res.redirect('/home');
+            res.redirect('/home');
         } else {
-            return application.render(res, __dirname + '/../views/login.html', {});
+            application.render(res, __dirname + '/../views/login.html', {});
         }
     });
 
@@ -92,14 +92,14 @@ module.exports = function(app) {
         }
     }, function(err, req, res) {
         if (req.xhr) {
-            return res.json(err);
+            res.json(err);
         }
     });
 
     app.get('/logout', function(req, res) {
         req.logout();
         req.session.destroy();
-        return res.redirect("/login");
+        res.redirect("/login");
     });
 
 }
