@@ -948,7 +948,7 @@ var application = {
                         , data: { data: data }
                         , success: function (response) {
                             application.handlers.responseSuccess(response);
-                            application.view.reload('view' + response.view, true);
+                            application.view.reload('view' + response.view, false);
                         }
                         , error: function (response) {
                             application.handlers.responseError(response);
