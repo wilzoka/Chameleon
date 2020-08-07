@@ -241,7 +241,7 @@ var application = {
                 var $modal = $(this).closest('div.modal');
                 var view = $modal.attr('data-view');
                 application.tables.saveFilter(view);
-                application.view.reload(view);
+                application.view.reload(view, true);
                 $modal.modal('hide');
             });
             $(document).on('click', 'button.btncleanfilter', function () {
@@ -268,7 +268,7 @@ var application = {
                     } else {
                         Cookies.remove(cookiename);
                     }
-                    application.tables.reload($(this).attr('data-view'), true);
+                    application.view.reload($(this).attr('data-view'), true);
                 }.bind(this), 300);
             });
         }
@@ -294,6 +294,9 @@ var application = {
                 socket.on('notification:read', function (data) {
                     application.notification.call();
                 });
+                // socket.on('view:reload', function (data) {
+                //     application.view.reloadAll(true)
+                // });
             }
         }
     }
@@ -667,8 +670,8 @@ var application = {
             for (var i = 0; i < data.columns.length; i++) {
                 if (data.columns[i].render) {
                     data.columns[i].render = application.tables.renders[data.columns[i].render];
-                } else if (data.lineheight) {
-                    data.columns[i].render = application.tables.renders['div'].bind({ lineheight: data.lineheight });
+                } else {
+                    data.columns[i].render = application.tables.renders['div'].bind({ lineheight: data.lineheight || 1 });
                 }
             }
             // Footer
@@ -868,12 +871,16 @@ var application = {
                             $('#' + this.sTableId).closest('.dataTables_wrapper').find('input.dt-search').select().focus();
                         }
                     }.bind(settings), 250);
+                    // socket.emit('view:register', $table.attr('data-view'));
                 }
                 , ordering: data.permissions.orderable
                 , pageLength: 50
                 , paging: true
                 , pagingType: application.functions.isMobile() ? 'simple' : 'simple_numbers'
                 , processing: true
+                , rowReorder: data.orderable ? {
+                    update: false
+                } : false
                 , rowId: 'id'
                 , scrollCollapse: true
                 , scrollX: true
@@ -924,6 +931,29 @@ var application = {
                     $dtSelectCount.text('');
                     $dtSelectCount.closest('button').removeClass('btn-primary').addClass('btn-default');
                 }
+            }).on('row-reorder', function (e, diff, edit) {
+                var $table = $(e.delegateTarget);
+                var tableid = $table[0].id;
+                var view = $table.attr('data-view');
+                var data = [];
+                for (var i = 0; i < diff.length; i++) {
+                    var rowData = tables[tableid].row(diff[i].node).data();
+                    data.push({ id: rowData.id, order: diff[i].newPosition + 1 });
+                }
+                if (data.length > 0)
+                    $.ajax({
+                        url: '/v/' + view + '/reorder'
+                        , type: 'POST'
+                        , dataType: 'json'
+                        , data: { data: data }
+                        , success: function (response) {
+                            application.handlers.responseSuccess(response);
+                            application.view.reload('view' + response.view, true);
+                        }
+                        , error: function (response) {
+                            application.handlers.responseError(response);
+                        }
+                    });
             }).on('dblclick', 'tbody tr', function (e) {
                 var $table = $(e.delegateTarget);
                 var view = $table.attr('data-view');
@@ -952,11 +982,11 @@ var application = {
             $dtSelectCount.closest('button').removeClass('btn-primary').addClass('btn-default');
         }
         , reload: function (idtable, keepSelection) {
+            if (!tables[idtable])
+                return;
             if (!keepSelection) {
                 application.tables.deselectAll(idtable);
             }
-            if (!tables[idtable])
-                return;
             tables[idtable].ajax.reload(function () {
                 $('#' + this.table).parent().scrollTop(this.scrollTop);
             }.bind({ table: idtable, scrollTop: keepSelection ? 0 : $('#' + idtable).parent('div.dataTables_scrollBody').scrollTop() }), false);
@@ -1048,8 +1078,9 @@ var application = {
                     value = '';
                 }
                 var styles = [];
-                if (this.lineheight) {
-                    styles.push('height:' + (18.5 * this.lineheight) + 'px');
+                styles.push('height:' + (18.5 * this.lineheight) + 'px');
+                if (this.lineheight == 1) {
+                    styles.push('white-space:nowrap');
                 }
                 return '<div class="dt-cell" style="' + styles.join(';') + '">' + value + '</div>';
             }
@@ -1070,7 +1101,7 @@ var application = {
                     var a = percent / 100,
                         b = (end - start) * a,
                         c = b + start;
-                    return 'hsl(' + c + ', 85%, 45%, 0.85)';
+                    return 'hsl(' + c + ', 85%, 45%, 1)';
                 }
                 return '<div class="progress"><div class="progress-bar" style="width: ' + value + '%;background-color:' + hsl_col_perc(value, 0, 100) + '">' + value + '%</div></div>';
             }
@@ -1337,7 +1368,7 @@ var application = {
                     if (eventFromRegister) {
                         return window.location.reload();
                     } else {
-                        application.tables.reloadAll();
+                        application.view.reloadAll(true);
                     }
                 }
 
@@ -1546,11 +1577,17 @@ var application = {
                 });
             }
         }
-        , reload: function (view) {
-            application.tables.reload(view, true);
-            if (calendar) {
+        , reload: function (view, keepSelection) {
+            if (tables[view])
+                application.tables.reload(view, keepSelection);
+            if (calendar)
                 calendar.refetchEvents();
-            }
+        }
+        , reloadAll: function (keepSelection) {
+            for (var k in tables)
+                application.tables.reload(k, keepSelection);
+            if (calendar)
+                calendar.refetchEvents();
         }
     }
 }

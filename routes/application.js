@@ -539,6 +539,8 @@ const application = {
 		, selectOneEvent: 'Selecione um registro para esta executar este evento'
 		, selectOnlyOneEvent: 'Selecione apenas um registro para esta executar este evento'
 		, permissionDenied: 'Você não tem permissão para executar esta ação'
+		, notAvailable: 'Esta ação não está disponível'
+		, wrongConf: 'Configuração incorreta para executar esta ação'
 	}
 	, modelattribute: {
 		parseTypeadd: function (value) {

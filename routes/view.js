@@ -761,7 +761,7 @@ module.exports = function (app) {
                     }
                     footer += '</tr></tfoot>';
                 }
-                return application.success(res, {
+                application.success(res, {
                     name: view.url
                     , columns: columns
                     , footer: footer
@@ -770,6 +770,7 @@ module.exports = function (app) {
                     , fastsearch: view.idfastsearch ? view.fastsearch.label : ''
                     , subview: req.query.issubview == 'true' ? true : false
                     , lineheight: view.lineheight
+                    , orderable: view.orderable
                 });
             }
         } catch (err) {
@@ -1315,6 +1316,42 @@ module.exports = function (app) {
         }
     });
 
+    app.post('/v/:view/reorder', application.IsAuthenticated, async (req, res) => {
+        let t;
+        try {
+            const view = await findView(req.params.view);
+            if (!view)
+                return application.error(res, {});
+            const permission = await platform.view.f_hasPermission(req.user.id, view.id);
+            if (!view.orderable)
+                return application.error(res, { msg: application.message.notAvailable });
+            if (!view.neednoperm)
+                if (!permission.editable) {
+                    return application.error(res, { msg: application.message.permissionDenied });
+                }
+            if (!view.orderfixed)
+                return application.error(res, { msg: application.message.wrongConf });
+            const orderfixed = view.orderfixed.split(',');
+            if (orderfixed.length != 2)
+                return application.error(res, { msg: application.message.wrongConf });
+            const column = orderfixed[0];
+            if (req.body.data && req.body.data.length > 0) {
+                t = await db.sequelize.transaction();
+                for (const e of req.body.data) {
+                    await db.getModel(view.model.name).update({ [column]: e.order }, { transaction: t, iduser: req.user.id, where: { id: e.id } });
+                }
+                await t.commit();
+                application.success(res, { msg: application.message.success, view: req.params.view });
+            } else {
+                application.success(res, { view: req.params.view });
+            }
+        } catch (err) {
+            if (t)
+                t.rollback();
+            application.fatal(res, err);
+        }
+    });
+
     app.post('/v/:view/:id', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);
@@ -1357,6 +1394,7 @@ module.exports = function (app) {
             } else {
                 await validateAndSave(obj);
             }
+            // io.to('M' + view.model.name).emit('table:reload');
             if (!obj.transaction.finished)
                 obj.transaction.rollback();
         } catch (err) {
