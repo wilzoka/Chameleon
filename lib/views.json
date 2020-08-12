@@ -1952,14 +1952,6 @@
         "add": null,
         "_field": [
             {
-                "templatezone": "viewtable",
-                "modelattribute": "supressid",
-                "width": 2,
-                "order": 1,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
                 "templatezone": "view",
                 "modelattribute": "name",
                 "width": 6,
@@ -1976,25 +1968,9 @@
                 "disablefilter": false
             },
             {
-                "templatezone": "viewtable",
-                "modelattribute": "orderfixed",
-                "width": 5,
-                "order": 2,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
                 "templatezone": "view",
                 "modelattribute": "idmodel",
                 "width": 6,
-                "order": 3,
-                "disabled": false,
-                "disablefilter": false
-            },
-            {
-                "templatezone": "viewtable",
-                "modelattribute": "lineheight",
-                "width": 5,
                 "order": 3,
                 "disabled": false,
                 "disablefilter": false
@@ -2051,7 +2027,7 @@
                 "templatezone": "view",
                 "modelattribute": "neednoperm",
                 "width": 6,
-                "order": 13,
+                "order": 10,
                 "disabled": false,
                 "disablefilter": false
             },
@@ -2059,7 +2035,39 @@
                 "templatezone": "view",
                 "modelattribute": "add",
                 "width": 12,
+                "order": 11,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "viewtable",
+                "modelattribute": "orderable",
+                "width": 2,
+                "order": 12,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "viewtable",
+                "modelattribute": "supressid",
+                "width": 2,
+                "order": 13,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "viewtable",
+                "modelattribute": "orderfixed",
+                "width": 4,
                 "order": 14,
+                "disabled": false,
+                "disablefilter": false
+            },
+            {
+                "templatezone": "viewtable",
+                "modelattribute": "lineheight",
+                "width": 4,
+                "order": 15,
                 "disabled": false,
                 "disablefilter": false
             }

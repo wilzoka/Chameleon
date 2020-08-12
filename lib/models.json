@@ -885,6 +885,13 @@
                 "typeadd": "{\r\n}"
             },
             {
+                "name": "orderable",
+                "label": "Ordenável?",
+                "type": "boolean",
+                "notnull": false,
+                "typeadd": "{\r\n}"
+            },
+            {
                 "name": "orderfixed",
                 "label": "Ordem",
                 "type": "text",
