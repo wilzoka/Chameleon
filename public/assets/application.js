@@ -1368,7 +1368,7 @@ var application = {
                     if (eventFromRegister) {
                         return window.location.reload();
                     } else {
-                        application.view.reloadAll(true);
+                        application.view.reloadAll(false);
                     }
                 }
 
