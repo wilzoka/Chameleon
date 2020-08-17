@@ -339,6 +339,23 @@ div.dz-image img {
     border-bottom-left-radius: 0;
 }
 
+/* CKEditor */
+.ck-editor__editable_inline {
+    min-height: 160px;
+}
+.ck > .todo-list {
+    padding: 0 0 0 40px;
+    margin: 16px 0;
+}
+.ck > .todo-list > li {
+    padding: 0;
+    background-color: unset;
+    border: unset;
+}   
+.ck-content .todo-list .todo-list__label > input {
+    margin: 0 0 2px 0;
+}
+
 /* Custom */
 @media (min-width: 992px) {
     .no-padding {

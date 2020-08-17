@@ -45,6 +45,7 @@ $(function () {
                     obj = {
                         rows: 3
                         , placeholder: ''
+                        , wysiwyg: false
                     };
                     break;
                 case 'virtual':

@@ -52,6 +52,7 @@ var searchtimeout = null;
 var tables = [];
 var calendar = null;
 var dzs = {};
+var wysiwygs = {};
 var app = false;
 var socket;
 var eventFromRegister = false;
@@ -302,6 +303,51 @@ var application = {
     }
     , isTableview: false
     , isRegisterview: false
+    , ckeditor: {
+        config: {
+            toolbar: {
+                items: [
+                    'bold',
+                    'italic',
+                    'underline',
+                    'alignment',
+                    '|',
+                    'bulletedList',
+                    'numberedList',
+                    'todoList',
+                    '|',
+                    'pageBreak',
+                    'horizontalLine',
+                    '|',
+                    'link',
+                    'imageUpload',
+                    'insertTable',
+                    'mediaEmbed',
+                    'undo',
+                    'redo'
+                ]
+            },
+            language: 'pt-br',
+            image: {
+                styles: [
+                    'alignLeft', 'alignCenter', 'alignRight'
+                ],
+                toolbar: [
+                    'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight'
+                    , '|', 'imageTextAlternative'
+                ]
+            },
+            table: {
+                contentToolbar: [
+                    'tableColumn',
+                    'tableRow',
+                    'mergeTableCells',
+                    'tableCellProperties',
+                    'tableProperties'
+                ]
+            }
+        }
+    }
     , components: {
         renderAll: function () {
             application.components.date($('input[data-type="date"]'));
@@ -313,6 +359,7 @@ var application = {
             application.components.file($('div[data-type="file"]'));
             application.components.georeference($('div[data-type="georeference"]'));
             application.components.table($('table.dataTable'));
+            application.components.wysiwig($('textarea[data-wysiwyg="true"]'));
         }
         , renderInside: function ($el) {
             application.components.date($el.find('input[data-type="date"]'));
@@ -324,6 +371,7 @@ var application = {
             application.components.file($el.find('div[data-type="file"]'));
             application.components.georeference($el.find('div[data-type="georeference"]'));
             application.components.table($el.find('table.dataTable'));
+            application.components.wysiwig($el.find('textarea[data-wysiwyg="true"]'));
         }
         , clearInside: function ($el) {
             $el.find('input[data-type="text"]').val('');
@@ -661,6 +709,13 @@ var application = {
                         }
                     });
                 }
+            });
+        }
+        , wysiwig: function ($obj) {
+            $obj.each(function () {
+                ClassicEditor.create(this, application.ckeditor.config).then(function (editor) {
+                    wysiwygs[$(this).attr('name')] = editor;
+                }.bind(this));
             });
         }
     }

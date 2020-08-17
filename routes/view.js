@@ -50,6 +50,7 @@ const renderTextArea = function (viewfield, register) {
         , rows: j.rows || 3
         , value: value
         , disabled: disabled
+        , wysiwyg: j.wysiwyg || false
     });
 }
 

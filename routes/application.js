@@ -45,7 +45,7 @@ const application = {
 				<div class="col-md-${o.width}">
 					<div class="form-group">
 						<label>${o.label}</label>
-						<textarea name="${o.name}" rows="${o.rows}" class="form-control" data-type="textarea" ${o.disabled}>${o.value}</textarea>
+						<textarea name="${o.name}" rows="${o.rows}" class="form-control ${o.wysiwyg ? 'hidden' : ''}" data-type="textarea" data-wysiwyg="${o.wysiwyg}" ${o.disabled}>${o.value}</textarea>
 					</div>
 				</div>`;
 			}

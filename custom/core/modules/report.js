@@ -60,6 +60,9 @@ let main = {
                                 tr td {
                                     page-break-inside: avoid;
                                 }
+                                ul.todo-list {
+                                    list-style: none;
+                                }
                             </style>
                         </head>
                         <body>`;
