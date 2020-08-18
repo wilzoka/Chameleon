@@ -79,7 +79,24 @@ module.exports = function (app) {
                 res.setHeader('Content-Length', file.size);
                 res.setHeader('Content-Type', file.mimetype);
                 res.setHeader('Content-Disposition', `;filename=${file.filename}`);
-                fs.createReadStream(filepath).pipe(res);
+                let f;
+                if (file.mimetype.match(/video.*/)) {
+                    const range = req.headers.range;
+                    if (range) {
+                        const parts = range.replace(/bytes=/, "").split("-");
+                        const start = parseInt(parts[0], 10);
+                        const end = parts[1] ? parseInt(parts[1], 10) : file.size - 1;
+                        const chunksize = (end - start) + 1;
+                        res.setHeader('Content-Range', `bytes ${start}-${end}/${file.size}`);
+                        res.setHeader('Accept-Ranges', `bytes`);
+                        res.setHeader('Content-Length', chunksize);
+                        res.writeHead(206);
+                        f = fs.createReadStream(filepath, { start, end });
+                    }
+                }
+                if (!f)
+                    f = fs.createReadStream(filepath);
+                f.pipe(res);
             } else {
                 res.send('Arquivo inexistente');
             }
