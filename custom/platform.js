@@ -821,7 +821,7 @@ const platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     const model = await db.getModel('model').findOne({ raw: true, where: { id: obj.event.view.idmodel } });
-                    const mas = await db.getModel('modelattribute').findAll({ raw: true, where: { idmodel: obj.event.view.idmodel } });
+                    const mas = await db.getModel('modelattribute').findAll({ raw: true, where: { idmodel: obj.event.view.idmodel, type: { [db.Op.ne]: 'virtual' } } });
                     const register = await db.getModel(model.name).findOne({ raw: true, where: { id: obj.req.body.id } });
                     const qtd = parseInt(obj.req.body.qtd);
                     for (let i = 0; i < qtd; i++) {
