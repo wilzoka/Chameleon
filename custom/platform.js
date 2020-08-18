@@ -789,6 +789,54 @@ const platform = {
                 });
             });
         }
+        , e_clone: async (obj) => {
+            try {
+                if (obj.req.method == 'GET') {
+                    if (obj.ids.length != 1) {
+                        return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
+                    }
+                    let body = '';
+                    body += application.components.html.hidden({
+                        name: 'id'
+                        , value: obj.ids[0]
+                    });
+                    body += application.components.html.integer({
+                        width: '12'
+                        , label: 'Quantidade*'
+                        , name: 'qtd'
+                    });
+                    application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , action: '/event/' + obj.event.id
+                            , id: 'modalevt' + obj.event.id
+                            , title: obj.event.description
+                            , body: body
+                            , footer: `<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">${obj.event.description}</button>`
+                        }
+                    });
+                } else {
+                    const invalidfields = application.functions.getEmptyFields(obj.req.body, ['id', 'qtd']);
+                    if (invalidfields.length > 0) {
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    }
+                    const model = await db.getModel('model').findOne({ raw: true, where: { id: obj.event.view.idmodel } });
+                    const mas = await db.getModel('modelattribute').findAll({ raw: true, where: { idmodel: obj.event.view.idmodel } });
+                    const register = await db.getModel(model.name).findOne({ raw: true, where: { id: obj.req.body.id } });
+                    const qtd = parseInt(obj.req.body.qtd);
+                    for (let i = 0; i < qtd; i++) {
+                        const newRegister = db.getModel(model.name).build({ id: 0 });
+                        for (const ma of mas) {
+                            newRegister[ma.name] = register[ma.name];
+                        }
+                        await newRegister.save({ iduser: obj.req.user.id });
+                    }
+                    application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
     }
     , notification: {
         create: function (users, obj) {
