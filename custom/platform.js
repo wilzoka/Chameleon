@@ -6,8 +6,11 @@ const db = require('../models')
     , messenger = require('../routes/messenger')
     , lodash = require('lodash')
     , application = require('../routes/application')
-    , Cyjs = require("crypto-js")
+    , Cyjs = require('crypto-js')
+    , sharp = require('sharp')
     ;
+
+sharp.cache(false);
 
 const platform = {
     audit: {
@@ -142,6 +145,58 @@ const platform = {
                 return application.success(obj.res, { openurl: `/file/${obj.ids[0]}` });
             } catch (err) {
                 return application.fatal(obj.res, err);
+            }
+        }
+        , e_compress: async function (obj) {
+            try {
+                const files = await db.getModel('file').findAll({
+                    where: await platform.view.f_getFilter(obj.req, (await db.getModel('view').findOne({ where: { id: obj.event.idview }, include: [{ all: true }] })))
+                    , include: [{ all: true }]
+                });
+                for (const f of files) {
+                    if (f.mimetype.match('image/*')) {
+                        const r = await db.getModel(f.model.name).findOne({ raw: true, where: { id: f.modelid } });
+                        let mak;
+                        for (const k in r) {
+                            if (r[k] != null && typeof r[k] == 'string' && r[k].indexOf(f.filename) >= 0) {
+                                mak = k;
+                            }
+                        }
+                        if (mak) {
+                            const ma = await db.getModel('modelattribute').findOne({ raw: true, where: { idmodel: f.model.id, name: mak } });
+                            if (ma) {
+                                const j = JSON.parse(ma.typeadd || '{}');
+                                const quality = 80;
+                                const maxwh = parseInt(j.maxwh || 0);
+                                const forcejpg = j.forcejpg;
+                                const path = `${application.functions.filesDir()}${f.id}.${f.type}`;
+                                const sharped = sharp(path, { failOnError: false });
+                                if (maxwh > 0) {
+                                    sharped.resize(maxwh, maxwh, { fit: 'inside' });
+                                }
+                                if (forcejpg) {
+                                    let newfilename = f.filename.split('.');
+                                    newfilename.splice(newfilename.length - 1, 1);
+                                    f.filename = `${newfilename.join('.')}.jpg`;
+                                    f.type = 'jpg';
+                                    f.mimetype = 'image/jpeg';
+                                }
+                                sharped.rotate();
+                                if (['jpeg', 'jpg'].indexOf(f.type) >= 0) {
+                                    sharped.jpeg({ quality: quality, chromaSubsampling: '4:4:4' });
+                                } else if (['png'].indexOf(f.type) >= 0) {
+                                    sharped.png({ quality: quality });
+                                }
+                                const fileinfo = await sharp(await sharped.toBuffer()).toFile(`${application.functions.filesDir()}${f.id}.${f.type}`);
+                                f.size = fileinfo.size;
+                                await f.save({ iduser: obj.req.user.id });
+                            }
+                        }
+                    }
+                }
+                application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            } catch (err) {
+                application.fatal(obj.res, err);
             }
         }
     }
@@ -1930,7 +1985,7 @@ const platform = {
                 }
                 return obj;
             } catch (err) {
-                console.error(err, req, view);
+                console.error(err, req.cookies, view);
                 return {};
             }
         }
