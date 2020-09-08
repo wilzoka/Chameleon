@@ -247,7 +247,8 @@ const platform = {
             const nodemailer = require('nodemailer');
             const transporter = nodemailer.createTransport(transportConfig);
             const mailOptions = {
-                to: obj.to.join(',')
+                from: transportConfig.auth.user
+                , to: obj.to.join(',')
                 , cc: obj.cc && Array.isArray(obj.cc) ? obj.cc : []
                 , subject: obj.subject
                 , html: obj.html
