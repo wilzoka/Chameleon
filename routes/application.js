@@ -458,7 +458,7 @@ const application = {
 				if (req.xhr) {
 					res.status(401).json({});
 				} else {
-					res.redirect('/login');
+					res.redirect('/login?continue=' + req.path);
 				}
 			}
 		}

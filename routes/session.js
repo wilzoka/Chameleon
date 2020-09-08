@@ -10,17 +10,17 @@ const passport = require('passport')
 let config, authfunction = null;
 
 // Serialize Sessions
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
     done(null, user);
 });
 
 // Deserialize Sessions
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function (user, done) {
     done(null, user);
 });
 
 // For Authentication Purposes
-passport.use(new LocalStrategy(function(username, password, done) {
+passport.use(new LocalStrategy(function (username, password, done) {
     db.getModel('users').findOne({
         where: {
             active: true
@@ -36,9 +36,9 @@ passport.use(new LocalStrategy(function(username, password, done) {
     });
 }));
 
-module.exports = function(app) {
+module.exports = function (app) {
 
-    app.get('/login', function(req, res) {
+    app.get('/login', function (req, res) {
         if (req.isAuthenticated()) {
             res.redirect('/home');
         } else {
@@ -50,7 +50,7 @@ module.exports = function(app) {
         try {
             if (!config) {
                 config = await db.getModel('config').findOne();
-                let custom = require('../custom/' + config.customfile);
+                const custom = require('../custom/' + config.customfile);
                 if (config.authfunction) {
                     authfunction = application.functions.getRealReference(custom, config.authfunction);
                 }
@@ -66,19 +66,23 @@ module.exports = function(app) {
                     token: jwt.sign({ id: req.user.id }, application.sk)
                 });
             }
-            let menu = await platform.menu.f_getMenu(req.user);
+            const menu = await platform.menu.f_getMenu(req.user);
             let redirect = '/home';
-            if (req.user.idview) {
-                let defaultpage = await db.getModel('view').findOne({ raw: true, where: { id: req.user.idview } });
-                if (defaultpage) {
-                    redirect = '/v/' + defaultpage.url;
+            if (req.query.continue) {
+                redirect = req.query.continue;
+            } else {
+                if (req.user.idview) {
+                    const defaultpage = await db.getModel('view').findOne({ raw: true, where: { id: req.user.idview } });
+                    if (defaultpage) {
+                        redirect = '/v/' + defaultpage.url;
+                    }
                 }
             }
             let menuhtml = '';
             for (let i = 0; i < menu.length; i++) {
                 menuhtml += application.menu.renderMenu(menu[i]);
             }
-            return application.success(res, {
+            application.success(res, {
                 redirect: redirect
                 , localstorage: [
                     { key: 'username', value: req.user.fullname }
@@ -88,15 +92,15 @@ module.exports = function(app) {
                 ]
             });
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
-    }, function(err, req, res) {
+    }, function (err, req, res) {
         if (req.xhr) {
             res.json(err);
         }
     });
 
-    app.get('/logout', function(req, res) {
+    app.get('/logout', function (req, res) {
         req.logout();
         req.session.destroy();
         res.redirect("/login");
