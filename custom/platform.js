@@ -153,6 +153,8 @@ const platform = {
                     where: await platform.view.f_getFilter(obj.req, (await db.getModel('view').findOne({ where: { id: obj.event.idview }, include: [{ all: true }] })))
                     , include: [{ all: true }]
                 });
+                if (files.length > 1000)
+                    return application.error(obj.res, { msg: 'Limite de no máximo 1000 arquivos para compreensão por vez' });
                 for (const f of files) {
                     if (f.mimetype.match('image/*')) {
                         const r = await db.getModel(f.model.name).findOne({ raw: true, where: { id: f.modelid } });
@@ -1059,7 +1061,7 @@ const platform = {
     }
     , parameter: {
         f_get: async (key) => {
-            let param = await db.getModel('parameter').findOne({ where: { key: key } });
+            const param = await db.getModel('parameter').findOne({ where: { key: key } });
             return param ? JSON.parse(param.value) : null;
         }
     }
