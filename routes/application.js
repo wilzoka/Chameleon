@@ -392,13 +392,14 @@ const application = {
 		}
 		, getRealReference: function (object, string) {
 			try {
-				let referencesplited = string.split('.');
+				const referencesplited = string.split('.');
 				let realreference = object[referencesplited[0]];
 				for (let i = 1; i < referencesplited.length; i++) {
 					realreference = realreference[referencesplited[i]];
 				}
 				return realreference;
 			} catch (err) {
+				console.error(err);
 				return null;
 			}
 		}

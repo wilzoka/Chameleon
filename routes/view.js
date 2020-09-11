@@ -792,7 +792,6 @@ module.exports = function (app) {
                 , order: [['order', 'ASC']]
                 , include: [{ all: true }]
             });
-            let filter = '';
             //Filter
             const getFilterValue = function (name, cookiefilter) {
                 if (name in cookiefilter) {
@@ -801,11 +800,11 @@ module.exports = function (app) {
                     return '';
                 }
             }
-            let cookiefilter = {};
+            const cookiefilter = {};
             let cookiefiltercount = 0;
             const separator = '+';
             if ('view' + view.url + 'filter' in req.cookies) {
-                let cookiefilteraux = JSON.parse(req.cookies['view' + view.url + 'filter']);
+                const cookiefilteraux = JSON.parse(req.cookies['view' + view.url + 'filter']);
                 cookiefiltercount = cookiefilteraux.length;
                 for (let i = 0; i < cookiefilteraux.length; i++) {
                     for (let k in cookiefilteraux[i]) {
@@ -813,8 +812,7 @@ module.exports = function (app) {
                     }
                 }
             }
-
-            filter = `<div class="${viewfields.length > 8 ? 'col-md-6 no-padding' : ''}"><form autocomplete="off">`;
+            let filter = `<form autocomplete="off"><div class="${viewfields.length > 8 ? 'col-md-6 no-padding' : ''}">`;
             if (!view.supressid) {
                 filter += application.components.html.integer({
                     width: 4
@@ -1010,7 +1008,7 @@ module.exports = function (app) {
                         break;
                 }
             }
-            filter += '</form></div>';
+            filter += '</div></form>';
             application.success(res, {
                 name: view.url
                 , filter: {
@@ -1072,8 +1070,8 @@ module.exports = function (app) {
             if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
             if (id > 0 && view.wherefixed) {
-                let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
-                let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
+                const wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
+                const exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
                 if (exists <= 0) {
                     return res.redirect(`/v/${req.params.view}`);
                 }
@@ -1102,7 +1100,7 @@ module.exports = function (app) {
                         break;
                 }
             }
-            let register = await db.getModel(view.model.name).findOne({
+            const register = await db.getModel(view.model.name).findOne({
                 attributes: attributes
                 , where: { id: id }
                 , include: [{ all: true }]
@@ -1110,18 +1108,18 @@ module.exports = function (app) {
             if (!register && id != 0) {
                 return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
             }
-            let templatezones = await db.getModel('templatezone').findAll({
+            const templatezones = await db.getModel('templatezone').findAll({
                 where: { idtemplate: view.template.id }
             });
             // Fill zones with blank
-            let zoneobj = {};
+            const zoneobj = {};
             for (let i = 0; i < templatezones.length; i++) {
                 zoneobj[templatezones[i].name] = '';
             }
             for (let i = 0; i < viewfields.length; i++) {
                 zoneobj[viewfields[i].templatezone.name] += render(viewfields[i], register);
             }
-            let viewsubviews = await db.getModel('viewsubview').findAll({
+            const viewsubviews = await db.getModel('viewsubview').findAll({
                 where: { idview: view.id }
                 , include: [{ all: true }]
             });
@@ -1137,7 +1135,7 @@ module.exports = function (app) {
                 where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
             const viewevents = await db.sequelize.query(`select e.*, true as available from viewevent e where e.idview = ${view.id} order by e.description`, { type: db.Sequelize.QueryTypes.SELECT });
             const realevents = permissionevents.length > 0 ? permissionevents : viewevents;
-            let events = [];
+            const events = [];
             for (let i = 0; i < realevents.length; i++) {
                 if (realevents[i].available)
                     events.push(`<li class="btn-event" data-event="${realevents[i].id}"><a href="javascript:void(0)"><i class="${realevents[i].icon}"></i>${realevents[i].description}</a></li>`);
@@ -1168,8 +1166,8 @@ module.exports = function (app) {
             if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
             if (id > 0 && view.wherefixed) {
-                let wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
-                let exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
+                const wherefixed = view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, req.query.parent || null);
+                const exists = await db.getModel(view.model.name).count({ raw: true, include: [{ all: true }], where: { id: id, $col: db.Sequelize.literal(wherefixed) } });
                 if (exists <= 0) {
                     return res.redirect(`/v/${req.params.view}`);
                 }
@@ -1179,9 +1177,9 @@ module.exports = function (app) {
                 , order: [['idtemplatezone', 'ASC'], ['order', 'ASC']]
                 , include: [{ all: true }]
             });
-            let attributes = ['id'];
+            const attributes = ['id'];
             for (let i = 0; i < viewfields.length; i++) {
-                let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                const j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                 switch (viewfields[i].modelattribute.type) {
                     case 'autocomplete':
                         if (j.query) {
@@ -1198,7 +1196,7 @@ module.exports = function (app) {
                         break;
                 }
             }
-            let register = await db.getModel(view.model.name).findOne({
+            const register = await db.getModel(view.model.name).findOne({
                 attributes: attributes
                 , where: { id: id }
                 , include: [{ all: true }]
@@ -1206,12 +1204,12 @@ module.exports = function (app) {
             if (!register && id != 0) {
                 return application.error(res, {});
             }
-            let templatezones = await db.getModel('templatezone').findAll({
+            const templatezones = await db.getModel('templatezone').findAll({
                 where: { idtemplate: view.template.id }
                 , order: [['order', 'asc']]
             });
             // Fill zones with blank
-            let obj = {
+            const obj = {
                 view: {
                     name: view.name
                 }
@@ -1226,7 +1224,7 @@ module.exports = function (app) {
                     , fields: []
                     , subview: null
                 };
-                let subview = await db.getModel('viewsubview').findOne({ include: [{ all: true }], where: { idview: view.id, idtemplatezone: templatezones[i].id } });
+                const subview = await db.getModel('viewsubview').findOne({ include: [{ all: true }], where: { idview: view.id, idtemplatezone: templatezones[i].id } });
                 if (subview) {
                     obj.zones[templatezones[i].name].subview = {
                         description: subview.description
@@ -1236,7 +1234,7 @@ module.exports = function (app) {
             }
             for (let i = 0; i < viewfields.length; i++) {
                 let value = register ? register.dataValues[viewfields[i].modelattribute.name] : null;
-                let j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
+                const j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
                 switch (viewfields[i].modelattribute.type) {
                     case 'autocomplete':
                         if (value != null)

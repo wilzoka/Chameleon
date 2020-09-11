@@ -1070,7 +1070,7 @@ const platform = {
             try {
                 if (!obj.register.username)
                     return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: ['username'] });
-                let user = await db.getModel('users').findOne({ where: { id: { [db.Op.ne]: obj.register.id }, username: obj.register.username } });
+                const user = await db.getModel('users').findOne({ where: { id: { [db.Op.ne]: obj.register.id }, username: obj.register.username } });
                 if (user) {
                     return application.error(obj.res, { msg: 'Já existe um usuário com este Username', invalidfields: ['username'] });
                 }
@@ -1080,41 +1080,40 @@ const platform = {
                 }
                 await next(obj);
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
-        , js_getNotifications: async function (obj) {
+        , js_getNotifications: async (obj) => {
             try {
-                let data = {
+                const data = {
                     notifications: []
-                }
+                };
                 data.notifications = await db.getModel('notification').findAll({ raw: true, where: { iduser: obj.req.user.id, read: false }, order: [['datetime', 'desc']] });
                 for (let i = 0; i < data.notifications.length; i++) {
-                    data.notifications[i].duration = application.functions.duration(moment().diff(moment(data.notifications[i].datetime), 'minutes'))
+                    data.notifications[i].duration = application.functions.duration(moment().diff(moment(data.notifications[i].datetime), 'minutes'));
                 }
-                return application.success(obj.res, { data: data });
+                application.success(obj.res, { data: data });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
     }
     , view: {
         onsave: async function (obj, next) {
             try {
-                let register = await db.getModel('view').findOne({ where: { id: { [db.Op.ne]: obj.id }, name: { [db.Op.iLike]: obj.register.name } } })
+                const register = await db.getModel('view').findOne({ where: { id: { [db.Op.ne]: obj.id }, name: { [db.Op.iLike]: obj.register.name } } })
                 if (register) {
                     return application.error(obj.res, { msg: 'Já existe uma view com este nome' });
                 }
-                let modulee = await db.getModel('module').findOne({ where: { id: obj.register.idmodule || 0 } });
+                const modulee = await db.getModel('module').findOne({ where: { id: obj.register.idmodule || 0 } });
                 obj.register.namecomplete = modulee ? modulee.description + ' - ' + obj.register.name : obj.register.name;
-
                 if (obj.register.id > 0) {
                     //viewtable
-                    let viewtables = JSON.parse(obj.req.body.viewtable || '[]');
-                    let idma = [];
+                    const viewtables = JSON.parse(obj.req.body.viewtable || '[]');
+                    const idma = [];
                     for (let i = 0; i < viewtables.length; i++) {
                         idma.push(viewtables[i].id);
-                        let vt = (await db.getModel('viewtable').findOrCreate({ where: { idmodelattribute: viewtables[i].id, idview: obj.register.id }, transaction: obj.transaction }))[0];
+                        const vt = (await db.getModel('viewtable').findOrCreate({ where: { idmodelattribute: viewtables[i].id, idview: obj.register.id }, transaction: obj.transaction }))[0];
                         vt.ordertable = i + 1;
                         vt.render = viewtables[i].render;
                         vt.orderable = viewtables[i].orderable;
@@ -1126,7 +1125,7 @@ const platform = {
                 await next(obj);
                 db.sequelize.query("update view set url = translate(lower(name), 'áàãâéèêíìóòõôúùûç ', 'aaaaeeeiioooouuuc_')");
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
         , e_export: async function (obj) {
