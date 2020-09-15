@@ -147,21 +147,25 @@ sequelize.query(`
     for (let i = 0; i < results.length; i++) {
         const j = application.modelattribute.parseTypeadd(results[i].typeadd);
         const vas = j.as || j.model;
-        switch (results[i].type) {
-            case 'parent':
-                models[results[i].model].belongsTo(models[j.model], {
-                    as: vas
-                    , foreignKey: results[i].name
-                    , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
-                });
-                break;
-            case 'autocomplete':
-                models[results[i].model].belongsTo(models[j.model], {
-                    as: vas
-                    , foreignKey: results[i].name
-                    , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
-                });
-                break;
+        try {
+            switch (results[i].type) {
+                case 'parent':
+                    models[results[i].model].belongsTo(models[j.model], {
+                        as: vas
+                        , foreignKey: results[i].name
+                        , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
+                    });
+                    break;
+                case 'autocomplete':
+                    models[results[i].model].belongsTo(models[j.model], {
+                        as: vas
+                        , foreignKey: results[i].name
+                        , onDelete: 'cascade' in j && j['cascade'] ? 'CASCADE' : 'NO ACTION'
+                    });
+                    break;
+            }
+        } catch (err) {
+            console.error(err, results[i].model, j);
         }
     }
 });

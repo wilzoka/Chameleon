@@ -3,8 +3,8 @@ const passport = require('passport')
     , jwt = require('jsonwebtoken')
     , db = require('../models')
     , application = require('./application')
-    , Cyjs = require("crypto-js")
-    , platform = require("../custom/platform")
+    , Cyjs = require('crypto-js')
+    , platform = require('../custom/platform')
     ;
 
 let config, authfunction = null;
@@ -42,7 +42,7 @@ module.exports = function (app) {
         if (req.isAuthenticated()) {
             res.redirect('/home');
         } else {
-            application.render(res, __dirname + '/../views/login.html', {});
+            application.render(res, application.functions.rootDir() + 'views/login.html', {});
         }
     });
 
@@ -104,6 +104,61 @@ module.exports = function (app) {
         req.logout();
         req.session.destroy();
         res.redirect("/login");
+    });
+
+    app.get('/resetpassword', function (req, res) {
+        if (req.query.token) {
+            application.render(res, application.functions.rootDir() + 'views/resetpasswordtoken.html', {});
+        } else {
+            application.render(res, application.functions.rootDir() + 'views/resetpassword.html', {});
+        }
+    });
+
+    app.post('/resetpassword', async (req, res) => {
+        const token = req.body.token;
+        if (token) {
+            if (req.body.password != req.body.repeatpassword)
+                return application.error(res, { msg: 'As senhas informadas são diferentes' });
+            const password = req.body.password;
+            const user = await db.getModel('users').findOne({
+                where: { resettoken: token }
+            });
+            if (!user)
+                return application.error(res, { msg: 'Token inválido ou expirado' });
+            user.password = Cyjs.SHA3(`${application.sk}${password}${application.sk}`).toString();
+            user.resettoken = null;
+            await user.save();
+            application.success(res, {
+                msg: 'Senha resetada com sucesso!'
+                , redirect: '/login'
+            });
+        } else {
+            const username = req.body.username;
+            const user = await db.getModel('users').findOne({
+                where: {
+                    active: true
+                    , [db.Op.or]: [{ username: username }, { email: username }]
+                }
+            });
+            if (!user)
+                return application.error(res, { msg: 'Usuário não encontrado' });
+            if (!user.email)
+                return application.error(res, { msg: 'Usuário não possui e-mail vinculado, contate o administrador' });
+            user.resettoken = Cyjs.SHA3(`${application.sk}${process.hrtime()[1]}${user.id}`).toString();
+            await user.save();
+            platform.mail.f_sendmail({
+                to: [user.email]
+                , subject: `Recuperação de Senha`
+                , html: `Olá ${user.fullname},
+            <br>Você solicitou a recuperação de sua senha de acesso ao sistema, para continuar clique <a href="${req.headers.origin}/resetpassword?token=${user.resettoken}">aqui</a>.
+            <br>
+            <br>Se não foi você, desconsidere este e-mail.`
+            });
+            application.success(res, {
+                msg: 'Enviamos um e-mail com as instruções de recuperação da senha'
+                , redirect: '/login'
+            });
+        }
     });
 
 }

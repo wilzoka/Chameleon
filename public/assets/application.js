@@ -199,6 +199,9 @@ var application = {
                     application.notify.success(localStorage.getItem('msg'));
                     localStorage.removeItem('msg');
                 }
+                if (window.location.pathname == '/login') {
+                    localStorage.clear();
+                }
             });
         }
         //Filter
