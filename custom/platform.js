@@ -1251,12 +1251,12 @@ const platform = {
                         }
                     });
                 } else {
-                    let invalidfields = application.functions.getEmptyFields(obj.req.body, ['file']);
+                    const invalidfields = application.functions.getEmptyFields(obj.req.body, ['file']);
                     if (invalidfields.length > 0) {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let views = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
+                    let views = JSON.parse(fs.readFileSync(`${application.functions.filesDir()}${file.id}.${file.type}`, 'utf8'));
                     t = await db.sequelize.transaction();
                     console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
@@ -1513,7 +1513,7 @@ const platform = {
                 return platform.view.f_fixResults(registers, viewfields);
             } catch (err) {
                 console.error(err);
-                return [];
+                return { rows: [] };
             }
         }
         , export: {
@@ -1772,13 +1772,13 @@ const platform = {
             }
             , pdf: async function (obj) {
                 try {
-                    let parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
-                    let registers = (await platform.view.f_getFilteredRegisters(obj)).rows;
+                    const parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
+                    const registers = (await platform.view.f_getFilteredRegisters(obj)).rows;
                     if (registers.length > 5000) {
                         return application.error(obj.res, { msg: 'Não é possível exportar mais que 5 mil registros' });
                     }
-                    let total = [];
-                    let report = {};
+                    const total = [];
+                    const report = {};
                     report.__title = parameters.title || obj.event.description;
                     report.__table = '<table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">';
                     report.__table += '<tr><thead>';
@@ -1817,12 +1817,12 @@ const platform = {
                         report.__table += '</tr>';
                     }
                     report.__table += '</table>';
-                    let filename = await platform.report.f_generate(parameters.pageOrientation == 'landscape' ? 'Geral - Listagem Paisagem' : 'Geral - Listagem', report);
-                    return application.success(obj.res, {
+                    const filename = await platform.report.f_generate(parameters.pageOrientation == 'landscape' ? 'Geral - Listagem Paisagem' : 'Geral - Listagem', report);
+                    application.success(obj.res, {
                         openurl: '/download/' + filename
                     });
                 } catch (err) {
-                    return application.fatal(obj.res, err);
+                    application.fatal(obj.res, err);
                 }
             }
         }

@@ -891,7 +891,7 @@ var application = {
                         }
                     });
                 }
-                , dom: '<"col-xs-6 no-padding"B><"col-xs-6 dt-filter-div no-padding text-right"><"col-xs-12 no-padding"ti>'
+                , dom: '<"col-xs-4 no-padding"B><"col-xs-4 dt-title-div no-padding text-center"><"col-xs-4 dt-filter-div no-padding text-right"><"col-xs-12 no-padding"ti>'
                 , buttons: buttons
                 , columns: data.columns
                 , deferRender: true
@@ -923,6 +923,7 @@ var application = {
                         '</span>' +
                         '</div>';
                     $table.closest('.dataTables_wrapper').find('.dt-filter-div').append(filterhtml);
+                    $table.closest('.dataTables_wrapper').find('.dt-title-div').text($table.attr('data-title'));
                     setTimeout(function () {
                         $(document).trigger('app-datatable', this.sTableId);
                         if (!application.functions.isMobile() && application.functions.getId() != 0) {
