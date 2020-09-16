@@ -221,11 +221,10 @@ table.dataTable {
     background: repeating-linear-gradient(45deg, #f4f4f4bd, #f4f4f4bd 10px, white 10px, white 20px);
 }
 div.dt-buttons {
-    z-index: 10;
     width: 100px;
 }
 div.dt-title-div {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
 }
 
