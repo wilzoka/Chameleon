@@ -5,7 +5,6 @@ const application = require('./application')
 module.exports = function (app) {
 
     app.all('/event/:id', application.IsAuthenticated, async (req, res) => {
-        // let t;
         try {
             const viewevent = await db.getModel('viewevent').findOne({ where: { id: req.params.id }, include: { all: true } });
             const config = await db.getModel('config').findOne();
@@ -13,7 +12,6 @@ module.exports = function (app) {
             const realfunction = application.functions.getRealReference(custom, viewevent.function);
             const ids = req.query.ids ? req.query.ids.split(',') : [];
             if (realfunction) {
-                // t = await db.sequelize.transaction();
                 const obj = {
                     req: req
                     , res: res
@@ -21,11 +19,13 @@ module.exports = function (app) {
                     , id: req.query.id || null
                     , parent: req.query.parent || null
                     , event: viewevent
-                    // , t: t
                 };
+                if (viewevent.selectionmode == 'atLeastOne' && ids.length <= 0) {
+                    return application.error(res, { msg: application.message.selectOneEvent });
+                } else if (viewevent.selectionmode == 'onlyOne' && ids.length != 1) {
+                    return application.error(res, { msg: application.message.selectOnlyOneEvent });
+                }
                 await realfunction(obj);
-                // if (!obj.t.finished)
-                //     obj.t.rollback();
             } else {
                 application.fatal(res, `Evento ${viewevent.function} não encontrado`);
             }

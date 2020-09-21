@@ -74,6 +74,12 @@ const application = require('../routes/application')
             throw new Error('Model "' + modelname + '" not found');
         }
     }
+    , findById = async (modelname, id) => {
+        return await getModel(modelname).findOne({ where: { id: id } });
+    }
+    , findAll = async (modelname, where) => {
+        return await getModel(modelname).findAll({ where: where });
+    }
     , setModels = function (fmodels) {
         models = fmodels;
     }
@@ -182,6 +188,8 @@ module.exports = {
     , Sequelize: Sequelize
     , getModel: getModel
     , setModels: setModels
+    , findById: findById
+    , findAll: findAll
     , Op: Sequelize.Op
     , sanitizeString: sanitizeString
 };

@@ -5,22 +5,24 @@ const application = require('../../../routes/application')
     , puppeteer = require('puppeteer')
     ;
 
-let main = {
+let browser;
+
+const main = {
     e_preview: async function (obj) {
         try {
             if (obj.ids.length != 1) {
                 return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
             }
-            let filename = await main.f_generate(obj.ids[0], {});
+            const filename = await main.f_generate(obj.ids[0], {});
             if (filename) {
-                return application.success(obj.res, {
+                application.success(obj.res, {
                     openurl: '/download/' + filename
                 });
             } else {
-                return application.error(obj.res, { msg: 'ops' });
+                application.error(obj.res, { msg: 'ops' });
             }
         } catch (err) {
-            return application.fatal(obj.res, err);
+            application.fatal(obj.res, err);
         }
     }
     , f_generate: function (reportname, replaces) {
@@ -46,23 +48,25 @@ let main = {
                                     font-family: "Courier New", Courier, monospace;
                                     font-size: ${report.fontsize || 10};
                                 }
-                                p {
+                                table {
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                    border-spacing: 0;
+                                }  
+                                table td {
+                                    border: 1px solid #888;
+                                    padding: 5px;
+                                }  
+                                img {
+                                    max-width: 100%;
+                                }
+                                figure {
                                     margin: 0;
                                 }
-                                tbody td {
-                                    border-color: #bfbfbf;
-                                    height: 14px;
-                                    padding: 3px;
-                                }
-                                thead td, tfoot td {
-                                    border: 1px solid black;
-                                }
-                                tr td {
-                                    page-break-inside: avoid;
-                                }
-                                ul.todo-list {
-                                    list-style: none;
-                                }
+                                .image-style-align-center {
+                                    margin-left: auto;
+                                    margin-right: auto;
+                                }                           
                             </style>
                         </head>
                         <body>`;
@@ -71,7 +75,7 @@ let main = {
                 function base64_encode(file) {
                     if (fs.existsSync(file)) {
                         const bitmap = fs.readFileSync(file);
-                        return 'data:image/png;base64,' + (new Buffer.from(bitmap).toString('base64'));
+                        return 'data:image/png;base64,' + Buffer.from(bitmap).toString('base64');
                     } else {
                         return '';
                     }
@@ -81,7 +85,7 @@ let main = {
                     if (config.reportimage) {
                         const reportimage = JSON.parse(config.reportimage);
                         if (reportimage.length > 0)
-                            replaces[i].__reportimage = base64_encode(application.functions.filesDir() + `${reportimage[0].id}.${reportimage[0].type}`);
+                            replaces[i].__reportimage = '<img style="max-height: 35px;" src="' + base64_encode(application.functions.filesDir() + `${reportimage[0].id}.${reportimage[0].type}`) + '">';
                     }
                     replaces[i].__datetime = moment().format(application.formatters.fe.datetime_format);
                     let htmlpart = report.html;
@@ -96,14 +100,15 @@ let main = {
                 const filename = process.hrtime()[1];
                 const path = application.functions.tmpDir();
                 fs.writeFileSync(`${path}/${filename}.html`, html);
-                const browser = await puppeteer.launch();
+                if (!browser)
+                    browser = await puppeteer.launch();
                 const page = await browser.newPage();
                 await page.goto(`http://localhost:${process.env.NODE_PORT}/download/${filename}.html`);
                 await page.pdf({
                     path: `${path}/${filename}.pdf`
                     , format: 'A4'
                     , printBackground: true
-                    , scale: 1
+                    , scale: 0.75
                     , margin: {
                         top: "0.5cm"
                         , right: "0.5cm"
@@ -112,7 +117,7 @@ let main = {
                     }
                     , landscape: report.landscape ? true : false
                 });
-                await browser.close();
+                await page.close();
                 resolve(`${filename}.pdf`);
             } catch (err) {
                 return reject(err);

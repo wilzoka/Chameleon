@@ -34,7 +34,7 @@ const platform = {
                         if (!ma[k])
                             continue;
                         let value = audits[i].changes[k];
-                        const j = JSON.parse(ma[k].typeadd || '{}');
+                        const j = JSON.parse(application.functions.singleSpace(ma[k].typeadd || '') || '{}');
                         if (value == null) {
                             continue;
                         }
@@ -1213,6 +1213,7 @@ const platform = {
                             , icon: viewevents[z].icon
                             , function: viewevents[z].function
                             , parameters: viewevents[z].parameters
+                            , selectionmode: viewevents[z].selectionmode
                         });
                     }
                 }
@@ -1390,6 +1391,7 @@ const platform = {
                                 viewevent.icon = views[i]._event[z].icon;
                                 viewevent.function = views[i]._event[z].function;
                                 viewevent.parameters = views[i]._event[z].parameters;
+                                viewevent.selectionmode = views[i]._event[z].selectionmode;
                                 await viewevent.save({ transaction: t });
                             } else {
                                 viewevent = await db.getModel('viewevent').create({
@@ -1398,6 +1400,7 @@ const platform = {
                                     , icon: views[i]._event[z].icon
                                     , function: views[i]._event[z].function
                                     , parameters: views[i]._event[z].parameters
+                                    , selectionmode: views[i]._event[z].selectionmode
                                 }, { transaction: t });
                             }
                             viewevents.push(viewevent.id);
