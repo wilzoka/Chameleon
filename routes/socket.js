@@ -17,6 +17,7 @@ module.exports = function (app) {
         //         socket.join('M' + view['model.name']);
         //     });
         // });
+        console.log(user.fullname, socket.request.headers.host, socket.request.headers['x-real-ip'], socket.request.ip);
         socket.join(user.id);
         socket.on('disconnect', function () {
         });
