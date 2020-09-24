@@ -2,6 +2,7 @@ const application = require('../routes/application')
     , moment = require('moment')
     , Cyjs = require('crypto-js')
     , Sequelize = require('sequelize')
+    , ignoredAuditModels = ['audit', 'report', 'session', 'activity']
     , sequelize = new Sequelize(Cyjs.AES.decrypt(process.env.NODE_DBC, application.sk).toString(Cyjs.enc.Utf8), {
         pool: {
             max: 5
@@ -22,7 +23,7 @@ const application = require('../routes/application')
                 }
                 , afterSave: (register, options) => {
                     const changed = register.changed();
-                    if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0 && changed) {
+                    if (ignoredAuditModels.indexOf(register.constructor.name) < 0 && changed) {
                         getModel('model').findOne({ where: { name: register.constructor.name } }).then(model => {
                             const audit = getModel('audit').build();
                             audit.datetime = moment();
@@ -44,7 +45,7 @@ const application = require('../routes/application')
                     options.individualHooks = true;
                 }
                 , afterDestroy: (register, options) => {
-                    if (['audit', 'report', 'session'].indexOf(register.constructor.name) < 0) {
+                    if (ignoredAuditModels.indexOf(register.constructor.name) < 0) {
                         getModel('model').findOne({ where: { name: register.constructor.name } }).then(model => {
                             const audit = getModel('audit').build();
                             const iduser = options.iduser;
@@ -77,8 +78,14 @@ const application = require('../routes/application')
     , findById = async (modelname, id) => {
         return await getModel(modelname).findOne({ where: { id: id } });
     }
+    , findOne = async (modelname, where) => {
+        return await getModel(modelname).findOne({ where: where });
+    }
     , findAll = async (modelname, where) => {
         return await getModel(modelname).findAll({ where: where });
+    }
+    , query = async (sql) => {
+        return await sequelize.query(sql, { type: Sequelize.QueryTypes.SELECT });
     }
     , setModels = function (fmodels) {
         models = fmodels;
@@ -189,7 +196,9 @@ module.exports = {
     , getModel: getModel
     , setModels: setModels
     , findById: findById
+    , findOne: findOne
     , findAll: findAll
     , Op: Sequelize.Op
     , sanitizeString: sanitizeString
+    , query: query
 };
