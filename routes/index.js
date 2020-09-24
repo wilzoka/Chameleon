@@ -5,21 +5,28 @@ const application = require('./application')
 	;
 
 const ignoredFiles = ['index.js', 'application.js', 'schedule.js', 'messenger.js'];
+const ignoredActivity = ['/datasource', '/datasource/sum'];
 
 module.exports = function (app) {
 
 	app.use(async (req, res, next) => {
-		req.activity = await db.getModel('activity').create({
-			datetime: moment()
-			, request: JSON.stringify({
-				method: req.method
-				, body: req.body
-				, query: req.query
-			})
-			, path: req.path
-			, host: req.headers['x-real-ip'] || req.ip || null
-			, iduser: req.user ? req.user.id : null
-		});
+		if (
+			ignoredActivity.indexOf(req.path) < 0
+			&& !req.path.match(/\/file\/*/)
+			&& !req.path.match(/\/download\/*/)
+		) {
+			req.activity = await db.getModel('activity').create({
+				datetime: moment()
+				, request: JSON.stringify({
+					method: req.method
+					, body: req.body
+					, query: req.query
+				})
+				, path: req.path
+				, host: req.headers['x-real-ip'] || req.ip || null
+				, iduser: req.user ? req.user.id : null
+			});
+		}
 		res.on('finish', function () {
 			if (this.req.activity) {
 				this.req.activity.statuscode = this.req.res.statusCode;
