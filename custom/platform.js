@@ -1113,9 +1113,15 @@ const platform = {
                 limit 15
                 `);
                 let total = 0;
+                let max = 0;
                 sql.map(s => { return total += parseInt(s.qtd) });
                 for (const s of sql) {
-                    s.perc = parseInt(s.qtd) / total * 260;
+                    s.perc = parseInt(s.qtd) / total;
+                    if (s.perc > max)
+                        max = s.perc;
+                }
+                for (const s of sql) {
+                    s.color = s.perc * 210 / max;
                 }
                 application.success(obj.res, { data: sql, total: total });
             } catch (err) {
