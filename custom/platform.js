@@ -1115,7 +1115,7 @@ const platform = {
                 let total = 0;
                 sql.map(s => { return total += parseInt(s.qtd) });
                 for (const s of sql) {
-                    s.perc = parseInt(s.qtd) / total * 1000;
+                    s.perc = parseInt(s.qtd) / total * 260;
                 }
                 application.success(obj.res, { data: sql, total: total });
             } catch (err) {
