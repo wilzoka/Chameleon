@@ -1097,6 +1097,31 @@ const platform = {
                 application.fatal(obj.res, err);
             }
         }
+        , js_getMostAccessedViews: async (obj) => {
+            try {
+                const sql = await db.query(`
+                select
+                    v.name as view, v.url, m.icon, x.qtd
+                from
+                    (select path, count(*) as qtd from activity
+                    where iduser = ${obj.req.user.id}
+                    and datetime >= now()::date - 15
+                    group by 1 order by 2 desc) as x
+                inner join view v on (replace(x.path, '/v/', '') = v.url)
+                inner join menu m on (v.idmenu = m.id)
+                order by x.qtd desc
+                limit 15
+                `);
+                let total = 0;
+                sql.map(s => { return total += parseInt(s.qtd) });
+                for (const s of sql) {
+                    s.perc = parseInt(s.qtd) / total * 1000;
+                }
+                application.success(obj.res, { data: sql, total: total });
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
     }
     , view: {
         onsave: async function (obj, next) {

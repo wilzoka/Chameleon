@@ -1156,13 +1156,7 @@ var application = {
                 }
             }
             , progressbar: function (value) {
-                function hsl_col_perc(percent, start, end) {
-                    var a = percent / 100,
-                        b = (end - start) * a,
-                        c = b + start;
-                    return 'hsl(' + c + ', 85%, 45%, 1)';
-                }
-                return '<div class="progress"><div class="progress-bar" style="width: ' + value + '%;background-color:' + hsl_col_perc(value, 0, 100) + '">' + value + '%</div></div>';
+                return '<div class="progress"><div class="progress-bar" style="width: ' + value + '%;background-color:' + application.functions.hsl_col_perc(value, 0, 100) + '">' + value + '%</div></div>';
             }
         }
         , saveFilter: function (view) {
@@ -1352,6 +1346,12 @@ var application = {
         }
         , randomIntFromInterval: function (min, max) {
             return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+        , hsl_col_perc: function (percent, start, end) {
+            var a = percent / 100,
+                b = (end - start) * a,
+                c = b + start;
+            return 'hsl(' + c + ', 85%, 45%, 1)';
         }
     }
     , handlers: {

@@ -7,14 +7,42 @@
 
 <body class="hold-transition fixed skin-blue sidebar-mini">
   <div class="wrapper">
-    {{> parts/nav }} {{> parts/sidebar }}
-    <div class="content-wrapper">
+    <div class="wrapper">
+      {{> parts/nav }} {{> parts/sidebar }}
+      <div class="content-wrapper">
+        <section class="content" style="padding-bottom: 40px;">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="box box-success">
+                <div class="box-header with-border text-center">
+                  <h3 class="box-title">Mais Acessados</h3>
+                </div>
+                <div class="box-body">
+                  <div id="mostAcessedViews" class="box-body">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 
   {{> parts/js }}
   <script type="text/javascript">
     application.index(true);
+    application.jsfunction('platform.users.js_getMostAccessedViews', {}, function (response) {
+      if (response.success) {
+        for (var i = 0; i < response.data.length; i++) {
+          const el = response.data[i];
+          $('#mostAcessedViews').append('<a style="width: 92px; text-overflow: ellipsis; overflow: hidden;" title="' + el.view
+            + '" class="btn btn-app" href="/v/' + el.url
+            + '"><i class="' + (el.icon || 'fa fa-angle-down') + '" style="color: ' + application.functions.hsl_col_perc(el.perc, 0, 100) + '"></i><span>' + el.view
+            + '</span></a>');
+        }
+      }
+    });
   </script>
 </body>
 
