@@ -383,14 +383,14 @@ const modelate = function (obj) {
         switch (obj.viewfields[i].modelattribute.type) {
             case 'text':
                 if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name].trim();
                 } else {
                     obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
                 break;
             case 'textarea':
                 if (obj.req.body[obj.viewfields[i].modelattribute.name]) {
-                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name];
+                    obj.register[obj.viewfields[i].modelattribute.name] = obj.req.body[obj.viewfields[i].modelattribute.name].trim();
                 } else {
                     obj.register[obj.viewfields[i].modelattribute.name] = null;
                 }
