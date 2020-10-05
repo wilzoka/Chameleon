@@ -1141,6 +1141,8 @@ var application = {
                 if (this.lineheight == 1) {
                     styles.push('white-space:nowrap');
                 }
+                if (value.toString().includes('data-bg-color'))
+                    styles.push('background-color:' + $(value).attr('data-bg-color'));
                 return '<div class="dt-cell" style="' + styles.join(';') + '">' + value + '</div>';
             }
             , label: function (value) {
@@ -1211,7 +1213,7 @@ var application = {
             return $('#id').val() || undefined;
         }
         , getUrlParameter: function (name) {
-            url = window.location.href;
+            var url = window.location.href;
             name = name.replace(/[\[\]]/g, "\\$&");
             var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
                 results = regex.exec(url);

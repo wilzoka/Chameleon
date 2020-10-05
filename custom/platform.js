@@ -14,7 +14,7 @@ sharp.cache(false);
 
 const platform = {
     audit: {
-        e_track: async function (obj) {
+        e_track: async (obj) => {
             try {
                 if (obj.ids.length != 1) {
                     return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
@@ -118,36 +118,36 @@ const platform = {
     , config: {
         onsave: async (obj, next) => {
             try {
-                let saved = await next(obj);
+                const saved = await next(obj);
                 if (saved.success) {
                     application.config.setPartials(saved.register);
                 }
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
-        , js_getGoogleMapsKey: async function (obj) {
+        , js_getGoogleMapsKey: async (obj) => {
             try {
-                const config = await db.getModel('config').findOne();
-                return application.success(obj.res, { data: config.googlemapskey });
+                const config = await db.getModel('config').findOne({ raw: true });
+                application.success(obj.res, { data: config.googlemapskey });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
     }
     , core_bi: require('./core-bi/bi.js')
     , file: {
-        e_download: async function (obj) {
+        e_download: async (obj) => {
             try {
                 if (obj.ids.length != 1) {
                     return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                 }
-                return application.success(obj.res, { openurl: `/file/${obj.ids[0]}` });
+                application.success(obj.res, { openurl: `/file/${obj.ids[0]}` });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
-        , e_compress: async function (obj) {
+        , e_compress: async (obj) => {
             try {
                 const files = await db.getModel('file').findAll({
                     where: await platform.view.f_getFilter(obj.req, (await db.getModel('view').findOne({ where: { id: obj.event.idview }, include: [{ all: true }] })))
@@ -310,7 +310,7 @@ const platform = {
         }
     }
     , menu: {
-        onsave: async function (obj, next) {
+        onsave: async (obj, next) => {
             await next(obj);
             platform.menu.treeAll();
         }
@@ -337,7 +337,7 @@ const platform = {
                 });
             });
         }
-        , e_export: async function (obj) {
+        , e_export: async (obj) => {
             try {
                 let json = JSON.parse(obj.event.parameters || '{}');
                 let menus = [];
@@ -369,7 +369,7 @@ const platform = {
                 return application.fatal(obj.res, err);
             }
         }
-        , e_import: async function (obj) {
+        , e_import: async (obj) => {
             try {
                 if (obj.req.method == 'GET') {
                     let body = '';
