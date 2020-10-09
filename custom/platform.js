@@ -250,8 +250,8 @@ const platform = {
             const transporter = nodemailer.createTransport(transportConfig);
             const mailOptions = {
                 from: transportConfig.auth.user
-                , to: obj.to.join(',')
-                , cc: obj.cc && Array.isArray(obj.cc) ? obj.cc : []
+                , to: obj.to && Array.isArray(obj.to) ? obj.to.join(',') : []
+                , cc: obj.cc && Array.isArray(obj.cc) ? obj.cc.join(',') : []
                 , subject: obj.subject
                 , html: obj.html
                 , attachments: obj.attachments || []

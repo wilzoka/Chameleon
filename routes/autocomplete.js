@@ -21,9 +21,9 @@ module.exports = function (app) {
             }
             const query = `SELECT id, ${field} as text FROM ${req.query.model} ${wherestr} ORDER BY ${field} LIMIT 100`;
             const results = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
-            return application.success(res, { data: results });
+            application.success(res, { data: results });
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
