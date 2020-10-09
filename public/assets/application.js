@@ -56,6 +56,15 @@ var wysiwygs = {};
 var app = false;
 var socket;
 var eventFromRegister = false;
+// Touch
+var longTouchTimer;
+function touchStart(func) {
+    longTouchTimer = setTimeout(func, 650);
+}
+function touchEnd() {
+    if (longTouchTimer)
+        clearTimeout(longTouchTimer);
+}
 // Application
 var application = {
     index: function (isAuth) {
@@ -1013,7 +1022,7 @@ var application = {
                             application.handlers.responseError(response);
                         }
                     });
-            }).on('dblclick', 'tbody tr', function (e) {
+            }).on('dblclick touchstart touchend touchmove', 'tbody tr', function (e) {
                 var $table = $(e.delegateTarget);
                 var view = $table.attr('data-view');
                 var subview = $table.attr('data-subview');
@@ -1022,8 +1031,15 @@ var application = {
                     return;
                 }
                 var selected = application.functions.getKeyFromArrayObject(tables[tableid].rows({ selected: true }).data(), 'id');
+                var href = '/v/' + view + '/' + tables[tableid].row(this).data().id + (subview ? '?parent=' + application.functions.getId() : '')
+                if (e.type == 'touchstart') {
+                    touchStart(function () {
+                        window.location.href = href;
+                    });
+                } else if (e.type == 'touchend' || e.type == 'touchmove') {
+                    touchEnd();
+                }
                 if (!application.functions.isMobile()) {
-                    var href = '/v/' + view + '/' + tables[tableid].row(this).data().id + (subview ? '?parent=' + application.functions.getId() : '')
                     if (e.ctrlKey || selected.length > 1) {
                         window.open(href);
                     } else {
