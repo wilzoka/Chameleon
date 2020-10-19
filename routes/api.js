@@ -11,16 +11,16 @@ module.exports = function (app) {
             if (!config) {
                 config = await db.getModel('config').findOne();
             }
-            let controller = require('../custom/' + config.customfile).api;
-            if (controller) {
+            const controller = require('../custom/' + config.customfile).api;
+            if (controller && controller[req.params.function]) {
                 res.header("Access-Control-Allow-Origin", "*");
                 res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-                return controller({ req: req, res: res });
+                controller[req.params.function]({ req: req, res: res });
             } else {
-                return application.error(res, {});
+                application.error(res, {});
             }
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 

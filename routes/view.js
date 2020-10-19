@@ -1396,7 +1396,7 @@ module.exports = function (app) {
             if (!obj.transaction.finished)
                 obj.transaction.rollback();
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
