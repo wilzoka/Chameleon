@@ -858,6 +858,58 @@ let bi = {
                 return application.fatal(obj.res, err);
             }
         }
+        , e_share: async (obj) => {
+            try {
+                if (obj.req.method == 'GET') {
+                    if (obj.ids.length <= 0) {
+                        return application.error(obj.res, { msg: application.message.selectOneEvent });
+                    }
+                    let body = '';
+                    body += application.components.html.hidden({ name: 'ids', value: obj.ids.join(',') });
+                    body += application.components.html.autocomplete({
+                        width: '12'
+                        , label: 'Usuário'
+                        , name: 'iduser'
+                        , model: 'users'
+                        , attribute: 'fullname'
+                        , where: 'active is true'
+                    });
+                    application.success(obj.res, {
+                        modal: {
+                            form: true
+                            , action: '/event/' + obj.event.id
+                            , id: 'modalevt'
+                            , title: obj.event.description
+                            , body: body
+                            , footer: '<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button> <button type="submit" class="btn btn-primary">Compartilhar</button>'
+                        }
+                    });
+                } else {
+                    const invalidfields = application.functions.getEmptyFields(obj.req.body, ['ids', 'iduser']);
+                    if (invalidfields.length > 0)
+                        return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
+                    const ids = obj.req.body.ids.split(',');
+                    for (const id of ids) {
+                        const analysis = await db.findById('bi_analysis', id);
+                        await db.getModel('bi_analysis').create({
+                            iduser: obj.req.body.iduser
+                            , idcube: analysis.idcube
+                            , description: analysis.description
+                            , rows: analysis.rows
+                            , columns: analysis.columns
+                            , measures: analysis.measures
+                            , filter: analysis.filter
+                            , charttype: analysis.charttype
+                            , calculatedmeasures: analysis.calculatedmeasures
+                            , config: analysis.config
+                        });
+                    }
+                    application.success(obj.res, { msg: application.message.success });
+                }
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
     }
     , dashboard: {
         js_renderAnalysis: async (obj) => {
