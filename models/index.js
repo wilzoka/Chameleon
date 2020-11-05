@@ -5,9 +5,8 @@ const application = require('../routes/application')
     , ignoredAuditModels = ['audit', 'report', 'session', 'activity']
     , sequelize = new Sequelize(Cyjs.AES.decrypt(process.env.NODE_DBC, application.sk).toString(Cyjs.enc.Utf8), {
         pool: {
-            max: 5
+            max: 10
             , min: 0
-            , idle: 10000
         }
         , timezone: 'America/Sao_Paulo'
         , logging: function (query) {
