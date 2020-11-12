@@ -1353,7 +1353,7 @@ const platform = {
                         let viewfields = [];
                         for (let z = 0; z < views[i]._field.length; z++) {
                             let templatezone = await db.getModel('templatezone').findOne({ transaction: t, where: { idtemplate: template.id, name: views[i]._field[z].templatezone } });
-                            let modelattribute = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: model.id, name: views[i]._field[z].modelattribute } });
+                            let modelattribute = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: model ? model.id : null, name: views[i]._field[z].modelattribute } });
                             if (modelattribute) {
                                 let viewfield = await db.getModel('viewfield').findOne({ transaction: t, where: { idview: view.id, idmodelattribute: modelattribute.id } });
                                 if (viewfield) {
