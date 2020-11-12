@@ -1386,7 +1386,7 @@ const platform = {
                         });
                         let viewtables = [];
                         for (let z = 0; z < views[i]._table.length; z++) {
-                            let modelattribute = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: model.id, name: views[i]._table[z].modelattribute } });
+                            let modelattribute = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: model ? model.id : null, name: views[i]._table[z].modelattribute } });
                             if (modelattribute) {
                                 let viewtable = await db.getModel('viewtable').findOne({ transaction: t, where: { idview: view.id, idmodelattribute: modelattribute.id } });
                                 if (viewtable) {
