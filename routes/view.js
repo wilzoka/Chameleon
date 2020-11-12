@@ -336,7 +336,7 @@ const renderSubView = function (viewsubview) {
     return `
     <div class="col-md-12 divsubview${viewsubview.subview.url}">
         <table id="view${viewsubview.subview.url}" data-title="${viewsubview.description || ''}" class="table table-bordered table-hover dataTable" width="100%"
-        data-subview="true"
+        data-subview="${viewsubview.id}"
         data-view="${viewsubview.subview.url}">
         </table>
     </div>`;
@@ -376,7 +376,7 @@ const render = function (viewfield, register) {
     }
 }
 
-const modelate = function (obj) {
+const modelate = async (obj) => {
     for (let i = 0; i < obj.viewfields.length; i++) {
         if (!(obj.viewfields[i].modelattribute.name in obj.req.body))
             continue;
@@ -473,10 +473,12 @@ const modelate = function (obj) {
                 break;
         }
     }
-    for (let i = 0; i < obj.modelattributes.length; i++) {
-        if (obj.modelattributes[i].type == 'parent') {
-            if (obj.req.query.parent && obj.req.query.parent > 0) {
-                obj.register[obj.modelattributes[i].name] = parseInt(obj.req.query.parent);
+    if (obj.req.query.parent && obj.req.query.parent > 0 && obj.req.query.subview && obj.req.query.subview > 0) {
+        const sv = await db.findById('viewsubview', obj.req.query.subview);
+        if (sv && sv.idmodelattribute) {
+            const ma = await db.findById('modelattribute', sv.idmodelattribute);
+            if (ma) {
+                obj.register[ma.name] = parseInt(obj.req.query.parent);
             }
         }
     }
@@ -585,9 +587,10 @@ const validateAndSave = async function (obj) {
         if (validation.success) {
             const saved = await save(obj);
             if (saved.success) {
-                let ret = {};
-                ret.data = saved.register;
-                ret.msg = application.message.success;
+                let ret = {
+                    data: saved.register
+                    , msg: application.message.success
+                };
                 if (!obj.req.body._calendar) {
                     ret.redirect = '/v/' + obj.view.url + '/' + saved.register.id;
                     ret.historyBack = true;
@@ -600,7 +603,7 @@ const validateAndSave = async function (obj) {
                 if (obj.req.cookies.subview_redirect) {
                     ret.historyBack = false;
                     Object.assign(ret, {
-                        subview_redirect: `/v/${obj.req.cookies.subview_redirect}/0?parent=${saved.register.id}`
+                        subview_redirect: `${obj.req.cookies.subview_redirect}${obj.req.cookies.subview_redirect.indexOf('parent') == -1 ? `&parent=${saved.register.id}` : ''}`
                     });
                 }
                 if (obj._responseModifier && typeof obj._responseModifier == 'function') {
@@ -768,13 +771,12 @@ module.exports = function (app) {
                     , events: events
                     , permissions: permissions
                     , fastsearch: view.idfastsearch ? view.fastsearch.label : ''
-                    , subview: req.query.issubview == 'true' ? true : false
                     , lineheight: view.lineheight
                     , orderable: view.orderable
                 });
             }
         } catch (err) {
-            return application.fatal(res, err);
+            application.fatal(res, err);
         }
     });
 
@@ -959,7 +961,7 @@ module.exports = function (app) {
                             , model: j.model
                             , attribute: j.attribute || ''
                             , query: j.query || ''
-                            , where: req.body.issubview == 'true' && j.where ? j.where : ''
+                            , where: req.body.subview && j.where ? j.where : ''
                             , multiple: 'multiple="multiple"'
                             , option: getFilterValue(filtername, cookiefilter).options || ''
                         });
@@ -1366,10 +1368,8 @@ module.exports = function (app) {
             });
             const subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id } });
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-            let register = await db.getModel(view.model.name).findOne({ where: { id: req.params.id }, include: [{ all: true }] });
-            if (!register)
-                register = db.getModel(view.model.name).build({ id: 0 });
-            const obj = modelate({
+            const register = (await db.getModel(view.model.name).findOne({ where: { id: req.params.id }, include: [{ all: true }] })) || db.getModel(view.model.name).build({ id: 0 });
+            const obj = await modelate({
                 id: req.params.id
                 , view: view
                 , viewfields: viewfields

@@ -45,7 +45,6 @@ module.exports = function (app) {
                 }
                 application.success(res, { events: events });
             } else {
-                const viewtables = await db.getModel('viewtable').findAll({ where: { idview: view.id }, include: [{ all: true }] });
                 const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
                 let where = {};
                 if (view.wherefixed) {
@@ -69,12 +68,6 @@ module.exports = function (app) {
                 for (let i = 0; i < modelattributes.length; i++) {
                     const j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
                     switch (modelattributes[i].type) {
-                        case 'parent':
-                            if (req.body.issubview == 'true') {
-                                where[modelattributes[i].name] = bodyID;
-                            }
-                            attributes.push(modelattributes[i].name);
-                            break;
                         case 'autocomplete':
                             if (j.query) {
                                 attributes.push([db.Sequelize.literal(j.query), modelattributes[i].name]);
@@ -122,7 +115,7 @@ module.exports = function (app) {
                     , where: where
                     , order: [[ordercolumn, orderdir], ['id', orderdir]]
                 }));
-                registers = platform.view.f_fixResults(registers, viewtables);
+                registers = platform.view.f_fixResults(registers, await db.findAll('modelattribute', { idmodel: view.idmodel }));
                 application.success(res, {
                     recordsTotal: registers.count
                     , recordsFiltered: registers.count
@@ -147,14 +140,6 @@ module.exports = function (app) {
                 Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, bodyID)})`) });
             }
             Object.assign(where, await platform.view.f_getFilter(req, view));
-            if (req.body.issubview == 'true') {
-                const modelattributeparent = await db.getModel('modelattribute').findOne({
-                    where: { idmodel: view.model.id, type: 'parent' }
-                });
-                if (modelattributeparent) {
-                    where[modelattributeparent.name] = bodyID;
-                }
-            }
             const register = await db.getModel(view.model.name).findOne({
                 raw: true
                 , attributes: [

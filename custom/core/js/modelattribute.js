@@ -29,12 +29,6 @@ $(function () {
                         , public: false
                     };
                     break;
-                case 'parent':
-                    obj = {
-                        cascade: false
-                        , model: ''
-                    };
-                    break;
                 case 'radio':
                     obj = {
                         options: []

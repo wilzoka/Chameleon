@@ -1130,7 +1130,7 @@ const platform = {
         }
     }
     , view: {
-        onsave: async function (obj, next) {
+        onsave: async (obj, next) => {
             try {
                 const register = await db.getModel('view').findOne({ where: { id: { [db.Op.ne]: obj.id }, name: { [db.Op.iLike]: obj.register.name } } })
                 if (register) {
@@ -1159,7 +1159,7 @@ const platform = {
                 application.fatal(obj.res, err);
             }
         }
-        , e_export: async function (obj) {
+        , e_export: async (obj) => {
             try {
                 let json = JSON.parse(obj.event.parameters || '{}');
                 let views = [];
@@ -1234,6 +1234,7 @@ const platform = {
                             subview: viewsubviews[z].subview.name
                             , templatezone: viewsubviews[z].templatezone.name
                             , description: viewsubviews[z].description
+                            , modelattribute: viewsubviews[z].idmodelattribute ? viewsubviews[z].modelattribute.name : null
                         });
                     }
                     let viewevents = await db.getModel('viewevent').findAll({ where: { idview: views[i].id }, order: [['description', 'asc']] });
@@ -1259,7 +1260,7 @@ const platform = {
                 return application.fatal(obj.res, err);
             }
         }
-        , e_import: async function (obj) {
+        , e_import: async (obj) => {
             let t;
             try {
                 if (obj.req.method == 'GET') {
@@ -1452,6 +1453,7 @@ const platform = {
                             let viewsubview = await db.getModel('view').findOne({ transaction: t, where: { name: views[i]._subview[z].subview } });
                             if (viewsubview) {
                                 let subview = await db.getModel('viewsubview').findOne({ transaction: t, where: { idview: view.id, idsubview: viewsubview.id } });
+                                const modelattribute = await db.getModel('modelattribute').findOne({ transaction: t, where: { idmodel: viewsubview.idmodel, name: views[i]._subview[z].modelattribute } });
                                 let templatezone = await db.getModel('templatezone').findOrCreate({
                                     transaction: t
                                     , where: { idtemplate: view.template.id, name: views[i]._subview[z].templatezone }
@@ -1459,6 +1461,8 @@ const platform = {
                                 if (subview) {
                                     subview.description = views[i]._subview[z].description;
                                     subview.idtemplatezone = templatezone[0].id;
+                                    if (modelattribute)
+                                        subview.idmodelattribute = modelattribute.id
                                     await subview.save({ transaction: t });
                                 } else {
                                     subview = await db.getModel('viewsubview').create({
@@ -1466,6 +1470,7 @@ const platform = {
                                         , idsubview: viewsubview.id
                                         , idtemplatezone: templatezone[0].id
                                         , description: views[i]._subview[z].description
+                                        , idmodelattribute: modelattribute ? modelattribute.id : null
                                     }, { transaction: t });
                                 }
                                 viewsubviews.push(subview.id);
@@ -1488,10 +1493,10 @@ const platform = {
                 application.fatal(obj.res, err);
             }
         }
-        , f_getFilteredRegisters: async function (obj) {
+        , f_getFilteredRegisters: async (obj) => {
             try {
                 const view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] })
-                const viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }] });
+                const mas = await db.findAll('modelattribute', { idmodel: view.idmodel });
                 const where = {};
                 if (view.wherefixed) {
                     view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id).replace(/\$id/g, obj.req.body.id);
@@ -1507,32 +1512,32 @@ const platform = {
                 const order = parameters.order;
                 let ordercolumn = order[0];
                 const orderdir = order[1];
-                for (let i = 0; i < viewfields.length; i++) {
-                    const j = application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd);
-                    switch (viewfields[i].modelattribute.type) {
+                for (const ma of mas) {
+                    const j = application.modelattribute.parseTypeadd(ma.typeadd);
+                    switch (ma.type) {
                         case 'autocomplete':
                             if (j.query) {
-                                attributes.push([db.Sequelize.literal(j.query), viewfields[i].modelattribute.name]);
+                                attributes.push([db.Sequelize.literal(j.query), ma.name]);
                             } else {
-                                attributes.push(viewfields[i].modelattribute.name);
+                                attributes.push(ma.name);
                             }
                             break;
                         case 'virtual':
-                            attributes.push([db.Sequelize.literal(j.subquery), viewfields[i].modelattribute.name]);
+                            attributes.push([db.Sequelize.literal(j.subquery), ma.name]);
                             break;
                         default:
-                            attributes.push(viewfields[i].modelattribute.name);
+                            attributes.push(ma.name);
                             break;
                     }
                     // Order
-                    if (viewfields[i].modelattribute.name == ordercolumn) {
-                        switch (viewfields[i].modelattribute.type) {
+                    if (ma.name == ordercolumn) {
+                        switch (ma.type) {
                             case 'autocomplete':
                                 const vas = j.as || j.model;
                                 ordercolumn = db.Sequelize.literal(vas + '.' + j.attribute);
                                 break;
                             case 'virtual':
-                                ordercolumn = db.Sequelize.literal(viewfields[i].modelattribute.name);
+                                ordercolumn = db.Sequelize.literal(ma.name);
                                 break;
                         }
                     }
@@ -1544,7 +1549,7 @@ const platform = {
                     , where: where
                     , order: [[ordercolumn, orderdir]]
                 })
-                return platform.view.f_fixResults(registers, viewfields);
+                return platform.view.f_fixResults(registers, mas);
             } catch (err) {
                 console.error(err);
                 return { rows: [] };
@@ -1833,7 +1838,7 @@ const platform = {
                                         total[z]++;
                                         break;
                                     case 'sum':
-                                        total[z] += parseFloat(application.formatters.be.decimal(registers[i][parameters.columns[z]] || 0, parameters.totalPrecision[z]));
+                                        total[z] += parseFloat(application.formatters.be.decimal(registers[i][parameters.columns[z]] || '0', parameters.totalPrecision[z]));
                                         break;
                                     default:
                                         break;
@@ -1860,10 +1865,10 @@ const platform = {
                 }
             }
         }
-        , f_getFilter: async function (req, view) {
+        , f_getFilter: async (req, view) => {
             try {
                 let obj = {};
-                const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.idmodel } });
+                const modelattributes = await db.findAll('modelattribute', { idmodel: view.idmodel });
                 let filter = JSON.parse(req.cookies['view' + view.url + 'filter'] || req.body['_filter'] || '{}');
                 let m;
                 for (let i = 0; i < filter.length; i++) {
@@ -2001,7 +2006,7 @@ const platform = {
                 let fastsearch = req.cookies['view' + view.url + 'fs'] || req.body['_filterfs'];
                 if (view.idfastsearch && fastsearch) {
                     fastsearch = db.sanitizeString(fastsearch);
-                    const mafastsearch = await db.getModel('modelattribute').findOne({ where: { id: view.idfastsearch } });
+                    const mafastsearch = await db.findById('modelattribute', view.idfastsearch);
                     const j = application.modelattribute.parseTypeadd(mafastsearch.typeadd);
                     switch (mafastsearch.type) {
                         case 'autocomplete':
@@ -2019,15 +2024,22 @@ const platform = {
                             break;
                     }
                 }
+                if (req.body.subview > 0) {
+                    const sv = await db.findById('viewsubview', req.body.subview, true);
+                    if (sv && sv.idmodelattribute) {
+                        const ma = await db.findById('modelattribute', sv.idmodelattribute, true);
+                        if (ma)
+                            obj[ma.name] = req.body.id;
+                    }
+                }
                 return obj;
             } catch (err) {
                 console.error(err, req.cookies, view);
                 return {};
             }
         }
-        , f_fixResults: function (registers, viewtables) {
-            for (let i = 0; i < viewtables.length; i++) {
-                const ma = viewtables[i].modelattribute;
+        , f_fixResults: function (registers, mas) {
+            for (const ma of mas) {
                 const j = application.modelattribute.parseTypeadd(ma.typeadd);
                 switch (j.type || ma.type) {
                     case 'autocomplete':
@@ -2070,20 +2082,9 @@ const platform = {
                         break;
                 }
             }
-            const keys = ['id'];
-            for (let i = 0; i < viewtables.length; i++) {
-                keys.push(viewtables[i].modelattribute.name);
-            }
-            for (let i = 0; i < registers.rows.length; i++) {
-                for (let k in registers.rows[i]) {
-                    if (keys.indexOf(k) < 0) {
-                        delete registers.rows[i][k];
-                    }
-                }
-            }
             return registers;
         }
-        , f_hasPermission: async function (iduser, idview) {
+        , f_hasPermission: async (iduser, idview) => {
             try {
                 const permissionquery = 'select p.*, v.id as idview from permission p left join view v on (p.idview = v.id) where p.iduser = :iduser';
                 const getChilds = function (idview, subviews) {

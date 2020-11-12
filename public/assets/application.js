@@ -226,7 +226,7 @@ var application = {
                         , type: 'GET'
                         , dataType: 'json'
                         , data: {
-                            issubview: $view.attr('data-subview') || false
+                            subview: $view.attr('data-subview')
                         }
                         , success: function (response) {
                             if (response.success) {
@@ -756,7 +756,7 @@ var application = {
                     var selected = $table.attr('data-selected');
                     if (selected) {
                         selected = selected.split(',');
-                        window.location.href = '/v/' + view + '/' + selected[selected.length - 1] + (subview ? '?parent=' + application.functions.getId() : '');
+                        window.location.href = '/v/' + view + '/' + selected[selected.length - 1] + (subview ? '?subview=' + subview + '&parent=' + application.functions.getId() : '');
                     } else {
                         application.notify.warning('Selecione um registro para Editar');
                     }
@@ -860,11 +860,12 @@ var application = {
                         var view = $table.attr('data-view');
                         var subview = $table.attr('data-subview');
                         var id = application.functions.getId();
+                        var redirect = '/v/' + view + '/0' + (subview ? '?subview=' + subview + (id > 0 ? '&parent=' + id : '') : '');
                         if (subview && ((id == 0 && permission.insertable) || (id > 0 && permission.editable))) {
-                            Cookies.set('subview_redirect', view);
+                            Cookies.set('subview_redirect', redirect);
                             $('#view-submit').trigger('click');
                         } else {
-                            window.location.href = '/v/' + view + '/0' + (subview ? '?parent=' + id : '');
+                            window.location.href = redirect;
                         }
                     }
                 });
@@ -880,7 +881,7 @@ var application = {
                         , data: $.extend({}, data, {
                             id: application.functions.getId()
                             , view: $(settings.nTable).attr('data-view')
-                            , issubview: $(settings.nTable).attr('data-subview') || false
+                            , subview: $(settings.nTable).attr('data-subview')
                         })
                         , beforeSend: function (jqXHR) {
                             if (tables[settings.sTableId]) {
@@ -952,7 +953,7 @@ var application = {
                 , rowId: 'id'
                 , scrollCollapse: true
                 , scrollX: true
-                , scrollY: $('#view' + data.name).attr('data-height') || data.subview ? '330px' : application.functions.getAvailableHeight() + 'px'
+                , scrollY: $('#view' + data.name).attr('data-height') || $('#view' + data.name).attr('data-subview') ? '330px' : application.functions.getAvailableHeight() + 'px'
                 , scroller: {
                     loadingIndicator: true
                 }
@@ -1031,7 +1032,7 @@ var application = {
                     return;
                 }
                 var selected = application.functions.getKeyFromArrayObject(tables[tableid].rows({ selected: true }).data(), 'id');
-                var href = '/v/' + view + '/' + tables[tableid].row(this).data().id + (subview ? '?parent=' + application.functions.getId() : '')
+                var href = '/v/' + view + '/' + tables[tableid].row(this).data().id + (subview ? '?subview=' + subview + '&parent=' + application.functions.getId() : '')
                 if (e.type == 'touchstart') {
                     touchStart(function () {
                         window.location.href = href;
@@ -1084,7 +1085,7 @@ var application = {
                         id: application.functions.getId()
                         , view: $this.attr('data-view')
                         , idmodelattribute: $this.attr('data-attribute')
-                        , issubview: $('#' + idtable).attr('data-subview') || false
+                        , subview: $('#' + idtable).attr('data-subview')
                     }
                     , success: function (response) {
                         var $totalize = $('.totalize[data-view="' + response.view + '"][data-attribute="' + response.attribute + '"]');
@@ -1455,7 +1456,7 @@ var application = {
                 if (subview_redirect) {
                     Cookies.remove('subview_redirect');
                     if (application.functions.getId() > 0)
-                        return window.location.href = '/v/' + subview_redirect + '/0' + '?parent=' + application.functions.getId();
+                        return window.location.href = subview_redirect;
                 }
 
                 if ('invalidfields' in response) {
@@ -1641,7 +1642,7 @@ var application = {
                     , type: 'GET'
                     , dataType: 'json'
                     , data: {
-                        issubview: $('[data-view="' + view + '"]').attr('data-subview') || false
+                        subview: $('[data-view="' + view + '"]').attr('data-subview')
                     }
                     , success: function (response) {
                         if (response.success)

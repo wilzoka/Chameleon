@@ -74,8 +74,8 @@ const application = require('../routes/application')
             throw new Error('Model "' + modelname + '" not found');
         }
     }
-    , findById = async (modelname, id) => {
-        return await getModel(modelname).findOne({ where: { id: id } });
+    , findById = async (modelname, id, raw = false) => {
+        return await getModel(modelname).findOne({ raw: raw, where: { id: id } });
     }
     , findOne = async (modelname, where) => {
         return await getModel(modelname).findOne({ where: where });
