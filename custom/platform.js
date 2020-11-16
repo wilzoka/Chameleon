@@ -4,10 +4,10 @@ const db = require('../models')
     , schedule = require('../routes/schedule')
     , ns = require('node-schedule')
     , messenger = require('../routes/messenger')
-    , lodash = require('lodash')
     , application = require('../routes/application')
     , Cyjs = require('crypto-js')
     , sharp = require('sharp')
+    , xlsx = require('xlsx')
     ;
 
 sharp.cache(false);
@@ -1557,256 +1557,43 @@ const platform = {
         }
         , export: {
             xls: async function (obj) {
-                let getFilter = function (cookie, modelattributes) {
-                    let obj = {};
-                    cookie = JSON.parse(cookie);
-                    let m;
-                    let v;
-                    for (let i = 0; i < cookie.length; i++) {
-                        for (let k in cookie[i]) {
-                            let field = k.split('+');
-                            switch (field[1]) {
-                                case 'date':
-                                    m = moment(cookie[i][k], 'DD/MM/YYYY');
-                                    cookie[i][k] = m.format('YYYY-MM-DD');
-                                    break;
-                                case 'datetime':
-                                    m = moment(cookie[i][k], 'DD/MM/YYYY HH:mm');
-                                    cookie[i][k] = m.format('YYYY-MM-DD HH:mm');
-                                    break;
-                                case 'time':
-                                    cookie[i][k] = application.formatters.be.time(cookie[i][k]);
-                                    break;
-                                case 'text':
-                                    cookie[i][k] = '%' + cookie[i][k] + '%';
-                                    break;
-                                case 'decimal':
-                                    v = cookie[i][k];
-                                    v = v.replace(/\./g, "");
-                                    v = v.replace(/\,/g, ".");
-                                    let precision = v.split('.')[1].length;
-                                    v = parseFloat(v).toFixed(precision);
-                                    cookie[i][k] = v;
-                                    break;
-                            }
-
-                            let o = {};
-                            switch (field[2]) {
-                                case 's':
-                                    Object.assign(o, { [db.Op.iLike]: cookie[i][k] })
-                                    break;
-                                case 'b':
-                                    Object.assign(o, { [db.Op.gte]: cookie[i][k] })
-                                    break;
-                                case 'e':
-                                    Object.assign(o, { [db.Op.lte]: cookie[i][k] })
-                                    break;
-                                case 'i':
-                                    Object.assign(o, { [db.Op.in]: cookie[i][k].val })
-                                    break;
-                                case 'r':
-                                    o = cookie[i][k];
-                                    break;
-                                // Virtuals
-                                case 'rv':
-                                    for (let z = 0; z < modelattributes.length; z++) {
-                                        if (field[0] == modelattributes[z].name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + " = " + cookie[i][k]);
-                                        }
-                                    }
-                                    break;
-                                case 'sv':
-                                    for (let z = 0; z < modelattributes.length; z++) {
-                                        if (field[0] == modelattributes[z].name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::text ilike '" + cookie[i][k] + "'");
-                                        }
-                                    }
-                                    break;
-                                case 'bv':
-                                    for (let z = 0; z < modelattributes.length; z++) {
-                                        if (field[0] == modelattributes[z].name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal >= " + cookie[i][k]);
-                                        }
-                                    }
-                                    break;
-                                case 'ev':
-                                    for (let z = 0; z < modelattributes.length; z++) {
-                                        if (field[0] == modelattributes[z].name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).subquery + "::decimal <= " + cookie[i][k]);
-                                        }
-                                    }
-                                    break;
-                                case 'iv':
-                                    for (let z = 0; z < modelattributes.length; z++) {
-                                        if (field[0] == modelattributes[z].name) {
-                                            o = db.Sequelize.literal(application.modelattribute.parseTypeadd(modelattributes[z].typeadd).field + ' in (' + cookie[i][k].val + ')');
-                                        }
-                                    }
-                                    break;
-                            }
-
-                            if (o && obj[field[0]]) {
-                                obj[field[0]] = lodash.extend(obj[field[0]], o);
-                            } else if (o) {
-                                obj[field[0]] = o;
-                            }
-
-                        }
-
-                    }
-
-                    return obj;
-                }
-                let fixResults = function (registers, modelattributes) {
-                    let j = {};
-                    let modelattributenames = [];
-                    for (let i = 0; i < modelattributes.length; i++) {
-                        modelattributenames.push(modelattributes[i].name);
-
-                        if (modelattributes[i].typeadd) {
-                            j = application.modelattribute.parseTypeadd(modelattributes[i].typeadd);
-                        }
-
-                        switch (modelattributes[i].type) {
-                            case 'autocomplete':
-                                let vas = j.as || j.model;
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][modelattributes[i].name]) {
-                                        registers[x][modelattributes[i].name] = registers[x][vas + '.' + j.attribute];
-                                    }
-                                }
-                                break;
-                            case 'datetime':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][modelattributes[i].name]) {
-                                        registers[x][modelattributes[i].name] = application.formatters.fe.datetime(registers[x][modelattributes[i].name]) + ':00';
-                                    }
-                                }
-                                break;
-                            case 'time':
-                                for (let x = 0; x < registers.length; x++) {
-                                    if (registers[x][modelattributes[i].name]) {
-                                        registers[x][modelattributes[i].name] = application.formatters.fe.time(registers[x][modelattributes[i].name]);
-                                    }
-                                }
-                                break;
-                        }
-
-                    }
-
-                    for (let i = 0; i < registers.length; i++) {
-                        for (let k in registers[i]) {
-                            if (k != 'id' && modelattributenames.indexOf(k) < 0) {
-                                delete registers[i][k];
-                            }
-                        }
-                    }
-
-                    return registers;
-                }
-                let toColumnName = function (num) {
-                    for (let ret = '', a = 1, b = 26; (num -= a) >= 0; a = b, b *= 26) {
-                        ret = String.fromCharCode(parseInt((num % b) / a) + 65) + ret;
-                    }
-                    return ret;
-                }
                 try {
-                    const XLSX = require('xlsx');
-                    const view = await db.getModel('view').findOne({ where: { id: obj.event.view.id }, include: [{ all: true }] });
-                    const viewfields = await db.getModel('viewfield').findAll({ where: { idview: view.id }, include: [{ all: true }], order: [['order', 'asc']] });
-                    const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-                    let where = {};
-                    if (view.wherefixed) {
-                        view.wherefixed = view.wherefixed.replace(/\$user/g, obj.req.user.id);
-                        Object.assign(where, { [db.Op.col]: db.Sequelize.literal(view.wherefixed) });
+                    const parameters = JSON.parse(application.functions.singleSpace(obj.event.parameters));
+                    const view = await db.findById('view', obj.event.idview);
+                    const registers = (await platform.view.f_getFilteredRegisters(obj)).rows;
+                    if (registers.length > 5000) {
+                        return application.error(obj.res, { msg: 'Não é possível exportar mais que 5 mil registros' });
                     }
-                    if ('view' + view.id + 'filter' in obj.req.cookies) {
-                        Object.assign(where, getFilter(obj.req.cookies['view' + view.id + 'filter'], modelattributes));
-                    }
-                    let attributes = ['id'];
-                    let header = ['id'];
-                    for (let i = 0; i < viewfields.length; i++) {
-                        switch (viewfields[i].modelattribute.type) {
-                            case 'virtual':
-                                attributes.push([db.Sequelize.literal(application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).subquery), viewfields[i].modelattribute.name]);
-                                break;
-                            default:
-                                attributes.push(viewfields[i].modelattribute.name);
-                                break;
+                    const mas = {};
+                    const structure = [parameters.columnsLabel];
+                    for (const r of registers) {
+                        const row = [];
+                        for (const c of parameters.columns) {
+                            if (!mas[c]) {
+                                mas[c] = await db.findOne('modelattribute', { idmodel: view.idmodel, name: c });
+                            }
+                            if (mas[c]) {
+                                if (mas[c].type == 'decimal') {
+                                    row.push(r[c] ? application.formatters.be.decimal(r[c]) : null);
+                                } else if (mas[c].type == 'boolean') {
+                                    row.push(r[c] ? 'Sim' : 'Não');
+                                } else {
+                                    row.push(r[c]);
+                                }
+                            } else {
+                                row.push(r[c]);
+                            }
                         }
-                        header.push(viewfields[i].modelattribute.name);
-                    }
-                    let registers = await db.getModel(view.model.name).findAll({
-                        attributes: attributes
-                        , raw: true
-                        , include: [{ all: true }]
-                        , where: where
-                    });
-                    registers = fixResults(registers, modelattributes);
-                    const wb = XLSX.utils.book_new();
-                    wb.SheetNames.push('Sheet1');
-                    const ws = XLSX.utils.json_to_sheet(registers, { header: header, cellDates: true });
-                    for (let i = 0; i < viewfields.length; i++) {
-                        let cn = toColumnName(i + 2);
-                        switch (viewfields[i].modelattribute.type) {
-                            case 'decimal':
-                                for (let z = 0; z < registers.length; z++) {
-                                    ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
-                                }
-                                break;
-                            case 'integer':
-                                for (let z = 0; z < registers.length; z++) {
-                                    ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
-                                }
-                                break;
-                            case 'date':
-                                for (let z = 0; z < registers.length; z++) {
-                                    ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 's' });
-                                }
-                                break;
-                            case 'datetime':
-                                for (let z = 0; z < registers.length; z++) {
-                                    ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 's' });
-                                }
-                                break;
-                            case 'virtual':
-                                switch (application.modelattribute.parseTypeadd(viewfields[i].modelattribute.typeadd).type) {
-                                    case 'decimal':
-                                        for (let z = 0; z < registers.length; z++) {
-                                            ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
-                                        }
-                                        break;
-                                    case 'integer':
-                                        for (let z = 0; z < registers.length; z++) {
-                                            ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'n' });
-                                        }
-                                        break;
-                                    case 'date':
-                                        for (let z = 0; z < registers.length; z++) {
-                                            ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'd' });
-                                        }
-                                        break;
-                                    case 'datetime':
-                                        for (let z = 0; z < registers.length; z++) {
-                                            ws[cn + (z + 2)] = lodash.extend(ws[cn + (z + 2)], { t: 'd' });
-                                        }
-                                        break;
-                                }
-                                break;
-                        }
-                    }
-                    //Fix Header
-                    ws['A1'] = lodash.extend(ws['A1'], { v: 'ID' });
-                    for (let i = 0; i < viewfields.length; i++) {
-                        const cn = toColumnName(i + 2);
-                        ws[cn + '1'] = lodash.extend(ws[cn + '1'], { v: viewfields[i].modelattribute.label });
+                        structure.push(row);
                     }
                     const filename = process.hrtime()[1] + '.xls';
-                    wb.Sheets['Sheet1'] = ws;
-                    XLSX.writeFile(wb, `${__dirname}/../tmp/${process.env.NODE_APPNAME}/${filename}`);
-                    return application.success(obj.res, { openurl: '/download/' + filename });
+                    const wb = xlsx.utils.book_new();
+                    wb.SheetNames.push('Sheet1');
+                    wb.Sheets['Sheet1'] = xlsx.utils.aoa_to_sheet(structure);;
+                    xlsx.writeFile(wb, `${application.functions.tmpDir()}${filename}`);
+                    application.success(obj.res, { openurl: '/download/' + filename });
                 } catch (err) {
-                    return application.fatal(obj.res, err);
+                    application.fatal(obj.res, err);
                 }
             }
             , pdf: async function (obj) {
