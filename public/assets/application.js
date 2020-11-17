@@ -17,6 +17,7 @@ if ($.fn.dataTable) {
             , sZeroRecords: 'Nenhum registro correspondente foi encontrado'
             , sEmptyTable: 'Vazio'
         }
+        , aaSorting: [[0, 'desc']]
     });
     $.extend(true, $.fn.dataTable.ext.classes, {
         sFilterInput: 'form-control'

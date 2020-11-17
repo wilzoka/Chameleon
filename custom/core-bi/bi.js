@@ -476,11 +476,11 @@ let bi = {
             bi.cube.f_desagendar(cube.id);
             let rule = null;
             if (cube.loadfrequency == 'De Hora em Hora') {
-                rule = '0 * * * *';
+                rule = '5 * * * *';
             } else if (cube.loadfrequency == 'Diariamente') {
-                rule = '0 0 * * *';
+                rule = '0 1 * * *';
             } else if (cube.loadfrequency == 'Semanalmente') {
-                rule = '0 0 * * 1'; //Segunda
+                rule = '0 1 * * 1'; //Segunda
             }
             if (rule)
                 cube_schedules[cube.id] = schedule.scheduleJob(rule
