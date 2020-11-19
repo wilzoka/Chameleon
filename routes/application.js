@@ -22,12 +22,13 @@ const application = {
 					, name: ''
 					, value: ''
 					, disabled: ''
+					, placeholder: ''
 				}, obj);
 				return `
 				<div class="col-md-${o.width}">
 					<div class="form-group">
 						<label>${o.label}</label>
-						<input name="${o.name}" type="text" class="form-control" value="${o.value}" data-type="text" ${o.disabled}>
+						<input name="${o.name}" type="text" class="form-control" value="${o.value}" data-type="text" placeholder="${o.placeholder}" ${o.disabled}>
 					</div>
 				</div>`;
 			}
