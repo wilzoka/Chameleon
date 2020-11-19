@@ -89,7 +89,7 @@ h4.title_subview {
     padding: 3px 10px;
 }
 .treeview-menu > li > a {
-    padding: 10px 5px 10px 15px;
+    padding: 9px 5px 9px 15px;
 }
 .box {
     border-top: 2px solid #d2d6de;
@@ -122,6 +122,9 @@ ul.dropdown-menu > li > a > i {
 }
 hr {
     border-top: 1px solid #d4d4d4;
+}
+.sidebar-menu>li>a {
+    padding: 9px 5px 9px 15px;
 }
 
 /* Bootstrap */
