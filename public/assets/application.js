@@ -957,6 +957,7 @@ var application = {
                 , scrollY: $('#view' + data.name).attr('data-height') || $('#view' + data.name).attr('data-subview') ? '330px' : application.functions.getAvailableHeight() + 'px'
                 , scroller: {
                     loadingIndicator: true
+                    , displayBuffer: 9
                 }
                 , select: {
                     style: 'multi'

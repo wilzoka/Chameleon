@@ -108,14 +108,27 @@ module.exports = function (app) {
                         , offset: req.body.start
                     }
                 }
-                let registers = await db.getModel(view.model.name).findAndCountAll(Object.assign({}, pagination, {
+                const registers = platform.view.f_fixResults(await db.getModel(view.model.name).findAndCountAll(Object.assign({}, pagination, {
                     attributes: attributes
                     , raw: true
                     , include: [{ all: true }]
                     , where: where
                     , order: [[ordercolumn, orderdir], ['id', orderdir]]
-                }));
-                registers = platform.view.f_fixResults(registers, await db.findAll('modelattribute', { idmodel: view.idmodel }));
+                })), modelattributes);
+                // Remove unwanted fields
+                const viewtables = await db.getModel('viewtable').findAll({ include: [{ all: true }], where: { idview: view.id } });
+                const keys = ['id'];
+                for (let i = 0; i < viewtables.length; i++) {
+                    keys.push(viewtables[i].modelattribute.name);
+                }
+                for (let i = 0; i < registers.rows.length; i++) {
+                    for (let k in registers.rows[i]) {
+                        if (keys.indexOf(k) < 0) {
+                            delete registers.rows[i][k];
+                        }
+                    }
+                }
+                // --
                 application.success(res, {
                     recordsTotal: registers.count
                     , recordsFiltered: registers.count
