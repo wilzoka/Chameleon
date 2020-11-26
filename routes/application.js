@@ -324,7 +324,7 @@ const application = {
 				}
 			}
 			, decimal: function (value) {
-				value = value.replace(/\./g, '');
+				value = value.toString().replace(/\./g, '');
 				value = value.replace(/\,/g, '.');
 				return parseFloat(value);
 			}

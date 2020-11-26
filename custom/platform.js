@@ -1625,7 +1625,7 @@ const platform = {
                                         total[z]++;
                                         break;
                                     case 'sum':
-                                        total[z] += parseFloat(application.formatters.be.decimal(registers[i][parameters.columns[z]] || '0', parameters.totalPrecision[z]));
+                                        total[z] += parseFloat(application.formatters.be.decimal(registers[i][parameters.columns[z]] || '0'));
                                         break;
                                     default:
                                         break;
@@ -1638,7 +1638,7 @@ const platform = {
                         report.__table += `<tr><td style="text-align:center;" colspan="${parameters.columns.length}"><strong> Totais </strong></td></tr>`;
                         report.__table += '<tr>';
                         for (let i = 0; i < parameters.columns.length; i++) {
-                            report.__table += `<td style="text-align:${parameters.columnsAlign[i] || 'left'};"> ${parameters.total[i] == 'sum' ? application.formatters.fe.decimal(total[i], parameters.totalPrecision[i] || 2) : total[i] || ''} </td>`;
+                            report.__table += `<td style="text-align:${parameters.columnsAlign[i] || 'left'};"> ${parameters.total[i] == 'sum' ? application.formatters.fe.decimal(total[i], parameters.totalPrecision[i]) : total[i] || ''} </td>`;
                         }
                         report.__table += '</tr>';
                     }
