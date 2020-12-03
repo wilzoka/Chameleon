@@ -74,7 +74,7 @@ module.exports = function (app) {
                     return application.forbidden(res);
                 }
             }
-            const filepath = `${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`;
+            const filepath = `${application.functions.filesDir()}${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
                 res.setHeader('Content-Length', file.size);
                 res.setHeader('Content-Type', file.mimetype);
@@ -112,7 +112,8 @@ module.exports = function (app) {
                     return application.fatal(res, err);
                 if (!req.file)
                     return application.fatal(res, 'No file given');
-                const filename = application.functions.removeSpecialCharacters(application.functions.singleSpace(req.file.filename));
+                const filename = application.functions.removeSpecialCharacters(application.functions.singleSpace(req.file.filename))
+                    .replace(/\,/g, '');
                 const filenamesplited = filename.split('.');
                 const type = filenamesplited[filenamesplited.length - 1].toLowerCase();
                 const mimetype = mime.lookup(type) || '';
@@ -125,7 +126,7 @@ module.exports = function (app) {
                     , datetime: moment()
                     , iduser: req.user.id
                 });
-                let path = `${__dirname}/../files/${process.env.NODE_APPNAME}/`;
+                let path = application.functions.filesDir();
                 if (mimetype.match(/image.*/)) {
                     const quality = 80;
                     const maxwh = parseInt(req.body.maxwh || 0);
