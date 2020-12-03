@@ -737,7 +737,7 @@ var application = {
             // Renders
             for (var i = 0; i < data.columns.length; i++) {
                 if (data.columns[i].render) {
-                    data.columns[i].render = application.tables.renders[data.columns[i].render];
+                    data.columns[i].render = application.tables.renders[data.columns[i].render].bind({ lineheight: data.lineheight || 1 });
                 } else {
                     data.columns[i].render = application.tables.renders['div'].bind({ lineheight: data.lineheight || 1 });
                 }
@@ -1136,7 +1136,7 @@ var application = {
                 if (value) {
                     var j = JSON.parse(value);
                     if (j.length == 1 && j[0].mimetype.match(/image.*/)) {
-                        return '<img src="/file/' + j[0].id + '" style="max-height: 17px;">';
+                        return '<img src="/file/' + j[0].id + '" style="max-height: ' + (this.lineheight * 17) + 'px;">';
                     } else {
                         return '<span class="fa-stack" style="font-size:8px;"><i class="fa-2x far fa-file"></i><strong class="fa-stack-1x">' + j.length + '</strong></span>';
                     }
