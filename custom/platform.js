@@ -36,6 +36,7 @@ const platform = {
                         let value = audits[i].changes[k];
                         const j = JSON.parse(application.functions.singleSpace(ma[k].typeadd || '') || '{}');
                         if (value == null) {
+                            audits[i].translate[ma[k].label] = '(nulo)';
                             continue;
                         }
                         switch (ma[k].type) {
