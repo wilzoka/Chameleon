@@ -449,14 +449,47 @@ let bi = {
         }
         , f_otimizar: async (idcube) => {
             try {
-                let cube = await db.getModel('bi_cube').findOne({ where: { id: idcube } });
+                const cube = await db.getModel('bi_cube').findOne({ where: { id: idcube } });
                 if (cube && !cube.virtual) {
                     const dimensions = await db.getModel('bi_cubedimension').findAll({ where: { idcube: cube.id } });
+                    const measures = await db.getModel('bi_cubemeasure').findAll({ where: { idcube: cube.id } });
                     let indexes = [];
                     for (let i = 0; i < dimensions.length; i++) {
                         indexes.push(`create index "idx_bi_cube_${idcube}_${dimensions[i].sqlfield}" on bi_cube_${idcube}("${dimensions[i].sqlfield}")`);
                     }
-                    await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql};` + indexes.join(';'));
+                    if (cube.datasource) {
+                        const config = await db.getModel('config').findOne();
+                        const custom = require(application.functions.rootDir() + `custom/${config.customfile}`);
+                        const dsf = application.functions.getRealReference(custom, cube.datasource);
+                        if (dsf) {
+                            const data = await dsf(cube.sql);
+                            const ct = [];
+                            const keys = [];
+                            for (const d of dimensions) {
+                                ct.push(`"${d.sqlfield}" Text`);
+                                keys.push(`"${d.sqlfield}"`);
+                            }
+                            for (const m of measures) {
+                                ct.push(`"${m.sqlfield}" Numeric`);
+                                keys.push(`"${m.sqlfield}"`);
+                            }
+                            await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} (${ct.join(',')});` + indexes.join(';'));
+                            for (const d of data) {
+                                await db.sequelize.query(`insert into bi_cube_${idcube}
+                                (${keys.join(',')}) 
+                                values
+                                (
+                                    ${dimensions.map((dim) => { return `'${d[dim.sqlfield]}'`; })}
+                                    , ${measures.map((mea) => { return d[mea.sqlfield]; })}
+                                ) `);
+                            }
+                        } else {
+                            console.error(`Função DS não encontrada no cubo ${cube.description}`);
+                        }
+                    } else {
+                        await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql};` + indexes.join(';'));
+
+                    }
                     cube.lastloaddate = moment();
                     await cube.save();
                 }
