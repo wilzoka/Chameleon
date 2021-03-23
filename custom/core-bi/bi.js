@@ -479,8 +479,8 @@ let bi = {
                                 (${keys.join(',')}) 
                                 values
                                 (
-                                    ${dimensions.map((dim) => { return `'${d[dim.sqlfield]}'`; })}
-                                    , ${measures.map((mea) => { return d[mea.sqlfield]; })}
+                                    ${dimensions.map((dim) => { return d[dim.sqlfield] ? `'${d[dim.sqlfield]}'` : 'N/I'; })}
+                                    , ${measures.map((mea) => { return d[mea.sqlfield] ? d[mea.sqlfield] : 'null'; })}
                                 ) `);
                             }
                         } else {
