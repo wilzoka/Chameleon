@@ -4,6 +4,7 @@ const application = require('../../routes/application')
     , puppeteer = require('puppeteer')
     , moment = require('moment')
     , schedule = require('node-schedule')
+    , mail = require('../core/modules/mail')
     ;
 
 let cube_schedules = [];
@@ -938,6 +939,25 @@ let bi = {
                         });
                     }
                     application.success(obj.res, { msg: application.message.success });
+                }
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
+    }
+    , analysisuser: {
+        onsave: async (obj, next) => {
+            try {
+                const saved = await next(obj);
+                if (saved.success) {
+                    const analysis = await db.findById('bi_analysis', saved.register.idanalysis);
+                    const user = await db.findById('users', saved.register.iduser);
+                    if (user && user.email)
+                        mail.f_sendmail({
+                            to: [user.email]
+                            , subject: `SIP - Nova Análise Compartilhada`
+                            , html: `Análise: <a href="https://${process.env.NODE_APPNAME}.plastrela.com.br/v/analise/${saved.register.id}" target="_blank">${analysis.description}</a>`
+                        });
                 }
             } catch (err) {
                 application.fatal(obj.res, err);
