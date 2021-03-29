@@ -520,6 +520,12 @@ let bi = {
                 if (obj.register.id == 0) {
                     obj.register.iduser = obj.req.user.id;
                 }
+                if (obj.register.iduser != obj.req.user.id) {
+                    const share = await db.findOne('bi_analysisuser', { idanalysis: obj.register.id, iduser: obj.req.user.id });
+                    if (!share || !share.editable) {
+                        return application.error(obj.res, { msg: 'Você não tem permissão par editar esta análise' });
+                    }
+                }
                 await next(obj);
             } catch (err) {
                 return application.fatal(obj.res, err);

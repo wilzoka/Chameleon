@@ -165,6 +165,7 @@
     <div class="col-md-1 no-padding-left">
         <div class="btn-group-vertical" style="width: 100%;">
             <button type="button" class="btn btn-default" id="actconfig"><i class="fa fa-cog"></i></button>
+            <button type="button" class="btn btn-default" id="actshare"><i class="fa fa-share-alt"></i></button>
             <button type="button" class="btn btn-default" id="actprint"><i class="fa fa-print"></i></button>
         </div>
     </div>
@@ -209,6 +210,11 @@
                                 </li>
                                 <li>
                                     <a href="#tab_2" data-toggle="tab">
+                                        Gráfico
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#tab_3" data-toggle="tab">
                                         Medidas Calculadas
                                     </a>
                                 </li>
@@ -265,7 +271,19 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane" id="tab_2">
+                                <div class="tab-pane active" id="tab_2">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <div class="form-group">
+                                                    <label>Cor1</label>
+                                                    <input name="color1" type="color" class="form-control" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="tab_3">
                                     <div class="row">
                                         <div class="col-md-12 no-padding">
                                             <div class="col-sm-3 no-padding">
@@ -317,6 +335,21 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalshare">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    {{{share}}}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
             </div>
         </div>
     </div>
@@ -629,6 +662,7 @@
                                 , height: $(window).height() * 0.60
                                 // , polar:true
                             }
+                            // , colors: ["#7ce5ec", "#7co5ec"]
                             , title: {
                                 text: chart.charts[i].title || ''
                             }
@@ -919,6 +953,19 @@
                 }
             });
         });
+
+        $('#actshare').click(function () {
+            $('#modalshare').modal('show');
+        });
+        $('#modalshare').on('shown.bs.modal', function () {
+            Cookies.set('modalshare', true);
+        });
+        $('#modalshare').on('hidden.bs.modal', function () {
+            Cookies.remove('modalshare');
+        });
+        if (Cookies.get('modalshare')) {
+            $('#modalshare').modal('show');
+        }
 
         $(document).on('app-loadjs', function () {
             //Sortable
