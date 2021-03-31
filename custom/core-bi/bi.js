@@ -476,7 +476,7 @@ let bi = {
                             }
                             await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} (${ct.join(',')});` + indexes.join(';'));
                             for (const d of data) {
-                                await db.sequelize.query(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] ? `'${d[k]}'` : 'null'; })})`);
+                                await db.sequelize.query(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${d[k]}'` : 'null'; })})`);
                             }
                         } else {
                             console.error(`Função DS não encontrada no cubo ${cube.description}`);
