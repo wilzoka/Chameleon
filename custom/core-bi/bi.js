@@ -965,7 +965,36 @@ let bi = {
         }
     }
     , dashboard: {
-        js_renderAnalysis: async (obj) => {
+        onsave: async (obj, next) => {
+            try {
+                if (!obj.register.iduser)
+                    obj.register.iduser = obj.req.user.id;
+                if (obj.register.iduser != obj.req.user.id) {
+                    const perm = await db.findOne('bi_dashboarduser', { iddashboard: obj.register.id, iduser: obj.req.user.id, editable: true });
+                    if (!perm)
+                        return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                }
+                await next(obj);
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
+        , ondelete: async (obj, next) => {
+            try {
+                const ds = await db.findAll('bi_dashboard', { id: { [db.Op.in]: obj.ids } });
+                for (const d of ds) {
+                    if (d.iduser != obj.req.user.id) {
+                        const perm = await db.findOne('bi_dashboarduser', { iddashboard: d.id, iduser: obj.req.user.id, editable: true });
+                        if (!perm)
+                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                    }
+                }
+                await next(obj);
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
+        , js_renderAnalysis: async (obj) => {
             try {
                 const dashboardanalysis = await db.getModel('bi_dashboardanalysis').findAll({ raw: true, where: { iddashboard: obj.data.iddashboard }, order: [['order', 'asc']] });
                 let rendered = [];
@@ -987,6 +1016,76 @@ let bi = {
                     rendered.push({ analysis: analysis, dashboardanalysis: dashboardanalysis[i], data: bi.f_pivot(sql, options) });
                 }
                 return application.success(obj.res, { rendered: rendered });
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
+    }
+    , dashboardanalysis: {
+        onsave: async (obj, next) => {
+            try {
+                const dashboard = await db.findById('bi_dashboard', obj.register.iddashboard || 0);
+                if (!dashboard)
+                    return application.error(obj.res, { msg: 'Dashboard não encontrado' });
+                if (obj.req.user.id != dashboard.iduser) {
+                    const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
+                    if (!perm)
+                        return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                }
+                await next(obj);
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
+        , ondelete: async (obj, next) => {
+            try {
+                const dus = await db.findAll('bi_dashboardanalysis', { id: { [db.Op.in]: obj.ids } });
+                for (const du of dus) {
+                    const dashboard = await db.findById('bi_dashboard', du.iddashboard);
+                    if (!dashboard)
+                        return application.error(obj.res, { msg: 'Dashboard não encontrado' });
+                    if (obj.req.user.id != dashboard.iduser) {
+                        const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
+                        if (!perm)
+                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                    }
+                }
+                await next(obj);
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
+    }
+    , dashboarduser: {
+        onsave: async (obj, next) => {
+            try {
+                const dashboard = await db.findById('bi_dashboard', obj.register.iddashboard || 0);
+                if (!dashboard)
+                    return application.error(obj.res, { msg: 'Dashboard não encontrado' });
+                if (obj.req.user.id != dashboard.iduser) {
+                    const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
+                    if (!perm)
+                        return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                }
+                await next(obj);
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
+        , ondelete: async (obj, next) => {
+            try {
+                const dus = await db.findAll('bi_dashboarduser', { id: { [db.Op.in]: obj.ids } });
+                for (const du of dus) {
+                    const dashboard = await db.findById('bi_dashboard', du.iddashboard);
+                    if (!dashboard)
+                        return application.error(obj.res, { msg: 'Dashboard não encontrado' });
+                    if (obj.req.user.id != dashboard.iduser) {
+                        const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
+                        if (!perm)
+                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                    }
+                }
+                await next(obj);
             } catch (err) {
                 application.fatal(obj.res, err);
             }
