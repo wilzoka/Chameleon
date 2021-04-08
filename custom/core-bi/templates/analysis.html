@@ -947,7 +947,7 @@
             for (var i = 0; i < chart.charts.length; i++) {
                 svgs.push(chart.dom[i].getSVG({ chart: { width: 1300, height: 930 } }));
             }
-            application.jsfunction('platform.core_bi.analysis.js_print', { table: $('#divtable').html(), charts: svgs }, function (response) {
+            application.jsfunction('platform.core_bi.analysis.js_print', { title: $('input[name="description"]').val(), table: $('#divtable').html(), charts: svgs }, function (response) {
                 if (response.success) {
                     application.handlers.responseSuccess(response);
                 }

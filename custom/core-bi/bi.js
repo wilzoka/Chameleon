@@ -860,6 +860,9 @@ let bi = {
                         <style>
                             ${fs.readFileSync(`${application.functions.rootDir()}public/assets/pivotjs/pivot.css`)}
                         </style>
+                        <div style="width:100%;text-align:center;">
+                            <h4>${obj.data.title || ''}</h4>
+                        </div>
                         ${obj.data.table}
                         ${pagebreak}
                         <div style="width:100%">
