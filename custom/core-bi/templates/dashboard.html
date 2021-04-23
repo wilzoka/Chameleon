@@ -101,7 +101,7 @@
             }
         }
 
-        function renderChart(id, data, opts) {
+        function renderChart(id, data, type) {
             Highcharts.setOptions({
                 lang: {
                     decimalPoint: ','
@@ -113,7 +113,7 @@
             });
             var options = {
                 chart: {
-                    type: opts.type
+                    type: decodeChartType(type)
                 }
                 , title: {
                     text: data.title || ''
@@ -131,14 +131,14 @@
                     enabled: false
                 }
             }
-            if (opts.original.includes('Empilhada') > 0) {
+            if (type && type.includes('Empilhada') > 0) {
                 options.plotOptions = {
                     series: {
                         stacking: 'normal'
                     }
                 };
             }
-            if (opts.type == 'solidgauge') {
+            if (type == 'Velocímetro') {
                 // options.chart.width = 300;
                 // options.chart.height = 200;
                 for (var z = 0; z < options.series.length; z++) {
@@ -211,11 +211,7 @@
                                 .replace('${width}', el.dashboardanalysis.width)
                             );
                             if (el.dashboardanalysis.viewtype == 'Gráfico') {
-                                var chartopts = {
-                                    type: decodeChartType(el.analysis.charttype)
-                                    , original: el.analysis.charttype
-                                };
-                                renderChart(el.dashboardanalysis.id, el.data.charts[0], chartopts);
+                                renderChart(el.dashboardanalysis.id, el.data.charts[0], el.analysis.charttype);
                             }
                         }
                     }
