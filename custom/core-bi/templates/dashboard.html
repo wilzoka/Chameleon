@@ -131,7 +131,7 @@
                     enabled: false
                 }
             }
-            if (opts.type.includes('Empilhada') > 0) {
+            if (opts.original.includes('Empilhada') > 0) {
                 options.plotOptions = {
                     series: {
                         stacking: 'normal'
@@ -213,6 +213,7 @@
                             if (el.dashboardanalysis.viewtype == 'Gráfico') {
                                 var chartopts = {
                                     type: decodeChartType(el.analysis.charttype)
+                                    , original: el.analysis.charttype
                                 };
                                 renderChart(el.dashboardanalysis.id, el.data.charts[0], chartopts);
                             }
