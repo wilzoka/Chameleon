@@ -131,6 +131,13 @@
                     enabled: false
                 }
             }
+            if (opts.type.includes('Empilhada') > 0) {
+                options.plotOptions = {
+                    series: {
+                        stacking: 'normal'
+                    }
+                };
+            }
             if (opts.type == 'solidgauge') {
                 // options.chart.width = 300;
                 // options.chart.height = 200;
