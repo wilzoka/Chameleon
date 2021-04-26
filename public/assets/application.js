@@ -218,14 +218,14 @@ var application = {
                 application.register.attributesChanged = [];
                 window.location.reload();
             });
-            window.addEventListener("beforeunload", function (e) {
-                if (application.register.attributesChanged.length > 0) {
-                    var confirmationMessage = 'Parece que você estava editando alguma informação. '
-                        + 'Se você sair, as alterações serão perdidas, deseja prosseguir?';
-                    (e || window.event).returnValue = confirmationMessage; //Gecko + IE
-                    return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
-                }
-            });
+            // window.addEventListener("beforeunload", function (e) {
+            //     if (application.register.attributesChanged.length > 0) {
+            //         var confirmationMessage = 'Parece que você estava editando alguma informação. '
+            //             + 'Se você sair, as alterações serão perdidas, deseja prosseguir?';
+            //         (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+            //         return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+            //     }
+            // });
             $(document).ready(function () {
                 if (localStorage.getItem('msg')) {
                     application.notify.success(localStorage.getItem('msg'));
