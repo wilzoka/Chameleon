@@ -1109,6 +1109,7 @@ module.exports = function (app) {
             if (!register && id != 0) {
                 return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
             }
+            const lastaudit = await db.getModel('audit').findOne({ attributes: ['id'], raw: true, where: { idmodel: view.idmodel, modelid: id }, order: [['id', 'desc']] });
             const templatezones = await db.getModel('templatezone').findAll({
                 where: { idtemplate: view.template.id }
             });
@@ -1144,6 +1145,7 @@ module.exports = function (app) {
             res.setHeader('Cache-Control', 'no-cache, no-store');
             application.render(res, __dirname + '/../views/templates/viewregister.html', {
                 id: register ? register.id : 0
+                , lastaudit: lastaudit ? lastaudit.id : 0
                 , title: view.name
                 , events: events.join('')
                 , template: getTemplate(view.template.name)(zoneobj)
@@ -1366,9 +1368,31 @@ module.exports = function (app) {
                 where: { idview: view.id, disabled: { [db.Op.eq]: false } }
                 , include: [{ all: true }]
             });
+            const register = (await db.getModel(view.model.name).findOne({ where: { id: req.params.id }, include: [{ all: true }] })) || db.getModel(view.model.name).build({ id: 0 });
+            if (register.id > 0 && req.body._forcesubmit == 'false') {
+                const lastaudit = await db.getModel('audit').findOne({
+                    attributes: ['id']
+                    , raw: true
+                    , where: {
+                        id: { [db.Op.gt]: req.body._lastaudit || 0 }
+                        , idmodel: view.idmodel
+                        , modelid: req.params.id
+                    }
+                    , order: [['id', 'desc']]
+                });
+                if (lastaudit)
+                    return application.error(res, {
+                        modal: {
+                            id: 'modalevt'
+                            , title: 'Foram realizadas alterações antes de você salvar, escolha como prosseguir'
+                            , body: await platform.audit.f_track(view.model.id, register.id, parseInt(req.body._lastaudit) + 1)
+                            , footer: '<button type="button" class="btn btn-primary btn-keepmychanges"><b>MANTER</b> minhas alterações</button><button type="button" class="btn btn-primary btn-discardmychanges"><b>DESCARTAR</b> minhas alterações</button>'
+                            , fullscreen: true
+                        }
+                    });
+            }
             const subview = await db.getModel('viewsubview').findOne({ where: { idview: view.id } });
             const modelattributes = await db.getModel('modelattribute').findAll({ where: { idmodel: view.model.id } });
-            const register = (await db.getModel(view.model.name).findOne({ where: { id: req.params.id }, include: [{ all: true }] })) || db.getModel(view.model.name).build({ id: 0 });
             const obj = await modelate({
                 id: req.params.id
                 , view: view

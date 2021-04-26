@@ -132,6 +132,7 @@ var application = {
                                 $this.find('div.modal').modal('hide');
                             }
                         }
+                        application.register.attributesChanged = [];
                         application.handlers.responseSuccess(response);
                     }
                     , error: function (response) {
@@ -203,6 +204,27 @@ var application = {
             $(document).on('click', 'a.nav-notification-item', function (e) {
                 application.jsfunction('platform.notification.js_read', { id: $(this).attr('data-notification-id') });
                 e.stopPropagation();
+            });
+            $(document).on('change', 'input,select,textarea', function (e) {
+                if ($(e.target).is(':visible') && e.target.name != '') {
+                    application.register.attributesChanged.push(e.target.name);
+                }
+            });
+            $(document).on('click', '.btn-keepmychanges', function (e) {
+                $('input[name="_forcesubmit"]').val('true');
+                $('#view-submit').trigger('click');
+            });
+            $(document).on('click', '.btn-discardmychanges', function (e) {
+                application.register.attributesChanged = [];
+                window.location.reload();
+            });
+            window.addEventListener("beforeunload", function (e) {
+                if (application.register.attributesChanged.length > 0) {
+                    var confirmationMessage = 'Parece que você estava editando alguma informação. '
+                        + 'Se você sair, as alterações serão perdidas, deseja prosseguir?';
+                    (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+                    return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+                }
             });
             $(document).ready(function () {
                 if (localStorage.getItem('msg')) {
@@ -395,7 +417,6 @@ var application = {
             $el.find('input[data-type="integer"]').val('');
             $el.find('input[data-type="decimal"]').val('');
             $el.find('select[data-type="autocomplete"]').val(null).trigger('change');
-
             $el.find('input[type="radio"]').filter('[value=""]').prop('checked', true);
         }
         , date: function ($obj) {
@@ -409,6 +430,7 @@ var application = {
                     , useCurrent: false
                     , locale: 'pt-br'
                 }).on('dp.change', function () {
+                    application.register.attributesChanged.push($(this)[0].name);
                     // $(this).blur();
                 }).mask('00/00/0000');
             }
@@ -424,6 +446,7 @@ var application = {
                     , useCurrent: false
                     , locale: 'pt-br'
                 }).on('dp.change', function () {
+                    application.register.attributesChanged.push($(this)[0].name);
                     // $(this).blur();
                 }).mask('00/00/0000 00:00');
             }
@@ -1378,101 +1401,97 @@ var application = {
     , handlers: {
         responseSuccess: function (response) {
             $('div.form-group.has-error').removeClass('has-error');
-            if (response.success) {
 
-                if ('localstorage' in response) {
-                    var ls = response.localstorage;
-                    for (var i = 0; i < ls.length; i++) {
-                        localStorage.setItem(ls[i].key, ls[i].value);
-                    }
+            if ('localstorage' in response) {
+                var ls = response.localstorage;
+                for (var i = 0; i < ls.length; i++) {
+                    localStorage.setItem(ls[i].key, ls[i].value);
                 }
+            }
 
-                if ('msg' in response && ('redirect' in response || 'historyBack' in response)) {
-                    localStorage.setItem('msg', response.msg);
-                }
+            if ('msg' in response && ('redirect' in response || 'historyBack' in response)) {
+                localStorage.setItem('msg', response.msg);
+            }
 
-                if ('historyBack' in response && response.historyBack) {
-                    if (window.history.length > 1) {
-                        return window.history.back();
-                    } else {
-                        localStorage.removeItem('msg');
-                        return window.close();
-                    }
-                }
-
-                if ('redirect' in response) {
-                    if (application.functions.getId() == 0) {
-                        window.history.replaceState(null, null, response.redirect);
-                    }
-                    if ('subview_redirect' in response) {
-                        Cookies.remove('subview_redirect');
-                        localStorage.removeItem('msg');
-                        return window.location.href = response.subview_redirect;
-                    } else {
-                        return window.location.href = response.redirect;
-                    }
-                }
-
-                if ('msg' in response) {
-                    application.notify.success(response.msg);
-                }
-
-                if ('openurl' in response) {
-                    window.open(response.openurl);
-                }
-
-                if ('modal' in response) {
-                    if ('form' in response.modal && response.modal.form) {
-                        $('body').append('<form class="xhr" autocomplete="off" data-modal="true" action="' + (response.modal.action || '') + '">' + application.modal.create(response.modal) + '</form>');
-                    } else {
-                        $('body').append(application.modal.create(response.modal));
-                    }
-
-                    application.components.renderInside($('#' + response.modal.id));
-                    $(document).trigger('app-modal', response.modal);
-                    $('#' + response.modal.id).modal('show');
-                    $('#' + response.modal.id).on('hidden.bs.modal', function () {
-                        if ($(this).parent()[0] && $(this).parent()[0].tagName == 'BODY') {
-                            $(this).remove();
-                        } else {
-                            $(this).parent().remove();
-                        }
-                    });
+            if ('historyBack' in response && response.historyBack) {
+                if (window.history.length > 1) {
+                    return window.history.back();
                 } else {
-                    setTimeout(function () {
-                        eventFromRegister = false;
-                    }, 500);
+                    localStorage.removeItem('msg');
+                    return window.close();
                 }
+            }
 
-                if ('reloadtables' in response && response.reloadtables) {
-                    if (eventFromRegister) {
-                        return window.location.reload();
-                    } else {
-                        application.view.reloadAll(false);
-                    }
+            if ('redirect' in response) {
+                if (application.functions.getId() == 0) {
+                    window.history.replaceState(null, null, response.redirect);
                 }
-
-            } else {
-
-                var subview_redirect = Cookies.get('subview_redirect');
-                if (subview_redirect) {
+                if ('subview_redirect' in response) {
                     Cookies.remove('subview_redirect');
-                    if (application.functions.getId() > 0)
-                        return window.location.href = subview_redirect;
+                    localStorage.removeItem('msg');
+                    return window.location.href = response.subview_redirect;
+                } else {
+                    return window.location.href = response.redirect;
                 }
+            }
 
-                if ('invalidfields' in response) {
-                    for (var i = 0; i < response.invalidfields.length; i++) {
-                        $('input[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
-                        $('select[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
-                        $('textarea[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
-                    }
-                }
-
-                if ('msg' in response) {
+            if ('msg' in response) {
+                if (response.success) {
+                    application.notify.success(response.msg);
+                } else {
                     application.notify.error(response.msg);
                 }
+            }
 
+            if ('openurl' in response) {
+                window.open(response.openurl);
+            }
+
+            if ('modal' in response) {
+                if ('form' in response.modal && response.modal.form) {
+                    $('body').append('<form class="xhr" autocomplete="off" data-modal="true" action="' + (response.modal.action || '') + '">' + application.modal.create(response.modal) + '</form>');
+                } else {
+                    $('body').append(application.modal.create(response.modal));
+                }
+
+                application.components.renderInside($('#' + response.modal.id));
+                $(document).trigger('app-modal', response.modal);
+                $('#' + response.modal.id).modal('show');
+                $('#' + response.modal.id).on('hidden.bs.modal', function () {
+                    if ($(this).parent()[0] && $(this).parent()[0].tagName == 'BODY') {
+                        $(this).remove();
+                    } else {
+                        $(this).parent().remove();
+                    }
+                });
+            } else {
+                setTimeout(function () {
+                    eventFromRegister = false;
+                }, 500);
+            }
+
+            if ('reloadtables' in response && response.reloadtables) {
+                if (eventFromRegister) {
+                    return window.location.reload();
+                } else {
+                    application.view.reloadAll(false);
+                }
+            }
+
+            var subview_redirect = Cookies.get('subview_redirect');
+            if (subview_redirect) {
+                Cookies.remove('subview_redirect');
+                if (application.functions.getId() > 0)
+                    return window.location.href = subview_redirect;
+            }
+
+
+            if ('invalidfields' in response) {
+                for (var i = 0; i < response.invalidfields.length; i++) {
+                    $('input[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
+                    $('select[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
+                    $('textarea[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
+                }
             }
         }
         , responseError: function (response) {
@@ -1488,6 +1507,25 @@ var application = {
                 }
             }
         }
+    }
+    , jsfunction: function (name, obj, func) {
+        $.ajax({
+            url: '/jsfunction'
+            , type: 'POST'
+            , dataType: 'json'
+            , data: {
+                name: name
+                , data: obj || {}
+            }
+            , success: function (response) {
+                if (func) {
+                    func(response);
+                }
+            }
+            , error: function (response) {
+                application.handlers.responseError(response);
+            }
+        });
     }
     , modal: {
         create: function (obj) {
@@ -1614,24 +1652,8 @@ var application = {
             }, $.extend(application.notify.getOptions(), { type: 'warning', timer: message.length * 50 }));
         }
     }
-    , jsfunction: function (name, obj, func) {
-        $.ajax({
-            url: '/jsfunction'
-            , type: 'POST'
-            , dataType: 'json'
-            , data: {
-                name: name
-                , data: obj || {}
-            }
-            , success: function (response) {
-                if (func) {
-                    func(response);
-                }
-            }
-            , error: function (response) {
-                application.handlers.responseError(response);
-            }
-        });
+    , register: {
+        attributesChanged: []
     }
     , view: {
         getConfig: function (view, callback) {

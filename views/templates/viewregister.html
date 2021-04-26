@@ -37,6 +37,8 @@
 
       <input id="id" type="hidden" value="{{id}}" />
       <form id="form" class="xhr" autocomplete="off">
+        <input name="_lastaudit" type="hidden" value="{{lastaudit}}" />
+        <input name="_forcesubmit" type="hidden" value="false" />
         <section class="content" style="padding-bottom: 40px;">
           <div class="row">
             {{{template}}}

@@ -14,94 +14,98 @@ sharp.cache(false);
 
 const platform = {
     audit: {
-        e_track: async (obj) => {
+        f_track: async (idmodel, modelid, id) => {
+            const audits = await db.getModel('audit').findAll({ raw: true, include: [{ all: true }], where: { idmodel: idmodel, modelid: modelid, id: { [db.Op.gte]: id || 0 } }, order: [['id', 'desc']] });
+            const mas = await db.getModel('modelattribute').findAll({ raw: true, where: { idmodel: idmodel } });
+            const ma = {};
+            for (const el of mas) {
+                ma[el.name] = el;
+            }
+            for (let i = 0; i < audits.length; i++) {
+                audits[i].changes = JSON.parse(audits[i].changes);
+                audits[i].translate = {};
+                for (const k in audits[i].changes) {
+                    if (k == 'id')
+                        continue;
+                    if (!ma[k])
+                        continue;
+                    let value = audits[i].changes[k];
+                    const j = JSON.parse(application.functions.singleSpace(ma[k].typeadd || '') || '{}');
+                    if (value == null) {
+                        audits[i].translate[ma[k].label] = '(nulo)';
+                        continue;
+                    }
+                    switch (ma[k].type) {
+                        case 'autocomplete':
+                            const q = await db.getModel(j.model).findOne({
+                                attributes: [[j.query ? db.Sequelize.literal(j.query) : j.attribute, 'x']]
+                                , where: { id: value }
+                                , include: [{ all: true }]
+                                , raw: true
+                            });
+                            value = q ? q.x : `? (${value})`;
+                            break;
+                        case 'boolean':
+                            value = value ? 'Sim' : 'Não';
+                            break;
+                        case 'date':
+                            value = application.formatters.fe.date(value);
+                            break;
+                        case 'datetime':
+                            value = application.formatters.fe.datetime(value);
+                            break;
+                        case 'decimal':
+                            value = application.formatters.fe.decimal(value, j.precision || 2);
+                            break;
+                        case 'text':
+                            value = value;
+                            break;
+                        case 'textarea':
+                            value = value;
+                            break;
+                        case 'time':
+                            value = application.formatters.fe.time(value);
+                            break;
+                    };
+                    audits[i].translate[ma[k].label] = value;
+                }
+            }
+            let body = `
+            <div class="col-md-12">
+            <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
+                <tr>
+                    <td style="text-align:center;"><strong>Data/Hora</strong></td>
+                    <td style="text-align:center;"><strong>Usuário</strong></td>
+                    <td style="text-align:center;"><strong>Tipo</strong></td>
+                    <td style="text-align:center;"><strong>Alterações</strong></td>
+                </tr>
+            `;
+            for (let i = 0; i < audits.length; i++) {
+                const translate = [];
+                for (let k in audits[i].translate) {
+                    translate.push('<b>' + k + '</b>: ' + audits[i].translate[k]);
+                }
+                body += `
+                <tr>
+                    <td style="text-align:center;"> ${application.formatters.fe.datetime(audits[i]['datetime'])}   </td>
+                    <td style="text-align:center;">  ${audits[i]['users.fullname'] || ''}   </td>
+                    <td style="text-align:center;">  ${audits[i]['type'] == 1 ? 'Inclusão' : audits[i]['type'] == 2 ? 'Edição' : 'Exclusão'}   </td>
+                    <td style="text-align:left;">   ${translate.sort().join('<br>')}   </td>
+                </tr>
+                `;
+            }
+            body += `
+            </table>
+            </div>
+            `;
+            return body;
+        }
+        , e_track: async (obj) => {
             try {
                 if (obj.ids.length != 1) {
                     return application.error(obj.res, { msg: application.message.selectOnlyOneEvent });
                 }
-                const audits = await db.getModel('audit').findAll({ raw: true, include: [{ all: true }], where: { idmodel: obj.event.view.idmodel, modelid: obj.ids[0] }, order: [['id', 'desc']] });
-                const mas = await db.getModel('modelattribute').findAll({ raw: true, where: { idmodel: obj.event.view.idmodel } });
-                const ma = {};
-                for (const el of mas) {
-                    ma[el.name] = el;
-                }
-                for (let i = 0; i < audits.length; i++) {
-                    audits[i].changes = JSON.parse(audits[i].changes);
-                    audits[i].translate = {};
-                    for (const k in audits[i].changes) {
-                        if (k == 'id')
-                            continue;
-                        if (!ma[k])
-                            continue;
-                        let value = audits[i].changes[k];
-                        const j = JSON.parse(application.functions.singleSpace(ma[k].typeadd || '') || '{}');
-                        if (value == null) {
-                            audits[i].translate[ma[k].label] = '(nulo)';
-                            continue;
-                        }
-                        switch (ma[k].type) {
-                            case 'autocomplete':
-                                const q = await db.getModel(j.model).findOne({
-                                    attributes: [[j.query ? db.Sequelize.literal(j.query) : j.attribute, 'x']]
-                                    , where: { id: value }
-                                    , include: [{ all: true }]
-                                    , raw: true
-                                });
-                                value = q ? q.x : `? (${value})`;
-                                break;
-                            case 'boolean':
-                                value = value ? 'Sim' : 'Não';
-                                break;
-                            case 'date':
-                                value = application.formatters.fe.date(value);
-                                break;
-                            case 'datetime':
-                                value = application.formatters.fe.datetime(value);
-                                break;
-                            case 'decimal':
-                                value = application.formatters.fe.decimal(value, j.precision || 2);
-                                break;
-                            case 'text':
-                                value = value;
-                                break;
-                            case 'textarea':
-                                value = value;
-                                break;
-                            case 'time':
-                                value = application.formatters.fe.time(value);
-                                break;
-                        };
-                        audits[i].translate[ma[k].label] = value;
-                    }
-                }
-                let body = `
-                <div class="col-md-12">
-                <table border="1" cellpadding="1" cellspacing="0" style="border-collapse:collapse;width:100%">
-                    <tr>
-                        <td style="text-align:center;"><strong>Data/Hora</strong></td>
-                        <td style="text-align:center;"><strong>Usuário</strong></td>
-                        <td style="text-align:center;"><strong>Tipo</strong></td>
-                        <td style="text-align:center;"><strong>Alterações</strong></td>
-                    </tr>
-                `;
-                for (let i = 0; i < audits.length; i++) {
-                    const translate = [];
-                    for (let k in audits[i].translate) {
-                        translate.push('<b>' + k + '</b>: ' + audits[i].translate[k]);
-                    }
-                    body += `
-                    <tr>
-                        <td style="text-align:center;"> ${application.formatters.fe.datetime(audits[i]['datetime'])}   </td>
-                        <td style="text-align:center;">  ${audits[i]['users.fullname'] || ''}   </td>
-                        <td style="text-align:center;">  ${audits[i]['type'] == 1 ? 'Inclusão' : audits[i]['type'] == 2 ? 'Edição' : 'Exclusão'}   </td>
-                        <td style="text-align:left;">   ${translate.sort().join('<br>')}   </td>
-                    </tr>
-                    `;
-                }
-                body += `
-                </table>
-                </div>
-                `;
+                const body = await platform.audit.f_track(obj.event.view.idmodel, obj.ids[0]);
                 application.success(obj.res, {
                     modal: {
                         id: 'modalevt'
