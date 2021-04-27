@@ -119,6 +119,13 @@ const platform = {
                 application.fatal(obj.res, err);
             }
         }
+        , f_findlastid: async (modelname, modelid) => {
+            const model = await db.findOne('model', { name: modelname });
+            if (!model)
+                return null;
+            const audit = await db.getModel('audit').findOne({ raw: true, where: { idmodel: model.id, modelid: modelid }, order: [['id', 'desc']] });
+            return audit ? audit.id : null;
+        }
     }
     , config: {
         onsave: async (obj, next) => {
@@ -1058,7 +1065,7 @@ const platform = {
                 const data = {
                     notifications: []
                 };
-                data.notifications = await db.getModel('notification').findAll({ raw: true, where: { iduser: obj.req.user.id, read: false }, order: [['datetime', 'desc']] });
+                data.notifications = await db.getModel('notification').findAll({ raw: true, where: { iduser: obj.req.user.id, read: false }, order: [['datetime', 'desc']], limit: 50 });
                 for (let i = 0; i < data.notifications.length; i++) {
                     data.notifications[i].duration = application.functions.duration(moment().diff(moment(data.notifications[i].datetime), 'minutes'));
                 }

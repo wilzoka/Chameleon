@@ -1485,13 +1485,16 @@ var application = {
                     return window.location.href = subview_redirect;
             }
 
-
             if ('invalidfields' in response) {
                 for (var i = 0; i < response.invalidfields.length; i++) {
                     $('input[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
                     $('select[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
                     $('textarea[name="' + response.invalidfields[i] + '"]').closest('div.form-group').addClass('has-error');
                 }
+            }
+
+            if ('_lastaudit' in response && response._lastaudit != null) {
+                $('input[name="_lastaudit"]').val(response._lastaudit);
             }
         }
         , responseError: function (response) {
@@ -1518,6 +1521,7 @@ var application = {
                 , data: obj || {}
             }
             , success: function (response) {
+                application.handlers.responseSuccess(response);
                 if (func) {
                     func(response);
                 }
