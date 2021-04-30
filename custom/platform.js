@@ -120,11 +120,20 @@ const platform = {
             }
         }
         , f_findlastid: async (modelname, modelid) => {
-            const model = await db.findOne('model', { name: modelname });
-            if (!model)
-                return null;
-            const audit = await db.getModel('audit').findOne({ raw: true, where: { idmodel: model.id, modelid: modelid }, order: [['id', 'desc']] });
-            return audit ? audit.id : null;
+            return new Promise((resolve) => {
+                setTimeout(async () => {
+                    try {
+                        const model = await db.findOne('model', { name: modelname });
+                        if (!model)
+                            resolve(null);
+                        const audit = await db.getModel('audit').findOne({ raw: true, where: { idmodel: model.id, modelid: modelid }, order: [['id', 'desc']] });
+                        resolve(audit ? audit.id : null);
+                    } catch (error) {
+                        resolve(null);
+                    }
+                }, 500);
+            })
+
         }
     }
     , config: {
