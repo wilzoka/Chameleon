@@ -1348,7 +1348,7 @@ var application = {
             return array;
         }
         , getAvailableHeight: function () {
-            return $(window).height() - 175 - $('header.main-header').innerHeight() - $('section.content-header').innerHeight();
+            return $(window).height() - 175 - $('header.main-header').innerHeight() - ($('section.content-header').innerHeight() || 0);
         }
         , setAutocomplete: function ($el, id, text) {
             if ($el.attr('data-options')) {

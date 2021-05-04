@@ -105,7 +105,7 @@ module.exports = function (app) {
                 if (req.body.length > 0) {
                     pagination = {
                         limit: req.body.length
-                        , offset: req.body.start
+                        , offset: (req.body.start || 0)
                     }
                 }
                 const registers = platform.view.f_fixResults(await db.getModel(view.model.name).findAndCountAll(Object.assign({}, pagination, {
