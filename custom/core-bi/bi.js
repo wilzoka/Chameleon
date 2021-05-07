@@ -9,6 +9,34 @@ const application = require('../../routes/application')
 
 let cube_schedules = [];
 
+const
+    decodeChartType = function (type) {
+        switch (type) {
+            case 'Barra':
+                return 'bar';
+            case 'Barra Empilhada':
+                return 'bar';
+            case 'Coluna':
+                return 'column';
+            case 'Coluna Empilhada':
+                return 'column';
+            case 'Linha':
+                return 'line';
+            case 'Pizza':
+                return 'pie';
+            case 'Dispersão':
+                return 'scatter';
+            case 'Velocímetro':
+                return 'solidgauge';
+            case 'Mapa':
+                return 'map';
+            case 'Mapa de Calor':
+                return 'heatmap';
+            default:
+                return 'line';
+        }
+    }
+
 let bi = {
     f_pivot: function (sql, options) {
         let config = options.config || {};
@@ -248,13 +276,37 @@ let bi = {
         }
 
         // Render Chart
-        let charts = [];
-        let categories = [];
+        const chart = {
+            chart: {
+                type: decodeChartType(options.charttype)
+            }
+            , title: {
+                text: ''
+            }
+            , series: []
+            , xAxis: { categories: [] }
+            , yAxis: []
+            , exporting: {
+                enabled: false
+            }
+            , lang: {
+                decimalPoint: ','
+                , thousandsSep: ','
+            }
+            , credits: {
+                enabled: false
+            }
+        };
         for (let i = 0; i < structure.r.length; i++) {
-            categories.push(structure.r[i].val);
+            chart.xAxis.categories.push(structure.r[i].val);
         }
-        let series = [];
         for (let m = 0; m < measures.length; m++) {
+            chart.yAxis.push({
+                title: {
+                    text: measures[m]
+                }
+                , opposite: m % 2 == 1
+            });
             for (let c = 0; c < structure.c.length; c++) {
                 let seriesdata = [];
                 for (let r = 0; r < structure.r.length; r++) {
@@ -270,16 +322,95 @@ let bi = {
                     }
                     seriesdata.push(sd);
                 }
-                series.push({
+                chart.series.push({
                     name: (structure.c[c].val ? structure.c[c].val + ' - ' : '') + measures[m]
+                    , yAxis: options.config.multiaxe ? m : 0
                     , data: seriesdata
+                    , type: options.config.multiaxe ?
+                        m == 0 ? ''
+                            : m == 1 ? 'spline' : 'line'
+                        : ''
+                    , dashStyle: m % 2 == 0 ? 'Solid' : 'shortdot'
                 });
             }
         }
-        charts.push({
-            categories: categories
-            , series: series
-        });
+        // Options for specific charts
+        if (options.charttype && options.charttype.includes('Empilhada') > 0) {
+            chart.plotOptions = {
+                series: {
+                    stacking: 'normal'
+                }
+            };
+        } else if (options.charttype == 'Velocímetro') {
+            chart.chart.width = 300;
+            chart.chart.height = 200;
+            for (let i = 0; i < chart.series.length; i++) {
+                chart.series[i].dataLabels = {
+                    format:
+                        '<div style="text-align:center">' +
+                        '<span style="font-size:25px">{y}</span><br/>' +
+                        '</div>'
+                };
+            }
+            chart.pane = {
+                center: ['50%', '85%'],
+                size: '140%',
+                startAngle: -90,
+                endAngle: 90,
+                background: {
+                    backgroundColor: '#EEE',
+                    innerRadius: '60%',
+                    outerRadius: '100%',
+                    shape: 'arc'
+                }
+            };
+            chart.yAxis = {
+                min: 0,
+                max: 500,
+                stops: [
+                    [0.1, '#55BF3B'], // green
+                    [0.5, '#DDDF0D'], // yellow
+                    [0.9, '#DF5353'] // red
+                ],
+                lineWidth: 0,
+                tickWidth: 0,
+                minorTickInterval: null,
+                tickAmount: 2,
+                title: {
+                    y: -70,
+                    text: chart.series[0].name
+                },
+                labels: {
+                    y: 16
+                }
+            };
+            chart.plotOptions = {
+                solidgauge: {
+                    dataLabels: {
+                        y: 5,
+                        borderWidth: 0,
+                        useHTML: true
+                    }
+                }
+            };
+            chart.tooltip = {
+                enabled: false
+            };
+        } else if (options.charttype == 'Pizza') {
+            chart.labels = { items: [] };
+            let x = 0;
+            for (let i = 0; i < chart.series.length; i++) {
+                if (chart.series.length == 1) {
+                    x = 50;
+                } else if (i == 0) {
+                    x = 100 / chart.series.length / 2;
+                } else {
+                    x += 100 / chart.series.length;
+                }
+                chart.series[i].center = [x + '%', '50%'];
+                chart.series[i].size = (100 / chart.series.length) + '%';
+            }
+        }
 
         // Format Values
         for (let i = 0; i < data.length; i++) {
@@ -405,7 +536,7 @@ let bi = {
 
         return {
             html: html
-            , charts: charts
+            , chart: chart
             , data: data
         };
     }
@@ -762,14 +893,18 @@ let bi = {
                     , config: JSON.parse(obj.data.config || '{}')
                     , calculatedmeasures: JSON.parse(obj.data.calculatedmeasures || '{}')
                     , filter: JSON.parse(obj.data.filter || '{}')
+                    , charttype: obj.data.charttype
                 };
                 let query = await bi.analysis.f_getBaseQuery(obj.data.idcube, options);
                 query = await bi.analysis.f_getQuery(query, options);
                 // require('fs-extra').writeFile(`${__dirname}/../../tmp/lastbiquery.sql`, query);
-                const sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
-                return application.success(obj.res, { data: bi.f_pivot(sql, options) });
-            } catch (err) {
-                return application.error(obj.res, { msg: err.message });
+                const sql = await db.sequelize.query(
+                    query
+                    , { type: db.sequelize.QueryTypes.SELECT }
+                );
+                application.success(obj.res, { data: bi.f_pivot(sql, options) });
+            } catch (err) {            
+                application.error(obj.res, { msg: err.message });
             }
         }
         , js_getCube: async function (obj) {
@@ -866,7 +1001,7 @@ let bi = {
                         ${obj.data.table}
                         ${pagebreak}
                         <div style="width:100%">
-                            ${obj.data.charts.join(pagebreak)}
+                            ${obj.data.chart}
                         </div>
                     </body>
                 </html>`;
@@ -1012,6 +1147,7 @@ let bi = {
                         , config: JSON.parse(analysis.config || '{}')
                         , calculatedmeasures: JSON.parse(analysis.calculatedmeasures || '{}')
                         , filter: JSON.parse(analysis.filter || '{}')
+                        , charttype: analysis.charttype
                     };
                     let query = await bi.analysis.f_getBaseQuery(analysis.idcube, options);
                     query = await bi.analysis.f_getQuery(query, options);

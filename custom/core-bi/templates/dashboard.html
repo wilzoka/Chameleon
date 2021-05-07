@@ -79,126 +79,6 @@
         ]);
         var renderTPL = $('#renderTPL').html();
 
-        function decodeChartType(type) {
-            switch (type) {
-                case 'Barra':
-                    return 'bar';
-                case 'Barra Empilhada':
-                    return 'bar';
-                case 'Coluna':
-                    return 'column';
-                case 'Coluna Empilhada':
-                    return 'column';
-                case 'Linha':
-                    return 'line';
-                case 'Pizza':
-                    return 'pie';
-                case 'Dispersão':
-                    return 'scatter';
-                case 'Velocímetro':
-                    return 'solidgauge';
-                default:
-                    return 'line';
-            }
-        }
-
-        function renderChart(id, data, type) {
-            Highcharts.setOptions({
-                lang: {
-                    decimalPoint: ','
-                    , thousandsSep: ','
-                }
-                , credits: {
-                    enabled: false
-                }
-            });
-            var options = {
-                chart: {
-                    type: decodeChartType(type)
-                }
-                , title: {
-                    text: data.title || ''
-                }
-                , yAxis: {
-                    title: {
-                        text: ''
-                    }
-                }
-                , xAxis: {
-                    categories: data.categories
-                }
-                , series: data.series
-                , exporting: {
-                    enabled: false
-                }
-            }
-            if (type && type.includes('Empilhada') > 0) {
-                options.plotOptions = {
-                    series: {
-                        stacking: 'normal'
-                    }
-                };
-            }
-            if (type == 'Velocímetro') {
-                // options.chart.width = 300;
-                // options.chart.height = 200;
-                for (var z = 0; z < options.series.length; z++) {
-                    options.series[z].dataLabels = {
-                        format:
-                            '<div style="text-align:center">' +
-                            '<span style="font-size:25px">{y}</span><br/>' +
-                            '</div>'
-                    };
-                }
-                options.pane = {
-                    center: ['50%', '70%'],
-                    size: '100%',
-                    startAngle: -90,
-                    endAngle: 90,
-                    background: {
-                        backgroundColor:
-                            Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
-                        innerRadius: '60%',
-                        outerRadius: '100%',
-                        shape: 'arc'
-                    }
-                };
-                options.yAxis = {
-                    min: 0,
-                    max: 100,
-                    stops: [
-                        [0.1, '#55BF3B'], // green
-                        [0.5, '#DDDF0D'], // yellow
-                        [0.9, '#DF5353'] // red
-                    ],
-                    lineWidth: 0,
-                    tickWidth: 0,
-                    minorTickInterval: null,
-                    tickAmount: 2,
-                    title: {
-                        y: -110,
-                        text: options.series[0].name
-                    },
-                    labels: {
-                        y: 16
-                    }
-                };
-                options.plotOptions = {
-                    solidgauge: {
-                        dataLabels: {
-                            y: -45,
-                            borderWidth: 0,
-                            useHTML: true
-                        }
-                    }
-                };
-                options.tooltip = {
-                    enabled: false
-                };
-            }
-            Highcharts.chart('chart' + id, options);
-        }
-
         $(document).on('app-loadjs', function () {
             if (application.functions.getId() > 0) {
                 application.jsfunction('platform.core_bi.dashboard.js_renderAnalysis', { iddashboard: application.functions.getId() }, function (response) {
@@ -212,7 +92,7 @@
                                 .replace('${width}', el.dashboardanalysis.width)
                             );
                             if (el.dashboardanalysis.viewtype == 'Gráfico') {
-                                renderChart(el.dashboardanalysis.id, el.data.charts[0], el.analysis.charttype);
+                                Highcharts.chart('chart' + el.dashboardanalysis.id, el.data.chart);
                             }
                         }
                     }

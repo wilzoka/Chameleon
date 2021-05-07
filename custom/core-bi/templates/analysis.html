@@ -157,7 +157,7 @@
                         {{{chart}}}
                     </div>
                     <hr style="margin: 5px 0;">
-                    <div id="charts"></div>
+                    <div id="chart"></div>
                 </div>
             </div>
         </div>
@@ -271,13 +271,23 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane active" id="tab_2">
+                                <div class="tab-pane" id="tab_2">
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <div class="form-group">
                                                     <label>Cor1</label>
                                                     <input name="color1" type="color" class="form-control" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <input name="multiaxe" type="checkbox">
+                                                        Eixos Múltiplos?
+                                                    </label>
                                                 </div>
                                             </div>
                                         </div>
@@ -362,17 +372,11 @@
         var $filter = $('textarea[name="filter"]');
         var $config = $('textarea[name="config"]');
         var $calculatedmeasures = $('textarea[name="calculatedmeasures"]');
-        var $ordermeasure = $('select[name="ordermeasure"]');
-        var $ordertype = $('select[name="ordertype"]');
-        var $limitrow = $('input[name="limitrow"]');
-        var $limitcolumn = $('input[name="limitcolumn"]');
-        var $totalrow = $('input[name="totalrow"]');
-        var $totalcolumn = $('input[name="totalcolumn"]');
         var request = {}
         var data = [];
         var chart = {
-            charts: []
-            , dom: []
+            options: null
+            , dom: null
             , rendered: false
         };
         var map;
@@ -455,6 +459,7 @@
         function renderTable() {
             request = {
                 idcube: $idcube.val()
+                , charttype: $charttype.val()
                 , columns: []
                 , rows: []
                 , measures: []
@@ -488,11 +493,11 @@
                     if (response.success) {
                         $('#divtable').children().remove();
                         $('#divtable').append(response.data.html);
-                        chart.charts = response.data.charts;
                         data = response.data.data;
-                        chart.dom = [];
+                        chart.options = response.data.chart;
+                        chart.dom = null;
                         chart.rendered = false;
-                        renderCharts(false);
+                        renderChart(false);
                     } else {
                         application.notify.error(response.msg);
                     }
@@ -527,28 +532,19 @@
             }
         }
 
-        function renderCharts(force) {
-            Highcharts.setOptions({
-                lang: {
-                    decimalPoint: ','
-                    , thousandsSep: ','
-                }
-                , credits: {
-                    enabled: false
-                }
-            });
+        function renderChart(force) {
             if ($('#tab_chart').hasClass('active') || force) {
-                const charttype = $('select[name="charttype"]').val();
-                const realcharttype = decodeChartType($('select[name="charttype"]').val());
+                const charttype = $charttype.val();
+                const realcharttype = decodeChartType(charttype);
                 if (['map', 'heatmap'].indexOf(realcharttype) >= 0) {
                     if (!mapReady) {
                         return setTimeout(function () {
-                            renderCharts(force);
+                            renderChart(force);
                         }, 500);
                     }
                     if (!map) {
-                        $('#charts').children().remove();
-                        $('#charts').append('<div id="map" style="height:500px"></div>');
+                        $('#chart').children().remove();
+                        $('#chart').append('<div id="map" style="height:500px"></div>');
                         map = new google.maps.Map(document.getElementById('map'), {
                             zoom: 3
                             , center: { lat: -16.591987, lng: -50.520225 }
@@ -652,99 +648,9 @@
                         heatMapLayer.setMap(map);
                     }
                 } else {
-                    $('#charts').children().remove();
+                    $('#chart').children().remove();
                     map = null;
-                    for (var i = 0; i < chart.charts.length; i++) {
-                        $('#charts').append('<div id="chart' + i + '"></div>');
-                        var options = {
-                            chart: {
-                                type: realcharttype
-                                , height: $(window).height() * 0.60
-                                // , polar:true
-                            }
-                            // , colors: ["#7ce5ec", "#7co5ec"]
-                            , title: {
-                                text: chart.charts[i].title || ''
-                            }
-                            , yAxis: {
-                                title: {
-                                    text: ''
-                                }
-                            }
-                            , xAxis: {
-                                categories: chart.charts[i].categories
-                            }
-                            , series: chart.charts[i].series
-                            , exporting: {
-                                enabled: false
-                            }
-                        }
-                        if (charttype.includes('Empilhada') > 0) {
-                            options.plotOptions = {
-                                series: {
-                                    stacking: 'normal'
-                                }
-                            };
-                        }
-                        if (charttype == 'Velocímetro') {
-                            options.chart.width = 300;
-                            options.chart.height = 200;
-                            for (var z = 0; z < options.series.length; z++) {
-                                options.series[z].dataLabels = {
-                                    format:
-                                        '<div style="text-align:center">' +
-                                        '<span style="font-size:25px">{y}</span><br/>' +
-                                        '</div>'
-                                };
-                            }
-                            options.pane = {
-                                center: ['50%', '85%'],
-                                size: '140%',
-                                startAngle: -90,
-                                endAngle: 90,
-                                background: {
-                                    backgroundColor:
-                                        Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
-                                    innerRadius: '60%',
-                                    outerRadius: '100%',
-                                    shape: 'arc'
-                                }
-                            };
-                            options.yAxis = {
-                                min: 0,
-                                max: 100,
-                                stops: [
-                                    [0.1, '#55BF3B'], // green
-                                    [0.5, '#DDDF0D'], // yellow
-                                    [0.9, '#DF5353'] // red
-                                ],
-                                lineWidth: 0,
-                                tickWidth: 0,
-                                minorTickInterval: null,
-                                tickAmount: 2,
-                                title: {
-                                    y: -70,
-                                    text: options.series[0].name
-                                },
-                                labels: {
-                                    y: 16
-                                }
-                            };
-                            options.plotOptions = {
-                                solidgauge: {
-                                    dataLabels: {
-                                        y: 5,
-                                        borderWidth: 0,
-                                        useHTML: true
-                                    }
-                                }
-                            };
-                            options.tooltip = {
-                                enabled: false
-                            };
-                        }
-                        chart.dom[i] = Highcharts.chart('chart' + i, options);
-                    }
+                    chart.dom = Highcharts.chart('chart', chart.options);
                 }
                 chart.rendered = true;
             }
@@ -820,11 +726,11 @@
             renderUI(e.params.data.id);
         });
 
-        $charttype.on('select2:select', renderCharts);
+        $charttype.on('select2:select', renderTable);
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             if ($(e.target).attr("href") == '#tab_chart' && !chart.rendered) {
-                renderCharts(false);
+                renderChart(false);
             }
         });
 
@@ -920,34 +826,35 @@
 
         $('#actconfig').click(function () {
             renderCalculateMeasureUI();
-            $ordermeasure.val(getConfig('ordermeasure'));
-            $ordertype.val(getConfig('ordertype'));
-            $limitrow.val(getConfig('limitrow'));
-            $limitcolumn.val(getConfig('limitcolumn'));
-            $totalrow.prop('checked', getConfig('totalrow') || false);
-            $totalcolumn.prop('checked', getConfig('totalcolumn') || false);
+            $('#modalconfig').find('input').each(function () {
+                const type = $(this).attr('type');
+                if (type == 'text') {
+                    $(this).val(getConfig($(this).attr('name')) || '');
+                } else if (type == 'checkbox') {
+                    $(this).prop('checked', getConfig($(this).attr('name')) || false);
+                }
+            });
             $('#modalconfig').modal('show');
         });
 
         $('#modalconfig').on('hidden.bs.modal', function () {
-            setConfig('ordermeasure', $ordermeasure.val());
-            setConfig('ordertype', $ordertype.val());
-            setConfig('limitrow', $limitrow.val());
-            setConfig('limitcolumn', $limitcolumn.val());
-            setConfig('totalrow', $totalrow.is(':checked'));
-            setConfig('totalcolumn', $totalcolumn.is(':checked'));
+            $('#modalconfig').find('input').each(function () {
+                const type = $(this).attr('type');
+                if (type == 'text') {
+                    setConfig($(this).attr('name'), $(this).val() || '');
+                } else if (type == 'checkbox') {
+                    setConfig($(this).attr('name'), $(this).is(':checked'));
+                }
+            });
             renderUI($idcube.val());
         });
 
         $('#actprint').click(function () {
-            var svgs = [];
             if (!chart.rendered) {
-                renderCharts(true);
+                renderChart(true);
             }
-            for (var i = 0; i < chart.charts.length; i++) {
-                svgs.push(chart.dom[i].getSVG({ chart: { width: 1300, height: 930 } }));
-            }
-            application.jsfunction('platform.core_bi.analysis.js_print', { title: $('input[name="description"]').val(), table: $('#divtable').html(), charts: svgs }, function (response) {
+            var svg = chart.dom.getSVG({ chart: { width: 1300, height: 930 } });
+            application.jsfunction('platform.core_bi.analysis.js_print', { title: $('input[name="description"]').val(), table: $('#divtable').html(), chart: svg }, function (response) {
                 if (response.success) {
                     application.handlers.responseSuccess(response);
                 }
