@@ -826,9 +826,9 @@
 
         $('#actconfig').click(function () {
             renderCalculateMeasureUI();
-            $('#modalconfig').find('input').each(function () {
+            $('#modalconfig').find('input,select').each(function () {
                 const type = $(this).attr('type');
-                if (type == 'text' || type == 'select') {
+                if (type == 'text' || $(this)[0].nodeName == 'SELECT') {
                     $(this).val(getConfig($(this).attr('name')) || '');
                 } else if (type == 'checkbox') {
                     $(this).prop('checked', getConfig($(this).attr('name')) || false);
@@ -838,9 +838,9 @@
         });
 
         $('#modalconfig').on('hidden.bs.modal', function () {
-            $('#modalconfig').find('input').each(function () {
+            $('#modalconfig').find('input,select').each(function () {
                 const type = $(this).attr('type');
-                if (type == 'text' || type == 'select') {
+                if (type == 'text' || $(this)[0].nodeName == 'SELECT') {
                     setConfig($(this).attr('name'), $(this).val() || '');
                 } else if (type == 'checkbox') {
                     setConfig($(this).attr('name'), $(this).is(':checked'));
