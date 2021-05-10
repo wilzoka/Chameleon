@@ -828,7 +828,7 @@
             renderCalculateMeasureUI();
             $('#modalconfig').find('input').each(function () {
                 const type = $(this).attr('type');
-                if (type == 'text') {
+                if (type == 'text' || type == 'select') {
                     $(this).val(getConfig($(this).attr('name')) || '');
                 } else if (type == 'checkbox') {
                     $(this).prop('checked', getConfig($(this).attr('name')) || false);
@@ -840,7 +840,7 @@
         $('#modalconfig').on('hidden.bs.modal', function () {
             $('#modalconfig').find('input').each(function () {
                 const type = $(this).attr('type');
-                if (type == 'text') {
+                if (type == 'text' || type == 'select') {
                     setConfig($(this).attr('name'), $(this).val() || '');
                 } else if (type == 'checkbox') {
                     setConfig($(this).attr('name'), $(this).is(':checked'));
