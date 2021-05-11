@@ -3,13 +3,13 @@ const application = require('./application')
     , schedule = require('node-schedule')
     ;
 
-let schedules = [];
+const schedules = [];
 
 const addSchedule = async function (sch) {
     try {
-        let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
-        let custom = require('../custom/' + config.customfile);
-        let realfunction = application.functions.getRealReference(custom, sch.function);
+        const config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
+        const custom = require('../custom/' + config.customfile);
+        const realfunction = application.functions.getRealReference(custom, sch.function);
         if (realfunction) {
             schedules[sch.id] = schedule.scheduleJob(sch.settings, realfunction.bind(null, sch));
         } else {
@@ -29,9 +29,9 @@ const removeSchedule = function (sch) {
 
 const executeSchedule = async function (sch) {
     try {
-        let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
-        let custom = require('../custom/' + config.customfile);
-        application.functions.getRealReference(custom, sch.function)();
+        const config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
+        const custom = require('../custom/' + config.customfile);
+        application.functions.getRealReference(custom, sch.function)(sch);
     } catch (err) {
         console.error(err);
     }

@@ -954,57 +954,48 @@ const platform = {
         }
         , _active: async function (obj) {
             try {
-
                 if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-
-                let scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
-                scheds.map(sched => {
+                const scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
+                for (const sched of scheds) {
                     schedule.addSchedule(sched);
                     sched.active = true;
                     sched.save();
-                });
-
-                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                }
+                application.success(obj.res, { msg: application.message.success, reloadtables: true });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
         , _desactive: async function (obj) {
             try {
-
                 if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-
-                let scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
-                scheds.map(sched => {
+                const scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
+                for (const sched of scheds) {
                     schedule.removeSchedule(sched);
                     sched.active = false;
-                    sched.save();
-                });
-
-                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                    await sched.save();
+                }
+                application.success(obj.res, { msg: application.message.success, reloadtables: true });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
         , _execute: async function (obj) {
             try {
-
                 if (obj.ids.length == 0) {
                     return application.error(obj.res, { msg: application.message.selectOneEvent });
                 }
-
-                let scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } })
-                scheds.map(sched => {
+                const scheds = await db.getModel('schedule').findAll({ where: { id: { [db.Op.in]: obj.ids } } });
+                for (const sched of scheds) {
                     schedule.executeSchedule(sched);
-                });
-
-                return application.success(obj.res, { msg: application.message.success });
+                }
+                application.success(obj.res, { msg: application.message.success });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
     }
