@@ -58,18 +58,18 @@ let bi = {
         let delimiter = '->';
 
         let data = [];
-        for (let i = 0; i < sql.length; i++) {
+        for (const s of sql) {
             let currentrow = [];
             for (let z = 0; z < rows.length; z++) {
-                currentrow.push(sql[i][rows[z]]);
+                currentrow.push(s[rows[z]]);
             }
             let currentcolumn = [];
             for (let z = 0; z < columns.length; z++) {
-                currentcolumn.push(sql[i][columns[z]]);
+                currentcolumn.push(s[columns[z]]);
             }
             let currentmeasures = [];
             for (let z = 0; z < measures.length; z++) {
-                currentmeasures.push(sql[i][measures[z]]);
+                currentmeasures.push(s[measures[z]]);
             }
             data.push({
                 row: currentrow.join(delimiter)
@@ -284,7 +284,9 @@ let bi = {
                 text: ''
             }
             , series: []
-            , xAxis: { categories: [] }
+            , xAxis: {
+                categories: []
+            }
             , yAxis: []
             , exporting: {
                 enabled: false
@@ -301,6 +303,17 @@ let bi = {
             chart.xAxis.categories.push(structure.r[i].val);
         }
         for (let m = 0; m < measures.length; m++) {
+            let maxvalue;
+            for (const d of data) {
+                if (!maxvalue || parseFloat(d.measures[m]) > maxvalue)
+                    maxvalue = d.measures[m];
+            }
+            let scale = 0;
+            while (maxvalue > 1000) {
+                maxvalue /= 1000;
+                scale++;
+            }
+
             chart.yAxis.push({
                 title: {
                     text: measures[m]
@@ -313,7 +326,27 @@ let bi = {
                     let sd = null;
                     for (let i = 0; i < data.length; i++) {
                         if (structure.c[c].val == data[i].column && structure.r[r].val == data[i].row) {
-                            sd = { name: data[i].row, y: parseFloat(parseFloat(data[i].measures[m]).toFixed(2)) };
+                            const measuresplitted = data[i].measures[m].toString().split('.');
+                            let format = application.formatters.fe.decimal((parseFloat(data[i].measures[m]) / (Math.pow(1000, scale))), measuresplitted.length > 1 ? 2 : 0);
+                            if (scale == 1) {
+                                format += ' k';
+                            } else if (scale == 2) {
+                                format += ' M';
+                            } else if (scale == 3) {
+                                format += ' G';
+                            } else if (scale == 4) {
+                                format += ' T';
+                            }
+                            if (options.charttype == 'Pizza')
+                                format = '{point.name}<br>' + format + ' ({point.percentage:.1f}%)';
+                            sd = {
+                                name: data[i].row
+                                , y: parseFloat(parseFloat(data[i].measures[m]).toFixed(2))
+                                , dataLabels: {
+                                    enabled: options.config.dataLabels ? true : false
+                                    , format: format
+                                }
+                            };
                             break;
                         }
                     }
@@ -407,8 +440,17 @@ let bi = {
                 } else {
                     x += 100 / chart.series.length;
                 }
+                const screenwidth = 1000;
+                chart.labels.items.push({
+                    html: '<b>' + (chart.series[i].name.includes(' - ') ? chart.series[i].name.split(' - ')[0] : '') + '</b>',
+                    style: {
+                        left: (((screenwidth / chart.series.length) * (i + 1)) - (screenwidth / chart.series.length / 2)) + 'px'
+                        , top: '20%'
+                    }
+                });
                 chart.series[i].center = [x + '%', '50%'];
-                chart.series[i].size = (100 / chart.series.length) + '%';
+                chart.series[i].size = (100 / chart.series.length * 0.7) + '%';
+
             }
         }
 
@@ -903,7 +945,7 @@ let bi = {
                     , { type: db.sequelize.QueryTypes.SELECT }
                 );
                 application.success(obj.res, { data: bi.f_pivot(sql, options) });
-            } catch (err) {            
+            } catch (err) {
                 application.error(obj.res, { msg: err.message });
             }
         }
