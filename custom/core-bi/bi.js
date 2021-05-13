@@ -39,35 +39,35 @@ const
 
 let bi = {
     f_pivot: function (sql, options) {
-        let config = options.config || {};
-        let columns = options.columns || [];
-        let rows = options.rows || [];
-        let measures = options.measures || [];
+        const config = options.config || {};
+        const columns = options.columns || [];
+        const rows = options.rows || [];
+        const measures = options.measures || [];
 
         let measure_order = [];
         if (config.ordermeasure) {
-            let i = measures.indexOf(config.ordermeasure);
+            const i = measures.indexOf(config.ordermeasure);
             if (i >= 0) {
                 measure_order = [i, config.ordertype == 'Crescente' ? 'asc' : 'desc'];
             }
         }
 
-        let row_total = options.config.totalrow;
-        let column_total = options.config.totalcolumn;
+        const row_total = options.config.totalrow;
+        const column_total = options.config.totalcolumn;
 
-        let delimiter = '->';
+        const delimiter = '->';
 
-        let data = [];
+        const data = [];
         for (const s of sql) {
-            let currentrow = [];
+            const currentrow = [];
             for (let z = 0; z < rows.length; z++) {
                 currentrow.push(s[rows[z]]);
             }
-            let currentcolumn = [];
+            const currentcolumn = [];
             for (let z = 0; z < columns.length; z++) {
                 currentcolumn.push(s[columns[z]]);
             }
-            let currentmeasures = [];
+            const currentmeasures = [];
             for (let z = 0; z < measures.length; z++) {
                 currentmeasures.push(s[measures[z]]);
             }
@@ -78,7 +78,7 @@ let bi = {
             });
         }
 
-        let structure = {
+        const structure = {
             rows: [] // Contém as linhas de esqueleto, já estratificando os níveis
             , columns: [] // Contém as colunas de esqueleto, já estratificando os níveis
             , r: [] // Contém as referências das linhas
@@ -293,7 +293,7 @@ let bi = {
             }
             , lang: {
                 decimalPoint: ','
-                , thousandsSep: ','
+                , thousandsSep: '.'
             }
             , credits: {
                 enabled: false
@@ -398,8 +398,8 @@ let bi = {
                 }
             };
             chart.yAxis = {
-                min: 0,
-                max: 500,
+                min: options.config.chartgaugemin || 0,
+                max: options.config.chartgaugemax || null,
                 stops: [
                     [0.1, '#55BF3B'], // green
                     [0.5, '#DDDF0D'], // yellow
@@ -426,9 +426,7 @@ let bi = {
                     }
                 }
             };
-            chart.tooltip = {
-                enabled: false
-            };
+            chart.tooltip = { enabled: false };
         } else if (options.charttype == 'Pizza') {
             chart.labels = { items: [] };
             let x = 0;
@@ -799,11 +797,26 @@ let bi = {
             for (let k in options.filter) {
                 for (let z = 0; z < dimensions.length; z++) {
                     if (dimensions[z].sqlfield == k) {
-                        let items = [];
-                        for (let i = 0; i < options.filter[k].length; i++) {
-                            items.push(`'${db.sanitizeString(options.filter[k][i].toString())}'`);
+                        if (typeof options.filter[k] == 'string') { // dynamic filter
+                            switch (options.filter[k]) {
+                                case 'Dia Atual':
+                                    filter.push(`"${k}" = lpad(extract(day from now())::text, 2, '0')`);
+                                    break;
+                                case 'Mês Atual':
+                                    filter.push(`"${k}" = lpad(extract(month from  now())::text, 2, '0') || '-' || to_char(to_timestamp (extract(month from  now())::text, 'MM'), 'TMMonth')`);
+                                    break;
+                                case 'Ano Atual':
+                                    filter.push(`"${k}" = extract(year from now())::text`);
+                                    break;
+                            }
+
+                        } else {
+                            const items = [];
+                            for (let i = 0; i < options.filter[k].length; i++) {
+                                items.push(`'${db.sanitizeString(options.filter[k][i].toString())}'`);
+                            }
+                            filter.push(`"${k}" in (${items.join(',')})`);
                         }
-                        filter.push(`"${k}" in (${items.join(',')})`);
                         break;
                     }
                 }

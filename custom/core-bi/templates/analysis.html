@@ -53,6 +53,10 @@
     .checkmeasure {
         margin: 2px 6px !important;
     }
+
+    div.dt-buttons {
+        width: unset;
+    }
 </style>
 
 <div class="hidden">
@@ -179,9 +183,25 @@
                 <h4 class="modal-title"></h4>
             </div>
             <div class="modal-body">
-                <table id="tablefilter" class="table table-bordered table-hover dataTable no-footer nowrap"
-                    width="100%">
-                </table>
+                <div class="row">
+                    <div class="col-md-12">
+                        <table id="tablefilter" class="table table-bordered table-hover dataTable no-footer nowrap"
+                            width="100%">
+                        </table>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Filtro Dinâmico</label>
+                            <select name="filterdynamic" class="form-control select2"
+                                style="width:100%;padding:0px 5px;">
+                                <option></option>
+                                <option>Dia Atual</option>
+                                <option>Mês Atual</option>
+                                <option>Ano Atual</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Voltar</button>
@@ -302,6 +322,41 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="text-center">Personalização dos Gráficos</h4>
+                                            <div class="nav-tabs-custom" style="margin-bottom: 0;">
+                                                <ul class="nav nav-tabs">
+                                                    <li class="active">
+                                                        <a href="#tab_2_1" data-toggle="tab">
+                                                            Velocímetro
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                                <div class="tab-content">
+                                                    <div class="tab-pane active" id="tab_2_1">
+                                                        <div class="row">
+                                                            <div class="col-md-3">
+                                                                <div class="form-group">
+                                                                    <label>Mínimo</label>
+                                                                    <input name="chartgaugemin" type="text"
+                                                                        data-type="integer" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="form-group">
+                                                                    <label>Máximo</label>
+                                                                    <input name="chartgaugemax" type="text"
+                                                                        data-type="integer" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="tab-pane" id="tab_3">
                                     <div class="row">
@@ -380,6 +435,7 @@
         var $idcube = $('select[name="idcube"]');
         var $charttype = $('select[name="charttype"]');
         var $filter = $('textarea[name="filter"]');
+        var $filterdynamic = $('select[name="filterdynamic"]');
         var $config = $('textarea[name="config"]');
         var $calculatedmeasures = $('textarea[name="calculatedmeasures"]');
         var request = {}
@@ -756,14 +812,19 @@
                 if (response.success) {
                     $('#modalfilter').find('.modal-title').html(key);
                     $('#modalfilter').attr('data-key', key);
+                    $filterdynamic.val('');
                     tablefilter.clear();
                     tablefilter.rows.add(response.data);
                     tablefilter.draw();
                     var filter = JSON.parse($filter.val() || '{}');
                     tablefilter.rows().every(function () {
-                        var d = this.data();
-                        if (filter[key] && filter[key].indexOf(d[0]) >= 0) {
-                            this.select();
+                        if (typeof filter[key] == 'string') {
+                            $filterdynamic.val(filter[key]);
+                        } else {
+                            var d = this.data();
+                            if (filter[key] && filter[key].indexOf(d[0]) >= 0) {
+                                this.select();
+                            }
                         }
                     });
                     $('#modalfilter').modal('show');
@@ -774,13 +835,17 @@
         $('#applyfilter').click(function () {
             var filter = JSON.parse($filter.val() || '{}');
             var key = $('#modalfilter').attr('data-key');
-            filter[key] = [];
-            var rows = tablefilter.rows({ selected: true }).data();
-            for (var i = 0; i < rows.length; i++) {
-                filter[key].push(rows[i][0])
-            }
-            if (filter[key].length == 0) {
-                delete filter[key];
+            if ($filterdynamic.val() != '') {
+                filter[key] = $filterdynamic.val();
+            } else {
+                filter[key] = [];
+                var rows = tablefilter.rows({ selected: true }).data();
+                for (var i = 0; i < rows.length; i++) {
+                    filter[key].push(rows[i][0])
+                }
+                if (filter[key].length == 0) {
+                    delete filter[key];
+                }
             }
             $filter.val(JSON.stringify(filter));
             renderTable();
