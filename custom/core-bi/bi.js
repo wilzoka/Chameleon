@@ -36,6 +36,17 @@ const
                 return 'line';
         }
     }
+    , decodeDynamicFilter = function (str) {
+        if (str == 'Dia Atual') {
+            return `lpad(extract(day from now())::text, 2, '0')`;
+        } else if (str == 'Mês Atual') {
+            return `lpad(extract(month from  now())::text, 2, '0') || '-' || to_char(to_timestamp (extract(month from  now())::text, 'MM'), 'TMMonth')`;
+        } else if (str == 'Ano Atual') {
+            return `extract(year from now())::text`;
+        } else {
+            return null;
+        }
+    }
 
 let bi = {
     f_pivot: function (sql, options) {
@@ -798,18 +809,7 @@ let bi = {
                 for (let z = 0; z < dimensions.length; z++) {
                     if (dimensions[z].sqlfield == k) {
                         if (typeof options.filter[k] == 'string') { // dynamic filter
-                            switch (options.filter[k]) {
-                                case 'Dia Atual':
-                                    filter.push(`"${k}" = lpad(extract(day from now())::text, 2, '0')`);
-                                    break;
-                                case 'Mês Atual':
-                                    filter.push(`"${k}" = lpad(extract(month from  now())::text, 2, '0') || '-' || to_char(to_timestamp (extract(month from  now())::text, 'MM'), 'TMMonth')`);
-                                    break;
-                                case 'Ano Atual':
-                                    filter.push(`"${k}" = extract(year from now())::text`);
-                                    break;
-                            }
-
+                            filter.push(`"${k}" = ${decodeDynamicFilter(options.filter[k])}`);
                         } else {
                             const items = [];
                             for (let i = 0; i < options.filter[k].length; i++) {
@@ -860,13 +860,17 @@ let bi = {
                                 dimarr.push(dimensions[z].sqlfield);
                             }
                             let filter = [];
-                            for (let f in options.filter) {
+                            for (const f in options.filter) {
                                 if (dimarr.indexOf(f) >= 0) {
-                                    const arr = [];
-                                    for (let i = 0; i < options.filter[f].length; i++) {
-                                        arr.push(`'${db.sanitizeString(options.filter[f][i].toString())}'`);
+                                    if (typeof options.filter[f] == 'string') {
+                                        filter.push(`"${f}" in (${decodeDynamicFilter(options.filter[f])})`);
+                                    } else {
+                                        const arr = [];
+                                        for (let i = 0; i < options.filter[f].length; i++) {
+                                            arr.push(`'${db.sanitizeString(options.filter[f][i].toString())}'`);
+                                        }
+                                        filter.push(`"${f}" in (${arr.join(',')})`);
                                     }
-                                    filter.push(`"${f}" in (${arr.join(',')})`);
                                 }
                             }
                             if (splitted[i].includes('$filters')) {
