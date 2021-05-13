@@ -52,8 +52,8 @@ let bi = {
             }
         }
 
-        const row_total = options.config.totalrow;
-        const column_total = options.config.totalcolumn;
+        let row_total = options.config.totalrow;
+        let column_total = options.config.totalcolumn;
 
         const delimiter = '->';
 
