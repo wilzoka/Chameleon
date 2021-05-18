@@ -1018,7 +1018,7 @@ let bi = {
                         let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cubes[i]['virtual.id'] } });
                         for (let z = 0; z < dimensions.length; z++) {
                             if (dimensions[z].sqlfield == obj.data.key) {
-                                unions.push(`select distinct "${obj.data.key}" as option from bi_cube_${cubes[i]['virtual.id']}`);
+                                unions.push(`select distinct "${obj.data.key}"::text as option from bi_cube_${cubes[i]['virtual.id']}`);
                             }
                         }
                     }
@@ -1027,7 +1027,7 @@ let bi = {
                 } else {
                     sql = await db.sequelize.query(`
                     select distinct
-                        "${obj.data.key}" as option
+                        "${obj.data.key}"::text as option
                     from
                         bi_cube_${cube.id}
                     order by 1

@@ -93,7 +93,7 @@ var application = {
                 }
                 $('#appusername').text(localStorage.getItem('username'));
             }
-            document.title = $('#title-app').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
+            document.title = localStorage.getItem('descriptionmenu') || 'Sistema';
             var pageconf = application.functions.getPageConf();
             if ('currentTab' in pageconf) {
                 $('ul.nav a[href="' + pageconf.currentTab + '"]').tab('show');
@@ -958,6 +958,8 @@ var application = {
                         '</div>';
                     $table.closest('.dataTables_wrapper').find('.dt-filter-div').append(filterhtml);
                     $table.closest('.dataTables_wrapper').find('.dt-title-div').text($table.attr('data-title'));
+                    if (application.isTableview)
+                        document.title = $table.attr('data-title');
                     setTimeout(function () {
                         $(document).trigger('app-datatable', this.sTableId);
                         if (!application.functions.isMobile() && application.functions.getId() != 0) {
