@@ -343,8 +343,11 @@ let bi = {
                     let sd = null;
                     for (let i = 0; i < data.length; i++) {
                         if (structure.c[c].val == data[i].column && structure.r[r].val == data[i].row) {
-                            const measuresplitted = data[i].measures[m].toString().split('.');
-                            let format = application.formatters.fe.decimal((parseFloat(data[i].measures[m]) / (Math.pow(1000, scale))), measuresplitted.length > 1 ? 2 : 0);
+                            let format = '';
+                            if (data[i].measures[m] != null) {
+                                const measuresplitted = data[i].measures[m].toString().split('.');
+                                format = application.formatters.fe.decimal((parseFloat(data[i].measures[m]) / (Math.pow(1000, scale))), measuresplitted.length > 1 ? 2 : 0);
+                            }
                             if (scale == 1) {
                                 format += ' k';
                             } else if (scale == 2) {
@@ -970,9 +973,10 @@ let bi = {
                 application.success(obj.res, { data: bi.f_pivot(sql, options) });
             } catch (err) {
                 application.error(obj.res, { msg: err.message });
+                console.error('Analysis Error, User:', obj.req.user.id, err.message + ' ' + err.stack);
             }
         }
-        , js_getCube: async function (obj) {
+        , js_getCube: async (obj) => {
             try {
                 let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
                 let data = {
@@ -1011,44 +1015,38 @@ let bi = {
                 return application.fatal(obj.res, err);
             }
         }
-        , js_getFilter: async function (obj) {
+        , js_getFilter: async (obj) => {
             try {
-                let cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
+                const cube = await db.getModel('bi_cube').findOne({ raw: true, where: { id: obj.data.idcube } });
                 let sql = [];
                 if (cube.virtual) {
-                    let cubes = await db.getModel('bi_cubevirtual').findAll({
+                    const cubes = await db.getModel('bi_cubevirtual').findAll({
                         raw: true, include: [{ all: true }], where: { idcube: cube.id }
                     });
-                    let unions = []
-                    for (let i = 0; i < cubes.length; i++) {
-                        let dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: cubes[i]['virtual.id'] } });
+                    const unions = []
+                    for (const c of cubes) {
+                        const dimensions = await db.getModel('bi_cubedimension').findAll({ raw: true, where: { idcube: c['virtual.id'] } });
                         for (let z = 0; z < dimensions.length; z++) {
                             if (dimensions[z].sqlfield == obj.data.key) {
-                                unions.push(`select distinct "${obj.data.key}"::text as option from bi_cube_${cubes[i]['virtual.id']}`);
+                                unions.push(`select distinct "${obj.data.key}"::text as option from bi_cube_${c['virtual.id']}`);
                             }
                         }
                     }
-                    let query = `select * from (${unions.join(' union ')}) as x order by 1`;
-                    sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
+                    sql = await db.query(`select * from (${unions.join(' union ')}) as x order by 1`);
                 } else {
-                    sql = await db.sequelize.query(`
-                    select distinct
-                        "${obj.data.key}"::text as option
-                    from
-                        bi_cube_${cube.id}
-                    order by 1
-                    `, { type: db.sequelize.QueryTypes.SELECT });
+                    sql = await db.query(`select distinct "${obj.data.key}"::text as option from bi_cube_${cube.id} order by 1`);
                 }
-                let ret = [];
-                for (let i = 0; i < sql.length; i++) {
-                    ret.push([sql[i].option]);
+                const ret = [];
+                for (const s of sql) {
+                    if (s.option != null)
+                        ret.push([s.option]);
                 }
-                return application.success(obj.res, { data: ret });
+                application.success(obj.res, { data: ret });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
-        , js_print: async function (obj) {
+        , js_print: async (obj) => {
             try {
                 let pagebreak = '<div style="page-break-after:always"></div>';
                 let html = `
@@ -1090,9 +1088,9 @@ let bi = {
                     , landscape: true
                 });
                 await browser.close();
-                return application.success(obj.res, { openurl: `/download/${filename}.pdf` });
+                application.success(obj.res, { openurl: `/download/${filename}.pdf` });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
         , e_share: async (obj) => {
