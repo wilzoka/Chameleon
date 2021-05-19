@@ -40,9 +40,15 @@ const
         if (str == 'Dia Atual') {
             return `lpad(extract(day from now())::text, 2, '0')`;
         } else if (str == 'Mês Atual') {
-            return `lpad(extract(month from  now())::text, 2, '0') || '-' || to_char(to_timestamp (extract(month from  now())::text, 'MM'), 'TMMonth')`;
+            return `lpad(extract(month from now())::text, 2, '0') || '-' || to_char(to_timestamp (extract(month from now())::text, 'MM'), 'TMMonth')`;
         } else if (str == 'Ano Atual') {
             return `extract(year from now())::text`;
+        } else if (str == 'Dia Anterior') {
+            return `lpad(extract(day from now() - interval '1 day')::text, 2, '0')`;
+        } else if (str == 'Mês Anterior') {
+            return `lpad(extract(month from now() - interval '1 month')::text, 2, '0') || '-' || to_char(to_timestamp (extract(month from now() - interval '1 month')::text, 'MM'), 'TMMonth')`;
+        } else if (str == 'Ano Anterior') {
+            return `extract(year from now() - interval '1 year')::text`;
         } else {
             return null;
         }
