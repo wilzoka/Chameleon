@@ -8,6 +8,7 @@ const db = require('../models')
     , Cyjs = require('crypto-js')
     , sharp = require('sharp')
     , xlsx = require('xlsx')
+    , md5File = require('md5-file')
     ;
 
 sharp.cache(false);
@@ -224,6 +225,19 @@ const platform = {
         }
         , e_fixDuplicateFiles: async (obj) => {
             try {
+                const needfix = await db.getModel('file').findAll({
+                    where: {
+                        hash: { [db.Op.ne]: null }
+                    }
+                    , order: [['id', 'asc']]
+                });
+                for (f of needfix) {
+                    const path = application.functions.filesDir() + f.id + '.' + f.type;
+                    if (fs.existsSync(path)) {
+                        f.hash = md5File.sync(path);
+                        await f.save({ iduser: obj.req.user.id });
+                    }
+                }
                 const files = await db.getModel('file').findAll({
                     where: {
                         hash: null
@@ -234,8 +248,7 @@ const platform = {
                 for (const f of files) {
                     const path = application.functions.filesDir() + f.id + '.' + f.type;
                     if (fs.existsSync(path)) {
-                        const filebuffer = fs.readFileSync(path);
-                        const hash = Cyjs.MD5(Cyjs.enc.Latin1.parse(filebuffer.toString())).toString(Cyjs.enc.Hex);
+                        const hash = md5File.sync(path);
                         const fileref = await db.findOne('file', { hash: hash });
                         if (fileref) {
                             f.idfileref = fileref.id;
@@ -247,7 +260,6 @@ const platform = {
                     } else {
                         console.log(`Arquivo ${f.id} ${f.filename} não encontrado`);
                     }
-
                 }
                 application.success(obj.res, { msg: application.message.success, reloadtables: true });
             } catch (err) {
@@ -296,13 +308,12 @@ const platform = {
     , maintenance: {
         f_clearUnboundFiles: async () => {
             try {
-                const sql = await db.sequelize.query(`select * from file where datetime < now()::date -1 and bounded = false`
-                    , { type: db.Sequelize.QueryTypes.SELECT });
-                for (let i = 0; i < sql.length; i++) {
-                    const path = `${__dirname}/../files/${process.env.NODE_APPNAME}/${sql[i].id}.${sql[i].type}`;
+                const sql = await db.query(`select * from file where datetime < now()::date -1 and bounded = false and id not in (select distinct idfileref from file where idfileref is not null)`);
+                for (const s of sql) {
+                    const path = `${application.functions.filesDir()}${s.id}.${s.type}`;
                     if (fs.existsSync(path))
                         fs.unlinkSync(path);
-                    db.getModel('file').destroy({ where: { id: sql[i].id } });
+                    await db.getModel('file').destroy({ where: { id: s.id } });
                 }
             } catch (err) {
                 console.error(err);

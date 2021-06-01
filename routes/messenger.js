@@ -59,7 +59,7 @@ const activeMessenger = async function (mes) {
                     console.error(`Messenger ${mes.description} Error: ${err}`);
                 });
                 messengers[mes.id].on("mail", async function (mail, seqno, attributes) {
-                    let config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
+                    let config = (await db.query("SELECT * FROM config"))[0];
                     let custom = require(__dirname + '/../custom/' + config.customfile);
                     let realfunction = application.functions.getRealReference(custom, mes.ongathering);
                     if (!realfunction) {
@@ -83,7 +83,7 @@ const desactiveMessenger = function (mes) {
     }
 }
 
-db.sequelize.query("SELECT * FROM messenger where active", { type: db.sequelize.QueryTypes.SELECT }).then(messengers => {
+db.query("SELECT * FROM messenger where active").then(messengers => {
     messengers.map(mes => {
         activeMessenger(mes);
     });

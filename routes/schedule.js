@@ -7,7 +7,7 @@ const schedules = [];
 
 const addSchedule = async function (sch) {
     try {
-        const config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
+        const config = (await db.query("SELECT * FROM config"))[0];
         const custom = require('../custom/' + config.customfile);
         const realfunction = application.functions.getRealReference(custom, sch.function);
         if (realfunction) {
@@ -29,7 +29,7 @@ const removeSchedule = function (sch) {
 
 const executeSchedule = async function (sch) {
     try {
-        const config = (await db.sequelize.query("SELECT * FROM config", { type: db.sequelize.QueryTypes.SELECT }))[0];
+        const config = (await db.query("SELECT * FROM config"))[0];
         const custom = require('../custom/' + config.customfile);
         application.functions.getRealReference(custom, sch.function)(sch);
     } catch (err) {
@@ -37,7 +37,7 @@ const executeSchedule = async function (sch) {
     }
 }
 
-db.sequelize.query("SELECT * FROM schedule where active", { type: db.sequelize.QueryTypes.SELECT }).then(scheds => {
+db.query("SELECT * FROM schedule where active").then(scheds => {
     scheds.map(sched => {
         addSchedule(sched);
     });

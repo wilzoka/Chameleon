@@ -6,7 +6,7 @@ const application = require('./application')
     , moment = require('moment')
     , sharp = require('sharp')
     , mime = require('mime-types')
-    , Cyjs = require('crypto-js')
+    , md5File = require('md5-file')
     ;
 
 sharp.cache(false);
@@ -160,8 +160,7 @@ module.exports = function (app) {
                     path += `${file.id}.${file.type}`;
                     fs.renameSync(req.file.path, path);
                 }
-                const filebuffer = fs.readFileSync(path);
-                const hash = Cyjs.MD5(Cyjs.enc.Latin1.parse(filebuffer.toString())).toString(Cyjs.enc.Hex);
+                const hash = md5File.sync(path);
                 const fileref = await db.findOne('file', { hash: hash });
                 if (fileref) {
                     file.idfileref = fileref.id;
