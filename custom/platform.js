@@ -225,19 +225,6 @@ const platform = {
         }
         , e_fixDuplicateFiles: async (obj) => {
             try {
-                const needfix = await db.getModel('file').findAll({
-                    where: {
-                        hash: { [db.Op.ne]: null }
-                    }
-                    , order: [['id', 'asc']]
-                });
-                for (f of needfix) {
-                    const path = application.functions.filesDir() + f.id + '.' + f.type;
-                    if (fs.existsSync(path)) {
-                        f.hash = md5File.sync(path);
-                        await f.save({ iduser: obj.req.user.id });
-                    }
-                }
                 const files = await db.getModel('file').findAll({
                     where: {
                         hash: null
