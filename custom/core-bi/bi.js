@@ -1057,6 +1057,9 @@ let bi = {
                     <body>
                         <style>
                             ${fs.readFileSync(`${application.functions.rootDir()}public/assets/pivotjs/pivot.css`)}
+                            table {
+                                width: 100%;
+                            }
                         </style>
                         <div style="width:100%;text-align:center;">
                             <h4>${obj.data.title || ''}</h4>

@@ -6,6 +6,7 @@ const application = require('./application')
     , moment = require('moment')
     , sharp = require('sharp')
     , mime = require('mime-types')
+    , Cyjs = require('crypto-js')
     ;
 
 sharp.cache(false);
@@ -37,7 +38,7 @@ module.exports = function (app) {
             if (isNaN(req.params.id)) {
                 return res.send('Arquivo inválido');
             }
-            const file = await db.getModel('file').findOne({ raw: true, where: { id: req.params.id } });
+            let file = await db.getModel('file').findOne({ raw: true, where: { id: req.params.id } });
             if (!file) {
                 return res.send('Arquivo inválido');
             }
@@ -74,6 +75,8 @@ module.exports = function (app) {
                     return application.forbidden(res);
                 }
             }
+            if (file.idfileref)
+                file = await db.getModel('file').findOne({ raw: true, where: { id: file.idfileref } });
             const filepath = `${application.functions.filesDir()}${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
                 res.setHeader('Content-Length', file.size);
@@ -113,7 +116,8 @@ module.exports = function (app) {
                 if (!req.file)
                     return application.fatal(res, 'No file given');
                 const filename = application.functions.removeSpecialCharacters(application.functions.singleSpace(req.file.filename))
-                    .replace(/\,/g, '');
+                    .replace(/\,/g, '')
+                    .replace(/[\u{0080}-\u{FFFF}]/gu, "");
                 const filenamesplited = filename.split('.');
                 const type = filenamesplited[filenamesplited.length - 1].toLowerCase();
                 const mimetype = mime.lookup(type) || '';
@@ -155,6 +159,15 @@ module.exports = function (app) {
                 } else {
                     path += `${file.id}.${file.type}`;
                     fs.renameSync(req.file.path, path);
+                }
+                const filebuffer = fs.readFileSync(path);
+                const hash = Cyjs.MD5(Cyjs.enc.Latin1.parse(filebuffer.toString())).toString(Cyjs.enc.Hex);
+                const fileref = await db.findOne('file', { hash: hash });
+                if (fileref) {
+                    file.idfileref = fileref.id;
+                    fs.unlinkSync(path);
+                } else {
+                    file.hash = hash;
                 }
                 await file.save({ iduser: req.user.id });
                 res.json({ success: true, data: file });

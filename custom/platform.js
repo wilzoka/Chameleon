@@ -222,6 +222,38 @@ const platform = {
                 application.fatal(obj.res, err);
             }
         }
+        , e_fixDuplicateFiles: async (obj) => {
+            try {
+                const files = await db.getModel('file').findAll({
+                    where: {
+                        hash: null
+                        , idfileref: null
+                    }
+                    , order: [['id', 'asc']]
+                });
+                for (const f of files) {
+                    const path = application.functions.filesDir() + f.id + '.' + f.type;
+                    if (fs.existsSync(path)) {
+                        const filebuffer = fs.readFileSync(path);
+                        const hash = Cyjs.MD5(Cyjs.enc.Latin1.parse(filebuffer.toString())).toString(Cyjs.enc.Hex);
+                        const fileref = await db.findOne('file', { hash: hash });
+                        if (fileref) {
+                            f.idfileref = fileref.id;
+                            fs.unlinkSync(path);
+                        } else {
+                            f.hash = hash;
+                        }
+                        await f.save({ iduser: obj.req.user.id });
+                    } else {
+                        console.log(`Arquivo ${f.id} ${f.filename} não encontrado`);
+                    }
+
+                }
+                application.success(obj.res, { msg: application.message.success, reloadtables: true });
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
     }
     , kettle: {
         f_runTransformation: function (filepath) {
