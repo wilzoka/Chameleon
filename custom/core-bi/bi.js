@@ -54,7 +54,7 @@ const
         }
     }
 
-let bi = {
+const bi = {
     f_pivot: function (sql, options) {
         const config = options.config || {};
         const columns = options.columns || [];
@@ -494,7 +494,6 @@ let bi = {
             }
         }
 
-
         // Render Table
         let html = '<table class="pvtTable" border="1" style="border-collapse: collapse;">';
         for (let i = 0; i < structure.columns.length; i++) {
@@ -606,15 +605,15 @@ let bi = {
                 if (obj.register.id == 0) {
                     //Popular medidas/dimensoes
                 }
-                let saved = await next(obj);
+                const saved = await next(obj);
                 bi.cube.f_agendar(saved.register);
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
         , ondelete: async (obj, next) => {
             try {
-                let deleted = await next(obj);
+                const deleted = await next(obj);
                 if (deleted.success) {
                     for (let i = 0; i < obj.ids.length; i++) {
                         bi.cube.f_desagendar(obj.ids[i]);
@@ -622,7 +621,7 @@ let bi = {
                     }
                 }
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
         , e_executarCarga: async (obj) => {
@@ -634,7 +633,7 @@ let bi = {
                 for (let i = 0; i < cubes.length; i++) {
                     await bi.cube.f_otimizar(cubes[i].id);
                 }
-                return application.success(obj.res, { msg: application.message.success, reloadtables: true });
+                application.success(obj.res, { msg: application.message.success, reloadtables: true });
             } catch (err) {
                 application.fatal(obj.res, err);
             }
@@ -707,20 +706,35 @@ let bi = {
         }
     }
     , analysis: {
-        onsave: async function (obj, next) {
+        onsave: async (obj, next) => {
             try {
                 if (obj.register.id == 0) {
                     obj.register.iduser = obj.req.user.id;
                 }
                 if (obj.register.iduser != obj.req.user.id) {
-                    const share = await db.findOne('bi_analysisuser', { idanalysis: obj.register.id, iduser: obj.req.user.id });
-                    if (!share || !share.editable) {
-                        return application.error(obj.res, { msg: 'Você não tem permissão par editar esta análise' });
+                    const perm = await db.findOne('bi_analysisuser', { idanalysis: obj.register.id, iduser: obj.req.user.id, editable: true });
+                    if (!perm) {
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
                     }
                 }
                 await next(obj);
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
+            }
+        }
+        , ondelete: async (obj, next) => {
+            try {
+                const as = await db.findAll('bi_analysis', { id: { [db.Op.in]: obj.ids } });
+                for (const a of as) {
+                    const analysis = await db.findById('bi_analysis', a.id);
+                    if (!analysis)
+                        return application.error(obj.res, { msg: 'Análise não encontrado' });
+                    if (obj.req.user.id != analysis.iduser)
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
+                }
+                await next(obj);
+            } catch (err) {
+                application.fatal(obj.res, err);
             }
         }
         , f_getBaseQuery: async function (idcube, options) {
@@ -1010,9 +1024,9 @@ let bi = {
                         data.measures.push(measures[i].sqlfield);
                     }
                 }
-                return application.success(obj.res, { data: data });
+                application.success(obj.res, { data: data });
             } catch (err) {
-                return application.fatal(obj.res, err);
+                application.fatal(obj.res, err);
             }
         }
         , js_getFilter: async (obj) => {
@@ -1152,6 +1166,15 @@ let bi = {
     , analysisuser: {
         onsave: async (obj, next) => {
             try {
+                const analysis = await db.findById('bi_analysis', obj.register.idanalysis);
+                if (!analysis)
+                    return application.error(obj.res, { msg: 'Análise não encontrada' });
+                if (analysis.iduser != obj.req.user.id) {
+                    const perm = await db.findOne('bi_analysisuser', { idanalysis: analysis.id, iduser: obj.req.user.id, editable: true });
+                    if (!perm) {
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
+                    }
+                }
                 const saved = await next(obj);
                 if (saved.success) {
                     const analysis = await db.findById('bi_analysis', saved.register.idanalysis);
@@ -1167,6 +1190,24 @@ let bi = {
                 application.fatal(obj.res, err);
             }
         }
+        , ondelete: async (obj, next) => {
+            try {
+                const aus = await db.findAll('bi_analysisuser', { id: { [db.Op.in]: obj.ids } });
+                for (const au of aus) {
+                    const analysis = await db.findById('bi_analysis', au.idanalysis);
+                    if (!analysis)
+                        return application.error(obj.res, { msg: 'Análise não encontrado' });
+                    if (obj.req.user.id != analysis.iduser) {
+                        const perm = await db.findOne('bi_analysisuser', { idanalysis: analysis.id, iduser: obj.req.user.id, editable: true });
+                        if (!perm)
+                            return application.error(obj.res, { msg: application.message.permissionDenied });
+                    }
+                }
+                await next(obj);
+            } catch (err) {
+                application.fatal(obj.res, err);
+            }
+        }
     }
     , dashboard: {
         onsave: async (obj, next) => {
@@ -1176,7 +1217,7 @@ let bi = {
                 if (obj.register.iduser != obj.req.user.id) {
                     const perm = await db.findOne('bi_dashboarduser', { iddashboard: obj.register.id, iduser: obj.req.user.id, editable: true });
                     if (!perm)
-                        return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
                 }
                 await next(obj);
             } catch (err) {
@@ -1190,7 +1231,7 @@ let bi = {
                     if (d.iduser != obj.req.user.id) {
                         const perm = await db.findOne('bi_dashboarduser', { iddashboard: d.id, iduser: obj.req.user.id, editable: true });
                         if (!perm)
-                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                            return application.error(obj.res, { msg: application.message.permissionDenied });
                     }
                 }
                 await next(obj);
@@ -1220,7 +1261,7 @@ let bi = {
                     const sql = await db.sequelize.query(query, { type: db.sequelize.QueryTypes.SELECT });
                     rendered.push({ analysis: analysis, dashboardanalysis: dashboardanalysis[i], data: bi.f_pivot(sql, options) });
                 }
-                return application.success(obj.res, { rendered: rendered });
+                application.success(obj.res, { rendered: rendered });
             } catch (err) {
                 application.fatal(obj.res, err);
             }
@@ -1235,7 +1276,7 @@ let bi = {
                 if (obj.req.user.id != dashboard.iduser) {
                     const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
                     if (!perm)
-                        return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
                 }
                 await next(obj);
             } catch (err) {
@@ -1252,7 +1293,7 @@ let bi = {
                     if (obj.req.user.id != dashboard.iduser) {
                         const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
                         if (!perm)
-                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                            return application.error(obj.res, { msg: application.message.permissionDenied });
                     }
                 }
                 await next(obj);
@@ -1270,7 +1311,7 @@ let bi = {
                 if (obj.req.user.id != dashboard.iduser) {
                     const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
                     if (!perm)
-                        return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
                 }
                 await next(obj);
             } catch (err) {
@@ -1287,7 +1328,7 @@ let bi = {
                     if (obj.req.user.id != dashboard.iduser) {
                         const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
                         if (!perm)
-                            return application.error(obj.res, { msg: 'Você não tem permissão para realizar esta ação' });
+                            return application.error(obj.res, { msg: application.message.permissionDenied });
                     }
                 }
                 await next(obj);
@@ -1299,7 +1340,7 @@ let bi = {
 }
 
 //Agendamento de Carga dos Cubos
-db.sequelize.query("SELECT * FROM bi_cube WHERE virtual = false", { type: db.sequelize.QueryTypes.SELECT }).then(scheds => {
+db.query('SELECT * FROM bi_cube WHERE virtual = false').then(scheds => {
     scheds.map(sched => {
         bi.cube.f_agendar(sched);
     });

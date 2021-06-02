@@ -439,6 +439,7 @@
         var $charttype = $('select[name="charttype"]');
         var $filter = $('textarea[name="filter"]');
         var $filterdynamic = $('select[name="filterdynamic"]');
+        var $permission = $('input[name="v_permission"]');
         var $config = $('textarea[name="config"]');
         var $calculatedmeasures = $('textarea[name="calculatedmeasures"]');
         var request = {}
@@ -525,6 +526,10 @@
             return config[key];
         }
 
+        function canEdit() {
+            return $permission.val() != 'readonly';
+        }
+
         function renderTable() {
             request = {
                 idcube: $idcube.val()
@@ -545,9 +550,10 @@
             });
             $('input[name="columns"]').val(request.columns.join(','));
             $('input.checkmeasure').each(function () {
-                if ($(this).is(':checked')) {
+                if ($(this).is(':checked'))
                     request.measures.push($(this).attr('data-key'));
-                }
+                if (!canEdit())
+                    $(this).prop("disabled", true);
             });
             $('input[name="measures"]').val(request.measures.join(','));
 
@@ -809,31 +815,34 @@
         $('#modalfilter').on('hidden.bs.modal', function () {
             tablefilter.search('');
         });
-        $(document).on('click', '.dimfilter', function (e) {
-            var key = $(this).closest('li.list-group-item').attr('data-key');
-            application.jsfunction('platform.core_bi.analysis.js_getFilter', { idcube: $idcube.val(), key: key }, function (response) {
-                if (response.success) {
-                    $('#modalfilter').find('.modal-title').html(key);
-                    $('#modalfilter').attr('data-key', key);
-                    $filterdynamic.val('');
-                    tablefilter.clear();
-                    tablefilter.rows.add(response.data);
-                    tablefilter.draw();
-                    var filter = JSON.parse($filter.val() || '{}');
-                    tablefilter.rows().every(function () {
-                        if (typeof filter[key] == 'string') {
-                            $filterdynamic.val(filter[key]);
-                        } else {
-                            var d = this.data();
-                            if (filter[key] && filter[key].indexOf(d[0]) >= 0) {
-                                this.select();
+
+        if (canEdit()) {
+            $(document).on('click', '.dimfilter', function (e) {
+                var key = $(this).closest('li.list-group-item').attr('data-key');
+                application.jsfunction('platform.core_bi.analysis.js_getFilter', { idcube: $idcube.val(), key: key }, function (response) {
+                    if (response.success) {
+                        $('#modalfilter').find('.modal-title').html(key);
+                        $('#modalfilter').attr('data-key', key);
+                        $filterdynamic.val('');
+                        tablefilter.clear();
+                        tablefilter.rows.add(response.data);
+                        tablefilter.draw();
+                        var filter = JSON.parse($filter.val() || '{}');
+                        tablefilter.rows().every(function () {
+                            if (typeof filter[key] == 'string') {
+                                $filterdynamic.val(filter[key]);
+                            } else {
+                                var d = this.data();
+                                if (filter[key] && filter[key].indexOf(d[0]) >= 0) {
+                                    this.select();
+                                }
                             }
-                        }
-                    });
-                    $('#modalfilter').modal('show');
-                }
+                        });
+                        $('#modalfilter').modal('show');
+                    }
+                });
             });
-        });
+        }
 
         $('#applyfilter').click(function () {
             var filter = JSON.parse($filter.val() || '{}');
@@ -954,26 +963,28 @@
 
         $(document).on('app-loadjs', function () {
             //Sortable
-            var dims = ['dim', 'dimcol', 'dimrow'];
-            for (var i = 0; i < dims.length; i++) {
-                new Sortable(document.getElementById(dims[i]), {
+            if (canEdit()) {
+                var dims = ['dim', 'dimcol', 'dimrow'];
+                for (var i = 0; i < dims.length; i++) {
+                    new Sortable(document.getElementById(dims[i]), {
+                        handle: '.text'
+                        , animation: 150
+                        , ghostClass: 'blue-background-class'
+                        , group: 'dims'
+                        , onEnd: function () {
+                            renderTable();
+                        }
+                    });
+                }
+                new Sortable(document.getElementById('measure'), {
                     handle: '.text'
                     , animation: 150
                     , ghostClass: 'blue-background-class'
-                    , group: 'dims'
                     , onEnd: function () {
                         renderTable();
                     }
                 });
             }
-            new Sortable(document.getElementById('measure'), {
-                handle: '.text'
-                , animation: 150
-                , ghostClass: 'blue-background-class'
-                , onEnd: function () {
-                    renderTable();
-                }
-            });
 
             if (application.functions.getId() > 0) {
                 renderUI($idcube.val());
