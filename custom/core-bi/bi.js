@@ -1169,12 +1169,8 @@ const bi = {
                 const analysis = await db.findById('bi_analysis', obj.register.idanalysis);
                 if (!analysis)
                     return application.error(obj.res, { msg: 'Análise não encontrada' });
-                if (analysis.iduser != obj.req.user.id) {
-                    const perm = await db.findOne('bi_analysisuser', { idanalysis: analysis.id, iduser: obj.req.user.id, editable: true });
-                    if (!perm) {
-                        return application.error(obj.res, { msg: application.message.permissionDenied });
-                    }
-                }
+                if (analysis.iduser != obj.req.user.id)
+                    return application.error(obj.res, { msg: application.message.permissionDenied });
                 const saved = await next(obj);
                 if (saved.success) {
                     const analysis = await db.findById('bi_analysis', saved.register.idanalysis);
@@ -1197,11 +1193,8 @@ const bi = {
                     const analysis = await db.findById('bi_analysis', au.idanalysis);
                     if (!analysis)
                         return application.error(obj.res, { msg: 'Análise não encontrado' });
-                    if (obj.req.user.id != analysis.iduser) {
-                        const perm = await db.findOne('bi_analysisuser', { idanalysis: analysis.id, iduser: obj.req.user.id, editable: true });
-                        if (!perm)
-                            return application.error(obj.res, { msg: application.message.permissionDenied });
-                    }
+                    if (obj.req.user.id != analysis.iduser)
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
                 }
                 await next(obj);
             } catch (err) {
@@ -1273,11 +1266,8 @@ const bi = {
                 const dashboard = await db.findById('bi_dashboard', obj.register.iddashboard || 0);
                 if (!dashboard)
                     return application.error(obj.res, { msg: 'Dashboard não encontrado' });
-                if (obj.req.user.id != dashboard.iduser) {
-                    const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
-                    if (!perm)
-                        return application.error(obj.res, { msg: application.message.permissionDenied });
-                }
+                if (obj.req.user.id != dashboard.iduser)
+                    return application.error(obj.res, { msg: application.message.permissionDenied });
                 await next(obj);
             } catch (err) {
                 application.fatal(obj.res, err);
@@ -1290,11 +1280,8 @@ const bi = {
                     const dashboard = await db.findById('bi_dashboard', du.iddashboard);
                     if (!dashboard)
                         return application.error(obj.res, { msg: 'Dashboard não encontrado' });
-                    if (obj.req.user.id != dashboard.iduser) {
-                        const perm = await db.findOne('bi_dashboarduser', { iddashboard: dashboard.id, iduser: obj.req.user.id, editable: true });
-                        if (!perm)
-                            return application.error(obj.res, { msg: application.message.permissionDenied });
-                    }
+                    if (obj.req.user.id != dashboard.iduser)
+                        return application.error(obj.res, { msg: application.message.permissionDenied });
                 }
                 await next(obj);
             } catch (err) {
