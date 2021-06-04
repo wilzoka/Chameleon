@@ -687,11 +687,52 @@ module.exports = function (app) {
             if (!view)
                 return application.error(res, {});
             const permission = await platform.view.f_hasPermission(req.user.id, view.id);
+            // Permissions
+            const permissions = {};
+            permissions.insertable = permission.insertable;
+            permissions.editable = permission.editable;
+            permissions.deletable = permission.deletable;
+            permissions.orderable = view.orderfixed ? false : true;
+            // Events
+            const events = [];
+            const permissionevents = await db.query(`select e.*, pe.available from permissionevent pe
+            left join viewevent e on (pe.idevent = e.id)
+            left join permission p on (pe.idpermission = p.id)
+            where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`);
+            const viewevents = await db.query(`select e.*, true as available from viewevent e where e.idview = ${view.id} order by e.description`);
+            const realevents = permissionevents.length > 0 ? permissionevents : viewevents;
+            for (let i = 0; i < realevents.length; i++) {
+                if (realevents[i].available)
+                    events.push({
+                        id: realevents[i].id
+                        , description: realevents[i].description
+                        , icon: realevents[i].icon
+                    });
+            }
             if (!view.neednoperm && !permission.visible)
                 return application.forbidden(res);
             if (view.type == 'Calendar') {
+                const j = JSON.parse(view.add || '{}');
+                // let resources = null;
+                // if (j.timeline && j.attribute_resource) {
+                //     const resource_attribute = await db.findOne('modelattribute', { idmodel: view.idmodel, name: j.attribute_resource });
+                //     const typeadd = application.modelattribute.parseTypeadd(resource_attribute.typeadd);
+                //     resources = [];
+                //     if (resource_attribute.type == 'radio') {
+                //         for (const opt of typeadd.options)
+                //             resources.push({ id: opt, title: opt });
+                //     } else if (resource_attribute.type == 'autocomplete') {
+                //         const query = await db.query(`select id, (${typeadd.attribute || typeadd.query}) as text from ${typeadd.model} ${typeadd.where ? 'where ' + typeadd.where : ''} order by 2`)
+                //         for (const q of query)
+                //             resources.push({ id: q.text, title: q.text });
+                //     }
+                // }
                 return application.success(res, {
-                    add: JSON.parse(view.add || '{}')
+                    add: j
+                    , permissions: permissions
+                    , events: events
+                    , fastsearch: view.idfastsearch ? view.fastsearch.label : 'Pesquisa'
+                    // , resources
                 });
             } else {
                 const viewtables = await db.getModel('viewtable').findAll({
@@ -699,31 +740,9 @@ module.exports = function (app) {
                     , order: [['ordertable', 'ASC']]
                     , include: [{ all: true }]
                 });
-                const permissionevents = await db.sequelize.query(`select e.*, pe.available from permissionevent pe
-                left join viewevent e on (pe.idevent = e.id)
-                left join permission p on (pe.idpermission = p.id)
-                where p.id = ${permission ? permission.id : 0} and p.idview = ${view.id}`, { type: db.Sequelize.QueryTypes.SELECT });
-                const viewevents = await db.sequelize.query(`select e.*, true as available from viewevent e where e.idview = ${view.id} order by e.description`, { type: db.Sequelize.QueryTypes.SELECT });
-                let events = [];
-                let columns = [];
+                const columns = [];
                 let needfooter = false;
                 let footer = '';
-                let permissions = {};
-                // Permissions
-                permissions.insertable = permission.insertable;
-                permissions.editable = permission.editable;
-                permissions.deletable = permission.deletable;
-                permissions.orderable = view.orderfixed ? false : true;
-                // Events
-                const realevents = permissionevents.length > 0 ? permissionevents : viewevents;
-                for (let i = 0; i < realevents.length; i++) {
-                    if (realevents[i].available)
-                        events.push({
-                            id: realevents[i].id
-                            , description: realevents[i].description
-                            , icon: realevents[i].icon
-                        });
-                }
                 // Columns
                 if (!view.supressid) {
                     columns.push({
@@ -1109,7 +1128,7 @@ module.exports = function (app) {
             if (!register && id != 0) {
                 return application.render(res, __dirname + '/../views/templates/viewregisternotfound.html');
             }
-            const lastaudit = await db.getModel('audit').findOne({ attributes: ['id'], raw: true, where: { idmodel: view.idmodel, modelid: id }, order: [['id', 'desc']] });
+            const lastaudit = id == 0 ? null : await db.getModel('audit').findOne({ attributes: ['id'], raw: true, where: { idmodel: view.idmodel, modelid: id }, order: [['id', 'desc']] });
             const templatezones = await db.getModel('templatezone').findAll({
                 where: { idtemplate: view.template.id }
             });
