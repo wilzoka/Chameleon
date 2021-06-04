@@ -75,13 +75,14 @@ module.exports = function (app) {
                     return application.forbidden(res);
                 }
             }
+            const realname = file.filename;
             if (file.idfileref)
                 file = await db.getModel('file').findOne({ raw: true, where: { id: file.idfileref } });
             const filepath = `${application.functions.filesDir()}${file.id}.${file.type}`;
             if (fs.existsSync(filepath)) {
                 res.setHeader('Content-Length', file.size);
                 res.setHeader('Content-Type', file.mimetype);
-                res.setHeader('Content-Disposition', `;filename=${file.filename}`);
+                res.setHeader('Content-Disposition', `;filename=${realname}`);
                 let f;
                 if (file.mimetype.match(/video.*/)) {
                     const range = req.headers.range;
