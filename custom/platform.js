@@ -1496,7 +1496,8 @@ const platform = {
                     application.success(obj.res, { msg: application.message.success, reloadtables: true });
                 }
             } catch (err) {
-                t.rollback();
+                if (t)
+                    t.rollback();
                 application.fatal(obj.res, err);
             }
         }
