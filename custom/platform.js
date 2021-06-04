@@ -413,7 +413,12 @@ const platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let menus = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
+                    const rf = await db.findById('file', file.id);
+                    let menus = JSON.parse(
+                        rf.idfileref ?
+                            fs.readFileSync(`${application.functions.filesDir()}${rf.idfileref}.${file.type}`, 'utf8')
+                            : fs.readFileSync(`${application.functions.filesDir()}${file.id}.${file.type}`, 'utf8')
+                    );
                     console.log('----------SYNC MENUS----------');
                     for (let i = 0; i < menus.length; i++) {
                         console.log('MENU ' + menus[i].tree);
@@ -668,7 +673,12 @@ const platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let models = JSON.parse(fs.readFileSync(`${__dirname}/../files/${process.env.NODE_APPNAME}/${file.id}.${file.type}`, 'utf8'));
+                    const rf = await db.findById('file', file.id);
+                    let models = JSON.parse(
+                        rf.idfileref ?
+                            fs.readFileSync(`${application.functions.filesDir()}${rf.idfileref}.${file.type}`, 'utf8')
+                            : fs.readFileSync(`${application.functions.filesDir()}${file.id}.${file.type}`, 'utf8')
+                    );
                     console.log('----------SYNC MODELS---------');
                     for (let i = 0; i < models.length; i++) {
                         console.log('MODEL ' + models[i].name);
@@ -1296,7 +1306,12 @@ const platform = {
                         return application.error(obj.res, { msg: application.message.invalidFields, invalidfields: invalidfields });
                     }
                     let file = JSON.parse(obj.req.body.file)[0];
-                    let views = JSON.parse(fs.readFileSync(`${application.functions.filesDir()}${file.id}.${file.type}`, 'utf8'));
+                    const rf = await db.findById('file', file.id);
+                    let views = JSON.parse(
+                        rf.idfileref ?
+                            fs.readFileSync(`${application.functions.filesDir()}${rf.idfileref}.${file.type}`, 'utf8')
+                            : fs.readFileSync(`${application.functions.filesDir()}${file.id}.${file.type}`, 'utf8')
+                    );
                     t = await db.sequelize.transaction();
                     console.log('----------SYNC VIEWS----------');
                     for (let i = 0; i < views.length; i++) {
