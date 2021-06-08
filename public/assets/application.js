@@ -981,10 +981,10 @@ var application = {
                 , scrollCollapse: true
                 , scrollX: true
                 , scrollY: $('#view' + data.name).attr('data-height') || $('#view' + data.name).attr('data-subview') ? '330px' : application.functions.getAvailableHeight() + 'px'
-                , scroller: data.orderable ? {
+                , scroller: data.orderable ? false : {
                     loadingIndicator: true
                     , displayBuffer: 9
-                } : false
+                }
                 , select: {
                     style: 'multi'
                     , info: false
