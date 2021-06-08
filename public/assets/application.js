@@ -93,7 +93,7 @@ var application = {
                 }
                 $('#appusername').text(localStorage.getItem('username'));
             }
-            document.title = localStorage.getItem('descriptionmenu') || 'Sistema';
+            document.title = $('#title-app').text() || localStorage.getItem('descriptionmenu') || 'Sistema';
             var pageconf = application.functions.getPageConf();
             if ('currentTab' in pageconf) {
                 $('ul.nav a[href="' + pageconf.currentTab + '"]').tab('show');
@@ -164,7 +164,7 @@ var application = {
                     window.close();
                 }
             });
-            $('li.btn-event').click(function () {
+            $(document).on('click', 'li.btn-event', function () {
                 $.ajax({
                     url: '/event/' + $(this).attr('data-event')
                     , type: 'GET'
@@ -174,7 +174,8 @@ var application = {
                         , ids: application.functions.getId()
                     }
                     , success: function (response) {
-                        eventFromRegister = true;
+                        if (!calendar)
+                            eventFromRegister = true;
                         application.handlers.responseSuccess(response);
                     }
                     , error: function (response) {
@@ -980,10 +981,10 @@ var application = {
                 , scrollCollapse: true
                 , scrollX: true
                 , scrollY: $('#view' + data.name).attr('data-height') || $('#view' + data.name).attr('data-subview') ? '330px' : application.functions.getAvailableHeight() + 'px'
-                , scroller: {
+                , scroller: data.orderable ? {
                     loadingIndicator: true
                     , displayBuffer: 9
-                }
+                } : false
                 , select: {
                     style: 'multi'
                     , info: false
@@ -1675,7 +1676,7 @@ var application = {
                         subview: $('[data-view="' + view + '"]').attr('data-subview')
                     }
                     , success: function (response) {
-                        if (response.success)
+                        if (response.success && $('.logo-mini').text() != 'H')
                             localStorage.setItem('Vconfig_' + window.location.pathname + '_' + view, JSON.stringify(response));
                         callback(response);
                     }
