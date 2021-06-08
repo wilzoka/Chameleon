@@ -41,6 +41,7 @@ module.exports = function (app) {
                         , start: registers.rows[i][start.name] ? moment(registers.rows[i][start.name], application.formatters.fe.datetime_format).format(application.formatters.be.datetime_format) : moment().format(application.formatters.be.datetime_format)
                         , end: end ? moment(registers.rows[i][end.name], application.formatters.fe.datetime_format).format(application.formatters.be.datetime_format) : null
                         , backgroundColor: registers.rows[i][start.name] ? (j.attribute_bgcolor ? registers.rows[i][j.attribute_bgcolor] : null) : 'red'
+                        // , resourceId: j.timeline ? registers.original[i][j.attribute_resource] : null
                     });
                 }
                 application.success(res, { events: events });
@@ -108,6 +109,8 @@ module.exports = function (app) {
                         , offset: (req.body.start || 0)
                     }
                 }
+                if (view.orderable)
+                    pagination = null;
                 const registers = platform.view.f_fixResults(await db.getModel(view.model.name).findAndCountAll(Object.assign({}, pagination, {
                     attributes: attributes
                     , raw: true
