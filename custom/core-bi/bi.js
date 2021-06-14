@@ -5,9 +5,15 @@ const application = require('../../routes/application')
     , moment = require('moment')
     , schedule = require('node-schedule')
     , mail = require('../core/modules/mail')
+    , needle = require('needle')
     ;
 
-let cube_schedules = [];
+const
+    cube_schedules = []
+    ;
+
+let
+    dataToLoad = [];
 
 const
     decodeChartType = function (type) {
@@ -52,6 +58,23 @@ const
         } else {
             return null;
         }
+    }
+    , loadData = function (data) {
+        dataToLoad.push(data);
+        if (dataToLoad.length == 10000) {
+            commitData(dataToLoad);
+            dataToLoad = [];
+        }
+    }
+    , loadFinish = function () {
+        commitData(dataToLoad);
+        dataToLoad = [];
+    }
+    , commitData = async (data) => {
+        const t = await db.sequelize.transaction();
+        for (const d of data)
+            await db.sequelize.query(d, { transaction: t });
+        await t.commit();
     }
 
 const bi = {
@@ -648,35 +671,61 @@ const bi = {
                     for (let i = 0; i < dimensions.length; i++) {
                         indexes.push(`create index "idx_bi_cube_${idcube}_${dimensions[i].sqlfield}" on bi_cube_${idcube}("${dimensions[i].sqlfield}")`);
                     }
-                    if (cube.datasource) {
-                        const config = await db.getModel('config').findOne();
-                        const custom = require(application.functions.rootDir() + `custom/${config.customfile}`);
-                        const dsf = application.functions.getRealReference(custom, cube.datasource);
-                        if (dsf) {
-                            const data = await dsf(cube.sql);
-                            const ct = [];
-                            const keys = [];
-                            for (const d of dimensions) {
-                                ct.push(`"${d.sqlfield}" Text`);
-                                keys.push(d.sqlfield);
-                            }
-                            for (const m of measures) {
-                                ct.push(`"${m.sqlfield}" Numeric`);
-                                keys.push(m.sqlfield);
-                            }
-                            await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} (${ct.join(',')});` + indexes.join(';'));
-                            for (const d of data) {
-                                await db.sequelize.query(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${db.sanitizeString(d[k].toString())}'` : 'null'; })})`);
-                            }
+                    if (cube.iddatasource) {
+                        const ds = await db.findById('bi_datasource', cube.iddatasource);
+                        const ct = [];
+                        const keys = [];
+                        for (const d of dimensions) {
+                            ct.push(`"${d.sqlfield}" Text`);
+                            keys.push(d.sqlfield);
+                        }
+                        for (const m of measures) {
+                            ct.push(`"${m.sqlfield}" Numeric`);
+                            keys.push(m.sqlfield);
+                        }
+                        await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} (${ct.join(',')});` + indexes.join(';'));
+                        if (ds.stream) {
+                            let leftover = '';
+                            needle.post(ds.url, { q: cube.sql, dbc: ds.dbconn })
+                                .on('readable', function () {
+                                    const data = this.read();
+                                    if (this.request.res.statusCode == 200 && data) {
+                                        const str = leftover + data.toString();
+                                        if (str.includes('{@}')) {
+                                            const split = str.split('{@}');
+                                            for (let i = 0; i < split.length; i++) {
+                                                let el = split[i];
+                                                if (el[el.length - 1] == '}') {
+                                                    const d = JSON.parse(el);
+                                                    loadData(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${db.sanitizeString(d[k].toString())}'` : 'null'; })})`);
+                                                    leftover = '';
+                                                } else {
+                                                    leftover += el;
+                                                }
+                                            }
+                                        } else {
+                                            leftover += str;
+                                        }
+                                    }
+                                }).on('done', function () {
+                                    loadFinish();
+                                    cube.lastloaddate = moment();
+                                    cube.save();
+                                });
                         } else {
-                            console.error(`Função DS não encontrada no cubo ${cube.description}`);
+                            const query = await needle('post', ds.url, { q: cube.sql, dbc: ds.dbconn });
+                            if (query.body.success) {
+                                for (const d of query.body.data) {
+                                    loadData(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${db.sanitizeString(d[k].toString())}'` : 'null'; })})`);
+                                    loadFinish();
+                                }
+                                cube.lastloaddate = moment();
+                                await cube.save();
+                            }
                         }
                     } else {
                         await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql};` + indexes.join(';'));
-
                     }
-                    cube.lastloaddate = moment();
-                    await cube.save();
                 }
             } catch (err) {
                 console.error(err);

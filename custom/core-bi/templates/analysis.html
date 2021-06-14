@@ -493,7 +493,9 @@
         var dimensionTPL = '<li class="list-group-item" data-key="${key}">'
             + '<span class="text">${name}</span>'
             + '<div class="tools" style="display: inline-block; color: #888888;">'
-            + '<i class="fa fa-filter dimfilter"></i>'
+            // + '<i class="fa fa-grip-lines dimmovetorow" title="Mover Para Linhas"></i>'
+            // + '<i class="fa fa-grip-lines-vertical dimmovetocolumn" title="Mover Para Colunas"></i>'
+            + '<i class="fa fa-filter dimfilter" title="Filtro"></i>'
             + '</div>'
             + '</li>';
 
@@ -941,11 +943,7 @@
                 renderChart(true);
             }
             var svg = chart.dom.getSVG({ chart: { width: 1300, height: 930 } });
-            application.jsfunction('platform.core_bi.analysis.js_print', { title: $('input[name="description"]').val(), table: $('#divtable').html(), chart: svg }, function (response) {
-                if (response.success) {
-                    application.handlers.responseSuccess(response);
-                }
-            });
+            application.jsfunction('platform.core_bi.analysis.js_print', { title: $('input[name="description"]').val(), table: $('#divtable').html(), chart: svg });
         });
 
         $('#actshare').click(function () {
