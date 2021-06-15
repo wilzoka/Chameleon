@@ -684,45 +684,51 @@ const bi = {
                             keys.push(m.sqlfield);
                         }
                         await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} (${ct.join(',')});` + indexes.join(';'));
-                        if (ds.stream) {
-                            let leftover = '';
-                            needle.post(ds.url, { q: cube.sql, dbc: ds.dbconn })
-                                .on('readable', function () {
-                                    const data = this.read();
-                                    if (this.request.res.statusCode == 200 && data) {
-                                        const str = leftover + data.toString();
-                                        if (str.includes('{@}')) {
-                                            const split = str.split('{@}');
-                                            for (let i = 0; i < split.length; i++) {
-                                                let el = split[i];
-                                                if (el[el.length - 1] == '}') {
-                                                    const d = JSON.parse(el);
-                                                    loadData(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${db.sanitizeString(d[k].toString())}'` : 'null'; })})`);
-                                                    leftover = '';
-                                                } else {
-                                                    leftover += el;
+                        await new Promise(async (resolve) => {
+                            if (ds.stream) {
+                                let leftover = '';
+                                needle.post(ds.url, { q: cube.sql, dbc: ds.dbconn })
+                                    .on('readable', function () {
+                                        const data = this.read();
+                                        if (this.request.res.statusCode == 200 && data) {
+                                            const str = leftover + data.toString();
+                                            if (str.includes('{@}')) {
+                                                const split = str.split('{@}');
+                                                for (let i = 0; i < split.length; i++) {
+                                                    let el = split[i];
+                                                    if (el[el.length - 1] == '}') {
+                                                        const d = JSON.parse(el);
+                                                        loadData(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${db.sanitizeString(d[k].toString())}'` : 'null'; })})`);
+                                                        leftover = '';
+                                                    } else {
+                                                        leftover += el;
+                                                    }
                                                 }
+                                            } else {
+                                                leftover += str;
                                             }
-                                        } else {
-                                            leftover += str;
                                         }
+                                    }).on('done', function (err) {
+                                        loadFinish();
+                                        if (!err) {
+                                            cube.lastloaddate = moment();
+                                            cube.save();
+                                        }
+                                        resolve();
+                                    });
+                            } else {
+                                const query = await needle('post', ds.url, { q: cube.sql, dbc: ds.dbconn });
+                                if (query.body.success) {
+                                    for (const d of query.body.data) {
+                                        loadData(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${db.sanitizeString(d[k].toString())}'` : 'null'; })})`);
+                                        loadFinish();
                                     }
-                                }).on('done', function () {
-                                    loadFinish();
                                     cube.lastloaddate = moment();
-                                    cube.save();
-                                });
-                        } else {
-                            const query = await needle('post', ds.url, { q: cube.sql, dbc: ds.dbconn });
-                            if (query.body.success) {
-                                for (const d of query.body.data) {
-                                    loadData(`insert into bi_cube_${idcube} (${keys.map((k) => { return `"${k}"`; })}) values (${keys.map((k) => { return d[k] != null ? `'${db.sanitizeString(d[k].toString())}'` : 'null'; })})`);
-                                    loadFinish();
+                                    await cube.save();
+                                    resolve();
                                 }
-                                cube.lastloaddate = moment();
-                                await cube.save();
                             }
-                        }
+                        });
                     } else {
                         await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql};` + indexes.join(';'));
                         cube.lastloaddate = moment();
