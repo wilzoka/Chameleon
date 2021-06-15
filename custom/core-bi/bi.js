@@ -725,6 +725,8 @@ const bi = {
                         }
                     } else {
                         await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} as ${cube.sql};` + indexes.join(';'));
+                        cube.lastloaddate = moment();
+                        await cube.save();
                     }
                 }
             } catch (err) {
