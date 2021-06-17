@@ -71,10 +71,12 @@ const
         dataToLoad = [];
     }
     , commitData = async (data) => {
-        const t = await db.sequelize.transaction();
-        for (const d of data)
-            await db.sequelize.query(d, { transaction: t });
-        await t.commit();
+        // const t = await db.sequelize.transaction();
+        // for (const d of data)
+        await db.sequelize.query(data.join(';')
+            // , { transaction: t }
+        );
+        // await t.commit();
     }
 
 const bi = {
