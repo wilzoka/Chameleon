@@ -57,6 +57,7 @@ var wysiwygs = {};
 var app = false;
 var socket;
 var eventFromRegister = false;
+var jsFunctionQueue = [];
 // Touch
 var longTouchTimer;
 function touchStart(func) {
@@ -1515,24 +1516,36 @@ var application = {
         }
     }
     , jsfunction: function (name, obj, func) {
-        $.ajax({
-            url: '/jsfunction'
-            , type: 'POST'
-            , dataType: 'json'
-            , data: {
-                name: name
-                , data: obj || {}
-            }
-            , success: function (response) {
-                application.handlers.responseSuccess(response);
-                if (func) {
-                    func(response);
+        jsFunctionQueue.push({ name: name, obj: obj, func: func });
+        if (jsFunctionQueue.length == 1) {
+            application.jsfunctionexecute();
+        }
+    }
+    , jsfunctionexecute: function () {
+        if (jsFunctionQueue.length > 0) {
+            $.ajax({
+                url: '/jsfunction'
+                , type: 'POST'
+                , dataType: 'json'
+                , data: {
+                    name: jsFunctionQueue[0].name
+                    , data: jsFunctionQueue[0].obj || {}
                 }
-            }
-            , error: function (response) {
-                application.handlers.responseError(response);
-            }
-        });
+                , success: function (response) {
+                    application.handlers.responseSuccess(response);
+                    if (jsFunctionQueue[0].func) {
+                        jsFunctionQueue[0].func(response);
+                    }
+                }
+                , error: function (response) {
+                    application.handlers.responseError(response);
+                }
+                , complete: function () {
+                    jsFunctionQueue.shift();
+                    application.jsfunctionexecute();
+                }
+            });
+        }
     }
     , modal: {
         create: function (obj) {
