@@ -26,10 +26,13 @@ module.exports = function (app) {
 				, host: req.headers['x-real-ip'] || req.ip || null
 				, iduser: req.user ? req.user.id : null
 			});
+			req.start = process.hrtime();
 		}
 		res.on('finish', function () {
 			if (this.req.activity) {
 				this.req.activity.statuscode = this.req.res.statusCode;
+				const end = process.hrtime(this.req.start);
+				this.req.activity.duration = (end[0] * 1000000000 + end[1]) / 1e9;
 				this.req.activity.save();
 			}
 		});
