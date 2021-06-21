@@ -910,7 +910,6 @@ var application = {
                             , subview: $(settings.nTable).attr('data-subview')
                         })
                         , beforeSend: function (jqXHR) {
-                            $('#' + settings.sTableId).parent().css('overflow', 'hidden');
                             if (tables[settings.sTableId]) {
                                 if (tables[settings.sTableId]._xhr) {
                                     tables[settings.sTableId]._xhr.abort();
@@ -925,9 +924,6 @@ var application = {
                             if (response.statusText != 'abort') {
                                 application.handlers.responseError(response);
                             }
-                        }
-                        , complete: function () {
-                            $('#' + settings.sTableId).parent().css('overflow', 'auto');
                         }
                     });
                 }
