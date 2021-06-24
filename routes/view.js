@@ -1373,6 +1373,33 @@ module.exports = function (app) {
         }
     });
 
+    app.post('/v/:view/selectAll', application.IsAuthenticated, async (req, res) => {
+        try {
+            const view = await db.getModel('view').findOne({ where: { url: req.params.view || null }, include: [{ all: true }] });
+            if (!view)
+                return application.error(res, {});
+            const bodyID = req.body.id || 0;
+            const where = {};
+            if (view.wherefixed) {
+                Object.assign(where, { [db.Op.col]: db.Sequelize.literal(`(${view.wherefixed.replace(/\$user/g, req.user.id).replace(/\$id/g, bodyID)})`) });
+            }
+            Object.assign(where, await platform.view.f_getFilter(req, view));
+            const registers = await db.getModel(view.model.name).findAll({
+                raw: true
+                , attributes: ['id']
+                , where: where
+            });
+            if (registers.length > 1000)
+                return application.error(res, { msg: 'Não é possível selecionar mais de 1000 registros' });
+            const ids = [];
+            for (const r of registers)
+                ids.push(r.id);
+            application.success(res, { view: req.params.view, ids: ids });
+        } catch (err) {
+            application.fatal(res, err);
+        }
+    });
+
     app.post('/v/:view/:id', application.IsAuthenticated, async (req, res) => {
         try {
             const view = await findView(req.params.view);

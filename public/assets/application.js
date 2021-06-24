@@ -144,6 +144,7 @@ var application = {
                             $this.find('button:submit').prop('disabled', false);
                         }, 1000);
                     }
+                    , timeout: 0
                 });
             });
             $('a.sidebar-toggle').click(function () {
@@ -182,6 +183,7 @@ var application = {
                     , error: function (response) {
                         application.handlers.responseError(response);
                     }
+                    , timeout: 0
                 });
             });
             $(document).ajaxStart(function () {
@@ -272,6 +274,7 @@ var application = {
                                 application.notify.error('Não foi possível carregar o filtro');
                             }
                         }
+                        , timeout: 0
                     });
                 }
             });
@@ -819,6 +822,7 @@ var application = {
                                     , error: function (response) {
                                         application.handlers.responseError(response);
                                     }
+                                    , timeout: 0
                                 });
                             });
                         } else {
@@ -827,6 +831,41 @@ var application = {
                     }
                 });
             }
+            eventButtons.push({
+                text: '<i class="far fa-check-square"></i> Selecionar Todos'
+                , className: 'btn-block btn-primary text-left'
+                , action: function (e, dt, node, config) {
+                    var $table = $('#' + dt.settings()[0].sTableId);
+                    var view = $table.attr('data-view');
+                    if (tables['view' + view].settings()[0]._iRecordsTotal > 1000)
+                        return application.notify.info('Não é possível selecionar mais de 1000 registros');
+                    $.ajax({
+                        url: '/v/' + view + '/selectAll'
+                        , type: 'POST'
+                        , dataType: 'json'
+                        , data: { 
+                            id: application.functions.getId() 
+                            , subview: $table.attr('data-subview')
+                        }
+                        , success: function (response) {
+                            application.handlers.responseSuccess(response);
+                            if (response.success && response.ids.length > 0) {
+                                var $table = $('#view' + response.view);
+                                var $dtSelectCount = $table.closest('.dataTables_wrapper').find('.dt-select-count');
+                                var selected = response.ids;
+                                $table.attr('data-selected', selected);
+                                $dtSelectCount.text(' (' + selected.length + ')');
+                                $dtSelectCount.closest('button').removeClass('btn-default').addClass('btn-primary');
+                                application.view.reload('view' + response.view, true);
+                            }
+                        }
+                        , error: function (response) {
+                            application.handlers.responseError(response);
+                        }
+                        , timeout: 0
+                    });
+                }
+            });
             eventButtons.push({
                 text: '<i class="fa fa-times"></i> Desmarcar Selecionados'
                 , className: 'btn-block btn-info text-left'
@@ -865,6 +904,7 @@ var application = {
                             , error: function (response) {
                                 application.handlers.responseError(response);
                             }
+                            , timeout: 0
                         });
                     }
                 });
@@ -925,6 +965,7 @@ var application = {
                                 application.handlers.responseError(response);
                             }
                         }
+                        , timeout: 0
                     });
                 }
                 , dom: '<"col-xs-4 no-padding"B><"col-xs-4 dt-title-div no-padding text-center"><"col-xs-4 dt-filter-div no-padding text-right"><"col-xs-12 no-padding"ti>'
@@ -1051,6 +1092,7 @@ var application = {
                         , error: function (response) {
                             application.handlers.responseError(response);
                         }
+                        , timeout: 0
                     });
             }).on('dblclick touchstart touchend touchmove', 'tbody tr', function (e) {
                 var $table = $(e.delegateTarget);
@@ -1127,6 +1169,7 @@ var application = {
                     , error: function (response) {
                         application.handlers.responseError(response);
                     }
+                    , timeout: 0
                 });
             });
         }
@@ -1544,6 +1587,7 @@ var application = {
                     jsFunctionQueue.shift();
                     application.jsfunctionexecute();
                 }
+                , timeout: 0
             });
         }
     }
@@ -1696,6 +1740,7 @@ var application = {
                     , error: function (response) {
                         callback(response);
                     }
+                    , timeout: 0
                 });
             }
         }
