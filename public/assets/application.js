@@ -838,13 +838,13 @@ var application = {
                     var $table = $('#' + dt.settings()[0].sTableId);
                     var view = $table.attr('data-view');
                     if (tables['view' + view].settings()[0]._iRecordsTotal > 1000)
-                        return application.notify.info('Não é possível selecionar mais de 1000 registros');
+                        return application.notify.error('Não é possível selecionar mais de 1000 registros');
                     $.ajax({
                         url: '/v/' + view + '/selectAll'
                         , type: 'POST'
                         , dataType: 'json'
-                        , data: { 
-                            id: application.functions.getId() 
+                        , data: {
+                            id: application.functions.getId()
                             , subview: $table.attr('data-subview')
                         }
                         , success: function (response) {

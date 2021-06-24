@@ -1387,6 +1387,7 @@ module.exports = function (app) {
             const registers = await db.getModel(view.model.name).findAll({
                 raw: true
                 , attributes: ['id']
+                , include: [{ all: true, attributes: [] }]
                 , where: where
             });
             if (registers.length > 1000)
