@@ -58,7 +58,7 @@ const main = {
                 , cc: cc || null
                 , files: files || null
                 , sent: false
-            });
+            }, { iduser: iduser });
         } catch (err) {
             console.error(err, new Error().stack);
         }
@@ -107,7 +107,7 @@ const main = {
                 transporter.sendMail(mailOptions, async function (err, info) {
                     this.sent = err ? false : true;
                     this.log = err ? JSON.stringify(err) + ' ' + JSON.stringify(info) : null;
-                    await this.save();
+                    await this.save({ iduser: this.iduser });
                 }.bind(m));
             }
             interval = setInterval(main.scheduler, secondsInterval * 1000);
