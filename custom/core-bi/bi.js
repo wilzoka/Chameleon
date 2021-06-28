@@ -1172,11 +1172,12 @@ const bi = {
                     const analysis = await db.findById('bi_analysis', saved.register.idanalysis);
                     const user = await db.findById('users', saved.register.iduser);
                     if (user && user.email)
-                        mail.f_sendmail({
-                            to: [user.email]
-                            , subject: `SIP - Nova Análise Compartilhada`
-                            , html: `Análise: <a href="https://${process.env.NODE_APPNAME}.plastrela.com.br/v/analise/${analysis.id}" target="_blank">${analysis.description}</a>`
-                        });
+                        mail.f_send(
+                            obj.req.user.id
+                            , user.email
+                            , `SIP - Nova Análise Compartilhada`
+                            , `Análise: <a href="https://${process.env.NODE_APPNAME}.plastrela.com.br/v/analise/${analysis.id}" target="_blank">${analysis.description}</a>`
+                        );
                 }
             } catch (err) {
                 application.fatal(obj.res, err);

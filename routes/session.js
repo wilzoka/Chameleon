@@ -146,14 +146,15 @@ module.exports = function (app) {
                 return application.error(res, { msg: 'Usuário não possui e-mail vinculado, contate o administrador' });
             user.resettoken = Cyjs.SHA3(`${application.sk}${process.hrtime()[1]}${user.id}`).toString();
             await user.save();
-            platform.mail.f_sendmail({
-                to: [user.email]
-                , subject: `Recuperação de Senha`
-                , html: `Olá ${user.fullname},
-            <br>Você solicitou a recuperação de sua senha de acesso ao sistema, para continuar clique <a href="${req.headers.origin}/resetpassword?token=${user.resettoken}">aqui</a>.
-            <br>
-            <br>Se não foi você, desconsidere este e-mail.`
-            });
+            platform.mail.f_send(
+                null
+                , user.email
+                , `Recuperação de Senha`
+                , `Olá ${user.fullname},
+                <br>Você solicitou a recuperação de sua senha de acesso ao sistema, para continuar clique <a href="${req.headers.origin}/resetpassword?token=${user.resettoken}">aqui</a>.
+                <br>
+                <br>Se não foi você, desconsidere este e-mail.`
+            );
             application.success(res, {
                 msg: 'Enviamos um e-mail com as instruções de recuperação da senha'
                 , redirect: '/login'
