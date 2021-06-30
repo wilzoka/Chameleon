@@ -1127,7 +1127,7 @@ const platform = {
                 inner join view v on (replace(x.path, '/v/', '') = v.url)
                 inner join menu m on (v.idmenu = m.id)
                 order by x.qtd desc
-                limit 15
+                limit 30
                 `);
                 let total = 0;
                 let max = 0;
