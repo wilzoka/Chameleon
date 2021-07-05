@@ -660,9 +660,9 @@ const bi = {
                             ct.push(`"${m.sqlfield}" Numeric`);
                             keys.push(m.sqlfield);
                         }
-                        await db.sequelize.query(`drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} (${ct.join(',')});` + indexes.join(';'));
                         await needle('post', ds.url, {
                             dwc: process.env.NODE_DBC
+                            , presql: `drop table if exists bi_cube_${idcube}; create table bi_cube_${idcube} (${ct.join(',')});` + indexes.join(';')
                             , q: cube.sql
                             , table: `bi_cube_${idcube}`
                             , dbc: ds.dbconn
