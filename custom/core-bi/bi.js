@@ -296,6 +296,7 @@ const bi = {
         const chart = {
             chart: {
                 type: decodeChartType(options.charttype)
+                , height: options.config.chartheight || null
             }
             , title: {
                 text: ''

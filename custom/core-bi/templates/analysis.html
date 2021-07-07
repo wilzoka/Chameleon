@@ -299,8 +299,9 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <div class="form-group">
-                                                    <label>Cor1</label>
-                                                    <input name="color1" type="color" class="form-control" />
+                                                    <label>Altura (px)</label>
+                                                    <input name="chartheight" type="text" class="form-control"
+                                                        data-type="integer" />
                                                 </div>
                                             </div>
                                         </div>
@@ -456,6 +457,7 @@
         var current = {
             measures: []
         }
+        var filtercache = {};
         var tablefilter = $('#tablefilter').DataTable({
             columns: [{ "title": "Selecione para Filtrar", "orderable": true, "class": "text-left" }]
             , dom: 'Bfrt'
@@ -794,6 +796,27 @@
             });
         }
 
+        function runFilter(key, data) {
+            $('#modalfilter').find('.modal-title').html(key);
+            $('#modalfilter').attr('data-key', key);
+            $filterdynamic.val('');
+            tablefilter.clear();
+            tablefilter.rows.add(data);
+            tablefilter.draw();
+            var filter = JSON.parse($filter.val() || '{}');
+            tablefilter.rows().every(function () {
+                if (typeof filter[key] == 'string') {
+                    $filterdynamic.val(filter[key]);
+                } else {
+                    var d = this.data();
+                    if (filter[key] && filter[key].indexOf(d[0]) >= 0) {
+                        this.select();
+                    }
+                }
+            });
+            $('#modalfilter').modal('show');
+        }
+
         $(document).on('change', 'input.checkmeasure', function () {
             renderTable();
         });
@@ -821,28 +844,16 @@
         if (canEdit()) {
             $(document).on('click', '.dimfilter', function (e) {
                 var key = $(this).closest('li.list-group-item').attr('data-key');
-                application.jsfunction('platform.core_bi.analysis.js_getFilter', { idcube: $idcube.val(), key: key }, function (response) {
-                    if (response.success) {
-                        $('#modalfilter').find('.modal-title').html(key);
-                        $('#modalfilter').attr('data-key', key);
-                        $filterdynamic.val('');
-                        tablefilter.clear();
-                        tablefilter.rows.add(response.data);
-                        tablefilter.draw();
-                        var filter = JSON.parse($filter.val() || '{}');
-                        tablefilter.rows().every(function () {
-                            if (typeof filter[key] == 'string') {
-                                $filterdynamic.val(filter[key]);
-                            } else {
-                                var d = this.data();
-                                if (filter[key] && filter[key].indexOf(d[0]) >= 0) {
-                                    this.select();
-                                }
-                            }
-                        });
-                        $('#modalfilter').modal('show');
-                    }
-                });
+                if (filtercache[key]) {
+                    runFilter(key, filtercache[key]);
+                } else {
+                    application.jsfunction('platform.core_bi.analysis.js_getFilter', { idcube: $idcube.val(), key: key }, function (response) {
+                        if (response.success) {
+                            filtercache[key] = response.data;
+                            runFilter(key, filtercache[key]);
+                        }
+                    });
+                }
             });
         }
 
