@@ -1081,6 +1081,11 @@ const platform = {
             const param = await db.getModel('parameter').findOne({ where: { key: key } });
             return param ? JSON.parse(param.value) : null;
         }
+        , f_set: async (key, value) => {
+            const param = (await db.getModel('parameter').findOrCreate({ where: { key: key } }))[0];
+            param.value = value ? JSON.stringify(value) : '{}';
+            return await param.save();
+        }
     }
     , users: {
         onsave: async (obj, next) => {
