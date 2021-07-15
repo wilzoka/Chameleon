@@ -36,7 +36,7 @@
       if (response.success) {
         for (var i = 0; i < response.data.length; i++) {
           const el = response.data[i];
-          $('#mostAcessedViews').append('<a style="width: 92px; text-overflow: ellipsis; overflow: hidden;" title="' + el.view
+          $('#mostAcessedViews').append('<a style="width: 100px; text-overflow: ellipsis; overflow: hidden;" title="' + el.view
             + '" class="btn btn-app" href="/v/' + el.url
             + '"><i class="' + (el.icon || 'fa fa-angle-down') + '" style="color: ' + application.functions.hsl_col_perc(el.color, 0, 100) + '; display: block; min-height: 20px;"></i><span>' + el.view
             + '</span></a>');
